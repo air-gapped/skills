@@ -85,6 +85,15 @@ Both relax only when a cluster is scaled to 0 instances, or when
 `enable_pod_disruption_budget` is off. Disabling avoids blocking managed-K8s
 node upgrades, at the cost of longer database downtime.
 
+Cordon first and let the primaries move before draining. Once a node is
+unschedulable (and lacks any
+`node_readiness_label`), the operator moves its primaries off within
+`master_pod_move_timeout` (20m). A cluster with a replica gets a switchover; a
+single-instance cluster gets its pod recreated elsewhere, with downtime. Before
+v2.0.3 the first failed attempt (for example, no synced standby yet) ended the
+move for good, so the primary stays and holds the drain (#3179). Uncordon and
+re-cordon to retry, or switch over by hand.
+
 ## Delete protection
 
 `delete_annotation_name_key` and `delete_annotation_date_key` (date in
