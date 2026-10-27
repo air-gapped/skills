@@ -152,7 +152,7 @@ literal string `"None"` into the prompt.
 
 **Repo:** `google/gemma-4-26B-A4B-it` (verified), not `gemma-4-31B-it`
 (SKU not found on HF Hub as of 2026-04-21).
-**Tokenizer class:** `GemmaTokenizer` + `Gemma3Processor` (multimodal)
+**Tokenizer class:** `GemmaTokenizer` + `Gemma4Processor` (multimodal)
 **Files involved:** `tokenizer_config.json`, `generation_config.json`,
 separate `chat_template.jinja`
 

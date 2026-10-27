@@ -151,7 +151,7 @@ against each repo's `tokenizer_config.json`.
 | Lab / repo | `tokenizer_class` | Backend | Files shipped | Trust remote code? |
 |---|---|---|---|---|
 | moonshotai/Kimi-K2-Instruct, K2.6 | `TikTokenTokenizer` (custom, `auto_map`) | `PythonBackend` (slow) | `tiktoken.model`, NO `tokenizer.json` | **Yes** + `pip install tiktoken` |
-| google/gemma-4-E4B, 26B-A4B-it | `GemmaTokenizer` + `Gemma3Processor` | `TokenizersBackend` | `tokenizer.json` (LFS), sep `chat_template.jinja` (issue #45205) | No |
+| google/gemma-4-E4B, 26B-A4B-it | `GemmaTokenizer` + `Gemma4Processor` | `TokenizersBackend` | `tokenizer.json` (LFS), sep `chat_template.jinja` (issue #45205) | No |
 | zai-org/GLM-5.1, GLM-5.1-FP8 | `TokenizersBackend` (explicit) | `TokenizersBackend` | `tokenizer.json`, no `special_tokens_map.json` | No; **transformers ≥5.0 required** |
 | zai-org/GLM-4.6 | `PreTrainedTokenizer` | `PythonBackend` (alias) | `tokenizer.json` + dict `extra_special_tokens` | No |
 | Qwen/Qwen3-0.6B | default | `TokenizersBackend` | Full set | No |

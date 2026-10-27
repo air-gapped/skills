@@ -195,15 +195,14 @@ Only honored if `tokenizer.json` is absent (no Rust tokenizer).
 settings and references to the tokenizer class:
 
 - `image_processor_type`, `feature_extractor_type`
-- `processor_class` — e.g. `"Gemma3Processor"`, `"Qwen2VLProcessor"`
+- `processor_class` — e.g. `"Gemma4Processor"`, `"Qwen2VLProcessor"`
 - `image_size`, `patch_size`, `num_image_tokens` (VLM-specific)
 - `tokenizer` — sometimes a nested object pointing at a
   sub-tokenizer class
 
-**Gemma-4 clarification:** there is **no `Gemma4Processor` class**
-in transformers v5.5.4. Gemma-4 multimodal uses `Gemma3Processor`;
-text-only Gemma-4 uses plain `GemmaTokenizer`. The user's premise
-that Gemma-4 has a dedicated processor is wrong.
+**Gemma-4:** `processor_class` is `Gemma4Processor`
+(`models/gemma4/processing_gemma4.py`, transformers ≥ 5.5.0 — older
+releases cannot load it); its tokenizer is plain `GemmaTokenizer`.
 
 ---
 

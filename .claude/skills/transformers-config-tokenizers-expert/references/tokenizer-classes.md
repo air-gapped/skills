@@ -205,13 +205,12 @@ compound object. The `.tokenizer` attribute is still a regular
 `TokenizersBackend` or `PythonBackend`.
 
 **Common subclasses in 2026:**
-- `Gemma3Processor` (used by Gemma-3 and Gemma-4 multimodal)
+- `Gemma3Processor` (Gemma-3), `Gemma4Processor` (Gemma-4, transformers ≥ 5.5.0)
 - `Qwen2VLProcessor`, `Qwen2AudioProcessor`
 - `LlavaProcessor`, `PaliGemmaProcessor`
 
-**There is NO `Gemma4Processor`.** The user-level premise is wrong —
-Gemma-4 multimodal reuses `Gemma3Processor`. Gemma-4 text-only uses
-plain `GemmaTokenizer`.
+Gemma-4 ships `processor_class: Gemma4Processor`; the tokenizer
+underneath is plain `GemmaTokenizer`.
 
 **Preflight rule:** inspect `processor.tokenizer`, not `processor`
 directly. Tokenizer-class discovery on a processor-shaped model

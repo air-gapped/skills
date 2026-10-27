@@ -93,7 +93,7 @@ refs).
 | https://huggingface.co/moonshotai/Kimi-K2-Instruct/discussions/31 | EOS ambiguity | 2026-09-15 |
 | https://huggingface.co/moonshotai/Kimi-K2.5/discussions/7 | Slow tokenizer note | 2026-09-15 |
 | https://huggingface.co/moonshotai/Kimi-K2.6/blob/main/tokenizer_config.json | Half-fix EOS split-brain | 2026-09-15 |
-| https://huggingface.co/google/gemma-4-E4B/blob/main/tokenizer_config.json | GemmaTokenizer + Gemma3Processor | 2026-09-15 |
+| https://huggingface.co/google/gemma-4-E4B/blob/main/tokenizer_config.json | GemmaTokenizer + Gemma4Processor (`processor_class` read 2026-10-27, same in 26B-A4B-it; class ships from transformers v5.5.0) | 2026-09-15 |
 | https://huggingface.co/google/gemma-4-E4B/blob/main/generation_config.json | eos_token_id 1 | 2026-09-15 |
 | https://huggingface.co/google/gemma-4-26B-A4B-it/blob/main/generation_config.json | eos_token_id [1, 106, 50] | 2026-09-15 |
 | https://huggingface.co/zai-org/GLM-5.1/blob/main/tokenizer_config.json | TokenizersBackend + list extra_special_tokens | 2026-09-15 |
