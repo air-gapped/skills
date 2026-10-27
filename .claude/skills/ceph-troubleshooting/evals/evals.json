@@ -44,7 +44,7 @@
       "id": 3,
       "name": "osd-oomkilled-rook",
       "prompt": "Our Rook OSD pods keep getting OOMKilled on nodes with 64GB RAM that also run other workloads. The CephCluster has no resources section for osds. Why, and what do I change?",
-      "expected_output": "Rook derives osd_memory_target from request 1:1 or limit x 0.8; set spec.resources.osd requests/limits; verify with ceph config show.",
+      "expected_output": "Ceph sets osd_memory_target to the pod memory request, capped at limit x 0.8 (limit alone: limit x 0.8); set spec.resources.osd requests/limits; verify with ceph config show.",
       "files": [],
       "assertions": [
         "Explains Rook derives osd_memory_target from the OSD pod memory request (or limit times osd_memory_target_cgroup_limit_ratio)",

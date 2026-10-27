@@ -105,8 +105,8 @@
     },
     {
       "id": 19,
-      "question": "When a Rook OSD pod has a memory request, what ratio does Rook use to set osd_memory_target?",
-      "skill_answer": "1:1 with the memory request"
+      "question": "When a Rook OSD pod has a memory request, what does Ceph set osd_memory_target to?",
+      "skill_answer": "The request, capped at limit x osd_memory_target_cgroup_limit_ratio (0.8) when a limit is set"
     },
     {
       "id": 20,

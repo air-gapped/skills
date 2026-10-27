@@ -100,13 +100,13 @@ add capacity; raise a ratio (`ceph osd set-full-ratio` /
 
 ## OSD OOM kills under Rook
 
-Rook injects `POD_MEMORY_REQUEST` / `POD_MEMORY_LIMIT`; Ceph uses the
-**request 1:1** as `osd_memory_target`, else **limit** ×
-`osd_memory_target_cgroup_limit_ratio` (0.8). The 0.8 never applies to the
-request. With neither
-set, the target is not tied to the pod and OSDs get OOM-killed on busy
-nodes. Always set `spec.resources.osd.requests.memory` (and a limit with
-headroom) in the CephCluster; verify with
+Rook injects `POD_MEMORY_REQUEST` / `POD_MEMORY_LIMIT`; Ceph sets
+`osd_memory_target` to the **request**, capped at **limit** ×
+`osd_memory_target_cgroup_limit_ratio` (0.8) when a limit is set — a request
+equal to the limit yields 0.8 × limit; a limit alone yields 0.8 × limit.
+With neither set, the target is not tied to the pod and OSDs get OOM-killed on busy
+nodes. Always set `spec.resources.osd.requests.memory` and a limit of at
+least request ÷ 0.8 in the CephCluster; verify with
 `ceph config show osd.N osd_memory_target`. Ceph's default is 4 GiB.
 
 ## Mon quorum lost (Rook)
