@@ -9,7 +9,8 @@ Freshened: 2026-09-23 — every row probed at creation.
 | CVE-2026-54330 | https://docs.ceph.com/en/latest/security/CVE-2026-54330/ | 2026-09-23 | SigV4 unsigned `x-amz-*` headers; fixed 19.2.6 / 20.2.4. |
 | CVE-2026-39944 | https://docs.ceph.com/en/latest/security/CVE-2026-39944/ | 2026-09-23 | STS token CBC bit-flip → admin; fixed 19.2.6 / 20.2.4. |
 | Combo release | https://ceph.io/en/news/blog/2026/v20-2-4-v19-2-6-combo-released/ | 2026-09-23 | 2026-08-19; multisite `rgw_sigv4_insecure` note. |
-| Presigned PUT regression | https://tracker.ceph.com/issues/79674 | 2026-09-23 | Unsigned Content-Type rejected; ceph-users 2026-08-31 workaround `rgw_sigv4_insecure` until 19.2.7 / 20.2.5. |
+| Presigned PUT regression | https://tracker.ceph.com/issues/79674 | 2026-10-27 | Resolved. Squid backport 79723 (pr#71296) Released In v19.2.7; tentacle backport 79725 merged (Fixed In v20.2.4-294), no Tentacle release after 20.2.4 yet. CVE-2026-54330 page: affects boto3 presigned PUTs with a content type, aws-sdk-php, minio-go (thanos-io/objstore: Thanos, Loki, Mimir); "upgrade directly to 19.2.7"; `debug_rgw` 5 logs `Signature rejected`; unsigned other `x-amz-*` headers are rejected by AWS too, so not a regression. |
+| Unsigned x-amz-content-sha256 regression | https://tracker.ceph.com/issues/79803 | 2026-10-27 | Backporting. Squid 79873 (pr#71360) Released In v19.2.7; tentacle 79871 QA Testing. |
 | Multisite forwarding regression | https://tracker.ceph.com/issues/79698 | 2026-09-23 | Closed as duplicate of 74579; both settings needed. |
 | Rook multisite doc | https://github.com/rook/rook/blob/master/Documentation/Storage-Configuration/Object-Storage-RGW/ceph-object-multisite.md | 2026-09-23 | Warning added after v1.20.7: set `rgw_sigv4_insecure: "true"` + `rgw_s3_client_max_sig_ver: "2"`, revert to `"false"` / `"-1"`. |
 | CRC64NVME | https://tracker.ceph.com/issues/70040 | 2026-09-23 | Fixed via ceph/ceph#61878 in Tentacle 20.2.0. |
