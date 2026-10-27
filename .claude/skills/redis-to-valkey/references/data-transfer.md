@@ -109,7 +109,7 @@ Operational caveats (from the maintainers):
 - **Static binaries**: GitHub releases publish per-platform tarballs
   (`redis-shake-vX.Y.Z-linux-amd64.tar.gz`, also arm64) — a single Go
   binary + example configs. One file to carry across the gap; no runtime
-  deps. (Verified present on v4.6.2, 2026-08-17.)
+  deps. (Verified present on v4.7.0, 2026-10-20.)
 - **Container image**: `ghcr.io/tair-opensource/redisshake` — mirror it to
   run the transfer as a Job/Pod inside the cluster (often the
   only place with network reach to both Redis and Valkey services).
@@ -118,9 +118,8 @@ Operational caveats (from the maintainers):
 
 ## Logical: rdb-cli (offline, any RDB version)
 
-From redis/librdb (C library; build from source — tags only, no binary
-releases; latest tag v2.3.0, 2026-06-03. Source-only,
-no prebuilt binaries):
+From redis/librdb (C library; build from source — releases carry no
+prebuilt binaries; latest tag v2.4.0):
 
 ```
 git clone https://github.com/redis/librdb && cd librdb && make

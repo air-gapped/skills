@@ -53,7 +53,7 @@ gates verified 2026-08-26.
    for the duration of a sync (temporarily raise down-after, or accept the
    full-recopy risk; there is no resume). Resume is not coming: maintainers
    declined it as out of scope for a sync tool (issue #1016, still open at
-   v4.6.2) — plan the window around a full recopy rather than waiting.
+   v4.7.0) — plan the window around a full recopy rather than waiting.
 
 ## Client-breaking
 
