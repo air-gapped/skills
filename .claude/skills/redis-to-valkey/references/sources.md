@@ -53,7 +53,8 @@ proves containment, and a release-notes read would have gotten both wrong.
 | GitLab requirements | https://docs.gitlab.com/install/requirements/ | Valkey min/rec 7.2; Redis Cluster not supported | — |
 | oauth2-proxy session docs | https://oauth2-proxy.github.io/oauth2-proxy/configuration/session_storage/ | `--redis-use-sentinel`, `--redis-sentinel-master-name`, `--redis-sentinel-connection-urls`. **EXCEPTION (2026-08-26):** `--redis-sentinel-password` is NOT on this page — it is real (19 hits in oauth2-proxy source) but grounded in the repo, not here. Do not drop the flag from the skill on the strength of this page alone | — |
 | Open WebUI valkey tutorial | https://docs.openwebui.com/tutorials/integrations/valkey/ | first-party Valkey endorsement; drop-in via REDIS_URL | — |
-| Open WebUI #19401 | https://github.com/open-webui/open-webui/issues/19401 | sentinel-auth bug, closed 2025-11-25, no reopen | — |
+| Open WebUI #19401 | https://github.com/open-webui/open-webui/issues/19401 | sentinel-auth bug, closed 2025-11-25, no reopen — but the same failure was re-reported on v0.12.0 as #32240 | — |
+| Open WebUI v0.12.1 notes | https://github.com/open-webui/open-webui/releases/tag/v0.12.1 | Sentinel password now passed to sentinels (#32240, PR #32241) and mixed-case master names no longer lowercased (#31918, PR #32234); v0.11.0 notes fix per-command master lookup + failover-on-timeout (#27210, PR #27213) | v0.12.1 (2026-10-14) |
 | Sidekiq Valkey support | https://github.com/sidekiq/sidekiq/issues/6630 | Valkey supported. **8.0.1 relaxed the floor to Redis 7.0**, not 7.2 as recorded on 2026-07-18 | closed |
 | Sentry version-parse crash | https://github.com/getsentry/sentry/issues/107394 | two-part "7.2" redis_version breaking parsers — **fixed, closed COMPLETED 2026-02-09** | closed |
 

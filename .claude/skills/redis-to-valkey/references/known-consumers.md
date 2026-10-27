@@ -4,6 +4,18 @@ Append-only product findings (research pass 2026-07-18, primary sources).
 Config-surface classes refer to `app-cutover.md`. Re-verify anything
 version-gated at use time.
 
+## 2026-10-27 — freshen delta (supersedes the dated entries below where noted)
+
+- **Open WebUI — Sentinel floor is v0.12.1**, superseding the ≥0.9.5 floor
+  below. Through v0.12.0 two Sentinel setups fail every Redis call with
+  "No master found": sentinels that require a password (the `REDIS_URL`
+  credentials never reached the sentinels — #19401's closure did not hold)
+  and a master-set name with capitals (`myMaster` was lowercased). Below
+  v0.11.0 it also opened a fresh connection per command (churn, stalls,
+  liveness kills under load) and did not retry against the new primary after
+  a failover. Upgrade to ≥0.12.1 before repointing; if that must wait, keep
+  the sentinels unauthenticated and the master-set name lowercase.
+
 ## 2026-08-26 — freshen delta (supersedes the dated entries below where noted)
 
 - **Harbor — the chart now ships Valkey.** goharbor#22935 is **closed**; the
