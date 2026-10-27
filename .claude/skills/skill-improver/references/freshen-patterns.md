@@ -466,7 +466,7 @@ Skill `vllm-input-modalities` claims "Use `--task embed` to serve embedding mode
 
 ```bash
 $ gh search issues "--task embed deprecated" --repo vllm-project/vllm --limit 5
-#12345 Deprecate --task in favor of --runner pooling (closed, merged)
+vllm-project/vllm  12345  closed  Deprecate --task in favor of --runner pooling
 $ gh pr view 12345 -R vllm-project/vllm --json state,mergedAt,title
 {"state":"MERGED","mergedAt":"2026-02-14T...","title":"Deprecate --task, add --runner pooling"}
 ```

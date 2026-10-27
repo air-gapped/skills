@@ -290,7 +290,7 @@ unrestamped.
   - **v2.1.119 (2026-04-23):** `--print` mode honors agent's `tools:`/`disallowedTools:` frontmatter. `--agent <name>` honors `permissionMode` for built-in agents. `PostToolUse`/`PostToolUseFailure` hook inputs now include `duration_ms`. Slash command picker wraps long descriptions instead of truncating.
   - **v2.1.121 (2026-04-28):** Type-to-filter search box added to `/skills`. `PostToolUse` hooks can replace tool output for all tools via `hookSpecificOutput.updatedToolOutput`. `--dangerously-skip-permissions` no longer prompts for writes to `.claude/skills/`, `.claude/agents/`, `.claude/commands/`.
   - **v2.1.126 (2026-05-01):** New `claude_code.skill_activated` OpenTelemetry event with `invocation_trigger` attribute (`"user-slash"`, `"claude-proactive"`, or `"nested-skill"`). Fixed deferred tools (WebSearch, WebFetch, etc.) not being available to skills with `context: fork` and other subagents on their first turn.
-- **anthropics/skills repo:** Latest commit 2026-04-23 (`Add Managed Agents memory stores page to claude-api skill #1014`). skill-creator scripts (`improve_description.py`, `run_eval.py`, `run_loop.py`) and `SKILL.md` unchanged since 2026-04-25 — Trigger Mode mirroring stays accurate.
+- **anthropics/skills repo:** Latest commit 2026-04-23 (`Add Managed Agents memory stores page to claude-api skill`, anthropics/skills#1014). skill-creator scripts (`improve_description.py`, `run_eval.py`, `run_loop.py`) and `SKILL.md` unchanged since 2026-04-25 — Trigger Mode mirroring stays accurate.
 - **Anthropic engineering blog post** (Agent Skills announcement): URL still 200 OK, original publication 2025-10-16, content unchanged.
 - **Platform best-practices page**: still authoritative — confirmed core guidance (third-person descriptions, ≤500-line SKILL.md, one-level-deep references, ≥100-line files need TOC) matches what skill-improver enforces.
 
@@ -600,8 +600,8 @@ X/Twitter: Verified 2026-08-22 against all six `x.com` rows in this repo's sourc
 
 #### 3.0 A closed issue is not a fixed issue
 Observed 2026-07-21 in two unrelated repos on the same day:
-- `sgl-project/sglang` #20184 and #17623 — both CLOSED/COMPLETED, both closed by "This issue has been automatically closed due to inactivity."
-- `huggingface/transformers` #45205 — CLOSED/COMPLETED 2026-06-10, closed by "automatically marked as stale because it has not had recent activity."
+- sgl-project/sglang#20184 and sgl-project/sglang#17623 — both CLOSED/COMPLETED, both closed by "This issue has been automatically closed due to inactivity."
+- huggingface/transformers#45205 — CLOSED/COMPLETED 2026-06-10, closed by "automatically marked as stale because it has not had recent activity."
 
 #### 3.0b A tag is not a release
 Observed 2026-09-22 — a `messages-api` row recording opencode v2.0.3 was "corrected" to "has never existed" because `gh release list` topped out at v1.18.32. The operator's machine was running v2.0.8. Tags `v2.0.0` through `v2.0.13`, a `2.0` branch, npm `@opencode/cli` at 2.0.13, a `/v2/` docs tree and a `/v2/install` script all existed; only a Release object did not. Cross-reference: [[the-skill-outranks-training-data]].
