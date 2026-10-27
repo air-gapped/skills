@@ -60,8 +60,11 @@ measurement nobody can run.
 
 ## Unblocked — actionable
 
-- **Family-level-only coverage (carried, needs author judgement on scope).** Three admin families are named but not enumerated, so a script author cannot call them from the skill alone: the 11 `/api/v1/knowledge/external/*` endpoints (covered by the token `/external/*`), the 13 admin `functions` endpoints, and the 8 admin `pipelines` endpoints (both covered by "all admin" blankets). Enumerating all 32 with payload shapes is a multi-file expansion that would roughly double `endpoint-map.md`; it may belong in a separate layered reference rather than inline. Not attempted this pass.
 - **Trigger-mode measurement still has not run.** Unchanged from the 2026-07-22 note — use `/skill-improver trigger open-webui-api`, not description guessing. The frontmatter is at 1533/1536 chars, so any trigger-mode mutation must trim before it adds.
+
+## Decided — 2026-10-27
+
+- **Family-level-only coverage stays family-level.** The 11 `/knowledge/external/*`, 13 admin `functions` and 8 admin `pipelines` endpoints are not enumerated. Their payloads churn per release (0.12.x alone rewrote `functions.py` by ~150 lines), the router source at the running tag is the authority the skill already points to, and inlining 32 shapes would double `endpoint-map.md` for the least-scripted surfaces. Revisit only if a real task fails for lack of one.
 
 ## Resolved this pass — 2026-07-29 (freshen mode, v0.10.2 → v0.11.0)
 
