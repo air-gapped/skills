@@ -33,7 +33,7 @@ proves containment, and a release-notes read would have gotten both wrong.
 | groundhog2k valkey chart | https://github.com/groundhog2k/helm-charts/tree/master/charts/valkey | haMode defaults, auth-via-config-fragments, 26379-only HA service, storage/ServiceMonitor defaults, UID 999, DNS-failover fix in 2.2.2 | chart 2.3.3 / app 9.1.1 |
 | Bitnami redis chart | https://github.com/bitnami/charts/blob/main/bitnami/redis/values.yaml | source-side key names/defaults (auth.*, sentinel.*, replica.*, metrics.*) across 19.x–23.x; chart still updated, app pinned redis 8.2.1 | 19.6.4–23.1.1 |
 | CloudPirates charts | https://github.com/CloudPirates-io/helm-charts | sentinel + externalReplica modes, **new `sentinel.masterProxy` HAProxy front-end**, cosign, common-lib OCI dep | chart 0.25.5 / app 9.1.0 |
-| valkey-io/valkey-helm | https://github.com/valkey-io/valkey-helm | official chart, **still no Sentinel**; Sentinel PR #234 and HAProxy PR #235 open/unmerged (earlier attempts #82/#137/#158 closed) | chart 0.11.0 |
+| valkey-io/valkey-helm | https://github.com/valkey-io/valkey-helm | official chart, **no Sentinel in any release**: Sentinel PR #234 merged 2026-09-24 and HAProxy PR #235 merged 2026-10-03, both after valkey-0.12.0 (2026-09-02); "Feat/1.0 Breaking changes" PR #272 merged 2026-10-20; main Chart.yaml still 0.12.0 | chart 0.12.0 (app 9.1.2) |
 | valkey-io/valkey-operator | https://github.com/valkey-io/valkey-operator | cluster-mode only, README still "not ready for production", v1alpha1 | v0.6.0 (2026-09-01) |
 | redis_exporter | https://github.com/oliver006/redis_exporter | Valkey 7–9 support statement; docker.io/ghcr.io/quay.io mirrors | v1.91.1 (2026-09-07) |
 | Bitnami lockdown issue | https://github.com/bitnami/charts/issues/35164 | timeline (2025-08-28 / 2025-09-29), bitnamilegacy semantics, :latest-only free tier; closed, **no comment since 2025-09-16 and no sunset date announced** | — |
@@ -63,8 +63,9 @@ proves containment, and a release-notes read would have gotten both wrong.
 
 Answered this pass, kept because the answer can flip:
 
-- `valkey-helm sentinel` — **still not shipped** (PRs #234/#235 open). Flips the
-  chart recommendation to a first-party chart the day it merges.
+- `valkey-helm sentinel` — **merged, not released** (PRs #234/#235 on main for
+  1.0). Flips the chart recommendation to a first-party chart the day a
+  release carries it.
 - `RedisShake resume` — **declined by maintainers**, not pending. Stop watching.
 - `bitnami charts sunset` — **no date announced** (issue quiet since 2025-09-16).
   A date changes urgency from "deliberate" to "now".
