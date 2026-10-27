@@ -79,12 +79,13 @@ If `vllm:external_prefix_cache_hits_total` increments but `lmcache_l1_cache_hits
 ## Diagnostics commands
 
 ```bash
-# Status of the LMCache HTTP server (if using `lmcache server` not `python3 -m`)
-curl http://<lmcache-host>:8080/api/healthcheck
-curl http://<lmcache-host>:8080/api/status   # detailed internals
+# Status of the LMCache HTTP server (if using `lmcache server` not `python3 -m`).
+# 0.5.6+ binds 127.0.0.1 by default: run these on the node (or in the hostNetwork pod).
+curl http://127.0.0.1:8080/healthcheck
+curl http://127.0.0.1:8080/status   # detailed internals
 
-# Force-clear all KV cache in L1 (CPU)
-curl -X POST http://<lmcache-host>:8080/api/clear-cache
+# Force-clear L1 (CPU); 0.4.x used POST /clear-cache
+curl -X POST http://127.0.0.1:8080/cache/clear -H 'Content-Type: application/json' -d '{"tier":"l1"}'
 
 # Verify vLLM-side connector registration
 docker exec <vllm-pod> python3 -c "

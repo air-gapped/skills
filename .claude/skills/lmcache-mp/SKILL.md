@@ -238,8 +238,8 @@ The validation method is the same as for native CPU offload — `vllm bench serv
 
 Additional MP-specific signals:
 
-- **LMCache server `/api/healthcheck`** (HTTP server variant, port 8080 default) returns `{"status":"healthy"}` when the engine is initialized. Wire this into K8s liveness/readiness probes.
-- **LMCache `/api/status`** dumps detailed internal state (L1 cache, L2 adapters, controllers, registered GPUs, sessions). Use during incident triage.
+- **LMCache server `GET /healthcheck`** (HTTP server variant, port 8080 default; no `/api/` prefix) returns `{"status":"healthy"}` when the engine is initialized, 503 before. Wire this into K8s liveness/readiness probes. On 0.5.6+ the HTTP server binds `127.0.0.1` by default (`--http-host`; the admin API is unauthenticated), so on the `hostNetwork` DaemonSet set `httpGet.host: 127.0.0.1` in the probe rather than opening `--http-host`.
+- **LMCache `GET /status`** dumps detailed internal state (L1 cache, L2 adapters, controllers, registered GPUs, sessions). Use during incident triage.
 - **Prometheus on LMCache port 9090** — set `--prometheus-port` to override. The MP server publishes its own metrics independent of vLLM's.
 - **Bidirectional KV transfer log line** in vLLM pod log:
   ```

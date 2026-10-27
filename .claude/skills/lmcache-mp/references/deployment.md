@@ -182,20 +182,20 @@ spec:
 
 ### Health check via HTTP server variant
 
-If you use `lmcache server` (not `python3 -m lmcache.v1.multiprocess.server`), you also get a FastAPI HTTP frontend on port 8080 with `/api/healthcheck`. Wire it into K8s probes:
+If you use `lmcache server` (not `python3 -m lmcache.v1.multiprocess.server`), you also get a FastAPI HTTP frontend on port 8080 with `GET /healthcheck`. On 0.5.6+ it binds `127.0.0.1` by default and serves no auth, so keep it there and point the probe at loopback — the DaemonSet is `hostNetwork`, so kubelet's `127.0.0.1` is the server's:
 
 ```yaml
 livenessProbe:
-  httpGet: { path: /api/healthcheck, port: 8080 }
+  httpGet: { host: 127.0.0.1, path: /healthcheck, port: 8080 }
   initialDelaySeconds: 10
   periodSeconds: 30
 readinessProbe:
-  httpGet: { path: /api/healthcheck, port: 8080 }
+  httpGet: { host: 127.0.0.1, path: /healthcheck, port: 8080 }
   initialDelaySeconds: 5
   periodSeconds: 10
 ```
 
-Note the LMCache DaemonSet example uses the legacy `python3 -m lmcache.v1.multiprocess.server` entrypoint (no HTTP frontend). Switch to `lmcache server` to get health checks. The MP docs explicitly call this out: "Recommended. ZMQ + FastAPI HTTP frontend (adds /api/healthcheck for K8s probes…)".
+Note the LMCache DaemonSet example uses the legacy `python3 -m lmcache.v1.multiprocess.server` entrypoint (no HTTP frontend). Switch to `lmcache server` to get health checks. `/run_script` (in-process code execution) is off by default from 0.5.6; leave `--run-script-api-enabled` unset.
 
 ### Monitoring
 
