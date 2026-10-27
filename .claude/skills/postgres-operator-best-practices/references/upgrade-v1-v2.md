@@ -1,9 +1,8 @@
 # Upgrading the Zalando postgres-operator v1.x -> v2.x
 
-Verified **2026-08-25** against upstream `zalando/postgres-operator` at tag
-`v2.0.2` (`docs/migrate.md`, `docs/administrator.md`, chart defaults), the
-release list enumerated unfiltered, and the issue tracker swept. Re-verify
-version-gated claims before relying on them later.
+Holds at upstream `zalando/postgres-operator` tag `v2.0.3`
+(`docs/migrate.md`, `docs/administrator.md`, chart defaults); check dates in
+`sources.md`. Re-verify version-gated claims before relying on them.
 
 - [Release history — and which releases are deployable](#release-history)
 - [Choosing a path](#choosing-a-path)
@@ -29,7 +28,8 @@ gh api repos/zalando/postgres-operator/releases \
 | v1.15.1 | 2025-12-18 | sound; default Spilo `spilo-17:4.0-p3` |
 | v2.0.0 | 2026-07-27 | **fatals on startup**, see below |
 | v2.0.1 | 2026-07-29 | carries the full v2 changelog; **three defects**, not deployable |
-| v2.0.2 | 2026-08-20 | the only viable v2 |
+| v2.0.2 | 2026-08-20 | first viable v2 |
+| v2.0.3 | 2026-10-02 | current; bugfix patch over v2.0.2, no default flips beyond image tags |
 
 **Never filter a release list by a pattern built from the versions expected
 to be there.** A `test("v2|v1.14")` filter on the API call above hides the entire
@@ -37,18 +37,18 @@ to be there.** A `test("v2|v1.14")` filter on the API call above hides the entir
 filter can only ever confirm the assumption that built it. List everything,
 then narrow by reading.
 
-### v2.0.2 is the only viable v2
+### Deploy v2.0.2 or later — v2.0.3 is current
 
 Do not read "v2.0.1 has the real release notes" as "v2.0.1 is the release".
 v2.0.0's notes are a single line redirecting to v2.0.1's, so v2.0.1 is where
-the full v2 changelog lives — but the *artifact* to deploy is v2.0.2.
+the full v2 changelog lives — but the *artifact* to deploy is v2.0.2 or later.
 
 **v2.0.0** — the generated `operatorconfigurations` CRD is rejected by the
 apiserver (invalid string default on the object-typed
 `oauth_token_secret_name`); the operator fatals on startup. #3143 (closed),
 #3152, #3153.
 
-**v2.0.1** — three defects, all fixed only in v2.0.2:
+**v2.0.1** — three defects, all fixed in v2.0.2:
 
 - **#3170 (closed) — a default that activates its own bug.** `syncUsers`
   compares the stored `rolpassword` against a freshly generated hash using
@@ -68,7 +68,7 @@ apiserver (invalid string default on the object-typed
   (#3004/#3102/#3117), `configuration.sidecars` renders as `type: object`
   while the Go field is `[]v1.Container`. Any OperatorConfiguration defining
   global sidecars is rejected by the apiserver; the feature is unusable on
-  v2.0.0, v2.0.1 and master. It worked on v1.14.0, where the field was
+  v2.0.0 and v2.0.1. It worked on v1.14.0, where the field was
   correctly `type: array`. Fixed by #3160.
 - **#3164 (merged)** — the chart had no `strategy.type: Recreate`, so the old
   and new operators run concurrently and fight over scram vs md5.
@@ -82,15 +82,15 @@ signal to check what the *next* patch release fixed before choosing a target.
 "Latest stable" and "the release with the changelog" are often not the same
 artifact.
 
-**Nothing was reported against v2.0.2 in its first five days. That is
-"untested in public", not "clean".**
+Before pinning a target, read the issues filed since its release. A release
+with no reports yet is "untested in public", not "clean".
 
 ## Choosing a path
 
 | Path | Crosses | When to prefer |
 |---|---|---|
-| **A. straight to v2.0.2**, pin `kubernetes_use_configmaps: false`, migrate DCS later | scram + PG13 drop + spilo default + regenerated CRDs, all at once | small fleets, tolerant of a pod roll, want one upgrade |
-| **B. v1.14 -> v1.15.1, migrate DCS there, then v2.0.2** | nothing on the first hop; DCS alone on the second; scram alone on the third | production fleets; splits the two biggest risks apart |
+| **A. straight to v2.0.3**, pin `kubernetes_use_configmaps: false`, migrate DCS later | scram + PG13 drop + spilo default + regenerated CRDs, all at once | small fleets, tolerant of a pod roll, want one upgrade |
+| **B. v1.14 -> v1.15.1, migrate DCS there, then v2.0.3** | nothing on the first hop; DCS alone on the second; scram alone on the third | production fleets; splits the two biggest risks apart |
 
 **v1.15.1 is the designed staging point for anyone on v1.14.x.** It is the
 last release with `kubernetes_use_configmaps` disabled by default, and it is
@@ -101,7 +101,8 @@ cluster management (#2961). v1.15.0 also added the second
 (critical-operations) PDB.
 
 Path B's first hop crosses **no changed default at all** and lands on a
-release soaked since 2025-12-18, versus v2.0.2's few weeks. Its third hop
+release soaked since 2025-12-18, versus a v2 line first released
+2026-07-27. Its third hop
 needs no DCS pin, because reality already matches the v2 default.
 
 ## The upgrade method that works

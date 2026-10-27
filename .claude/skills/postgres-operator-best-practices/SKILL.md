@@ -30,18 +30,18 @@ argument-hint: "[upgrade|dcs|ops] (optional focus area)"
 # postgres-operator-best-practices
 
 Operate the Zalando postgres-operator without surprise downtime. Facts
-below were verified **2026-08-25** against the upstream repo at tag
-`v2.0.2` (`docs/administrator.md`, `docs/migrate.md`, chart defaults),
-with the release list enumerated unfiltered, the issue tracker swept, and
-deployment-level claims checked against a live RKE2 cluster on v1.14.0.
-Re-verify anything version-gated before relying on it later.
+below hold at upstream tag `v2.0.3` (`docs/administrator.md`,
+`docs/migrate.md`, chart defaults); citations and check dates are in
+`references/sources.md`. Re-verify anything version-gated before relying
+on it.
 
-**Version anchor (2026-08-25):** v1.14.0 (2024-12-23) · **v1.15.0**
+**Version anchor:** v1.14.0 (2024-12-23) · **v1.15.0**
 (2025-10-21, ships without UI and logical-backup images — never use it,
 go to v1.15.1) · **v1.15.1** (2025-12-18) · v2.0.0 (2026-07-27) ·
-v2.0.1 (2026-07-29) · **v2.0.2** (2026-08-20, current). Default Spilo:
-`spilo-17:4.0-p2` in v1.14.0, `spilo-17:4.0-p3` in v1.15.1,
-`spilo-18:4.1-p2` in v2.0.x.
+v2.0.1 (2026-07-29) · v2.0.2 (2026-08-20) · **v2.0.3** (2026-10-02,
+current). Default Spilo: `spilo-17:4.0-p2` in v1.14.0, `spilo-17:4.0-p3`
+in v1.15.1, `spilo-18:4.1-p2` in v2.0.x (the v2.0.3 release notes print
+`spilo-17:4.1-p2`; the chart and code say `spilo-18`).
 
 For migrating away to CloudNativePG, and for the "is this project still
 alive" evidence, use `postgres-operator-cloudnative-pg-migration`. This
@@ -58,7 +58,7 @@ skill assumes the decision is to stay.
 | PDB blocking a node drain | `references/operations.md` §"Pod Disruption Budgets" |
 | `v1 Endpoints is deprecated` warning | `references/dcs-endpoints.md` |
 | Logical-backup cronjob, password rotation, connection pooler / pgbouncer | `references/operations.md` |
-| Roles re-`ALTER`ed every 30 min; pgbouncer logins failing twice an hour | scram bug #3170 — upgrade to v2.0.2 |
+| Roles re-`ALTER`ed every 30 min; pgbouncer logins failing twice an hour | scram bug #3170 — upgrade to v2.0.2 or later |
 
 ## The four things that cause unplanned downtime
 
@@ -137,15 +137,16 @@ Also dropped in v2: Postgres 13 support; config options
 `registry.opensource.zalan.do` — including the old `connection_pooler_image`
 default, which is now `ghcr.io/zalando/postgres-operator/pgbouncer:<ver>`.
 
-### v2.0.2 is the only viable v2 — v2.0.0 and v2.0.1 are both defective
+### Deploy v2.0.3 — v2.0.0 and v2.0.1 are both defective
 
 Do not read "2.0.1 has the real release notes" as "2.0.1 is the release".
 v2.0.0's notes are a single line redirecting to v2.0.1's, which is where the
-full v2 changelog lives — but the *artifact* to deploy is v2.0.2.
+full v2 changelog lives — but the *artifact* to deploy is v2.0.2 or later;
+v2.0.3 is the current patch.
 
 - **v2.0.0** — generated CRD rejected by the apiserver; the operator fatals
   on startup (#3143).
-- **v2.0.1** — three defects, all fixed only in v2.0.2: the scram
+- **v2.0.1** — three defects, all fixed in v2.0.2: the scram
   `ALTER ROLE`-every-sync loop (#3170), global `sidecars` rejected by the
   apiserver (#3159), and the missing chart `strategy.type: Recreate` that
   lets two operators run at once (#3164).
@@ -180,8 +181,8 @@ The full cascade with its timings: `references/upgrade-v1-v2.md`.
 
 | Path | Crosses | When to prefer |
 |---|---|---|
-| **A. straight to v2.0.2**, pin `kubernetes_use_configmaps: false`, migrate DCS later | scram + PG13 drop + spilo default + regenerated CRDs, all at once | small fleets, tolerant of a pod roll, want one upgrade |
-| **B. v1.14 -> v1.15.1, migrate DCS there, then v2.0.2** | nothing on the first hop; DCS alone on the second; scram alone on the third | production fleets; splits the two biggest risks apart |
+| **A. straight to v2.0.3**, pin `kubernetes_use_configmaps: false`, migrate DCS later | scram + PG13 drop + spilo default + regenerated CRDs, all at once | small fleets, tolerant of a pod roll, want one upgrade |
+| **B. v1.14 -> v1.15.1, migrate DCS there, then v2.0.3** | nothing on the first hop; DCS alone on the second; scram alone on the third | production fleets; splits the two biggest risks apart |
 
 **v1.15.1 is the designed staging point, not just an older release.** It is
 the last release with `kubernetes_use_configmaps` disabled by default, and it
@@ -189,8 +190,9 @@ is where the code the ConfigMap switch *needs* landed — service-selector
 comparison in `compareServices` (#2955, explicitly "required when switching to
 `kubernetes_use_configmaps`") and the extended RBAC for configmap-based cluster
 management (#2961). So Path B's first hop crosses **no changed default at all**
-and lands on a release soaked since 2025-12-18, versus v2.0.2's few weeks; its
-third hop needs no DCS pin, because reality already matches the v2 default.
+and lands on a release soaked since 2025-12-18, versus a v2 line first
+released 2026-07-27; its third hop needs no DCS pin, because reality already
+matches the v2 default.
 
 Full release history, the upgrade method, the layered diff, the
 issue-tracker-only traps and two wrong expectations worth not repeating:

@@ -1,7 +1,7 @@
 # Day-2 operations
 
-Verified **2026-08-25** against upstream at tag `v2.0.2`
-(`docs/administrator.md`) plus an issue-tracker sweep the same day.
+Holds at upstream tag `v2.0.3` (`docs/administrator.md`); issue states and
+check dates in `sources.md`.
 
 - [What triggers a rolling update of Spilo pods](#what-triggers-a-rolling-update-of-spilo-pods)
 - [In-place major version upgrades](#in-place-major-version-upgrades)
@@ -181,8 +181,6 @@ Four defaults that commonly sit wrong in long-lived deployments:
   routine upgrade into a repeated-rolling cascade.
 
 ## Open issues worth knowing
-
-State verified 2026-08-25.
 
 - **#3163 (open)** — the v2 upgrade cascade: slow `/readyz`, concurrent
   operators, worker starvation. Covered in `upgrade-v1-v2.md`.

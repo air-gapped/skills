@@ -1,7 +1,7 @@
 # The Patroni DCS: v1 Endpoints -> ConfigMaps
 
-Verified **2026-08-25** against upstream at tag `v2.0.2` (`docs/migrate.md`,
-`docs/administrator.md`), the v1.15.0 release notes, and issue #2946.
+Holds at upstream tag `v2.0.3` (`docs/migrate.md`, `docs/administrator.md`),
+the v1.15.0 release notes, and issue #2946; check dates in `sources.md`.
 
 ## Where the DCS actually lives
 
@@ -40,7 +40,7 @@ worth pinning to `false` across the v2 hop and migrating separately.
 Consider enabling `enable_patroni_failsafe_mode` (default `false`) *before*
 this migration: with it off, DCS trouble can demote a healthy primary.
 
-## Upstream migration procedure (docs/migrate.md, v2.0.2)
+## Upstream migration procedure (docs/migrate.md, v2.0.3)
 
 Global, not per-cluster — simpler than it first looks:
 
