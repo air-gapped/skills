@@ -1,6 +1,6 @@
 # sources.md — external references for `vuln-scan` (freshen index)
 
-Freshened: 2026-09-22 — every row probed; all URLs 200 and no cited repo is archived. The Visa harness advanced to v1.4.0 and every cited lineage — the prefilter regexes, the per-chunk threat_id stamp, the specialist hints — still holds verbatim, with call-graph context injection now in s6_verify.py.
+Freshened: 2026-10-27 — every row probed, no exceptions; the Visa harness is at v1.5.1, whose s5 split and lens-skill rewrite the Visa row maps.
 
 One row per external reference this skill depends on. `skill-improver freshen`
 probes every row and writes the single `Freshened:` stamp above.
@@ -17,7 +17,7 @@ security-review tooling changes.
   here for execution-verified scanning.
 - State 2026-10-27: active, not archived, no releases or tags; last push
   2026-08-06 (`d3bea6b`, merge of anthropics/defending-code-reference-harness#44) and no commits since 2026-09-16. Next
-  pass: sweep commits `--since=2026-10-28`.
+  pass: sweep commits since the day after the `Freshened:` stamp.
 - HARNESS.md facts re-read in a local clone at `d3bea6b`: README "reference,
   not a product" (L36), "seven stages" (L192), the setup block (L169-176),
   the gVisor refusal (L187-188); `harness/auth.py` usage marker (L211-218);
