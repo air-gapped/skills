@@ -80,7 +80,7 @@ parser.o: parser.c parser.h util.h
 # =============================================================================
 
 # Detect OS using uname
-UNAME_S := $(shell uname -s 2>/dev/null || echo Unknown)
+UNAME_S != uname -s 2>/dev/null || echo Unknown
 
 # Set platform-specific variables
 # Note: Use separate conditionals for BSD make compatibility
@@ -95,19 +95,21 @@ DARWIN_LDFLAGS = -framework CoreFoundation
 # Conditional directive syntax diverges between GNU (`ifeq`) and BSD (`.if`),
 # so a single-source truly-portable conditional does not exist. Pick one:
 #
-# Option A — GNU-only (matches this file's use of `:=`):
+# Option A — GNU-only:
 #   ifeq ($(UNAME_S),Linux)
 #     LDFLAGS += $(LINUX_LDFLAGS)
 #   else ifeq ($(UNAME_S),Darwin)
 #     LDFLAGS += $(DARWIN_LDFLAGS)
 #   endif
 #
-# Option B — portable via shell composition (works in GNU and BSD):
-LDFLAGS += $(shell \
-	case `uname -s` in \
+# Option B — portable via `!=` (GNU Make 4.0+, BSD make, POSIX 2024). Never
+# `$(shell ...)`: BSD make expands it to nothing, and in GNU Make the `)` of
+# each `case` pattern closes the function call early.
+PLATFORM_LDFLAGS != case `uname -s` in \
 		Linux)  echo "$(LINUX_LDFLAGS)" ;; \
 		Darwin) echo "$(DARWIN_LDFLAGS)" ;; \
-	esac)
+	esac
+LDFLAGS += $(PLATFORM_LDFLAGS)
 
 # =============================================================================
 # Help Target (portable implementation)
