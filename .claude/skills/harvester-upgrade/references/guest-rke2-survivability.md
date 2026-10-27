@@ -74,9 +74,12 @@ from Harvester — no Rancher required.
   hot-plugged as real block devices (native perf). Token via `generate_addon_csi.sh <sa> <namespace> RKE2`;
   needs the snapshot controller/CRDs present (RKE2 bundles `rke2-snapshot-controller`). RWO native; RWX needs a
   storage-network NIC + NFS client in the guest.
-- **Guest RKE2 must stay in the Harvester minor's Node-Driver range** (`compat/harvester.md`): 1.6 = v1.30–1.33
-  (CSI 0.1.24), 1.7 = v1.31–1.34 (CSI 0.1.25), 1.8 = v1.33–1.35 (CSI 0.1.28; floors ≥1.33.11/≥1.34.7/≥1.35.4).
-  **Avoid guest RKE2 ≤1.35.3 until Harvester ≥1.8 (harvester#10188).** Ground exact versions per `compat`.
+- **Guest RKE2 must stay in the Harvester minor's Node-Driver range** (SUSE per-line support matrix,
+  `suse.com/suse-harvester/support-matrix/all-supported-versions/harvester-v1-<minor>-x/`): 1.6 = v1.31–1.33
+  (CSI 0.1.24), 1.7 = v1.32–1.34 (CSI 0.1.25), 1.8 = v1.33–1.35 (CSI 0.1.28; floors ≥1.33.11/≥1.34.7/≥1.35.4),
+  1.9 = v1.34–1.36 (CSI ≥ 0.1.31; floors ≥1.34.11/≥1.35.8/≥1.36.4). The floor rises one minor per hop — raise
+  guest RKE2 before each Harvester hop. **Avoid guest RKE2 ≤1.35.3 until Harvester ≥1.8 (harvester#10188).**
+  Re-read the per-line page at use time.
 
 ## 5. Live-migrating busy etcd / control-plane VMs — the realistic picture
 
