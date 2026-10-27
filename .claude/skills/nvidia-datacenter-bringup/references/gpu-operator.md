@@ -151,11 +151,11 @@ time="2026-03-18T15:43:34Z" level=warning msg="unable to get device name: failed
 time="2026-03-18T15:43:37Z" level=info msg="Creating link /host-dev-char/195:0 => /dev/nvidia0"
 ```
 
-Status: OPEN as of 2026-05-21 with `more-information-needed` label. NVIDIA response: "B300 should be supported. Can you please share the must_gather logs."
+Status: closed upstream, warning **not** fixed. The closing change (v26.7.0) only maps `0x318210DE` to a vGPU profile. The warning comes from go-nvlib's `nvpci` name lookup against a vendored `pci.ids` that has no `3182` entry through v26.7.2, so every operator release still logs it on B300.
 
 **Impact**: cosmetic. The `nvidia-operator-validator` init container loops on the warning but the device symlinks ARE created and real workloads function. Operator-validator may stay in Init state cosmetically.
 
-**Workaround**: none confirmed. To nudge upstream, run `./hack/must-gather.sh` from https://github.com/NVIDIA/gpu-operator and attach to the issue.
+**Workaround**: none needed. Treat the warning as noise on B300; triage the validator by the other symptoms in the table above.
 
 Track: https://github.com/NVIDIA/gpu-operator/issues/2231
 

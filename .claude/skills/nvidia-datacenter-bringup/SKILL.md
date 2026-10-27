@@ -65,7 +65,7 @@ The mistakes that cost hours, ordered by frequency in the wild:
 
 6. **`cudaErrorSystemNotReady` blamed on driver.** This is the textbook FM-not-running signature on any NVSwitch system. The fix is always: confirm `nvidia-fabricmanager.service` is `active (running)` and its version matches the loaded driver. See [[troubleshooting]] and [[gpu-operator]].
 
-7. **gpu-operator B300 PCI ID warning loop (#2231).** Cosmetic, not fatal. `nvidia-operator-validator` logs `unable to get device name: failed to find device with id '3182'`. Open in upstream since 2026-03-18; NVIDIA acknowledged "B300 should be supported" but waiting on must-gather. Symptom is benign — pods still work. See [[gpu-operator]].
+7. **gpu-operator B300 PCI ID warning loop (#2231).** Cosmetic, not fatal. `nvidia-operator-validator` logs `unable to get device name: failed to find device with id '3182'`. Upstream closed the issue with a vGPU-profile change only; the validator's vendored PCI-ID table still lacks `0x3182` through v26.7.2, so expect the warning on every operator release. Pods still work — do not chase it. See [[gpu-operator]].
 
 8. **Driver 570.158.01 + operator-managed driver mode.** FM start script broken (gpu-operator #1595). Cure: pin ≥570.172.08 OR move to 580+. Or just use pre-installed-driver mode and let the host's systemd unit own FM. See [[gpu-operator]].
 
