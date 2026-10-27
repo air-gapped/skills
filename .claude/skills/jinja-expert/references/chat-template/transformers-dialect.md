@@ -284,14 +284,23 @@ tracks "did I emit a system prompt yet" uses one of these two patterns.
 
 ## 6. vLLM and sglang delegation paths
 
-**vLLM**: `vllm/entrypoints/openai/serving_chat.py → apply_hf_chat_template`
-calls `tokenizer.apply_chat_template(...)`. Same Python Jinja2 pipeline
-as transformers.
+**vLLM**: `vllm/renderers/hf.py → safe_apply_chat_template` calls
+`tokenizer.apply_chat_template(...)`. Same Python Jinja2 pipeline as
+transformers. Before rendering it rewrites `developer` messages to `system`
+when the template has no `developer` branch; an exception raised in the
+template (`raise_exception(...)`) comes back as HTTP 400 carrying the
+template's message — make that message name the accepted values.
 
 **sglang**:
 `python/sglang/srt/entrypoints/openai/serving_chat.py` imports `jinja2`
 directly and calls `tokenizer.apply_chat_template(...)`. Same pipeline.
 Catches `jinja2.TemplateError` explicitly.
+
+**No Jinja at all** for model families with a Python encoder: vLLM's
+DeepSeek-V3.2 / V4 / V4.1 and `--tokenizer-mode mistral` tokenizers, and
+sglang's `dsv32` / `dsv4` / `dsv41` / `kimi_k3` chat-encoding specs.
+Editing `chat_template.jinja` changes nothing there — check which path the
+engine takes before debugging the template.
 
 ### `/v1/chat/completions/render` (vLLM)
 

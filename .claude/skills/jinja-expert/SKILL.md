@@ -91,7 +91,9 @@ Every chat template in the HuggingFace ecosystem is rendered through an
 `loopcontrols` extension loaded, `tojson` filter forced to
 `ensure_ascii=False`, `raise_exception` + `strftime_now` globals). vLLM
 and sglang both delegate to `tokenizer.apply_chat_template`, so the
-sandbox is the whole surface. `.append` / `.pop` / `.update` raise
+sandbox is the whole surface — except families they serve through a
+Python encoder (DeepSeek-V3.2/V4, Mistral tokenizer mode), where no Jinja
+runs. `.append` / `.pop` / `.update` raise
 `SecurityError`; `ext.do` / `ext.i18n` / `ext.debug` are NOT loaded.
 Variables in scope: `messages`, `tools`, `documents`,
 `add_generation_prompt`, all `special_tokens_map` entries, plus caller
