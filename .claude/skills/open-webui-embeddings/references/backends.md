@@ -74,19 +74,19 @@ entries for `Gemma3TextModel`, `BgeM3EmbeddingModel`,
 pooling — wrong for any mean-pooled model, and wrong silently.
 
 **`Qwen3Model` / `Qwen3ForCausalLM` are NOT in `_EMBEDDING_MODELS`** (checked at
-vLLM v0.30.0). Qwen3-Embedding goes through exactly that generic `--convert embed`
+vLLM v0.32.0). Qwen3-Embedding goes through exactly that generic `--convert embed`
 auto-conversion — vLLM's own docs mark it `C` for converted. It works anyway only
 because Qwen3-Embedding genuinely wants last-token pooling, so the default lands
 right by coincidence, not by vetting. Do not cite it as a registered architecture.
 
-Known cases as of 2026-08-05:
+Known cases as of vLLM v0.32.0:
 
 - `Gemma3TextModel` (EmbeddingGemma) — registered, with a dedicated config class
   that reads `use_bidirectional_attention` into `is_causal`, and its ST Dense
   projector implemented and tested. Works out of the box.
 - `Ministral3Model` (Nemotron-3-Embed) — **absent from the registry entirely**.
   NVIDIA validates `vllm serve` on v0.20.0–v0.24.0 and `/v2/embed` on v0.25.0;
-  latest release is v0.26.0. vLLM issue
+  latest release is v0.32.0. vLLM issue
   [#48621](https://github.com/vllm-project/vllm/issues/48621) (YaRN scaling, still
   open) is why the card says not to remove `apply_yarn_scaling` from `config.json`.
   Pin a validated version and verify numerically.
