@@ -8,7 +8,7 @@ Defaults and source locations are based on `backend/open_webui/env.py` and `back
 |---|---|---|
 | `CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE` | `1` | **The most important multi-pod knob.** Deltas to buffer per Socket.IO emit. Each emit carries only the buffered delta from v0.11.1 on (see `issue-23733.md`) — pre-v0.11.1 each emit carried the full accumulated message. Set to `10` for production multi-pod, `20` for reasoning-heavy traffic. |
 | `ENABLE_WEBSOCKET_SUPPORT` | `True` | When `False`, Socket.IO falls back to polling only — `transports=['polling']`, no upgrades. Polling fallback requires sticky sessions even with `WEBSOCKET_MANAGER=redis`. |
-| `REDIS_RESPONSE_STREAM_TTL` | `3600` (seconds) | Added v0.11.1. TTL on the Redis-held resume snapshot (`{prefix}:tasks:response_streams`) of a reply still in progress — set via `HEXPIRE` per task. Reopening a chat mid-stream after a refresh resumes from this snapshot instead of showing blank; without Redis the snapshot lives in worker memory only, so a killed worker loses it regardless of this var. |
+| `REDIS_RESPONSE_STREAM_TTL` | `3600` (seconds) | Added v0.11.1. TTL on the Redis-held resume snapshot of a reply still in progress — the key's `EX` from v0.12.3 (`{prefix}:tasks:response_streams:<task_id>`), a per-field `HEXPIRE` on the shared hash before that. Reopening a chat mid-stream after a refresh resumes from this snapshot instead of showing blank; without Redis the snapshot lives in worker memory only, so a killed worker loses it regardless of this var. |
 | `ENABLE_CHAT_RESPONSE_STREAM_INPLACE_APPEND` | `False` | Added v0.11.4. Assembles streamed replies with CPython's in-place string append instead of the default path. Off while rolled out gradually — verify on staging before enabling. |
 
 ## Core Valkey/Redis (`env.py` lines 442–500)
@@ -175,9 +175,8 @@ When `WEBSOCKET_MANAGER=redis`, the keys present (with prefix `open-webui:`):
 | `open-webui:usage_pool` | Per-model active session counts | Reaped at 3s. Cheap. |
 | Socket.IO pub/sub channels `socketio` and, with room channels (v0.12.0+ default), `socketio#/#<room>` | Cross-pod event fan-out | Each emit carries only a delta from v0.11.1 on — see §Streaming and `issue-23733.md`. |
 | `open-webui:tasks:*` | Task tracking. `:commands` is a pubsub channel. | Small. RedisCluster `publish()` broken (#19840) — use Sentinel. Since v0.11.4, `REDIS_TASK_TTL` (default 300s) expires an entry if its owning worker stops renewing it. |
-| `open-webui:tasks:response_streams` | Resume snapshot of a reply still streaming, keyed by task id | Added v0.11.1. Per-field TTL from `REDIS_RESPONSE_STREAM_TTL` (default 3600s). Lets a reopened chat resume an in-flight reply instead of showing blank. |
+| `open-webui:tasks:response_streams:<task_id>` | Resume snapshot of a reply still streaming | From v0.12.3 one string key per reply, `SET … EX` then grown by a Lua `EVAL` that `APPEND`s new text (a restricted ACL user needs `+eval +append`); v0.11.1–v0.12.2 used one shared `open-webui:tasks:response_streams` hash with per-field `HEXPIRE`. TTL from `REDIS_RESPONSE_STREAM_TTL` (default 3600s). Lets a reopened chat resume an in-flight reply instead of showing blank. |
 | `open-webui:ydoc:documents:<id>:updates` | Yjs CRDT state for collaborative notes | Only when notes are open. Compaction at 500 entries. |
-| `open-webui:config:*` | PersistentConfig cache | Read-heavy. 0.9.3 fix made imports sync immediately. |
 | `open-webui:ratelimit:*` | Sign-in rate limit buckets | Falls back to in-memory if Valkey unreachable. |
 
 Profile images are explicitly excluded from `SESSION_POOL` since 0.6.37 (`socket/main.py:357-365` excludes `profile_image_url`, `profile_banner_image_url`, `date_of_birth`, `bio`, `gender`). Session state is small.
