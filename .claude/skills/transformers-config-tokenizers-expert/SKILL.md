@@ -264,37 +264,33 @@ Three 2026 fixes landed in this exact code path. All are reachable from a plain
 | **#47498** | v5.15.0 | Put regex metacharacters in the tokenizer filename; it was passed straight to `re.search()` as a pattern — **ReDoS** via catastrophic backtracking. Now `re.escape()`d. |
 | **#46191** | v5.10.1 | Name a chat template `"../../foo"`; template names became `<name>.jinja` paths under a directory join, so `save_pretrained` **wrote outside the target directory**. Names are now restricted to plain filenames in both `PreTrainedTokenizerBase.save_pretrained` and `ProcessorMixin.save_pretrained`. |
 
-**Floor: transformers ≥ 5.15.0** clears all three. **Do not expect the engine to
-get you there** — vLLM's pin is lower, and the gap is where the exposure lives:
+**Floor: transformers ≥ 5.15.0** clears all three. Check whether the engine's
+floor reaches it before relying on it:
 
 | vLLM | `requirements/common.txt` | Clears |
 |---|---|---|
 | v0.27.0, v0.28.0 | `transformers >= 5.5.3` | none of the three |
-| v0.29.0-v0.30.0, `main` | `transformers >= 5.10.4` | #46191 only |
-| — | `>= 5.13.0` | + #46279 |
-| — | **`>= 5.15.0`** | + #47498 — all three |
+| v0.29.0, v0.30.0 | `transformers >= 5.10.4` | #46191 only |
+| v0.31.0 | `transformers >= 5.10.4, < 5.18.0` | #46191 only |
+| v0.32.0 | `transformers >= 5.16.1, < 5.20.0` | all three |
 
-(Read from the tags on 2026-09-15.) So "satisfy the engine's requirement" leaves
-the arbitrary-file-read and the ReDoS open, and an install resolving
-`transformers` from vLLM's floor alone lands on 5.10.4. **Pin transformers
-explicitly at ≥ 5.15.0**; the engine will not raise it for you.
+On vLLM ≤ v0.31.0 an install resolving `transformers` from the engine floor
+alone lands on 5.10.4, leaving the arbitrary-file-read and the ReDoS open:
+**pin transformers explicitly at ≥ 5.15.0** there. From v0.31.0 the requirement
+also carries an **upper bound**; keep any explicit pin inside it or the resolver
+rejects the combination.
 
-**And 5.15.0 is not an arbitrary target — it is the version vLLM actually tests
-against.** The two numbers come from different files and only one of them binds
-an install:
+The version vLLM tests is a third number in a different file, and only
+`common.txt` binds an install:
 
-| File | v0.28.0 | What it governs |
+| File | v0.32.0 | What it governs |
 |---|---|---|
-| `requirements/common.txt` | `transformers >= 5.5.3` | what `pip install vllm` **enforces** |
-| `requirements/test/{cuda,cpu,rocm}.txt` | `transformers==5.15.0` | what **CI validates** |
+| `requirements/common.txt` | `transformers >= 5.16.1, < 5.20.0` | what `pip install vllm` **enforces** |
+| `requirements/test/{cuda,cpu,rocm}.txt` | `transformers==5.19.0` | what **CI validates** |
 
-v0.28.0's release notes say "Transformers bumped to 5.15.0 (#51668)", which reads
-as a floor bump and is not one — #51668 moved the **test pin**. The practical
-shape: vLLM proves it works on 5.15.0 and permits anything from 5.5.3 (5.10.4 on
-v0.29.0), so the supported-and-tested version is *higher* than the installable
-one, and the gap is unverified by anyone. Pinning 5.15.0 therefore buys the
-security floor **and** the configuration CI actually exercises — the same number
-for two independent reasons.
+A release-note line "Transformers bumped to X" can name the **test pin**, not
+the floor (v0.28.0 and v0.31.0 both did). Read both files at the tag you deploy,
+and prefer the test-pin version: it is inside the cap and it is the one CI ran.
 
 Two traps in the third fix's version numbers, both of which point the wrong way:
 
