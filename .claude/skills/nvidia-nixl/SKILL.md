@@ -173,7 +173,7 @@ Full debugging cookbook in `references/gotchas.md`.
 ## References
 
 - `references/architecture.md` — Agent + Memory Section + South Bound API (SB API) + Plugin Manager + descriptor lists + NIXL-EP device kernels + telemetry event catalog.
-- `references/plugins.md` — All plugins with deps, parameters, capabilities, when-to-pick (13 documented in depth; `infinia` and `tracing` added in the 1.3 line — read their `src/plugins/<name>/README.md` directly).
+- `references/plugins.md` — All plugins with deps, parameters, capabilities, when-to-pick (all but `tracing` documented in depth — for it, read `src/plugins/tracing/` upstream).
 - `references/python-api.md` — `nixl_agent` Python surface with worked examples for every common operation.
 - `references/deployment.md` — pip install, source build (meson+ninja), Docker, K8s, ETCD setup, env vars, `nixlbench`, `kvbench`.
 - `references/integrations.md` — Dynamo, vLLM `NixlConnector`, SGLang, observability stack pointers.
