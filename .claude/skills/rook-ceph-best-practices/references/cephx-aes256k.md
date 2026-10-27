@@ -1,7 +1,7 @@
 # CephX key types, AES256K and Rook key rotation
 
 Source of truth: Rook `Documentation/Storage-Configuration/Advanced/cephx-key-rotation.md`
-(identical at v1.19.11 and v1.20.7), Ceph `doc/rados/configuration/auth-config-ref.rst`,
+(v1.19.11 through v1.21.1), Ceph `doc/rados/configuration/auth-config-ref.rst`,
 Linux `include/linux/ceph/ceph_fs.h` / `net/ceph/crypto.c`.
 
 ## Key types

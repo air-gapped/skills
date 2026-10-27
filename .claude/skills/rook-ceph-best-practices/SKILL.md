@@ -93,9 +93,9 @@ outage.
 Use full build tags plus digest: `quay.io/ceph/ceph:v19.2.6-20260818@sha256:…`.
 A floating tag (`:v20`) with `imagePullPolicy: IfNotPresent` keeps running
 a stale cached image — root cause of the toolbox `Malformed input` keyring
-error in rook#18240. The v1.20.7 doc's quick-fix patch shows
-`quay.io/ceph/ceph:v1.20.4-20260818` — a typo for `v20.2.4-20260818`; do
-not copy it.
+error in rook#18240. The CVE quick-fix patch in Rook docs up to v1.19.11 /
+v1.20.7 shows `quay.io/ceph/ceph:v1.20.4-20260818` — a typo for
+`v20.2.4-20260818` (fixed in v1.19.12 / v1.20.8); do not copy it.
 
 ## CVE-2025-30156 and AES256K — the short path
 
