@@ -172,8 +172,10 @@ has completed a full power cycle.
 
 ## kubectl-rook-ceph commands models tend not to know
 
-`rook purge-osd`, `maintenance start|stop <deployment>` (run a daemon with an
-alternate image for debugging), `mons restore-quorum`, `subvolume ls --stale`
+`rook purge-osd`, `maintenance start|stop <deployment>` (stops the mon/OSD and
+leaves a sleeping pod on its data for `ceph-objectstore-tool`,
+`ceph-bluestore-tool`, `ceph-monstore-tool`; `--alternate-image` optional),
+`mons restore-quorum`, `subvolume ls --stale`
 / `subvolume delete`, `cephfs-snap ls --orphaned`, `restore-deleted <CRD>`,
 `multus validation run`, `dr health`, `operator restart`, `rook status all`.
 
