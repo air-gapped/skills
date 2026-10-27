@@ -22,7 +22,7 @@ updated in Phase 6.
   before substitution. The closing tag carrying the nonce is the load-bearing
   part — a bare `</untrusted_data>` in the finding text cannot terminate a block
   whose terminator needs an unguessable id, which is the defect upstream fixed
-  in PR #13.
+  in anthropics/defending-code-reference-harness#13.
 
 ## Resolved — 2026-09-15
 
@@ -127,7 +127,7 @@ Last of the four security skills sharing the `defending-code-reference-harness`
 upstream. All three sources re-probed.
 
 - **The prompts this skill lifts are unchanged.** `find_prompt.py` shows up in a
-  `--since=2026-06-15` sweep, but only through PR #13 dated 2026-06-15 itself —
+  `--since=2026-06-15` sweep, but only through anthropics/defending-code-reference-harness#13 dated 2026-06-15 itself —
   an **inclusive-boundary artifact** of the filter, and the same PR the prior
   pass already reviewed and logged. `recon_prompt.py` never appears, nor does
   `.claude/skills/vuln-scan/`. Recon pattern and memory-safety tiers intact.
@@ -208,8 +208,8 @@ for the line growth, now an updated Open item).
   live (harness + claude-code-security-review repos active; "Using LLMs to
   secure source code" write-up HTTP 200); `Last verified` advanced 2026-05-31 →
   2026-06-15. Harness pushed 2026-05-30 → 2026-06-15 — reviewed delta =
-  `untrusted_data` prompt-isolation (PR #13) + sandbox cgroup-probe fix
-  (PR #2). PR #13's `find_prompt.py` change only wrapped the dup-bugs list; the
+  `untrusted_data` prompt-isolation (anthropics/defending-code-reference-harness#13) + sandbox cgroup-probe fix
+  (anthropics/defending-code-reference-harness#2). anthropics/defending-code-reference-harness#13's `find_prompt.py` change only wrapped the dup-bugs list; the
   recon pattern + memory-safety tiers this skill lifts, and `recon_prompt.py`,
   are unchanged, so no mutation beyond the re-stamp. No new Open item.
 

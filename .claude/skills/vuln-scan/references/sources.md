@@ -21,7 +21,7 @@ security-review tooling changes.
 - Last verified: 2026-09-15  (active; not archived; **last push 2026-08-06**, up from 2026-07-16).
 
   **The prompts this skill lifts are unchanged.** `harness/prompts/find_prompt.py`
-  appears in a `--since=2026-06-15` commit sweep, but **only** via PR #13 dated
+  appears in a `--since=2026-06-15` commit sweep, but **only** via anthropics/defending-code-reference-harness#13 dated
   2026-06-15 itself — the inclusive-boundary artifact of that filter, and the
   same PR the prior pass already reviewed. `recon_prompt.py` does not appear at
   all, and neither does `.claude/skills/vuln-scan/`. The recon pattern and
@@ -30,7 +30,7 @@ security-review tooling changes.
   the boundary commit.*
 
   **Changed, and reflected in `HARNESS.md`:**
-  - **Declared usage marker on outbound agent API requests** (PR #22,
+  - **Declared usage marker on outbound agent API requests** (anthropics/defending-code-reference-harness#22,
     2026-07-11): `harness/auth.py` stamps `anthropic-cyber-runbook: pipeline`
     plus `User-Agent: cyber-runbook/<version> (claude-cli/<version>)` via
     `_with_usage_marker()`. **First-party callers only** — Bedrock/Vertex
