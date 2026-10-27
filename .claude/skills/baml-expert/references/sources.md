@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-22 — every row probed. SDK is 0.226.2 (2026-08-31) and the toolchain line reached baml-language-0.20.0 (2026-09-18); the 0.221/0.223 feature gates still hold, since 0.226.x added no syntax changes.
+Freshened: 2026-10-27 — every row probed. v0 SDK still 0.226.2; the v1 toolchain reached baml-language-0.23.0 (2026-10-26), and the 0.221.0 syntax features turned out to be v1-only.
 
 Authoritative references this skill is derived from. A freshen pass verifies
 every row and updates the stamp above; rows that cannot be machine-verified
