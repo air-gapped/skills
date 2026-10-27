@@ -48,15 +48,15 @@ MP mode gained hybrid support in the 0.5 line: `LMCacheMPConnector` declares vLL
 
 ## Version compatibility matrix
 
-Verified 2026-07-21 against LMCache tag v0.5.1 and vLLM tag v0.25.1 (plus the earlier 0.4.3 / 0.4.4 boundary from 2026-04-26). Current stable pair: **vLLM v0.25.1 + LMCache v0.5.1**.
+Current stable pair: **vLLM v0.32.0 + LMCache v0.5.6**. Every row below also needs lmcache **0.5.6+** on both server and vLLM side for MP mode (security floor, CVE-2026-105192); the 0.4.x entries are compatibility minimums only.
 
 | vLLM version | Required lmcache | Notes |
 |---|---|---|
 | v0.19.0 | 0.4.0+ | Bundled image ships compatible version |
 | v0.19.1 | 0.4.0+ | Image ships 0.4.3, all imports clean |
 | v0.20.0 – v0.22.x | **0.4.4+** | `cache_salt` propagation added; verify on the released image |
-| v0.23.0 – v0.25.1 (current stable) | **0.5.x** (0.5.1 recommended) | 0.4.x still loads, but only 0.5.x declares `SupportsHMA` — required for hybrid-attention models |
-| main / nightly | **0.5.1+** | `ParallelStrategy` import requirement, plus the 0.5.0 renames |
+| v0.23.0 – v0.32.0 (current stable) | **0.5.x** | 0.4.x still loads, but only 0.5.x declares `SupportsHMA` — required for hybrid-attention models. `-cu129` image tags (v0.31.0+) ship 0.4.4: use the default tag |
+| main / nightly | **0.5.6+** | `ParallelStrategy` import requirement, plus the 0.5.0 renames |
 
 To verify a specific image, use `scripts/verify-bundling.sh <tag>`.
 

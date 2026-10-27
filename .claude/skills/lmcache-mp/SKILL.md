@@ -42,7 +42,7 @@ Don't reach for MP mode just because it's newest — it adds operational surface
 
 ## Version gates — check these FIRST
 
-Current stable pair (2026-09-22): **vLLM v0.30.0** (2026-09-22) + **LMCache v0.5.5** (2026-09-12, still latest). v0.30.0 pins `nixl == 1.4.1` (up from `1.3.2`); `LMCacheMPConnector`/`SupportsHMA` and the `lmcache >= 0.3.9` floor are unchanged. Image bundling on v0.30.0 not yet captured — re-run `scripts/verify-bundling.sh v0.30.0`. **The image lags the pair:** `vllm/vllm-openai:v0.29.0` bundles LMCache **0.5.4** (2026-08-20), verified by container run 2026-09-15 — so "latest vLLM image" and "latest LMCache" are not the same thing, and `pip install -U lmcache` inside that image moves you off the pair it was built against. v0.19.1 remains the verified-floor bundling example below.
+Current stable pair: **vLLM v0.32.0** (2026-10-18) + **LMCache v0.5.6** (2026-10-14). v0.32.0 pins `nixl == 1.5.0`; `LMCacheMPConnector`/`SupportsHMA` and the `lmcache >= 0.3.9` floor are unchanged. The default `vllm/vllm-openai:v0.32.0` image bundles lmcache **0.5.6** (container run below). **CUDA 12 image variants (`-cu129` tags, v0.31.0+) install `lmcache == 0.4.4` instead** — no `SupportsHMA`, below the security floor, and wire-incompatible with a 0.5.6 server: use the default CUDA 13 tag or `lmcache/vllm-openai:v0.5.6`. `pip install -U lmcache` inside an image moves it off the pair it was built against.
 
 | Component | What you need | Notes |
 |---|---|---|
@@ -51,7 +51,7 @@ Current stable pair (2026-09-22): **vLLM v0.30.0** (2026-09-22) + **LMCache v0.5
 | vLLM | **v0.23.0+** for HMA-by-default | #41847 made `disable_hybrid_kv_cache_manager` tri-state; combined with LMCache 0.5.x's `SupportsHMA` declaration this is what unlocks hybrid models in MP mode. |
 | LMCache | **0.4.0+** for the MP adapter file (`lmcache.integration.vllm.vllm_multi_process_adapter`) | Moved into LMCache repo on 2026-01-07 (PR #2360). Earlier versions had it in vLLM. |
 | LMCache | **0.4.4+** for vLLM v0.20+/main | vLLM main imports `ParallelStrategy` symbol that doesn't exist in 0.4.3. Verified against tags v0.4.3 (no class) vs v0.4.4 (has class); still present at v0.5.1. |
-| LMCache | **0.5.4** is what the current image ships; **0.5.5** (2026-09-12) is the newest release — the 0.5.2 → 0.5.5 changes are not yet sifted here | 0.5.0 brought P2P KV transfer to MP mode (#3740/#3762), Device-DAX L1 overflow, asymmetric serde (FP16 key / FP8 value), and a wave of renames. 0.5.1 added L2→L1 warm-prefetch (#3827), `HiddenStateStore` (#3221), an AMD `hipFile` GDS-L1 backend (#3843), TurboQuant serde for L2, and configurable `disk_io_threads`. |
+| LMCache | **0.5.6** is the newest release and what the default v0.32.0 image ships | 0.5.0 brought P2P KV transfer to MP mode (#3740/#3762), Device-DAX L1 overflow, asymmetric serde (FP16 key / FP8 value), and a wave of renames. 0.5.1 added L2→L1 warm-prefetch (#3827), `HiddenStateStore` (#3221), an AMD `hipFile` GDS-L1 backend (#3843), TurboQuant serde for L2, and configurable `disk_io_threads`. |
 | LMCache | **0.5.x required** for hybrid-attention models | The `SupportsHMA`-declaring connector lives in `lmcache/integration/vllm/lmcache_mp_connector.py`. See the hybrid-model section. |
 | LMCache | **0.5.6+ on both sides** — the server image AND the lmcache inside the vLLM image | Security floor: 0.3.9–0.5.5 unpickle data from the MP transport, so one unauthenticated message to the ZMQ port runs code as the LMCache user (critical RCE, CVE-2026-105192). 0.5.6 also changed the wire format: upgrade the server and every vLLM-side lmcache together, never one side alone. |
 
@@ -59,19 +59,19 @@ Current stable pair (2026-09-22): **vLLM v0.30.0** (2026-09-22) + **LMCache v0.5
 
 ### Image bundling (what's actually in the container)
 
-Verified 2026-09-15 inside `vllm/vllm-openai:v0.29.0` (sleep-overridden, exec'd in):
+Verified 2026-10-27 inside `vllm/vllm-openai:v0.32.0` (sleep-overridden, exec'd in):
 
-| Package | Version in v0.29.0 image | Import works? | Notes |
+| Package | Version in v0.32.0 image | Import works? | Notes |
 |---|---|---|---|
-| `vllm` | 0.29.0 | OK | — |
-| `lmcache` | 0.5.4 | OK | `ParallelStrategy` present — the v0.19.1-era ImportError cannot occur here |
-| `nixl` | 1.3.2 | OK | — |
-| `mooncake-transfer-engine-cuda13` | 0.3.13.post1 | OK as `import mooncake` | **Distribution now carries a CUDA suffix; the module does not.** Querying `mooncake-transfer-engine` reports NOT INSTALLED for a package that is present |
+| `vllm` | 0.32.0 | OK | — |
+| `lmcache` | 0.5.6 | OK | At the security floor; `ParallelStrategy` present |
+| `nixl` | 1.5.0 | OK | — |
+| `mooncake-transfer-engine-cuda13` | 0.3.13.post1 | OK as `import mooncake` | **Distribution carries a CUDA suffix; the module does not.** Querying `mooncake-transfer-engine` reports NOT INSTALLED for a package that is present |
 | `lmcache` CLI | — | `/usr/local/bin/lmcache` | Server entrypoint ready out of the box |
 
-All four KV-offload connector classes (`OffloadingConnector`, `LMCacheConnectorV1`, `LMCacheMPConnector`, `NixlConnector`) load through the factory's own thunk. Sixteen connectors are registered at this tag; the four above are the ones to gate on. No pip install at container start is needed.
+All four KV-offload connector classes (`OffloadingConnector`, `LMCacheConnectorV1`, `LMCacheMPConnector`, `NixlConnector`) load through the factory's own thunk; vLLM logs `Using external LMCacheMPConnector from lmcache.integration.vllm.lmcache_mp_connector`. No pip install at container start is needed.
 
-Earlier floor, kept because anyone pinning that era still meets it: `v0.19.1` shipped vllm 0.19.1 / lmcache 0.4.3 / nixl 0.9.0 / mooncake 0.3.10.post1, and its lmcache predates `ParallelStrategy`.
+Earlier floor: `v0.19.1` shipped vllm 0.19.1 / lmcache 0.4.3 / nixl 0.9.0 / mooncake 0.3.10.post1 — below the security floor, and its lmcache predates `ParallelStrategy`.
 
 But: **always verify the tag you actually deploy** with `scripts/verify-bundling.sh <tag>`. It builds a sleep-overridden container, runs the import test, prints the version table. ~30 seconds (after pull).
 
@@ -113,7 +113,7 @@ Flags on the **vLLM side** that operators forget:
 
 The canonical pattern is **DaemonSet (LMCache) + Deployment (vLLM)**: one LMCache server per node serves multiple vLLM pods on that node.
 
-An LMCache Kubernetes Operator reconciles an `LMCacheEngine` custom resource into the DaemonSet + Service + ConfigMap. **Current release is `operator-v0.5.0` (2026-06-25)** — the version numbering jumped from the old `operator-v0.1.1` (2026-05-18) line, so pin deliberately; `operator-v0.5.1rc1` (2026-07-20) is a release candidate, not stable. Install via the `install.yaml` from the release. Prefer it over hand-rolled manifests for new clusters; the hand-written YAML in `references/deployment.md` remains the manual alternative and shows what the operator generates.
+An LMCache Kubernetes Operator reconciles an `LMCacheEngine` custom resource into the DaemonSet + Service + ConfigMap. **Current release is `operator-v0.5.5` (2026-09-15)** — operator tags run on their own `operator-v*` line beside core LMCache releases, so pin deliberately. Install via the `install.yaml` from the release. Prefer it over hand-rolled manifests for new clusters; the hand-written YAML in `references/deployment.md` remains the manual alternative and shows what the operator generates.
 
 Operator capabilities added in the 0.5 line (LMCache 0.5.1 notes): a **mutating webhook that auto-injects the `LMCacheEngine` connection into vLLM pods** (#3822), so vLLM Deployments no longer hand-write the `status.hostIP` plumbing; a configurable `hostNetwork` field on the CRD (#3849); and optional privileged mode on the engine DaemonSet (#3943).
 
@@ -193,10 +193,11 @@ vLLM `main` (post-2026-03) imports `ParallelStrategy` from `lmcache.integration.
 | v0.19.0, v0.19.1 | 0.4.0+ (works with bundled 0.4.3) |
 | v0.20.0 – v0.22.x | **0.4.4+** — verify on the released image |
 | v0.23.0 – v0.25.1 | **0.5.x** (0.5.1+) — 0.4.x works but forfeits hybrid-model support |
-| v0.29.0 | ships **0.5.4**, `ParallelStrategy` present — verified by container run 2026-09-15 |
+| v0.29.0 | ships **0.5.4**, `ParallelStrategy` present — below the security floor |
+| v0.32.0 | ships **0.5.6** (default CUDA 13 tag); `-cu129` tags ship **0.4.4** |
 | main / nightly | **0.5.1+** |
 
-v0.26.x – v0.28.x are not listed because nobody has run the check on them: unverified, not known-bad.
+v0.26.x – v0.28.x, v0.30.x and v0.31.x are not listed because nobody has run the check on them: unverified, not known-bad.
 
 If you mix vLLM main with the v0.19.1 image's bundled 0.4.3, expect:
 
@@ -265,10 +266,8 @@ Ranked by likelihood:
 - LMCache MP docs: `docs/source/mp/` in the repo (`index.rst`, `quickstart.rst`, `deployment.rst`, `l2_storage.rst`, `architecture.rst`, `http_api.rst`, `observability.rst`, `tracing_and_debugging.rst`)
 - vLLM connector source: `vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py`
 - Example K8s manifests: `LMCache/LMCache/examples/multi_process/`
-- LMCache K8s Operator: [operator-v0.1.1 release](https://github.com/LMCache/LMCache/releases/tag/operator-v0.1.1) (CRD-based DaemonSet+Service+ConfigMap reconciler)
+- LMCache K8s Operator: [operator-v0.5.5 release](https://github.com/LMCache/LMCache/releases/tag/operator-v0.5.5) (CRD-based DaemonSet+Service+ConfigMap reconciler)
 - Hybrid model tracker: [LMCache#2845](https://github.com/LMCache/LMCache/issues/2845) (open), [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261) (open), [LMCache#2879](https://github.com/LMCache/LMCache/pull/2879) (closed-unmerged)
 - cache_salt fallback bug: [vLLM#40040](https://github.com/vllm-project/vllm/issues/40040) (autoclosed 2026-08-17 for inactivity, **not fixed** — fix PR #40041 still open)
 
 See `references/sources.md` for verification dates and the inspection ritual.
-
-Last verified: 2026-07-21 (freshen pass — hybrid-model support inverted, LMCache 0.5.x + operator-v0.5.0 versions, HMA pitfall reframed). Runtime bundling re-captured 2026-09-15 on `vllm/vllm-openai:v0.29.0`: vllm 0.29.0 / lmcache 0.5.4 / nixl 1.3.2 / mooncake 0.3.13.post1, all KV-offload connectors loading. Re-run `scripts/verify-bundling.sh <tag>` before pinning any other pair.
