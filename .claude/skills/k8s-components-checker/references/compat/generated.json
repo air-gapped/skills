@@ -15,20 +15,20 @@
      "latest": "v3.2.12"
     },
     "3.3": {
-     "date": "2026-08-12",
-     "latest": "v3.3.14"
+     "date": "2026-10-22",
+     "latest": "v3.3.18"
     },
     "3.4": {
-     "date": "2026-09-14",
-     "latest": "v3.4.9"
+     "date": "2026-10-20",
+     "latest": "v3.4.12"
     },
     "3.5": {
-     "date": "2026-09-14",
-     "latest": "v3.5.3"
+     "date": "2026-10-20",
+     "latest": "v3.5.6"
     }
    },
    "upcoming": {
-    "3.6": "v3.6.0-rc1"
+    "3.6": "v3.6.0-rc4"
    }
   },
   "ceph": {
@@ -679,21 +679,21 @@
       "1.32",
       "1.35"
      ],
-     "source": "argoproj/argo-cd/docs/operator-manual/tested-kubernetes-versions.md@v3.3.14"
+     "source": "argoproj/argo-cd/docs/operator-manual/tested-kubernetes-versions.md@v3.3.18"
     },
     "3.4": {
      "k8s": [
       "1.32",
       "1.35"
      ],
-     "source": "argoproj/argo-cd/docs/operator-manual/tested-kubernetes-versions.md@v3.4.9"
+     "source": "argoproj/argo-cd/docs/operator-manual/tested-kubernetes-versions.md@v3.4.12"
     },
     "3.5": {
      "k8s": [
       "1.33",
       "1.36"
      ],
-     "source": "argoproj/argo-cd/docs/operator-manual/tested-kubernetes-versions.md@v3.5.3"
+     "source": "argoproj/argo-cd/docs/operator-manual/tested-kubernetes-versions.md@v3.5.6"
     }
    },
    "cert-manager": {
