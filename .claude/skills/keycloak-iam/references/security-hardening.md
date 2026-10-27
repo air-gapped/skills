@@ -238,7 +238,7 @@ gh api repos/keycloak/keycloak/security-advisories \
   --jq '.[] | {cve: .cve_id, ghsa: .ghsa_id, sev: .severity, published: .published_at, summary: .summary}'
 
 # What a specific release closed (the release body lists its Security fixes section)
-gh release view 26.8.0 --repo keycloak/keycloak --json body --jq '.body'
+gh release view 26.8.1 --repo keycloak/keycloak --json body --jq '.body'
 
 # Confirm whether a given CVE applies and its patched range
 gh api repos/keycloak/keycloak/security-advisories \
@@ -247,14 +247,14 @@ gh api repos/keycloak/keycloak/security-advisories \
 
 Cross-check the `vulnerabilities[].patched_versions` field against the deployed version to decide if an upgrade is required. Map each advisory to the relevant hardening section above (redirect-URI / SSRF findings → §9; flow/timing findings → §4; token/session findings → §3 and §6) when advising on remediation.
 
-**As of 2026-09-15, latest stable is 26.7.3 (2026-08-31), and every 26.7 patch
-since .0 is a security batch** — 26.7.1 (2026-08-05), 26.7.2 (2026-08-19),
-26.7.3 (2026-08-31). The 26.6 line ran on to 26.6.4 (2026-06-26); 26.6.2, 26.6.3
-and 26.6.4 are also all security batches. Quote each version's CVE set from its
-own `gh release view <version>` body, not from memory.
+**Every patch since 26.7.0 is a security batch** — 26.7.1 through 26.7.5, then
+26.8.0 and 26.8.1; no 26.7.6 exists, so 26.8.1's fixes are on 26.8 only. The 26.6
+line ran on to 26.6.4 (2026-06-26); 26.6.2, 26.6.3 and 26.6.4 are also all
+security batches. Quote each version's CVE set from its own
+`gh release view <version>` body, not from memory.
 
-**Four of those CVEs bypass controls this file recommends**, which is why the
-floor is not a housekeeping detail here:
+**These CVEs bypass controls this file recommends**, which is why the floor is
+not a housekeeping detail here:
 
 | Fixed in | CVE | Control it defeats |
 |---|---|---|
@@ -262,12 +262,18 @@ floor is not a housekeeping detail here:
 | 26.7.1 | CVE-2026-4629 | Privilege escalation via hardcoded **role-mapper injection in `manage-clients`** — a delegated-admin scope becomes a path up |
 | 26.7.2 | CVE-2026-14613 | **Fine-Grained Admin Permissions bypass** via the Role Groups endpoint (§8) |
 | 26.7.3 | CVE-2026-16093 | A **signed-JWT assertion policy is bypassed by unsigned assertion headers** — `private_key_jwt` (§ client authenticator) stops being the guarantee the table above claims |
+| 26.8.0 | CVE-2026-12388 | **IdP mappers grant admin roles**, directly or via a group — a brokered login becomes an admin path |
+| 26.8.1 | CVE-2026-94000 | A delegated admin with only **`manage-users` becomes `realm-admin`** by joining a group that maps an admin role (§8) |
+| 26.8.1 | CVE-2026-94001, CVE-2026-97177 | A **denied reset-password permission** is bypassed through credential DELETE or a generic user update (§8) |
+| 26.8.1 | CVE-2026-97846 | **Standard token exchange skips required mTLS certificate binding** and issues a plain bearer token (§5) |
+| 26.8.1 | CVE-2026-96446 | **PAR single use** is bypassed with `prompt=none` (§7, FAPI) |
+| 26.8.1 | CVE-2026-94218, CVE-2026-96445 | **2FA setup enforcement** is bypassed via `login-actions/restart`; Conditional OTP trusts skip headers from untrusted proxies (§4) |
 
 26.7.3 also fixes CVE-2026-35563, where the bundled LDAP client did not verify
 that the server certificate matched the LDAP hostname — relevant to any realm
 using LDAP/AD federation over TLS.
 
-**Run ≥ 26.7.3.** Below it, several of the hardening recommendations in this file
+**Run ≥ 26.8.1.** Below it, several of the hardening recommendations in this file
 are configured correctly and enforced incorrectly, which is the failure mode an
 audit is least likely to catch: the setting reads right in the admin console.
 
