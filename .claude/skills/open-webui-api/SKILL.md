@@ -10,16 +10,16 @@ when_to_use: |-
 
 Target: operators who script Open WebUI (create users, reconcile model catalogs, drive RAG pipelines, export configs) instead of clicking the admin UI. Grounded in v0.11.0 source (2026-07-27); the API is officially "experimental" with no versioning policy, so every claim here is version-stamped. **First step on any instance: `GET /api/version`** — never trust `openapi.json`'s `info.version` (always says "0.1.0").
 
-## Security floor: v0.11.1 — above this skill's own grounding tag
+## Security floor: v0.11.1 published, latest release in practice
 
-**Run v0.11.1+ (v0.11.4 is the sensible target).** Note what that means here:
-this file is grounded in **v0.11.0 source**, which is *below* the floor. The
-file:line claims still describe 0.11.0 accurately; the instance you point them at
-should not be on it. Every published advisory (feed checked 2026-09-24, newest
-2026-09-09) is patched at 0.11.1. **But v0.11.2's release notes announce
-security and access-control fixes that are withheld from disclosure for now** —
-treat **v0.11.2 as the practical floor** and re-check the advisory feed when
-new GHSAs appear: expect them to raise the published floor to 0.11.2.
+**Run the latest release (v0.12.4 as of 2026-10-27); v0.11.1 is the published
+floor.** Note what that means here: this file is grounded in **v0.11.0 source**,
+which is *below* the floor. The file:line claims still describe 0.11.0
+accurately; the instance you point them at should not be on it. Every published
+advisory (feed checked 2026-10-27, newest published 2026-09-10) is patched at
+0.11.1. **But v0.12.0 and v0.12.4 ship security fixes their notes say are not
+listed, with advisories to follow after CVE assignment** — re-check the
+advisory feed when new GHSAs appear and expect the published floor to rise.
 
 Four of the advisories defeat things this skill teaches, so knowing the version
 comes before trusting the permission model:
@@ -40,12 +40,12 @@ gives the wrong answer on `0.10.0`–`0.11.0`, because deletion did not honour i
 Check first, before any scripting: `GET /api/version` (already the recon step
 above) — and treat anything below `0.11.1` as "fix the version, then script".
 
-**Derivation, and why it is not automatic:** every Open WebUI advisory sets
-`first_patched_version` to `null`, so the floor has to come from the
-`vulnerable_version_range` ceilings. The volume is large enough that it is worth
-re-deriving rather than re-reading this table. `open-webui-valkey-websocket`
-§"Security floor" carries the full derivation, the count, and the reason an
-authenticating reverse proxy does **not** cover most of these.
+**Derivation:** take the floor from the highest `vulnerable_version_range`
+ceiling, not from `first_patched_version` — that field is filled on almost all
+current advisories but still `null` on some, and withheld fixes appear in
+neither. The volume is large enough that it is worth re-deriving rather than
+re-reading this table. `open-webui-valkey-websocket` §"Security floor" carries
+the reason an authenticating reverse proxy does **not** cover most of these.
 
 ## The API in 30 seconds
 
@@ -90,22 +90,14 @@ Everything the community (and LLM training data) teaches about two core shapes d
 
 0.11.0 adds a second break class — responses that **silently redact fields by access level** (`models/list` drops `params`, `tools` drops `content`), which can round-trip an emptied model catalog back through `import`/`sync`. Full ledger 0.6.19→0.11.0 with dates, issue numbers and both translation guides: `references/breaking-changes.md`.
 
-## Security floor before you script against it: v0.11.1
+## Advisory class that matters to API callers
 
-**69 security advisories were published between 2026-06-01 and 2026-09-15**, and
-the largest cluster (~30) is cross-tenant and privilege issues — endpoints that
-check ownership at the wrong granularity, trusting a client-supplied
-`knowledge_id`, folder parent or model metadata instead of re-deriving access
-server-side. That class matters most to anyone driving this API, because it is
-reachable by **any authenticated caller**, which is what an API token is.
-
-Deriving the floor is not automatic: **every one of those 69 advisories has
-`first_patched_version` set to `null`**, so tooling that reads that field
-concludes nothing is fixed. The floor comes from `vulnerable_version_range`
-ceilings, the highest being `< 0.11.1`. Upstream also warns that not every
-security fix is enumerated in the release notes.
-
-Full class breakdown and why an internal-only deployment behind an
+The largest advisory cluster since 2026-06 is cross-tenant and privilege issues
+— endpoints that check ownership at the wrong granularity, trusting a
+client-supplied `knowledge_id`, folder parent or model metadata instead of
+re-deriving access server-side. That class matters most to anyone driving this
+API, because it is reachable by **any authenticated caller**, which is what an
+API token is. Full class breakdown and why an internal-only deployment behind an
 authenticating proxy does **not** cover most of it:
 `open-webui-valkey-websocket` §"Security floor".
 
