@@ -14,7 +14,7 @@ Freshened: 2026-09-23 — every row probed at creation. Rook releases enumerated
 | CSI RBAC missing after v1.20 | https://github.com/rook/rook/issues/17644 | 2026-09-23 | Closed. Cause: `ceph-csi-drivers` chart not installed. |
 | Tentacle mgr crash loop | https://github.com/rook/rook/issues/18124 | 2026-09-23 | Open. Ceph tracker 79106 (fix), 79357 (crash module EIO). |
 | mgr OOM after v1.20.1 / 20.2.2 | https://github.com/rook/rook/issues/17786 | 2026-09-23 | Open. Rook-module logging + tracker 77724 refcount leak. |
-| Squid→Tentacle RGW/MDS rolled before OSDs | https://github.com/rook/rook/issues/18367 | 2026-09-23 | Closed. Breaks S3 multipart during the window. |
+| Squid→Tentacle RGW/MDS rolled before OSDs | https://github.com/rook/rook/issues/18367 | 2026-10-27 | Closed by PR #18369 (object controller also waits for `config.OsdType`), in v1.19.12, v1.20.8, v1.21.0. `pkg/operator/ceph/file/controller.go` at v1.21.1 still gates MDS on `config.MonType` only. |
 | Mon quorum on fresh install (nofile) | https://github.com/rook/rook/issues/18370 | 2026-10-27 | Closed 2026-09-21. Reporter's root cause: Docker 27 on Ubuntu 26.04 gave containers an unbounded nofile limit; `ceph` CLI hangs, mon probe (5 s) times out. Fix: Docker `default-ulimits` nofile 1048576. Maintainer asked to close tracker 80470, which is still New. |
 | 20.2.0 read-affinity corruption | https://github.com/rook/rook/issues/16839 | 2026-09-23 | Closed. |
 | ceph-csi-operator image fallback | https://github.com/ceph/ceph-csi-operator/issues/605 | 2026-09-23 | Closed. `imageSet.name` not set by `ceph-csi-drivers` chart. |
