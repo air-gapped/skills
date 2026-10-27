@@ -53,7 +53,7 @@
     {
       "id": 9,
       "question": "What is the default of LMCache's --separate-object-groups flag for hybrid models?",
-      "skill_answer": "On (enabled) by default"
+      "skill_answer": "Off (False) since v0.5.3; it was on through v0.5.2"
     }
   ]
 }

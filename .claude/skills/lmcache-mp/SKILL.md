@@ -136,7 +136,7 @@ For the L1+L2 storage architecture (NIXL adapters, fs, mooncake_store, s3, evict
 
 ## Hybrid model status — supported as of LMCache 0.5.x
 
-**This inverted in the 0.5 line. MP mode now supports hybrid-attention models officially**, and the old "don't recommend MP for hybrids" guidance is obsolete. `LMCacheMPConnector` declares vLLM's `SupportsHMA` interface (`lmcache/integration/vllm/lmcache_mp_connector.py:512`, verified at tag v0.5.1), so vLLM keeps its hybrid KV cache manager **enabled** and exposes multiple KV cache groups — you do not pass `--disable-hybrid-kv-cache-manager`, and you do not need any HMA-related flag.
+**This inverted in the 0.5 line. MP mode now supports hybrid-attention models officially**, and the old "don't recommend MP for hybrids" guidance is obsolete. `LMCacheMPConnector` declares vLLM's `SupportsHMA` interface (`lmcache/integration/vllm/lmcache_mp_connector.py:535` at tag v0.5.6), so vLLM keeps its hybrid KV cache manager **enabled** and exposes multiple KV cache groups — you do not pass `--disable-hybrid-kv-cache-manager`, and you do not need any HMA-related flag.
 
 Upstream ships per-model recipes (`docs/source/mp/hybrid_models.rst`, published at https://docs.lmcache.ai/mp/hybrid_models.html) for:
 
@@ -159,7 +159,7 @@ ensure that attention page size is >= mamba page size.
 
 Launch vLLM far enough to emit that line (cheap settings, `--mamba-cache-mode align --enable-prefix-caching`), read `N`, then stop. The per-model recipe pages carry the rest.
 
-**Object-group separation (`--separate-object-groups`, default ON through v0.5.2, OFF from v0.5.3).** At registration LMCache buckets a hybrid model's layers into object groups — the unit it stores and retrieves as one object — one per distinct cross-chunk attention window. `--no-separate-object-groups` collapses every layer into a single full-attention object group (pre-0.5.1 behavior). Upstream documents the flag as transparent to correctness. **The default flipped in v0.5.3**: on v0.5.3+ the single full-attention group is what you get unless you pass `--separate-object-groups`, so a config carried over from v0.5.1 silently changes grouping behaviour on upgrade. A community report on [LMCache#3106](https://github.com/LMCache/LMCache/issues/3106) (2026-07-17, DeepSeek-V4-Pro on vLLM 0.25.1 + LMCache 0.5.1) uses `--no-separate-object-groups` to work around a `ValueError: Size mismatch` in the multi-group retrieve path; that report is unverified by this skill, but the flag and its default are confirmed in `lmcache/v1/multiprocess/config.py:48`.
+**Object-group separation (`--separate-object-groups`, default ON through v0.5.2, OFF from v0.5.3).** At registration LMCache buckets a hybrid model's layers into object groups — the unit it stores and retrieves as one object — one per distinct cross-chunk attention window. `--no-separate-object-groups` collapses every layer into a single full-attention object group (pre-0.5.1 behavior). Upstream documents the flag as transparent to correctness. **The default flipped in v0.5.3**: on v0.5.3+ the single full-attention group is what you get unless you pass `--separate-object-groups`, so a config carried over from v0.5.1 silently changes grouping behaviour on upgrade. A community report on [LMCache#3106](https://github.com/LMCache/LMCache/issues/3106) (2026-07-17, DeepSeek-V4-Pro on vLLM 0.25.1 + LMCache 0.5.1) uses `--no-separate-object-groups` to work around a `ValueError: Size mismatch` in the multi-group retrieve path; that report is unverified by this skill, but the flag and its `False` default are confirmed in `lmcache/v1/multiprocess/config.py:61` at tag v0.5.6.
 
 [LMCache#2845](https://github.com/LMCache/LMCache/issues/2845) (the original hybrid tracker) was closed by the stale bot with no fix or maintainer answer, so its state says nothing either way; [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261) (HybridOffloadPlanner) is still open. Neither blocks the documented path: the recipe pages are the authority, and verify the specific model against its recipe before production.
 
@@ -178,7 +178,7 @@ RuntimeError: LMCacheMPConnector only works without hybrid kv cache manager.
 Please pass --disable-hybrid-kv-cache-manager when starting vllm
 ```
 
-Source: `vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py:80` (verified at vLLM tag v0.25.1). **The fix is to make the external `lmcache` import succeed, not to add the flag** — run `scripts/verify-bundling.sh <tag>`. Adding the flag masks a broken install and costs hybrid-model support. On lmcache ≤ 0.4.x the flag genuinely is required.
+Source: `vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py:79` (vLLM tag v0.32.0). **The fix is to make the external `lmcache` import succeed, not to add the flag** — run `scripts/verify-bundling.sh <tag>`. Adding the flag masks a broken install and costs hybrid-model support. On lmcache ≤ 0.4.x the flag genuinely is required.
 
 ### 2. vLLM's own prefix cache must be OFF
 
@@ -263,7 +263,7 @@ Ranked by likelihood:
 ## External references
 
 - LMCache repo: https://github.com/LMCache/LMCache
-- LMCache MP docs: `docs/source/mp/` in the repo (`index.rst`, `quickstart.rst`, `deployment.rst`, `l2_storage.rst`, `architecture.rst`, `http_api.rst`, `observability.rst`, `tracing_and_debugging.rst`)
+- LMCache MP docs: `docs/source/mp/` in the repo (`index.rst`, `deployment.rst`, `configuration.rst`, `http_api.rst`, `hybrid_models.rst`, `operator.rst`, `request_transport.rst`, `tracing_and_debugging.rst`, and the `l2_storage/` and `observability/` directories)
 - vLLM connector source: `vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py`
 - Example K8s manifests: `LMCache/LMCache/examples/multi_process/`
 - LMCache K8s Operator: [operator-v0.5.5 release](https://github.com/LMCache/LMCache/releases/tag/operator-v0.5.5) (CRD-based DaemonSet+Service+ConfigMap reconciler)
