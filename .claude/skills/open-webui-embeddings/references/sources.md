@@ -1,6 +1,6 @@
 # Sources
 
-Freshened: 2026-09-22 — every row probed against Open WebUI v0.11.4 (2026-09-21). One long-standing content error corrected: `Qwen3Model`/`Qwen3ForCausalLM` are NOT in vLLM's `_EMBEDDING_MODELS`; Qwen3-Embedding runs through generic `--convert embed` auto-conversion, which happens to be right only because that model wants last-token pooling. TEI shipped v1.9.4 on 2026-09-15, ending the "no release in ~4 months" note. **v0.11.4's bundled-model removal does not reach this skill**: it is scoped to the new opt-in slim image, and the standard image still bakes in `all-MiniLM-L6-v2` with `sentence-transformers` in `requirements.txt`.
+Freshened: 2026-10-27 — every row probed against Open WebUI v0.12.4, TEI v1.9.4, LiteLLM v1.106.4 and vLLM v0.32.0.
 
 Authoritative references underlying this skill. Read these when this skill is wrong.
 
@@ -68,4 +68,4 @@ unmerged on 2026-08-10 and is not the fix; issue 25388 was closed by the reverte
 25395 and is not evidence of a fix either. The per-model pin stays in the skill as a
 harmless workaround for releases below v1.85.0.
 
-Run `/skill-improver freshen open-webui-embeddings` to re-probe these refs and bump `Last verified:` dates.
+Run `/skill-improver freshen open-webui-embeddings` to re-probe these refs and rewrite the `Freshened:` stamp.
