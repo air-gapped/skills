@@ -250,7 +250,9 @@ comparison does not.
 - [Nick Oak: Tennis XGBoost](https://nickoak.com/posts/tennis-xgboost-autoresearch/) —
   Detailed reward hacking case study. "Move the judge out of the arena."
 - [Langfuse: Cautionary Tale](https://langfuse.com/blog/2026-03-24-optimizing-ai-skill-with-autoresearch) —
-  Score 0.35→0.824 but optimizer removed safety gates. "Review like a junior's PR."
+  Score 0.35→0.824, but the biggest single gain came from removing the user
+  approval gate, and features no test case covered were cut. "Review it like a
+  junior engineer's PR."
 - [Hardening Agent Benchmarks with Adversarial Hacker-Fixer Loops](https://arxiv.org/abs/2606.08960)
   (Ziqian Zhong, 2026-06-08) — 323 environments (16%) across five benchmarks were
   hackable by frontier models *from the task description alone*; a
