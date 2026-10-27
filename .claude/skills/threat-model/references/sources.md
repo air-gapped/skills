@@ -67,6 +67,10 @@ frameworks or upstream harness change.
   surface is omitted silently; from v1.3.0 (2026-09-04) "A disposition is
   REQUIRED for EVERY item; silent omission is a contract violation" — either a
   threat (low likelihood allowed) or an `open_questions` entry `<ID>: <reason>`.
+- Kinds: v1.5.0 added `web-template` (BL-TPL-XSS, -SSTI, -CSRF, -SECRET),
+  chosen when the tree is template-dominated and no `web-api` signal fires
+  (`repo_kind()`); `web-api`, `mobile`, `native`, `iac`, `library` unchanged
+  since v1.4.0.
 
 ## defending-code reference harness (provenance)
 
