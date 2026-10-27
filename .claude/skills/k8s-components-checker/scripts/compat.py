@@ -6,6 +6,13 @@
   compat.py check ...      evaluate a target stack against generated.json (offline)
   compat.py selfcheck      run the built-in assertions
 
+check exit codes:
+  0  no BLOCK (OK / WARN / INFO only — a WARN still needs the compat/*.md prose read)
+  1  at least one BLOCK
+  2  usage error (argparse)
+  3  UNKNOWN input — a component, line or k8s minor that is unparseable or not in
+     generated.json; nothing was evaluated. Fix the argument; never read 3 as a pass.
+
 generated.json holds only what can be read mechanically: per-line release ceilings
 (community edition for Rancher), Rancher's own k8s window (chart kubeVersion),
 which RKE2 versions each Rancher line can provision (KDM), RKE2 bundled component
@@ -677,9 +684,56 @@ def cmd_sync(check):
 # --- check ----------------------------------------------------------------------------------
 
 
+EXIT_UNKNOWN = 3
+LINE = re.compile(
+    r"\d+(?:\.\d+)?$"
+)  # a release line: "1.20", "2.15"; Ceph majors: "19"
+K8S = re.compile(r"1\.\d+$")
+
+
+def unknown_inputs(a, comps):
+    """Messages for every argument check cannot evaluate; empty when all are known."""
+    bad = []
+
+    def line(name, ln, flag):
+        c = comps.get(name)
+        if c is None:
+            bad.append(
+                f"{flag}: unknown component {name!r} (known: {', '.join(sorted(comps))})"
+            )
+        elif not LINE.match(ln or ""):
+            bad.append(f"{flag}: {name} line {ln!r} is not a release line like 1.20")
+        elif ln not in c["lines"] and ln not in c.get("upcoming", {}):
+            known = ", ".join(sorted(c["lines"], key=lambda x: vkey(x + ".0")))
+            bad.append(f"{flag}: {name} {ln} has no release (known lines: {known})")
+
+    for flag, v in (("--mgmt-k8s", a.mgmt_k8s), ("--k8s", a.k8s)):
+        if v and not K8S.match(v):
+            bad.append(f"{flag}: {v!r} is not a k8s minor like 1.36")
+    for name, ln, flag in (
+        ("rancher", a.rancher, "--rancher"),
+        ("rke2", a.downstream_rke2, "--downstream-rke2"),
+        ("harvester", a.harvester, "--harvester"),
+    ):
+        if ln:
+            line(name, ln, flag)
+    for spec in a.with_ or []:
+        name, sep, ln = spec.partition("=")
+        if not sep:
+            bad.append(f"--with {spec!r}: expected COMPONENT=LINE")
+        else:
+            line(name, ln, f"--with {spec}")
+    return bad
+
+
 def cmd_check(a):
     d = json.loads(GEN.read_text())
     comps, e = d["components"], d["edges"]
+    bad = unknown_inputs(a, comps)
+    for msg in bad:
+        print(f"UNKNOWN {msg}")
+    if bad:
+        return EXIT_UNKNOWN
     res = []
 
     def say(level, msg):
@@ -791,6 +845,9 @@ def cmd_check(a):
     k8s = a.k8s or a.downstream_rke2
     for spec in a.with_ or []:
         name, _, ln = spec.partition("=")
+        if ln not in comps[name]["lines"]:
+            say("BLOCK", f"{name} {ln}: upcoming, not GA")
+            continue
         if not k8s:
             say("WARN", f"{spec}: give --k8s (or --downstream-rke2) to test its window")
             continue
@@ -902,6 +959,26 @@ def selfcheck():
         "| Component | Version |\n| Longhorn | [v1.12.1](u) |\n\n| Longhorn | GitHub issue |\n"
     )
     assert t["Longhorn"] == "v1.12.1"  # first table wins
+    # check: unknown or unparseable input exits 3, never 0 (planted cases)
+    import contextlib
+    import io
+
+    def run_check(**kw):
+        args = dict(rancher=None, mgmt_k8s=None, downstream_rke2=None, harvester=None)
+        args.update(k8s="1.36", with_=None)
+        args.update(kw)
+        with contextlib.redirect_stdout(io.StringIO()):
+            return cmd_check(argparse.Namespace(**args))
+
+    gen = json.loads(GEN.read_text())["components"]
+    good = sorted(gen["cilium"]["lines"], key=lambda x: vkey(x + ".0"))[-1]
+    assert run_check(with_=["cilium=bogus"]) == EXIT_UNKNOWN
+    assert run_check(with_=["cilium=1.99"]) == EXIT_UNKNOWN
+    assert run_check(with_=["nosuch=1.0"]) == EXIT_UNKNOWN
+    assert run_check(with_=["cilium"]) == EXIT_UNKNOWN
+    assert run_check(k8s="1.3x", with_=[f"cilium={good}"]) == EXIT_UNKNOWN
+    assert run_check(rancher="2.99") == EXIT_UNKNOWN
+    assert run_check(with_=[f"cilium={good}"]) in (0, 1)
     print("selfcheck ok")
     return 0
 

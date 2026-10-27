@@ -64,7 +64,7 @@ must not — record what's actually running where.
 | Which deprecated-API tools to trust and how | `references/tooling.md` |
 | Verify a version exists / find the real latest patch (online) | `references/version-verification.md` |
 | Source URLs + last-verified timestamps (read-only — `freshen` writes here) | `references/sources.md` |
-| Pairing + k8s-window verdict for a target stack (offline) | `python3 scripts/compat.py check --rancher 2.15 --mgmt-k8s 1.36 --downstream-rke2 1.37 --harvester 1.9 --with cilium=1.20 --with keda=2.21` — § Machine-owned data |
+| Pairing + k8s-window verdict for a target stack (offline) | `python3 scripts/compat.py check --rancher 2.15 --mgmt-k8s 1.36 --downstream-rke2 1.37 --harvester 1.9 --with cilium=1.20 --with keda=2.21` — exit 0 no BLOCK, 1 BLOCK, 3 unknown input (nothing evaluated) — § Machine-owned data |
 | Is anything upstream newer than the registry? (online) | `python3 scripts/compat.py sync --check` — § Machine-owned data |
 
 ## Survey workflow
@@ -258,8 +258,10 @@ edit it by hand; regenerate it.
 | `edges.gitlab_k8s` | GitLab chart `doc/installation/cloud/_index.md` at the newest chart tag: status + minimum GitLab per k8s minor; chart→GitLab from `version_mappings.md`. |
 | `edges.k8s_windows.<c>.<line>` | Vendor k8s window, `[min, max]`: Cilium `compatibility.rst`, Argo CD `tested-kubernetes-versions.md`, Rook `prerequisites.md` (each at the line's tag); KEDA `keda-docs`, cert-manager `website` releases table, Kyverno `website` `version.ts`, ECK `docs-content` applies-blocks; NVIDIA version-pinned `platform-support.html`. `k8s: null` = not machine-readable for that line — the prose owns it. |
 
-- **Use time (offline):** `check` prints `OK`/`BLOCK`/`WARN`/`INFO` per pairing and exits 1
-  on any `BLOCK`. `--with <component>=<line>` (repeatable) tests that line's k8s window against
+- **Use time (offline):** `check` prints `OK`/`BLOCK`/`WARN`/`INFO` per pairing. Exit 0 = no
+  `BLOCK` (a `WARN` still needs the prose), 1 = any `BLOCK`, 3 = `UNKNOWN` input — a component,
+  line or k8s minor that is unparseable or not in `generated.json`; nothing was evaluated, so fix
+  the argument and re-run, never verdict on it. `--with <component>=<line>` (repeatable) tests that line's k8s window against
   `--k8s` (default `--downstream-rke2`). Cite its lines in the verdict. For facts it holds, it
   outranks the prose; the prose owns breaking changes, upgrade order and CRD migrations.
 - **Freshen (online):** run `sync --check` first. Each drift line is a work item: update the
