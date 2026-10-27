@@ -1,6 +1,6 @@
 # Runbooks — Strategy A (release-secret surgery) and B (clean reinstall)
 
-Target 6.7.0+, **but read this before picking 6.8.0**: from logging-operator 6.8.0 a duplicate parser name is fatal and crash-loops the Fluent Bit DaemonSet. Built-in names (`json`, `docker`, `cri`, `kube-custom`) now collide with any custom parser reusing them, and it is not in the Fluent Bit release notes. 6.7.0 remains the safe default target unless you have audited your parser names. Air-gapped clusters: complete `airgap-prep.md` FIRST (images +
+Target 6.7.0+ (latest 6.9.0), **but read this before picking 6.8.0 or later**: from 6.8.0 (Fluent Bit 5.1) a duplicate parser name is fatal and crash-loops the Fluent Bit DaemonSet — any `customParsers` entry named `json`, `docker`, `cri` or `kube-custom` collides. Rancher's chart defines none, so check the step-0 backups: `grep -n -A3 customParsers fluentbitagents.yaml loggings.yaml`. A hit with one of those names: rename it, pin fluent-bit `5.0.5`, or stay on 6.7.0 — the default target here. Air-gapped clusters: complete `airgap-prep.md` FIRST (images +
 chart in the internal registry, values overrides drafted).
 
 ## Shared step 0 — inventory & backup (both strategies)
