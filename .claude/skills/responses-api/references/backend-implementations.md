@@ -241,10 +241,11 @@ handling onto `HarmonyParser`. Closed the parallel-tool-call crash **#39584**
   assistant output as assistant text (skips reasoning/tool/refusal items),
   fixes usage accounting, propagates stop/tool constraints.
 - The long-open competing function-tool PRs **#16806 and #20771 were closed
-  unmerged the same day** (2026-06-12), superseded by #25881. Custom
-  function-tool support on `/v1/responses` — historically broken — needs
-  re-verification on ≥ v0.5.15 (still unverified at v0.5.16; recent Responses
-  PRs are model fixes only: #31401 passthrough, #32757 Kimi K3 reasoning leak).
+  unmerged the same day** (2026-06-12), superseded by #25881.
+- **Custom tools (`type: "custom"`) need SGLang ≥ v0.5.20.** Through v0.5.19
+  every non-`function` tool was dropped during conversion: no call is produced
+  and `tool_choice="required"` returns HTTP 400. Fixed by #38690, first
+  released in v0.5.20.
 - Fixed `default_max_tokens` compute when MTP opened (PR #18932)
 - Streaming session race fix (PR #21875)
 
