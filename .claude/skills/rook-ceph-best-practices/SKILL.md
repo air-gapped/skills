@@ -116,7 +116,8 @@ Before the Ceph bump:
 
 1. Check node kernels, never a note:
    `kubectl get nodes -o custom-columns=NODE:.metadata.name,KERNEL:.status.nodeInfo.kernelVersion`.
-2. Pin CSI key type if any node is < 7.0 (FIPS: < 7.2):
+2. Pin CSI key type if any node is < 7.0 (FIPS: < 7.2) without a
+   vendor-documented libceph AES256K backport (CentOS Stream 9/10 have one):
    `spec.security.cephx.csi.keyType: aes`. With `keyRotationPolicy` unset
    this triggers no rotation; Rook only creates CSI keys that are missing.
 3. Remove auth entities for OSDs that no longer exist — Rook only rotates

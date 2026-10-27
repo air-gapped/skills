@@ -11,7 +11,7 @@ Ceph has exactly two CephX key types. "aes256" is not one of them.
 | Type | Kernel constant | Construction | Status |
 |---|---|---|---|
 | `aes` | `CEPH_CRYPTO_AES` (0x1) | AES-CBC, fixed hard-coded IV, 16-byte key, no effective integrity check | Legacy. Tickets are malleable (CVE-2025-30156). |
-| `aes256k` | `CEPH_CRYPTO_AES256KRB5` (0x2) | Kerberos enctype aes256-cts-hmac-sha384-192 (RFC 8009): AES-256-CTS + HMAC-SHA384/192 | Ceph 19.2.6+, 20.2.4+. Kernel clients: Linux 7.0+ (7.2+ under FIPS enforcing). |
+| `aes256k` | `CEPH_CRYPTO_AES256KRB5` (0x2) | Kerberos enctype aes256-cts-hmac-sha384-192 (RFC 8009): AES-256-CTS + HMAC-SHA384/192 | Ceph 19.2.6+, 20.2.4+. Kernel clients: Linux 7.0+ (7.2+ under FIPS enforcing), or a distro kernel with the backport (CentOS Stream 9/10; others: ask the vendor). |
 
 The CVE is an integrity flaw, not a key-length flaw: with any stolen CephX key
 an attacker flips bits in an AES service ticket until it grants admin, in
