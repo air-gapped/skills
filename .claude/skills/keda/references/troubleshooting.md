@@ -103,6 +103,9 @@ KEDA's metrics apiserver.
    kubectl get pods -n keda -l app=keda-operator-metrics-apiserver
    kubectl logs -n keda deploy/keda-operator-metrics-apiserver --tail=100
    ```
+   Through 2.21.0, `Ready` does not cover its gRPC link to `keda-operator:9666`
+   (readiness check added after 2.21.0, #8226): a replica that lost it stays in
+   the APIService and fails every request. Look for gRPC connection errors.
 
 3. **Metric exposed?**
    ```bash
