@@ -188,8 +188,8 @@ leaves a sleeping pod on its data for `ceph-objectstore-tool`,
 
 | Report | Source |
 |---|---|
-| 18.2.8 → 19.2.6 on ~1500 OSDs: every mon restart spiked `mon.X has slow ops` into the tens of thousands; only a manual mon restart cleared it; staging did not reproduce | ceph-users 2026-09-14 |
-| 18.2.4 → 20.2.1 on hybrid HDD + NVMe-DB clusters: RGW PUT latency 3–4×, DB-device IOPS near zero; unresolved | ceph-users 2026-07-09 |
+| ~1000–1500-OSD clusters (18.2.8 → 19.2.6, 17.2.8 → 19.2.6, and plain reboots on 18.2.8): mon restarts spike `mon.X has slow ops` into the tens of thousands; restarting the affected mon, sometimes repeatedly, clears it; staging and smaller clusters did not reproduce; unresolved | ceph-users 2026-09-14 thread |
+| 18.2.4 → 20.2.1 on RGW multi-site clusters: client PUT latency 3–4×, GET/HEAD worse, persisting for months; a single-site cluster did not show it; unresolved | ceph-users 2026-07-09 thread |
 | Tentacle 20.2.0: enabling `allow_ec_optimizations` on an EC pool that already had `ec_overwrites` crash-looped OSDs (`interval_set.h:365`) | ceph/ceph.io#1009 (no tracker id) |
 | Do not run 18.2.5 / 18.2.6 (BlueStore corruption) or 20.2.0 with CSI read affinity | ceph.io 18.2.7 post; rook#16839 |
 
