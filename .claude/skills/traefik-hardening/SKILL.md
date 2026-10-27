@@ -119,7 +119,7 @@ Beyond the per-middleware traps in the quick map above:
 
 - **Disabling one auth path ≠ blocking another.** Turning off API keys doesn't stop session-JWT replay — different code path in most apps.
 - **`period`/keying/topology interact.** A per-header limit without a claim→header decode is per-*token*, not per-user; pair with short token lifetimes or add the JWT plugin.
-- **Cross-namespace middleware refs** need Traefik `allowCrossNamespace` for the CRD path — but the plain-Ingress annotation path bypasses that flag entirely (a security asymmetry worth auditing). See `references/deployment.md`.
+- **Cross-namespace middleware refs** need Traefik `allowCrossNamespace` for the CRD path — but the plain-Ingress annotation path bypasses that flag entirely; only `providers.kubernetesIngress.crossProviderNamespaces` restricts it, and it is unset (all namespaces allowed) by default. See `references/deployment.md`.
 
 ## How to use this skill
 

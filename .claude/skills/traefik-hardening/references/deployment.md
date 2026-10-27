@@ -32,7 +32,7 @@ spec:
 ## CRD chain vs annotation chain (and a security asymmetry)
 
 - **CRD path** (`IngressRoute` referencing a `Middleware`/`chain`): the idiomatic 2026 approach; the `chain` type gives a named, reusable ordered bundle. Cross-namespace `Middleware` references are **rejected unless** `providers.kubernetesCRD.allowCrossNamespace: true` (Helm default `false`).
-- **Annotation path** (plain `Ingress` + `router.middlewares`): the value embeds the namespace as a string (`<ns>-<name>@kubernetescrd`) and is **not gated by `allowCrossNamespace`** — a plain Ingress can pull a middleware from any namespace with no provider-level guardrail, while the "safer-looking" CRD path fails closed. Audit `Ingress` annotations for embedded cross-namespace refs.
+- **Annotation path** (plain `Ingress` + `router.middlewares`): the value embeds the namespace as a string (`<ns>-<name>@kubernetescrd`) and is **not gated by `allowCrossNamespace`** — by default a plain Ingress can pull a middleware from any namespace, while the "safer-looking" CRD path fails closed. The only guardrail is `providers.kubernetesIngress.crossProviderNamespaces` (v2.11.46 / v3.6.17 / v3.7.1+): the namespaces whose Ingresses and Services may reference a Middleware, TLSOption or ServersTransport at all — an Ingress outside the list that carries such an annotation is skipped. It never checks which namespace the *referenced* middleware lives in, and unset (Helm default `[]`) allows every namespace. Set it to the namespaces that legitimately attach middlewares, and audit `Ingress` annotations for embedded cross-namespace refs.
 
 Order is execution order in both forms, and a later middleware sees earlier ones' header mutations — so a claim→header decode must precede the limits that key on that header.
 
