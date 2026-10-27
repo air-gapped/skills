@@ -1,8 +1,8 @@
-# NetBox 4.2 → 4.6 version-delta cheat sheet
+# NetBox 4.2 → 4.7 version-delta cheat sheet
 
-Every claim below was adversarially verified (3-vote panel) against release
-notes / docs / source in June 2026. Use this before upgrading NetBox or
-writing automation that must span versions.
+The 4.2–4.6 claims were adversarially verified (3-vote panel) against release
+notes / docs / source in June 2026; 4.7 claims carry their own labels. Use this
+before upgrading NetBox or writing automation that must span versions.
 
 ## 4.2 (2025-01-06) — MAC addresses become objects
 
@@ -65,31 +65,83 @@ writing automation that must span versions.
   re-provision — there is no later retrieval.
 - **v1 tokens formally deprecated** in 4.6.1 (#22128). Removal timeline
   SHIFTED: 4.5 notes said v4.7; 4.6.1 reschedules removal to **v5.0**.
+- **`LOGIN_REQUIRED` deprecated** (4.6.0); 5.0 removes it and anonymous access
+  with it — move unauthenticated consumers to tokens before 5.0. Every start
+  logs a `FutureWarning` while the setting is present; the helm chart always
+  renders it (`loginRequired`, default `false`), so the warning is expected
+  there. [source: settings.py @v4.6.0, @v4.7.3]
+- **`housekeeping` command deprecated** (#21304); removed in 4.7.
 
-## 4.7.0 (2026-09-02) → 4.7.1 (2026-09-15) — skip 4.7.0
+## 4.7 (2026-09-02; 4.7.3 2026-10-13) — ltree hierarchies, target 4.7.2+
 
-Beyond the four upgrade gates in `SKILL.md` (PG 15+, ltree, Redis 6+, selection
-custom-field shape), 4.7.0 carries two defects that make it a bad target
-[docs, verified 2026-09-15]:
+Upgrade gates and the chart pin map: `SKILL.md` §"Upgrading to 4.7".
 
-- **#23112** — the SSO login button does nothing under a restrictive
-  `form-action` CSP; fixed in 4.7.1 by starting the login via script-driven
-  navigation. Any OIDC/SAML install on 4.7.0 loses its login button.
-- **#23130** — the triggers that cascade a hierarchical object's path to its
-  descendants could not be recreated from a `pg_dump` of a 4.7.0 database: the
-  restore reports success, then renaming/moving a region, site group,
-  location, device role, platform, tenant group, contact group, WLAN group,
-  module bay or inventory item stops updating descendants. 4.7.1 reinstalls
-  the triggers but does **not** repair already-stale values — see the 4.7.1
-  release note and the "Repairing Hierarchical Paths" admin page.
+Defects in early 4.7 [docs]:
 
-Chart pin map at 2026-09-15: **8.3.66 → 4.6.10** (last 4.6), 8.3.70–8.3.76 →
-4.7.0, nothing → 4.7.1 yet. Also: 4.7 changes `ipam.Service` to
-`port_mappings` (legacy `protocol`/`ports` accepted by REST, read-only at the
-ORM), pre-renders config context into every device/VM REST representation
-(`?exclude=config_context` silently ignored), makes REST token plaintexts
-server-generated only, and requires write-enabled tokens to run custom scripts.
-Not re-verified live.
+- **#23112** (4.7.0) — the SSO login button does nothing under a restrictive
+  `form-action` CSP. 4.7.1 starts the login with `POST /oauth/begin/<backend>/`,
+  which returns the IdP URL as JSON for the page script to navigate to.
+- **#23130** (4.7.0) — a `pg_dump` of a 4.7.0 database restores without the
+  hierarchy cascade triggers; the restore reports success, then renaming or
+  moving a parent leaves descendants stale. 4.7.1 reinstalls the triggers but
+  does **not** repair stale values — see the "Repairing Hierarchical Paths"
+  admin doc.
+- **#23196** (4.7.0–4.7.1) — background bulk API requests that create tokens
+  record the plaintext in job results, readable by anyone who can view jobs.
+  4.7.2 rejects such requests; replace any token created that way.
+
+### After the roll [live 2026-10-27]
+
+The image entrypoint runs `migrate` and its usual cleanup, not the extra steps
+NetBox's own `upgrade.sh` adds. Run these in the web pod:
+
+1. `manage.py rebuild_config_context_cache` — fills the new config-context
+   cache (one `UPDATE` per device/VM; safe to interrupt and re-run). Until it
+   runs, objects render config context on demand.
+2. Turn the `housekeeping` CronJob off: the command is gone. Chart ≥8.3.77
+   defaults `housekeeping.enabled: false`; a values file that pins `true`
+   keeps a CronJob running `manage.py housekeeping`, which fails.
+3. `manage.py rebuild_ltree_paths --check` — every hierarchical model must
+   report OK.
+4. Check the SSO login start with a POST (`helm-chart-gotchas.md` §9.5): a GET
+   returns 405 on 4.7.
+
+### Moving or restoring a 4.7 database [live 2026-10-27]
+
+A `pg_dump | pg_restore` of a 4.7.1+ database keeps every trigger, verified
+copying 4.7.3 between two PostgreSQL operators.
+
+- When trimming extensions with `pg_dump --extension=…`, include
+  `--extension=ltree`. It is trusted, so `pg_restore --role=<db owner>` creates
+  it without a superuser.
+- 4.7 keeps hierarchy paths (`<table>_ltree_compute_path` /
+  `<table>_ltree_cascade_path` on 11 tables) and denormalized fields
+  (`*_denorm_from_*`) in PostgreSQL triggers, not in Python. A restore that
+  loses them still reports success. After every restore:
+  - diff `SELECT tgrelid::regclass, tgname, pg_get_triggerdef(oid) FROM
+    pg_trigger WHERE NOT tgisinternal ORDER BY 1, 2` between source and
+    target — it must be identical;
+  - in a transaction you roll back, rename a parent location and confirm the
+    child's `sort_path` changed;
+  - run `manage.py rebuild_ltree_paths --check`.
+- Moving between PostgreSQL operators (e.g. Zalando → CloudNativePG): the
+  `postgres-operator-cloudnative-pg-migration` skill.
+
+### API and dependency changes
+
+- `ipam.Service` `protocol`/`ports` → `port_mappings`. REST still accepts the
+  legacy pair and still returns it on read [live 2026-10-27]; read-only at the
+  ORM.
+- Config context is pre-rendered into every device/VM REST representation;
+  `?exclude=config_context` is silently ignored.
+- REST token plaintexts are server-generated only; running custom scripts
+  needs a write-enabled token.
+- social-auth-core 4.8.7 → 5.1.0 (4.7.0) → **5.2.0** (4.7.3);
+  social-auth-app-django 5.9.0 → 6.0.1 → **6.1.0**. app-django 6 makes the
+  login start POST-only: `GET /oauth/login/<backend>/` returns **405**. The
+  OIDC backend defaults are unchanged (PKCE off, RS256 only,
+  `preferred_username`, uid from `sub`), so existing `social_auth` rows stay
+  valid [source @5.2.0; live 2026-10-27: login start only].
 
 ## Anti-facts (plausible, verified FALSE — do not repeat)
 

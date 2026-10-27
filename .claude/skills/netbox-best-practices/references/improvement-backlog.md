@@ -1,6 +1,22 @@
 # Improvement backlog — netbox-best-practices
 
-## Resolved — 2026-09-15 (live build: 4.6.10 hop + Keycloak SSO on noffe)
+## Resolved — 2026-10-27 (live 4.6.10 → 4.7.3 hop + database copied between PG operators)
+
+- **4.7 coverage** (Open since 2026-09-15) — closed from the 4.7.3 release
+  notes, source at v4.7.3 and the live hop. `version-deltas.md` §4.7
+  rewritten (post-roll steps, trigger-checked dump/restore, API and
+  dependency changes); gates re-targeted to 4.7.2+ (#23196); chart pin map
+  rebuilt (4.7.0 starts at 8.3.67, not 8.3.70); auth `[source]` claims
+  re-checked by symbol name at v4.7.3.
+- **Wrong on 4.7, corrected:** "keep the housekeeping CronJob" (§6), the
+  GET-based SSO check (§9.5 — 405 on 4.7), social-auth pin text.
+- **Rule 2 / §1** scoped per operator: CloudNativePG collides on
+  ServiceAccount/Role/RoleBinding, not Service (object names observed; the
+  collision itself was not exercised).
+- First human IdP login (pending in the 2026-09-15 entry) was done that
+  evening; the 4.7.3 SSO check covers the login start only.
+
+## Resolved — 2026-09-15 (live build: 4.6.10 hop + Keycloak SSO)
 
 The helm SSO design (§9 + `sso-hardening.md`) went from `[source]` to
 `[live]` in one evening: chart 8.3.37/4.6.5 → 8.3.66/4.6.10, then Keycloak
@@ -28,10 +44,6 @@ The helm SSO design (§9 + `sso-hardening.md`) went from `[source]` to
   `map_groups` snippet and the first live module set it; the first real
   login 500ed with `ValueError: … non-concrete fields: is_staff`. Corrected
   in both examples; the stub self-check cannot catch this class of error.
-
-Still open from this build: the first real IdP login by a human was pending
-when this was written — the promote/demote path is stub-tested and the
-redirect verified, not yet exercised with a live Keycloak session.
 
 ## Resolved — 2026-07-21 (freshen)
 
@@ -62,16 +74,6 @@ claim and the v1-token-removal-at-**v5.0** schedule stand unchanged.
 
 
 ## Open
-
-- **NetBox 4.7.0 is outside the covered range** (Dim 9, new 2026-09-15). The skill
-  states 4.2–4.6 and its deltas stop there; 4.7.0 published 2026-09-02, verified
-  against the release feed. SKILL.md now says so rather than implying 4.6.x is still
-  the head of the line, but the version-delta sheet, the chart pairing and the
-  source-verified auth claims have not been re-read against 4.7.
-  **What it needs:** a freshen pass over the 4.7 release notes and the chart's 4.7
-  pairing — the work is real research, not a range edit, and writing "4.2–4.7" without
-  it would claim coverage that does not exist.
-
 
 - **HA/replicas/media-persistence coverage** (Dim 5) — netbox-chart replicas >1
   requires RWX media storage (or S3-style media backend); chart issues track
@@ -122,7 +124,7 @@ scope, not on a rubric stop condition** — no ceiling was mapped and zero
 discards were logged, so this pass has NOT established that the skill is near
 its ceiling.
 
-## Resolved this pass — 2026-06-12## Resolved this pass — 2026-06-12
+## Resolved this pass — 2026-06-12
 
 - sources.md created, all rows stamped 2026-06-12 (Dim 9 cap 6 → 9).
 - Token section deduplicated against official netbox-labs:netbox-api-integration,

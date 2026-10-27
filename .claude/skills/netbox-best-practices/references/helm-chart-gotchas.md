@@ -1,9 +1,9 @@
 # netbox-chart (helm) deployment gotchas
 
-Verified against netbox-chart 8.3.x source (`charts/netbox/templates/`) and a
-production install of chart 8.3.14 / NetBox v4.6.2. **Upstream has since moved to
-chart 8.3.37 / v4.6.5 (verified 2026-07-21) — still 8.x, so no chart-major
-break; the observations below have not been re-run against it.** Chart repo:
+Verified against netbox-chart 8.3.x source (`charts/netbox/templates/`) and
+production installs: undated `[live]` on chart 8.3.14 / v4.6.2, dated labels
+as stamped. §1, §6 and §9.5 were re-run on chart 8.3.96 / v4.7.3
+(2026-10-27); the rest was not re-run on 4.7. Chart repo:
 `netbox-community/netbox-chart`; chart museum: `charts.netbox.oss.netboxlabs.com`.
 
 Ordered as a pre-flight checklist for a fresh install.
@@ -21,16 +21,24 @@ metrics, first boot, distroless preflight) · §7 Upgrade workflow ·
 ## 1. External PostgreSQL
 
 - Set `postgresql.enabled: false`; configure `externalDatabase.*`.
-- **Naming collision trap** [live]: the operator-managed cluster (Zalando,
-  CloudNativePG) emits Services named after the cluster CR. If the CR is named
-  the same as the helm release fullname (e.g. release `netbox` ↔ cluster
-  `netbox`), `helm install` fails:
-  `Service "netbox" ... cannot be imported into the current release: invalid
-  ownership metadata`. Name the CR `<release>-postgres-cluster`.
+- **Naming collision trap**: never name the cluster CR like the helm release
+  fullname (e.g. release `netbox` ↔ cluster `netbox`).
+  - Zalando emits a Service named after the CR → `helm install` fails:
+    `Service "netbox" ... cannot be imported into the current release: invalid
+    ownership metadata` [live].
+  - CloudNativePG suffixes its Services (`-rw`/`-ro`/`-r`) but names its
+    ServiceAccount, Role and RoleBinding after the CR; the chart creates all
+    three under the release name [live 2026-10-27: object names].
+  - Name the CR `<release>-postgres-cluster` or `<release>-pg`.
 - Operator credential secrets can be consumed directly:
   `externalDatabase.existingSecretName: <operator-secret>` with
   `existingSecretKey: password`. The chart projects the key onto the
   `db_password` path the config reads — no key renaming needed. [source]
+  CloudNativePG's `<cluster>-app` Secret works as-is; keep the database name
+  and owner when moving the database to a new cluster, and only
+  `externalDatabase.host` and `existingSecretName` change [live 2026-10-27].
+- Moving or restoring a 4.7 database: trigger checks in `version-deltas.md`
+  §4.7 "Moving or restoring".
 - The Django schema migration runs at pod startup inside `helm upgrade`.
   `helm rollback` cannot downgrade the schema — snapshot the DB before every
   upgrade.
@@ -202,7 +210,9 @@ pull-once.
 
 ## 6. Operational defaults worth flipping
 
-- `housekeeping:` CronJob is enabled by default (nightly) — keep it.
+- `housekeeping:` CronJob — keep it **off** on NetBox ≥4.6 (chart default
+  since 8.3.77). It runs `manage.py housekeeping`: deprecated in 4.6 (NetBox
+  runs those tasks itself), removed in 4.7, where an enabled CronJob fails. [source]
 - `metrics.enabled: true` + `metrics.serviceMonitor.enabled: true` for
   prometheus-operator stacks; note there is a SECOND ServiceMonitor block
   under `metrics.granian.*` for the app-server's own metrics. [source]
@@ -256,7 +266,7 @@ storages:                       # merged as DEFAULT_STORAGES | STORAGES, so only
       addressing_style: path                 # REQUIRED for custom endpoints — virtual-host style becomes bucket.host, which a SAN-scoped cert won't cover
 extraEnvVarsSecret: "netbox-media"  # AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY → boto3 reads from env; keep keys out of values
 worker:      { extraEnvVarsSecret: "netbox-media" }
-housekeeping:{ extraEnvVarsSecret: "netbox-media" }
+housekeeping:{ extraEnvVarsSecret: "netbox-media" }   # only while the housekeeping CronJob is enabled (§6)
 persistence: { enabled: false }     # drops the shared RWO PVC; media volume falls back to per-pod emptyDir
 ```
 Gotchas learned the hard way [live]:
@@ -303,8 +313,8 @@ wiring is:
   arbitrary. [live 2026-09-15] The `values:` entry renders into the release's
   own ConfigMap as key `extra-0.yaml`, mounted at `/run/config/extra/0`; each
   `secret:`/`configMap:` entry mounts as the next index (`/run/config/extra/1`
-  …) on the web, worker **and** housekeeping pods — so a syntax error in one
-  `.yaml` key stops all three at boot.
+  …) on the web and worker pods (and the housekeeping CronJob when enabled) —
+  so a syntax error in one `.yaml` key stops all of them at boot.
 
 Minimal Keycloak values with the generic OIDC backend (see 9.2 for why this
 backend and not the chart docs' `KeycloakOAuth2`):
@@ -365,7 +375,7 @@ PR #661) is dated in four ways:
   an account-linking risk; see sso-hardening.md hardening rule 7.
 
 PKCE and JWT algorithms both need explicit opt-in on social-auth-core 4.8.7
-(NetBox's pin [source: requirements.txt:39]) — set
+(NetBox 4.6) and 5.2.0 (NetBox 4.7.3) [source: requirements.txt:39] — set
 `SOCIAL_AUTH_OIDC_USE_PKCE: true` and, for an IdP signing with ES256/EdDSA,
 `SOCIAL_AUTH_OIDC_JWT_ALGORITHMS: ["RS256", "ES256"]`. Both defaults, the
 source lines behind them, and why "no PKCE support" and "PKCE out of the box"
@@ -399,11 +409,22 @@ inherit the mapping by accident.
 
 ### 9.5 Verify from outside, without logging in
 
+On NetBox ≥4.7 the login start is POST-only (social-auth-app-django 6): a GET
+on `/oauth/login/oidc/` returns **405 by design**, not a fault. POST it with
+the CSRF cookie and token from `/login/` [live 2026-10-27]:
+
 ```bash
-curl -sI https://<host>/oauth/login/oidc/ | grep -i ^location
+J=$(mktemp -d); H=https://<host>
+curl -s -c $J/c -b $J/c $H/login/ -o /dev/null
+T=$(awk '$6=="csrftoken"{print $7}' $J/c)
+curl -s -c $J/c -b $J/c -X POST -H "Referer: $H/login/" -H "X-CSRFToken: $T" \
+  -d "csrfmiddlewaretoken=$T" "$H/oauth/login/oidc/?next=/" \
+  -o /dev/null -w '%{http_code} %{redirect_url}\n'
+rm -rf $J
 ```
 
-must be a 302 to the IdP's `/protocol/openid-connect/auth` carrying
+On ≤4.6, `curl -sI $H/oauth/login/oidc/ | grep -i ^location` does the same.
+Either way the answer must be a 302 to the IdP's `/protocol/openid-connect/auth` carrying
 `client_id=<yours>`, `redirect_uri=https://<host>/oauth/complete/oidc/`
 (https, trailing slash) and, if PKCE is on, `code_challenge_method=S256`
 [live 2026-09-15]. Then confirm the running pod loaded the backend — the

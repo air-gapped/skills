@@ -1,7 +1,7 @@
 ---
 name: netbox-best-practices
 description: >-
-  NetBox 4.2-4.6 deployment and upgrade knowledge the official netboxlabs/skills marketplace does not cover — deploying or upgrading NetBox on Kubernetes with the netbox-community helm chart (netbox-chart), external PostgreSQL/valkey wiring, API token bootstrap on 4.5+ (nbt_ v2 tokens), plugin installation in the official image, version-migration planning across 4.2-4.6, module type profiles, front/rear port (patch panel) API changes, and OIDC/SSO group-to-role mapping. Gap-filler only: for general NetBox data modeling, IPAM design, Diode, validation, or turning an auth backend on in the first place, prefer the official netbox-administration skill.
+  NetBox 4.2-4.7 deployment and upgrade knowledge the official netboxlabs/skills marketplace does not cover — deploying or upgrading NetBox on Kubernetes with the netbox-community helm chart (netbox-chart), external PostgreSQL/valkey wiring, API token bootstrap on 4.5+ (nbt_ v2 tokens), plugin installation in the official image, version-migration planning across 4.2-4.7, module type profiles, front/rear port (patch panel) API changes, and OIDC/SSO group-to-role mapping. Gap-filler only: for general NetBox data modeling, IPAM design, Diode, validation, or turning an auth backend on in the first place, prefer the official netbox-administration skill.
 when_to_use: >-
   Trigger on "netbox helm", "netbox chart", "netbox kubernetes", "netbox upgrade", "netbox plugin install", "netbox api token bootstrap", "netbox 4.x breaking changes", "netbox oidc/sso group mapping", "netbox sso hardening", "netbox keycloak", OIDC via the helm chart (extraConfig wiring), or seeding/automation that must survive a NetBox version bump.
 ---
@@ -15,43 +15,34 @@ they are maintained upstream and authoritative. This skill covers four areas
 they do not (as of 2026-06):
 
 1. **netbox-chart (helm) deployment gotchas** → `references/helm-chart-gotchas.md`
-2. **NetBox 4.2→4.6 version-delta cheat sheet** → `references/version-deltas.md`
+2. **NetBox 4.2→4.7 version-delta cheat sheet** → `references/version-deltas.md`
 3. **Modeling gaps**: module type profiles (4.3+), port-mapping rework (4.5) → `references/modeling-gaps.md`
 4. **SSO/OIDC group→role mapping + hardening** → `references/sso-hardening.md`
 
 Evidence labels used throughout: `[source]` = verified against chart/NetBox
-source code (file:line cited); `[live]` = verified on a production install of
-chart 8.3.14 / NetBox v4.6.2, and — for the helm SSO wiring (§9 + the worked example in `sso-hardening.md`) — re-verified end to end on **chart 8.3.66 / NetBox v4.6.10 with Keycloak 26.7.2 on 2026-09-15**. At the 2026-07-21 check upstream was chart 8.3.37 / v4.6.5 — still 4.6.x, so no delta was invalidated. **Since then NetBox 4.7.0 shipped (2026-09-02), a minor beyond this skill's 4.2–4.6 range.** Nothing below has been re-verified against it, so on a 4.7 target treat every delta as unconfirmed rather than as covered — but read the 4.7 upgrade gates immediately below first, because they stop an upgrade before any delta matters; `[docs]` = official docs/release notes,
-adversarially verified (3-vote panel).
+source code (file:line cited); `[live]` = verified on a production install —
+undated labels on chart 8.3.14 / NetBox v4.6.2, `[live 2026-09-15]` on chart
+8.3.66 / v4.6.10 with Keycloak 26.7.2, `[live 2026-10-27]` on chart 8.3.96 /
+v4.7.3. Undated `[live]` chart observations were not re-run on 4.7. `[docs]` =
+official docs/release notes (4.2–4.6: adversarially verified, 3-vote panel).
 
-## Upgrading to 4.7.0 — four gates, from the release notes [docs]
+## Upgrading to 4.7 — gates [docs + live 2026-10-27]
 
-Verified against the [v4.7.0 release notes](https://github.com/netbox-community/netbox/releases/tag/v4.7.0) (2026-09-02). These are
-stated gates, not deltas re-derived here; the rest of this skill is still 4.2–4.6.
+From the 4.7.0–4.7.3 release notes, plus one live 4.6.10 → 4.7.3 hop.
 
 | Gate | What it means for a Kubernetes install |
 |---|---|
+| **Target 4.7.2 or later** | 4.7.0 breaks the SSO button under a restrictive `form-action` CSP ([#23112](https://github.com/netbox-community/netbox/issues/23112)) and its `pg_dump` restores without the hierarchy cascade triggers ([#23130](https://github.com/netbox-community/netbox/issues/23130)). 4.7.0–4.7.1 write the plaintext of tokens created by background bulk API requests into job results, readable by anyone who can view jobs ([#23196](https://github.com/netbox-community/netbox/issues/23196)) — replace any token created that way. Chart pins: **8.3.66 = 4.6.10** (last 4.6), 8.3.67–8.3.77 = 4.7.0, 8.3.78–8.3.90 = 4.7.1, 8.3.91 = 4.7.2, **8.3.92+ = 4.7.3** (latest 8.3.96, 2026-10-27). 8.3.66 → 8.3.96 in one hop works [live]. |
 | **PostgreSQL 15+ required; 14 dropped** | The upgrade script **aborts** on 14 — 4.6 only warned, so a cluster that upgraded cleanly to 4.6 can hard-fail here. Check the external DB's major version before bumping the image tag. |
-| **The `ltree` extension must be available** | Installed automatically on upgrade. It is a trusted module shipping with PostgreSQL and needs no superuser — but a managed or operator-run database that restricts extension creation will block it. Confirm the app role may create it, on a provider-managed DB especially. |
+| **The `ltree` extension must be available** | Trusted: the migration creates it as the NetBox DB user, which needs `CREATE` on the database (owning it is enough) — no superuser [live]. A managed DB that restricts extension creation blocks it. |
 | **Redis 6.0+ required; 5.x dropped** | Applies to the external valkey/Redis wiring. Valkey is 7.x-derived and unaffected; a pinned legacy Redis 5 sidecar is not. |
 | **Selection custom fields change shape on read** | REST *and* GraphQL now return `{"value": "...", "label": "..."}` instead of the bare value. Writes still accept the raw value. Any seeding or reconciliation script that reads a selection custom field back breaks silently — it gets a dict where it expected a string. |
+| **The mptt → ltree migration locks hierarchical tables** | `ACCESS EXCLUSIVE` on each hierarchical table (reads block too) while it backfills; minutes on a large install. Plan a window. |
 
-**Fifth gate — target 4.7.1 or later, never 4.7.0** [docs, verified 2026-09-15]: 4.7.0
-ships an OIDC/SSO login button that does nothing under a restrictive `form-action`
-CSP ([#23112](https://github.com/netbox-community/netbox/issues/23112)) and a
-`pg_dump` that silently drops the ltree cascade triggers, so a restore reports
-success and hierarchy renames stop propagating
-([#23130](https://github.com/netbox-community/netbox/issues/23130), with a
-"Repairing Hierarchical Paths" admin doc for already-stale values). Both are fixed
-in 4.7.1 (2026-09-15). On the helm chart, check which app version the chart pins
-(`helm search repo netbox/netbox --versions`): **8.3.66 is the last 4.6 chart
-(4.6.10)**, 8.3.70–8.3.77 pin 4.7.0, and **8.3.78+ (2026-09-16) pin 4.7.1** — the
-safe staging point from 4.6.x is 8.3.66, then straight to 8.3.78+ (latest 8.3.84, 2026-09-21)
-rather than any 4.7.0-pinned chart.
-
-The `ipam.Service` `protocol`/`ports` → `port_mappings` change also lands in 4.7,
-with the legacy pair still accepted by the REST API but read-only at the ORM
-level. It affects plugins and scripts touching services; not re-verified here.
+**After the 4.7 roll**, run the steps in `references/version-deltas.md` §4.7
+"After the roll": config-context cache rebuild (the image entrypoint skips it),
+`housekeeping` CronJob off, POST-based SSO check, hierarchy-path check. Before
+moving or restoring a 4.7 database, read §4.7 "Moving or restoring".
 
 ## The five rules that prevent the worst failures
 
@@ -63,9 +54,12 @@ level. It affects plugins and scripts touching services; not re-verified here.
    preserves existing values via `lookup`. [source: templates/_helpers.tpl]
 
 2. **Name external Postgres clusters differently from the helm release.**
-   A Zalando/CNPG cluster named like the release fullname creates a Service
-   with the same name the chart wants to own → `helm install` fails with
-   "invalid ownership metadata". Convention: `<release>-postgres-cluster`. [live]
+   Zalando names a Service after the cluster CR, so a CR named like the
+   release fullname makes `helm install` fail with "invalid ownership
+   metadata" [live]. CloudNativePG suffixes its Services (`-rw`/`-ro`/`-r`)
+   but names its ServiceAccount, Role and RoleBinding after the cluster, and
+   the chart creates all three under the release name [live 2026-10-27:
+   object names]. Use `<release>-postgres-cluster` or `<release>-pg`.
 
 3. **Don't trust the chart's superuser `api_token`.** The chart generates one
    and mounts it, but NetBox 4.6's entrypoint never seeds it (v2 peppered
@@ -93,7 +87,7 @@ takes several minutes before the pod goes Ready; that is normal. [live]
 ## When upgrading NetBox or writing automation against it
 
 Read `references/version-deltas.md` — it lists what changed in each minor
-release 4.2→4.6 with dates and PR numbers, plus two "anti-facts" (plausible
+release 4.2→4.7 with dates and PR numbers, plus two "anti-facts" (plausible
 claims that are FALSE) to avoid repeating common misinformation.
 
 ## When wiring SSO/OIDC (after the official skill gets it turned on)
@@ -105,7 +99,7 @@ header/proxy backend — native OIDC/SAML ignores them and needs a custom
 `SOCIAL_AUTH_PIPELINE` function to map IdP groups to NetBox roles — plus OIDC
 backend gotchas (redirect URI shape, RS256-only default, PKCE off by default) and the
 break-glass / header-spoofing / SSO≠API-token / associate_by_email hardening
-rules. [source-verified against netbox 4.6 authentication code]
+rules. [source-verified against netbox 4.6 and 4.7.3 authentication code]
 
 **Deploying SSO on the helm chart** (Keycloak etc.): start from the **worked
 example at the end of `references/sso-hardening.md`** — the complete Keycloak

@@ -115,7 +115,7 @@ Notes:
   but an already-issued NetBox **API token keeps working**; SSO never expires
   tokens (see below).
 
-## OIDC backend gotchas (social-core `OpenIdConnectAuth`, NetBox 4.6 pins social-auth-core 4.8.7)
+## OIDC backend gotchas (social-core `OpenIdConnectAuth`; NetBox 4.6 pins social-auth-core 4.8.7, 4.7.3 pins 5.2.0 — same defaults, anchors below @4.8.7)
 
 - **Redirect URI must match exactly**: `https://<host>/oauth/complete/oidc/` —
   social_django is mounted under `/oauth/` [source: netbox/netbox/urls.py:23],
@@ -203,7 +203,9 @@ But this backend trusts HTTP headers blindly — see hardening rule 2.
 
 Ran end to end on chart 8.3.66 / NetBox 4.6.10 / Keycloak 26.7.2 (issuer with
 a deliberate `/auth` prefix). Everything below was verified against the
-running pods and the IdP redirect, not just rendered.
+running pods and the IdP redirect, not just rendered. The same client, values
+and module carry over unchanged to chart 8.3.96 / NetBox 4.7.3 [live
+2026-10-27: login start only].
 
 **Keycloak client** (created over the admin REST API with a realm-scoped
 service account; no admin console login needed):
@@ -304,7 +306,8 @@ p.groups.add(g)
 ```
 
 **What it looked like when right:** `/login/` shows a **Keycloak** button
-above the local form; `/oauth/login/oidc/` 302s to
+above the local form; the login start (`helm-chart-gotchas.md` §9.5 — a
+POST on 4.7+) 302s to
 `…/protocol/openid-connect/auth?client_id=…&redirect_uri=https://…/oauth/complete/oidc/&…&code_challenge_method=S256&…&scope=openid+profile+email`;
 `settings.AUTHENTICATION_BACKENDS` in the pod lists `OpenIdConnectAuth` first
 and `ObjectPermissionBackend` second; local `admin` still logs in; API tokens
