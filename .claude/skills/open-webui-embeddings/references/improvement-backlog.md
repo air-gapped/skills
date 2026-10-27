@@ -56,15 +56,7 @@ Not re-probed this pass (still carrying 2026-07-21 states): LiteLLM PRs 25395/25
 
 ## Open
 
-- ~~**Re-resolve open-webui line numbers against v0.9.5**~~ — **RESOLVED 2026-07-29**, re-resolved against v0.11.0; see the Resolved section above. Original text retained for history: Dim 8/9 —
-  references/sources.md rows 1-3 (utils.py:677 / external.py:14 / config.py
-  line numbers). The pins are valid for v0.9.2 (commit `8dae237a0bfd`,
-  confirmed real via `gh` on 2026-05-28) but upstream latest is now v0.9.5
-  (2026-05-10). Line numbers may have drifted across v0.9.3/v0.9.4/v0.9.5.
-  Cannot be applied in one iteration because it requires checking out the
-  v0.9.5 tree and re-resolving each line by function name — an online/clone
-  step, not a text edit. The function-name anchors in the rows already
-  mitigate the drift for readers, so this is low-priority polish.
+None.
 
 ## Resolved — 2026-07-21 (freshen)
 
