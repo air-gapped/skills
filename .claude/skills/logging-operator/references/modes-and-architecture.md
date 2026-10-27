@@ -59,7 +59,7 @@ supported syslog-ng path, the AxoSyslog CRD as an expert escape hatch.
 CNCF Sandbox since 2023-09; maintainers employed by Axoflow (commercial support
 vendor); ~6–10-week release cadence through 6.7.0 (2026-06-16); repo active daily.
 Support precedent: previous minor supported ~3 months after a new major (5.4 until
-2026-10-06). **4.x is de facto EOL** — last patches Dec 2024. Axoflow states
+2025-10-06, ~12 weeks after 6.0.0). **4.x is de facto EOL** — last patches Dec 2024. Axoflow states
 logging-operator "is not being replaced" by TC.
 
 ## When something else fits better (honest comparison)
