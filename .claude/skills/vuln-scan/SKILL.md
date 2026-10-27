@@ -219,11 +219,12 @@ For each finding, in order:
    `confidence_reason: "prefilter: cited file not found under target"`.
    Skip 3b for it.
 2. **Test/fixture path.** Match the resolved path (case-insensitive)
-   against:
+   against the pattern below. The `(?-i:…)` group keeps the Java/C# suffixes
+   case-sensitive, so `Attest.java` or `Latest.java` is not a test file:
 
    ```
    (^|/)(tests?|__tests__|mocks?|examples?|fixtures?|samples?|testdata)(/|$)
-   |_test\.|\.test\.|\.spec\.|Test\.java$|Tests\.cs$
+   |_test\.|\.test\.|\.spec\.|(?-i:Test\.java$|Tests\.cs$)
    ```
 
    On match: set `confidence: 0.15`, `prefilter: "test_path"`,
