@@ -1,6 +1,6 @@
 # Known-issue catalog — management API, BerriAI/litellm
 
-Sweep 2026-07-30. ~1,566 open issues total; ~192 open mention "budget", ~267 "spend", ~38 "access group". Management-plane issues sit open for months with no maintainer comment (e.g. #25951 since April, #15230 from Oct 2025 until the stale bot closed it unfixed, 39 comments); the stale bot closes real bugs (#25495). "Closed" ≠ "fixed" without a linked PR. **`closed unfixed`** below = closed `NOT_PLANNED` (stale bot or won't-fix) with no linked fix: the bug stands. Maintainer roadmap: #30484 (open) acknowledges spend/budget as P0.
+Sweep 2026-07-30. ~1,566 open issues total; ~192 open mention "budget", ~267 "spend", ~38 "access group". Management-plane issues sit open for months with no maintainer comment (e.g. #15230 from Oct 2025 until the stale bot closed it unfixed, 39 comments); the stale bot closes real bugs (#25495). "Closed" ≠ "fixed" without a linked PR. **`closed unfixed`** below = closed `NOT_PLANNED` (stale bot or won't-fix) with no linked fix: the bug stands. Maintainer roadmap: #30484 (open) acknowledges spend/budget as P0.
 
 Budget/spend issues are catalogued in `budgets-spend.md`; access-model issues in `access-model.md`; config-DB in `config-db.md`. This file holds the rest + the cross-reference index.
 
@@ -21,17 +21,17 @@ Budget/spend issues are catalogued in `budgets-spend.md`; access-model issues in
 | #27005, #26555 | both closed unfixed | related non-admin update failures |
 | #33194 / #33212 | #33194 OPEN; #33212 closed unfixed | non-admins can't set max_budget on personal keys |
 | #29305 | closed unfixed | `/key/update` 403 when a previously-assigned MCP server was deleted |
-| #20962 | OPEN | UI requires team for non-admin key creation while API blocks team assignment — deadlock |
+| #20962 | closed, not fixed (maintainer says so) | UI requires team for non-admin key creation while API blocks team assignment — deadlock. Workaround after #45870 ships (in v1.107.0-rc, not v1.106.5): a team admin creates keys for members once a proxy admin enables `create_member_keys` |
 | #29073 | closed | v1.86.0: UI session's $0.25 budget became the ceiling for keys generated via UI |
 
 ## Team/org/user lifecycle integrity
 
 | Issue | State | Impact |
 |---|---|---|
-| #25951 | OPEN since April | `/team/member_add` read-modify-write race silently loses members under concurrency — serialize calls |
+| #25951 | fixed v1.95.0 (#34185; per-team advisory lock v1.100.0, #37969) | below v1.95.0, `/team/member_add` read-modify-write race silently loses members under concurrency — serialize calls |
 | #34217 | OPEN (community fix PR #34218 closed unmerged — no fix in flight) | `/team/delete` leaves the team's keys **auth-valid in cache** until TTL (+ cache-key mismatch `team_id` vs `team_id:{id}` in invalidation) |
 | #30798 | closed unfixed | `/team/info` leaks internal `model_name_{team_id}_{uuid}` keys; `/team/update` round-trips them → persistent `team.models` corruption |
-| #31447 | OPEN | setting `team_member_budget` replaces the team's entire `metadata` object |
+| #31447 | fixed v1.101.0 (#36328) | below v1.101.0, a `/team/update` setting `team_member_budget` replaces the team's entire `metadata` object |
 | #27294 / #30843 | #30843 OPEN; #27294 closed unfixed | org_admin 401 on `/team/update`; org admin can't add internal user |
 | #33941 | OPEN | `/customer/update` silently drops `budget_duration` |
 | #32062 / #30984 | both closed unfixed | `/key/list` filters OR'd instead of AND'd for team-visibility callers; `size` cap 100 bites the UI |
@@ -43,13 +43,13 @@ Budget/spend issues are catalogued in `budgets-spend.md`; access-model issues in
 |---|---|---|
 | #32695 | closed unfixed | OpenAPI documents `budget_limits` with wrong field names (`budget_limit`/`time_period` vs actual `max_budget`/`budget_duration`) |
 | #16623 | OPEN | config.yaml schema no longer in the OpenAPI spec |
-| #33690 | OPEN | SSO role value docs≠code (`internal_user_view_only` vs `internal_user_viewer`) |
+| #33690 | fixed in docs (litellm-docs #2636) | the SSO role value is `internal_user_viewer`; older docs gave `internal_user_view_only` |
 | #21066 | closed | Swagger auth used wrong header |
 | #23850 | closed | "Access Groups not working as described" — doc-vs-behavior acknowledged |
 
 ## Pass-through endpoints
 
-#30932 (model=unknown in SpendLogs), #33210 (vLLM passthrough logs nothing), #30667 (mid-stream failures log no cost — fixed v1.101.0), #30725 (zeroed cost_breakdown), #29921 (no RPM/concurrency limits on custom pass-throughs), #26081 (registry grows unbounded → 100% CPU), #24500 (subpath + no-auth still 401s).
+#30932 (model=unknown in SpendLogs), #33210 (vLLM passthrough logs nothing), #30667 (mid-stream failures log no cost — fixed v1.101.0), #30725 (zeroed cost_breakdown), #29921 (no RPM/concurrency limits on custom pass-throughs), #26081 (registry grows unbounded → 100% CPU, fixed v1.91.0), #24500 (subpath + no-auth still 401s).
 
 ## Cross-reference index (issues detailed in sibling files)
 

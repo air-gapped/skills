@@ -114,7 +114,7 @@ With it on, DB rows deep-merge **over** YAML for `general_settings`/`router_sett
 
 ## Destructive ops don't propagate
 
-`/team/delete` leaves the team's virtual keys **auth-valid in cache** until TTL (open #34217); customer mutations don't invalidate Redis end-user counters (#31838/#31839). After any destructive op, verify with a live auth attempt, not the 200. `/team/member_add` is a read-modify-write race — serialize concurrent membership calls (open #25951).
+`/team/delete` leaves the team's virtual keys **auth-valid in cache** until TTL (open #34217); customer mutations don't invalidate Redis end-user counters (#31838/#31839). After any destructive op, verify with a live auth attempt, not the 200. Below v1.95.0, `/team/member_add` is a read-modify-write race that silently loses members — serialize concurrent membership calls there (#25951, fixed v1.95.0).
 
 ## Task → reference routing
 
@@ -134,7 +134,7 @@ With it on, DB rows deep-merge **over** YAML for `general_settings`/`router_sett
 
 ## Gotchas that cost hours
 
-- `/v1/models` **is not an access-policy oracle**: it does not reliably resolve `access_group_ids` (#31438 open; the #31966 case fixed in v1.97.0), ignores user-level restrictions (#26420), and can show the literal string `no-default-models` as a model. Don't verify access policy by listing models; verify with a live completion attempt.
+- `/v1/models` **is not an access-policy oracle**: below v1.97.0 it does not resolve team `access_group_ids` and shows the literal string `no-default-models` as a model (#31438/#31966, fixed v1.97.0); it ignores user-level restrictions (#26420) and lists only one team's models for a user in several teams. Don't verify access policy by listing models; verify with a live completion attempt.
 - Key identifiers differ per endpoint: `/key/info?key=` takes plaintext or hash (omitted = the caller's own key); `/key/delete` takes `keys` or `key_aliases` (never both); regenerate/reset_spend take the key **in the path**; `/key/list` filter `key_hash=` is hash-only, and its `size` caps at 100.
 - `/user/new` **auto-creates and returns a live key** unless `auto_create_key: false`; a keyless request with a `models`-bearing user record makes later empty-`models` keys inherit the user's list.
 - The three master-key-only routes (`/global/spend/reset`, 2 memory-usage routes) reject even proxy-admin virtual keys with a confusing error.
