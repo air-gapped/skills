@@ -39,9 +39,10 @@ provenance in `references/sources.md`).
   OpenRouter) vs inline `<think>` — and vLLM silently RENAMES incoming
   `reasoning_content`→`reasoning`. Servers should emit both; clients should
   read both. Full table: `references/backend-implementations.md`.
-- **Reasoning must be passed BACK in tool loops** on DeepSeek v4 (with tool
-  calls) and OpenRouter (exact block sequence) — clients that strip
-  reasoning break agentic loops. `references/cloud-compat.md`.
+- **Reasoning must be passed BACK in tool loops** on DeepSeek (every prior
+  turn whenever the request carries `tools`, else HTTP 400) and OpenRouter
+  (exact block sequence) — clients that strip reasoning break agentic
+  loops. `references/cloud-compat.md`.
 - **Silent-drop vs hard-400 split**: Ollama silently drops `tool_choice`
   (forced tool calls no-op!) and `max_completion_tokens` (unbounded
   generation); Groq, xAI-reasoning and LiteLLM (`UnsupportedParamsError`,

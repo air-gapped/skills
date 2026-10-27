@@ -36,7 +36,7 @@ the listed commit on 2026-07-19.
 | Cline (llms SDK provider) | https://github.com/cline/cline | 2026-09-15 | main (gh api) | — |
 | Anthropic OpenAI-compat layer | https://platform.claude.com/docs/en/cli-sdks-libraries/libraries/openai-sdk | 2026-09-15 | — | — |
 | Gemini OpenAI-compat | https://ai.google.dev/gemini-api/docs/openai | 2026-09-15 | — | — |
-| DeepSeek API docs (+thinking/prefix/FIM guides) | https://api-docs.deepseek.com/ | 2026-09-15 | — | — |
+| DeepSeek API docs (+thinking/prefix/FIM guides) | https://api-docs.deepseek.com/ | 2026-10-27 | root: "Use deepseek-flash as the model name"; legacy `deepseek-v4-flash` "still accepted"; /updates: `deepseek-chat`/`deepseek-reasoner` "discontinued … (2026-07-24)"; guides/thinking_mode: with `tools`, "the reasoning_content must be fully passed back … the API will return a 400 error"; the "automatically max for complex agent requests" wording is gone | — |
 | xAI CC (legacy) + deferred completions | https://docs.x.ai/developers/model-capabilities/legacy/chat-completions | 2026-09-15 | — | — |
 | Groq OpenAI-compat + reasoning | https://console.groq.com/docs/openai | 2026-09-15 | — | — |
 | Mistral API | https://docs.mistral.ai/api/ | 2026-09-15 | — | — |

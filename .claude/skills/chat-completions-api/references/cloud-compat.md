@@ -24,7 +24,7 @@ a portable client must know which is which.
 | tool `strict` not honored | Anthropic (ignored — no schema guarantee) |
 | `response_format` ignored entirely | Anthropic |
 | Reasoning field name | `reasoning_content` (DeepSeek, xAI CC), `reasoning` (Together, Groq parsed, OpenRouter), inline `<think>` (Groq raw), hidden (Anthropic compat) |
-| Reasoning must be passed BACK in tool loops | DeepSeek v4 (with tool calls), OpenRouter (exact block sequence) |
+| Reasoning must be passed BACK in tool loops | DeepSeek (any request carrying `tools` → 400 if missing), OpenRouter (exact block sequence) |
 | Silent truncation on context overflow | Fireworks (`context_length_exceeded_behavior: truncate` default) |
 | System messages repositioned | Anthropic (all hoisted + `\n`-concatenated to one initial system) |
 | CC declared legacy, Responses promoted | xAI, Groq, Azure; OpenAI itself banner-recommends Responses |
@@ -70,16 +70,20 @@ parameters … will be silently ignored."
 Bases: `api.deepseek.com` (OpenAI format), `/anthropic` (Anthropic format),
 `/beta` (prefix completion + FIM).
 
-- **`deepseek-chat` / `deepseek-reasoner` names die 2026-07-24**; current:
-  `deepseek-v4-flash`, `deepseek-v4-pro`. Thinking defaults ENABLED
-  (`extra_body {"thinking":{"type":"enabled"}}` to control); effort default
-  high, "automatically max for complex agent requests".
+- **Model names**: `deepseek-flash` and `deepseek-v4-pro`. `deepseek-chat` /
+  `deepseek-reasoner` were discontinued 2026-07-24; `deepseek-v4-flash` is a
+  legacy alias still accepted (served by the current Flash model). Thinking
+  defaults ENABLED (`extra_body {"thinking":{"type":"enabled"|"disabled"}}`);
+  effort default `high`, `reasoning_effort` maps minimal→low, medium→high,
+  xhigh→high, max/ultra→max.
 - Originated the `reasoning_content` convention (delta + message level).
-- Thinking mode: `temperature`/`top_p`/penalties "will not trigger an error
-  but will also have no effect" — silent no-op.
-- **Inverted pass-back rule (v4)**: without tool calls, intermediate
-  `reasoning_content` need not be resent; **with tool calls it MUST be
-  passed back** — clients that strip reasoning break agentic loops.
+- Thinking mode: `temperature`/penalties "will not trigger an error but will
+  also have no effect" — silent no-op; `top_p` is model-dependent
+  (`deepseek-flash` clamps it to 0.95–1.0, `deepseek-v4-pro` ignores it).
+- **Pass-back rule keyed on `tools`**: a request without `tools` need not
+  resend `reasoning_content`; **a request carrying `tools` must pass back every
+  prior turn's `reasoning_content` — even turns with no tool call — or the API
+  returns 400**. Clients that strip reasoning break agentic loops.
 - Beta: Chat Prefix Completion (last message `role:"assistant"` +
   `prefix:true`, e.g. seed ```` ```python ```` + `stop:["```"]`); FIM on
   `/completions` with `prompt`+`suffix`, max 4K tokens.
