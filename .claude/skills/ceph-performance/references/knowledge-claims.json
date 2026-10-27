@@ -40,7 +40,7 @@
     },
     {
       "id": 6,
-      "question": "Under Rook, which environment variable does Ceph use 1:1 as osd_memory_target?",
+      "question": "Under Rook, which environment variable does Ceph use as osd_memory_target, capped at the pod limit times osd_memory_target_cgroup_limit_ratio?",
       "skill_answer": "POD_MEMORY_REQUEST"
     },
     {

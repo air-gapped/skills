@@ -54,11 +54,12 @@ maintenance window.
 
 ## Memory
 
-- Under Rook, Ceph reads `POD_MEMORY_REQUEST` and uses it 1:1 as
-  `osd_memory_target`; with only a limit, target = limit ×
-  `osd_memory_target_cgroup_limit_ratio` (0.8). Set requests and limits
-  explicitly on `spec.resources.osd`; the limit needs headroom above the
-  request because the target is a cache-trim goal, not a cap. Confirm with
+- Under Rook, Ceph sets `osd_memory_target` = min(`POD_MEMORY_REQUEST`,
+  limit × `osd_memory_target_cgroup_limit_ratio` (0.8)); with only a
+  limit, target = limit × 0.8. Set requests and limits explicitly on
+  `spec.resources.osd` with limit ≥ request ÷ 0.8 (1.25×) — a tighter
+  limit pulls the target below the request. The target is a cache-trim
+  goal, not a cap, so the limit needs that headroom anyway. Confirm with
   `ceph config show osd.N osd_memory_target` after the pods restart.
 - Rook's own minimums (warns below): osd 2048 MB, mon 1024 MB, mgr 512 MB.
   4 GiB+ per OSD is the Ceph default target; NVMe OSDs benefit from more.
