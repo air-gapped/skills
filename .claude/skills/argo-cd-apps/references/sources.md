@@ -123,7 +123,7 @@ stamp.
 
 | Source | URL | What it contains | Last verified | Pinned |
 |--------|-----|------------------|---------------|--------|
-| blog.argoproj.io | https://blog.argoproj.io/ | Official Argo project blog with release announcements (note: **not a TLS problem, despite an earlier reading** — checked 2026-09-15, `curl` reports the certificate verifying cleanly and the server returning **403**, i.e. a bot block on scripted clients. Do not debug certificates here; reach it via WebSearch `site:` queries, which works) | 2026-08-18 | — |
+| blog.argoproj.io | https://blog.argoproj.io/ | Official Argo project blog (a Medium publication; medium.com/argo-project redirects here) with release announcements. **403 to curl** — a bot block, not a TLS problem. Loads in a logged-in browser; `site:blog.argoproj.io` WebSearch does **not** surface its posts, so use the browser. Latest Argo CD posts on 2026-10-27: "Argo CD v3.6 Less Memory, Faster UI, Better Rollout Visibility" (3.6 RC, 2026-09-16) and "Argo CD v3.5 Release Candidate" (2026-06-16); no 3.5 GA post | 2026-10-27 | — |
 
 ## Adjacent skills referenced
 
