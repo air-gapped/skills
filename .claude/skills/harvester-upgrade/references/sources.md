@@ -4,7 +4,7 @@ Freshened: 2026-09-22 — every row probed. v1.9.0 GA'd 2026-09-16, ending the R
 
 Grounded 2026-06-01; release/edition rows re-grounded **2026-07-21**. The ladder/pairing/ordering *mechanics* are durable methodology; the volatile leaf
 numbers — latest patch per minor, GA dates, "fixed in vX" claims, Node-Driver ranges — must be re-grounded via
-`gh` at use time (House Rule #2). Distilled from the deep-research report (see Provenance).
+`gh` at use time (House Rule #2). Distilled from a deep-research pass (see Provenance).
 
 ## Freshness ledger
 
@@ -95,8 +95,7 @@ Per-source verification dates (run `freshen harvester-upgrade` to re-probe and r
   #2323, #6418, #6849, #7366, #7650, #8949, #8950, #9033, #9260, #9367, #9644, #9738, #9815, #9845, #10349.
 
 ## Full research provenance
-- The deep-research report this skill was distilled from:
-  `.claude/skills/autoresearch/results/harvester-upgrade-eol-1.5-to-latest-2026-06-01.md` in this repo (autoresearch
-  Research mode, 6 parallel agents + a verification recurse that pinned the edition correction and the
-  controlled-flow source-level facts).
+- Distilled from a 2026-06-01 multi-agent deep-research pass (6 parallel agents + a verification recurse that
+  pinned the edition correction and the controlled-flow source-level facts). The report itself is not shipped
+  (autoresearch `results/` is untracked); every claim it fed is cited to a primary source in the rows above.
 </content>
