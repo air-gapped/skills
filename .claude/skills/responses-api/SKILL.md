@@ -55,8 +55,8 @@ Non-obvious traps with silent failure modes. Full list: `references/translation-
 - **MCP `{never: {tool_names: []}}` silently disables ALL approvals**. With an empty exempt list, use string `"always"` instead (community 1368778, llama-stack #3443).
 - **Compaction output items are opaque encrypted** — preserve byte-for-byte when chaining; drop items preceding the most recent `compaction` when chaining stateless.
 - **WebSocket needs session-sticky routing**. `previous_response_id` state is connection-local; without stickiness, multi-turn tool chains break on reconnect (CLIProxyAPI #2596).
-- **vLLM silently ignores `store: true`** unless launched with `VLLM_ENABLE_RESPONSES_API_STORE=1` (env var, no CLI flag) — retrieval and `previous_response_id` chaining then 404 with nothing in the server log (live-verified v0.25.1; env var code-confirmed still gating at v0.26.0).
-- **The vLLM store is per-replica in-memory** (plain dict, no shared/external backend as of v0.25.1, unchanged in v0.26.0 release notes) — behind a load balancer, `previous_response_id` chaining 404s (`"Response with id ... not found"`) whenever the next turn lands on a different replica. For fleets: keep clients stateless (full-history replay) or let the gateway own sessions (LiteLLM spend-log reconstruction); never enable per-replica stores without affinity.
+- **vLLM silently ignores `store: true`** unless launched with `VLLM_ENABLE_RESPONSES_API_STORE=1` (env var, no CLI flag) — retrieval and `previous_response_id` chaining then 404 with nothing in the server log (live-verified v0.25.1; env var code-confirmed still gating at v0.32.0).
+- **The vLLM store is per-replica in-memory** (plain dict, no shared/external backend — code-confirmed at v0.32.0) — behind a load balancer, `previous_response_id` chaining 404s (`"Response with id ... not found"`) whenever the next turn lands on a different replica. For fleets: keep clients stateless (full-history replay) or let the gateway own sessions (LiteLLM spend-log reconstruction); never enable per-replica stores without affinity.
 
 ## Quick Reference
 

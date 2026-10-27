@@ -28,14 +28,14 @@ Freshen mode reads and stamps `Last verified:` / `Pinned:` here.
 | LiteLLM | https://github.com/BerriAI/litellm | 2026-07-31 | v1.94.0 |
 | SGLang | https://github.com/sgl-project/sglang | 2026-07-31 | v0.5.16 |
 | Llama Stack / OGX | https://github.com/ogx-ai/ogx | 2026-09-15 | v1.2.2 examined — **repo transferred and project renamed to OGX**; old URL redirects |
-| Bifrost | https://github.com/maximhq/bifrost | 2026-07-31 | transports/v1.6.7 (HTTP line; ent-v2.0.0-pre* is the enterprise line) |
+| Bifrost | https://github.com/maximhq/bifrost | 2026-10-27 | transports/v1.6.7 examined (HTTP line; latest transports/v2.3.2, 2026-10-20). Enterprise line is now `ent-vX-base`; the `ent-*-pre*` tags are gone |
 | Lemonade (AMD) | https://github.com/lemonade-sdk/lemonade | 2026-07-31 | v11.5.1 |
 | Codex CLI | https://github.com/openai/codex | 2026-07-31 | rust-v0.146.0 |
 | TensorRT-LLM | https://github.com/NVIDIA/TensorRT-LLM | 2026-07-31 | v1.2.1 (stable; v1.3.0 in rc only) |
 | opencode | https://github.com/anomalyco/opencode | 2026-09-15 | v1.18.10 examined — **repo transferred from `sst/`**; old URL redirects |
 | Vercel AI SDK / @ai-sdk/open-responses | https://github.com/vercel/ai | 2026-07-19 | monorepo (per-package tags) |
 | Pydantic AI | https://github.com/pydantic/pydantic-ai | 2026-07-31 | v2.21.0 |
-| Amazon Strands SDK | https://github.com/strands-agents/harness-sdk | 2026-09-15 | **repo renamed from `sdk-python`**; tags are now plain semver, not per-package — re-check the monorepo assumption before relying on it |
+| Amazon Strands SDK | https://github.com/strands-agents/harness-sdk | 2026-10-27 | **repo renamed from `sdk-python`**; tags are per-package (`python/v1.62.0`, `typescript/v1.22.0`, `harness-*`, 2026-10-21) |
 | Microsoft Agent Framework | https://github.com/microsoft/agent-framework | 2026-07-31 | python-1.12.1 |
 
 Probe notes: `openai.com` blog URLs return 403 to non-browser fetchers
@@ -51,7 +51,7 @@ Probe notes: `openai.com` blog URLs return 403 to non-browser fetchers
 | vLLM #38132 (truncation auto 400) | **CLOSED `NOT_PLANNED` 2026-08-11** — an inactivity closure, not a fix; it already no longer reproduced on v0.25.1 (live test 2026-07-19) |
 | vLLM #39624 (DELETE endpoint) | **CLOSED `NOT_PLANNED` 2026-08-14** — inactivity closure, so the endpoint is still absent; absence openapi-confirmed on v0.25.1 and router-confirmed at v0.32.0 (2026-10-27: GET + POST `/cancel` only) |
 | vLLM #36435 (tool XML leakage) | OPEN (state: reopened; re-probed 2026-09-15). **The upstream repro uses a stock parser** (`--tool-call-parser qwen3_coder`), and the maintainers attribute it to a parser-agnostic `if reasoning_parser: ... elif tool_parser:` branch in `_process_simple_streaming_events` — so it is not custom-parser-specific. Filed against 0.17.0rc1.dev; no comment confirms or denies it on v0.25+. Local run 2026-07-19 did not reproduce it, but used a custom Rust parser. Stale-bot notice 2026-08-05; last human comment 2026-05-04 |
-| vLLM store gating | `VLLM_ENABLE_RESPONSES_API_STORE=1` env var, default off, silent ignore — read from `responses/serving.py` @ v0.25.1; env var code-confirmed still present at v0.26.0 (2026-07-31) |
+| vLLM store gating | `VLLM_ENABLE_RESPONSES_API_STORE=1` env var, default off, silent ignore — read from `responses/serving.py` @ v0.25.1; env var (`vllm/envs.py`) and plain-dict `response_store` code-confirmed at v0.32.0 (2026-10-27) |
 | LiteLLM `/v1/responses/compact` | pure passthrough route since PR #18697 (merged 2026-01-06) — no server-side compaction of its own; code-verified at v1.94.0. (PR #28868's `compact_20260112` polyfill is `context_management`-side; relation to this route unverified) |
 | Ollama PR #15404 (previous_response_id) | open (re-probed 2026-07-31) |
 | LiteLLM #20975 (Azure passthrough strips setup events) | **CLOSED `NOT_PLANNED` 2026-08-13** by the stale bot — treat as unfixed, not resolved |

@@ -15,10 +15,11 @@ native handling.
 
 ## Support Matrix
 
-Version row read from each project's release feed 2026-09-15. Two cells need a word.
-**llama.cpp now publishes semver releases** (`v0.4.1`) and marks its `b####` builds as
-pre-releases — the build stream continues (b10970 the same day), so a pin to a `b` tag is
-still valid, it is just no longer what the feed calls latest. The per-backend
+Version row read from each project's release feed 2026-10-27. Three cells need a word.
+**llama.cpp publishes semver releases** (`v0.7.0`) alongside the daily `b####` builds
+(b11921 the same day), so a pin to a `b` tag is still valid, it is just not what the
+feed calls latest. **Lemonade is calendar-versioned** (`v2026.43.3`); the `v11.x` scheme
+is gone. **Bifrost's** HTTP line is `transports/vX`; enterprise tags are `ent-vX-base`. The per-backend
 sections below are stamped to the 2026-07 review that wrote them — their support
 claims were read against those versions, so the row above is the current number and
 the sections are the last state anyone actually checked. **TensorRT-LLM** previously
@@ -27,7 +28,7 @@ number even though the project keeps moving between tags.
 
 | Feature | vLLM | llama.cpp | mistral.rs | Ollama | LiteLLM | SGLang | Llama Stack | TensorRT-LLM | Bifrost | Lemonade |
 |---------|------|-----------|------------|--------|---------|--------|-------------|--------------|---------|----------|
-| Latest version (2026-09-15) | v0.29.0 | v0.4.1 | v0.9.3 | v0.34.0 | v1.100.1 | v0.5.19 | v1.4.0 | v1.2.1 | transports/v2.1.1 | v11.9.0 |
+| Latest version (2026-10-27) | v0.32.0 | v0.7.0 | v0.9.5 | v0.40.11 | v1.106.4 | v0.5.22 | v1.5.0 | v1.2.1 | transports/v2.3.2 | v2026.43.3 |
 | Streaming | Full | Full | Full | Partial | Full | Partial/buggy | Full | Yes | Full | Yes |
 | Tool calls (non-stream) | Yes | Yes | Yes | Yes | Yes | Built-in only | Yes | Yes | Yes | Yes |
 | Tool calls (stream) | Yes (parallel buggy) | Yes + `--tools` | Yes | ? | Yes | Broken | Yes | Yes | Yes | Yes |
@@ -46,7 +47,7 @@ number even though the project keeps moving between tags.
 **Source**: `vllm/entrypoints/openai/responses/serving.py` (~1700 lines)
 **At last review (2026-07)**: v0.26.0 (2026-07-27) — release notes carry no Responses-store or
 Responses-API changes; live-verified claims below are from v0.25.1 and the
-store gating env var is code-confirmed still present at v0.26.0 (2026-07-31)
+store gating env var and plain-dict store are code-confirmed unchanged at v0.32.0
 
 - Full SSE streaming with proper event lifecycle
 - **Streaming tool calls landed for non-Harmony models** (Qwen3/3.5, Gemma 4,
@@ -288,9 +289,8 @@ Harmony parser fixes (#12045, #12467).
 ## Bifrost (expanded)
 
 **At last review (2026-07)**: the repo tags per component — the HTTP-transport line is
-`transports/vX`: **transports/v1.6.7** (2026-07-30); the `ent-v2.0.0-pre*`
-tags are the separate enterprise line (this resolves the earlier
-version-line ambiguity)
+`transports/vX`: **transports/v1.6.7** (2026-07-30); enterprise tags are a
+separate line (`ent-vX-base`)
 
 - Native Responses API support with WebSocket transport (PR #1748)
 - Anthropic Responses streaming via `NewSSEScanner` (PR #1904)
@@ -306,8 +306,7 @@ version-line ambiguity)
 
 ## Lemonade (AMD, new)
 
-**At last review (2026-07)**: v11.5.1 (2026-07-29) — versioning scheme jumped from 0.x to
-date-independent major versions between Apr and Jul 2026
+**At last review (2026-07)**: v11.5.1 (2026-07-29) — now calendar-versioned (`v2026.WW.N`)
 
 - PR #945 (2026-01-29) enables `/responses` endpoint for llamacpp recipes
 - PR #1505 (2026-04-06) implements Lemonade provider for Codex
