@@ -50,6 +50,7 @@ Full research provenance: `autoresearch/results/lean-jira-best-practices-researc
 | https://github.com/sooperset/mcp-atlassian + /releases | A/B | mcp-atlassian: Jira+Confluence MCP, **DC supported (Jira v8.14+, PAT auth)**, key tools, ~98 tools (63 jira + 35 confluence `@tool` registrations at v0.23.0, 2026-07-18; repo active), READ_ONLY_MODE; v0.23.0 adds `jira_get_project_epic_hierarchy` + `jira_get_cross_project_dependencies` (#1286) | 2026-08-18 |
 | https://mcp-atlassian.soomiles.com/docs/tools-reference | A/B | Full jira_ tool list (read/write), `jira_get_transitions`/`jira_search_fields`/`jira_link_to_epic`/…; **no admin/schema tools** (URL 200 OK) | 2026-08-18 |
 | (sibling skill) `jira-cli` | — | `jira` CLI execution surface, automation contract, ADF, auth — the other execution path | 2026-06-07 |
+| https://github.com/ankitpokhrel/jira-cli/blob/main/internal/cmd/issue/move/move.go | A | `jira issue move` resolves the transition by **name only** (`verifyTransition`: case-insensitive match on `t.Name`; no id flag) — so the "transition by id" rule holds for `mcp-atlassian`/REST, not `jira-cli`. File unchanged v1.7.0 → main (2026-10-17) | 2026-10-27 |
 
 ## Hierarchy
 

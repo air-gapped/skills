@@ -22,7 +22,7 @@ Map each thing to learn to the REST endpoint and the tool that fetches it. **Anc
 | Link types | `GET /issueLinkType` | `jira_get_link_types` | `jira issue link` help | `id` |
 | Components (per project) | `GET /project/{key}/components` | `jira_get_project_components` | `--raw` | `id` |
 | Fields (system + custom) | `GET /field` | `jira_search_fields`, `jira_get_field_options` | `jira issue view K --raw \| jq '.fields\|keys'` | **`untranslatedName`**, **`clauseNames`** incl. **`cf[NNNNN]`** |
-| Valid transitions from current status | `GET /issue/{key}/transitions` | `jira_get_transitions` | `jira issue move K` (interactive once) | transition **`id`** |
+| Valid transitions from current status | `GET /issue/{key}/transitions` | `jira_get_transitions` | `jira issue move K "__list__" </dev/null` (prints the valid names; moves by **name** only) | transition **`id`** |
 | What a project actually *allows* | `/issue/createmeta`, `/issue/{key}/editmeta` | issue meta | — | reflects real config |
 | Projects / boards / sprints | `/project`, agile API | `jira_get_all_projects`, `jira_get_agile_boards`, `jira_get_sprints_from_board` | `jira project list`, `jira board list`, `jira sprint list` | `id`/`key` |
 
@@ -34,7 +34,7 @@ Map each thing to learn to the REST endpoint and the tool that fetches it. **Anc
 
 - **JQL:** prefer `statusCategory = Done` (or `In Progress` / `To Do`, or the numeric ids 3/4/2) over `status = "Done"` / `status = "Erledigt"`. The category enum is fixed and language-independent.
 - **Custom fields in JQL:** reference by **`cf[NNNNN]`** (from `clauseNames`) rather than the translated display name. System fields use English names in JQL; **custom fields use their *translated* name** — `cf[ID]` sidesteps that asymmetry entirely.
-- **Transitions:** act by transition **`id`**, never by the localized transition name (transitions have *no* canonical English handle — AUTO-72). `jira_get_transitions` returns each transition's `id`, localized `name`, and target `to` status (with its `statusCategory`).
+- **Transitions:** act by transition **`id`**, never by the localized transition name (transitions have *no* canonical English handle — AUTO-72). `jira_get_transitions` returns each transition's `id`, localized `name`, and target `to` status (with its `statusCategory`). `jira-cli` has no id path: `jira issue move` matches the *name* case-insensitively, as localized for the authenticating account — pass a name listed by that same account, never a hardcoded English one; for a language-proof script use `mcp-atlassian` or REST `POST /issue/{key}/transitions` with `{"transition":{"id":"…"}}`.
 - **Recover canonical field names** via `untranslatedName` on `/field` (`jira_search_fields`).
 
 ### Rule 2 — get canonical strings via a service account (DC has no per-request override)
