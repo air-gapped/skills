@@ -63,7 +63,7 @@ A **custom pipeline function** is required. Two prerequisites first:
    ```python
    SOCIAL_AUTH_PROTECTED_USER_FIELDS = ['groups']
    ```
-   [docs: community-confirmed across Authentik/Keycloak writeups]
+   [docs: community writeup; the setting is social-core's `PROTECTED_USER_FIELDS`]
 
 Then add a handler and reference it in the pipeline (insert after
 `associate_user`, replacing or following `user_default_groups_handler`):
