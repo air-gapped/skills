@@ -167,9 +167,9 @@ For PD-disaggregation add `--disaggregation-decode-enable-offload-kvcache` (only
    - `page_first_direct` + `kernel` IO → forces IO to `direct`
    - `page_first` + `direct` IO → forces layout to `page_first_direct`
    - Mooncake + `layer_first` → forces `page_first` or `page_first_direct`
-   - FA3 decode backend + non-`kernel` IO → forces `kernel` (with a "may lead to suboptimal performance with small page sizes" warning)
+   - Builds before v0.5.14 only: explicit FA3 decode backend + `kernel` IO → forces IO to `direct` ("FlashAttention3 decode backend is not compatible" warning). Gone from v0.5.14 on — do not blame FA3 for a layout/IO mismatch on a current build.
    
-   If benchmark numbers don't match the recipe, **scan the boot-time WARNING log** for the substitution — no error, just a log line. Verify the effective layout/IO with `journalctl -u sglang | grep -iE 'switching to .* layout|FlashAttention3 decode backend|Hierarchical cache enabled'` (or `docker logs <id> 2>&1 | grep ...`).
+   If benchmark numbers don't match the recipe, **scan the boot-time WARNING log** for the substitution — no error, just a log line. Verify the effective layout/IO with `journalctl -u sglang | grep -iE 'switching to|Hierarchical cache enabled'` (or `docker logs <id> 2>&1 | grep ...`).
 
 4. **Hybrid-attention model support is version-gated, and the gate moved twice.** As of v0.5.13+ hybrids are the *default* path, not an opt-in:
    - **v0.5.13 (#27759)**: `HybridModel` (SWA/Mamba) launches HiCache through **UnifiedTree by default**. This supersedes the per-arch opt-in story below and is the single most important version line for hybrid deploys — a config tuned on v0.5.11/v0.5.12 may take a different code path after upgrade, so re-benchmark rather than assuming continuity.

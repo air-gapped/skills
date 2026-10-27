@@ -86,15 +86,9 @@ io=otherwise  → layout unchanged (factory may still error)
 
 Log: `"switching to {new_layout} layout for {io_backend} io backend"`.
 
-### FA3 decode backend (`server_args.py:3170-3186`)
+### FA3 decode backend — builds before v0.5.14 only
 
-If FA3 decode kernel is selected (or auto-selected) and `--hicache-io-backend != kernel`:
-
-```
-io rewritten to direct  (yes, "direct" — see lines 3170-3181)
-```
-
-Log: `"FlashAttention3 decode backend is not compatible with hierarchical cache. Setting hicache_io_backend to vanilla I/O, which may lead to suboptimal performance with small page sizes."`
+Removed in v0.5.14. On older builds, an explicitly set FA3 decode backend with `--hicache-io-backend kernel` rewrote IO to `direct`; with FA3 only implied, the decode backend was swapped instead. Log: `"FlashAttention3 decode backend is not compatible with hierarchical cache. Setting hicache_io_backend to vanilla I/O, ..."`. A current build emits neither.
 
 ### Hybrid SWA model handling
 
