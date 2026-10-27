@@ -223,7 +223,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Chart source: `install/kubernetes/tetragon/Chart.yaml` at release tags (chart == app version; no `kubeVersion:`)
 - Probe: anchor `gh api repos/cilium/tetragon/releases/latest --jq '.tag_name'`; enumerate minors `gh api 'repos/cilium/tetragon/releases?per_page=100' --jq '[.[]|select(.prerelease|not)|.tag_name]|.[]' | sort -V`; sift kernel floor from the FAQ doc, breaking changes from each in-scope release's "Upgrade notes".
 - Note: separate component from Cilium core. The k8s axis is loose; the **kernel** axis is load-bearing.
-- Last verified: 2026-10-04 (unchanged since 2026-09-15) — v1.7.1 (2026-08-25).
+- Last verified: 2026-10-27 — v1.7.1 (2026-08-25, `isLatest`) still newest; no release since.
 
 ## cert-manager
 
@@ -245,14 +245,14 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Governance / support window: https://github.com/kedacore/governance/blob/main/SUPPORT.md
 - Secondary URL: https://github.com/kedacore/keda/releases
 - Probe: WebFetch docs + governance; `gh release list --repo kedacore/keda`.
-- Last verified: 2026-10-04 — v2.21.0 (2026-09-23, `isLatest`); v2.20.2 newest 2.20. `docs/latest` redirects to 2.21. A `docs/2.22/` page already serves with no 2.22 release — pre-release docs, do not cite.
+- Last verified: 2026-10-27 — v2.21.0 (2026-09-23, `isLatest`) still newest; v2.20.2 newest 2.20. `docs/latest` redirects to 2.21. A `docs/2.22/` page already serves with no 2.22 release — pre-release docs, do not cite.
 
 ## Argo CD
 
 - URL: https://argo-cd.readthedocs.io/en/stable/operator-manual/tested-kubernetes-versions/
 - Secondary URL: https://github.com/argoproj/argo-cd/releases
 - Probe: WebFetch tested-versions page; `gh release list --repo argoproj/argo-cd`.
-- Last verified: 2026-10-04 — v3.5.3 (2026-09-14, `isLatest`); per line v3.4.9, v3.3.14, v3.2.12 (3.2 runs v3.2.0–v3.2.12, all stable).
+- Last verified: 2026-10-27 — v3.5.6 (2026-10-20, `isLatest`); per line v3.4.12 (2026-10-20), v3.3.18 (2026-10-22), v3.2.12; v3.6.0-rc4 (2026-10-22) pre-release.
 
 ## Harbor
 
@@ -307,7 +307,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - ~~Versioned supported-versions pages: `.../cloud-on-k8s/<minor>/k8s-supported.html`, older minors 404 → infer floor~~ — **RETIRED 2026-09-15, the rule no longer discriminates**: 2.14/3.1/3.3/3.5 all 404 while 2.16/3.0 serve.
 - **WORKING PROBE:** `curl` https://www.elastic.co/support/matrix, read the `<script id="__NEXT_DATA__">` blob, take the CSV asset `support-matrix-product-and-kubernetes-elastic-cloud-on-kubernetes-and-kubernetes-distro.csv` — it carries **every ECK minor 1.0.x→3.5.x** with release date, k8s range and OpenShift range in one request. Historical note, the old rule inferred a floor from `controller-runtime`/`client-go` baked in the release, with a "verify on upgrade" caveat); in-repo `pkg/controller/elasticsearch/version/supported_versions.go` at the tag for the Stack range.
 - Probe: WebFetch supported-versions page; cross-reference stack matrix. For ES Stack EOL: endoflife.date/elasticsearch + elastic.co/support/eol.
-- Last verified: 2026-10-04 — v3.5.0 (2026-08-04) still newest; matrix CSV read: 3.5.x k8s 1.31–1.36, OpenShift 4.16–4.22. **The old per-minor-page probe is broken, not just the URL** — see the pass note at the top: 2.14/3.1/3.3/3.5 all 404 while 2.16/3.0 serve, so a 404 no longer infers "too old".
+- Last verified: 2026-10-27 — v3.5.0 (2026-08-04, `isLatest`) still newest (release list re-read; matrix CSV not re-read this pass). 2026-10-04: matrix CSV read: 3.5.x k8s 1.31–1.36, OpenShift 4.16–4.22. **The old per-minor-page probe is broken, not just the URL** — see the pass note at the top: 2.14/3.1/3.3/3.5 all 404 while 2.16/3.0 serve, so a 404 no longer infers "too old".
 
 ## Zalando postgres-operator
 
