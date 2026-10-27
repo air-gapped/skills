@@ -110,7 +110,8 @@ $(BUILD_DIR)/%.o: src/%.c | $(BUILD_DIR)
 
 The essential hygiene directives plus a self-documenting `help` target. For a
 production-ready template with verbosity toggle, color output, and a GNU Make
-4.0+ compatibility check, see **`references/Makefile.gnumake-template`**.
+3.82+ (`.RECIPEPREFIX`) compatibility check, see
+**`references/Makefile.gnumake-template`**.
 
 Each line of the preamble matters:
 

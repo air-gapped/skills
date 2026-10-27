@@ -1,5 +1,5 @@
 # =============================================================================
-# GNU Make Modern Template (4.0+)
+# GNU Make Modern Template (3.82+)
 # =============================================================================
 # A production-ready template demonstrating best practices.
 # Copy and adapt for your project.
@@ -14,7 +14,7 @@
 
 # --- Compatibility Check ---
 ifeq ($(origin .RECIPEPREFIX), undefined)
-  $(error GNU Make 4.0+ required. Your version: $(MAKE_VERSION))
+  $(error GNU Make 3.82+ required (.RECIPEPREFIX). Your version: $(MAKE_VERSION))
 endif
 
 # --- Shell Configuration ---
