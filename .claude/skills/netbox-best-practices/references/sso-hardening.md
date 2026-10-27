@@ -15,10 +15,10 @@ misconfiguration.
 
 | Setting | Works with | Does NOT work with |
 |---|---|---|
-| `REMOTE_AUTH_GROUP_SYNC_ENABLED`, `REMOTE_AUTH_GROUP_HEADER`, `REMOTE_AUTH_SUPERUSER_GROUPS`, `REMOTE_AUTH_STAFF_GROUPS`, `REMOTE_AUTH_SUPERUSERS` | `RemoteUserBackend` (header / reverse-proxy auth) | social-auth (OIDC / SAML) — **ignored** |
+| `REMOTE_AUTH_GROUP_SYNC_ENABLED`, `REMOTE_AUTH_GROUP_HEADER`, `REMOTE_AUTH_SUPERUSER_GROUPS`, `REMOTE_AUTH_SUPERUSERS`, and through 4.4 `REMOTE_AUTH_STAFF_GROUPS`/`_STAFF_USERS` (removed in 4.5 with `User.is_staff`) | `RemoteUserBackend` (header / reverse-proxy auth) | social-auth (OIDC / SAML) — **ignored** |
 | `REMOTE_AUTH_DEFAULT_GROUPS` + `SOCIAL_AUTH_PIPELINE` | social-auth (OIDC / SAML) | — |
 
-Why: those `REMOTE_AUTH_SUPERUSER_GROUPS`/`_STAFF` settings are consumed inside
+Why: those `REMOTE_AUTH_SUPERUSER_GROUPS` (and ≤4.4 `_STAFF`) settings are consumed inside
 `RemoteUserBackend._is_superuser()` / `._is_staff()` / `.configure_groups()`,
 which only the header backend calls. The social-auth login path never touches
 them. [source: netbox/netbox/authentication/__init__.py:163-262]
@@ -74,7 +74,7 @@ from django.contrib.auth.models import Group
 
 def map_groups(backend, user, response, *args, **kwargs):
     idp_groups = response.get('groups', []) or []
-    # role flag — NetBox 4.x has NO is_staff field (dropped in 4.0); assigning
+    # role flag — NetBox 4.5+ has NO is_staff field (removed in 4.5); assigning
     # it is a no-op and save(update_fields=[..., 'is_staff']) raises ValueError
     user.is_superuser  = 'netbox-admins' in idp_groups
     user.save()
@@ -149,7 +149,7 @@ REMOTE_AUTH_GROUP_SYNC_ENABLED = True
 REMOTE_AUTH_GROUP_HEADER   = 'HTTP_X_FORWARDED_GROUPS'
 REMOTE_AUTH_GROUP_SEPARATOR = '|'
 REMOTE_AUTH_SUPERUSER_GROUPS = ['netbox-admins']
-REMOTE_AUTH_STAFF_GROUPS     = ['netbox-staff']
+REMOTE_AUTH_STAFF_GROUPS     = ['netbox-staff']   # 4.4 and earlier only; gone in 4.5
 ```
 [source: authentication/__init__.py:202-262]
 
@@ -278,16 +278,16 @@ def map_groups(backend, user, response, *args, **kwargs):
     is_admin = bool(set(response.get("groups") or []) & ADMIN_GROUPS)
     if user.is_superuser != is_admin:
         user.is_superuser = is_admin
-        user.save(update_fields=["is_superuser"])   # NOT is_staff: no such field on NetBox 4.x
+        user.save(update_fields=["is_superuser"])   # NOT is_staff: no such field on NetBox 4.5+
 ```
 
 Authoritative on every login: leaving the IdP group demotes at the next login.
 Compile and stub-test it before applying (`helm-chart-gotchas.md` §9.3) — and
 note the stub test does NOT catch model-field mistakes: the first live login
 failed with `ValueError: ... non-concrete fields: is_staff` because a stub user
-happily accepts any attribute. `is_staff` does not exist on NetBox 4.x's
-`users.User`; `REMOTE_AUTH_STAFF_GROUPS` is a header-backend
-setting that survives from 3.x. A failed pipeline step still leaves the user
+happily accepts any attribute. `is_staff` does not exist on NetBox 4.5+'s
+`users.User`; `REMOTE_AUTH_STAFF_GROUPS`/`_STAFF_USERS` were
+removed with it in 4.5. A failed pipeline step still leaves the user
 created with the default groups (steps before it committed), so the retry
 after the fix only has to flip the flag.
 
@@ -314,10 +314,10 @@ unaffected; object counts identical before and after.
 
 ## Quick verification after wiring SSO
 
-- Log in as a non-admin IdP user → confirm they are **not** staff/superuser and
+- Log in as a non-admin IdP user → confirm they are **not** superuser and
   land in the read-only group.
 - Log in as an `netbox-admins` IdP user → confirm `is_superuser` flips (there
-  is no `is_staff` on 4.x — do not look for it).
+  is no `is_staff` on 4.5+ — do not look for it).
 - Remove a user from the admin IdP group, re-login → confirm demotion (and that
   any issued API token of theirs still works — expected, revoke manually).
 - Existing local users can be linked to an OIDC identity at

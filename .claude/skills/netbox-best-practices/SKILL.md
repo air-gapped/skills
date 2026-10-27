@@ -90,7 +90,7 @@ claims that are FALSE) to avoid repeating common misinformation.
 
 Read `references/sso-hardening.md`. The official `netbox-administration` skill
 covers enabling each backend; this file covers the gap it leaves: that the
-`REMOTE_AUTH_SUPERUSER_GROUPS`/`_STAFF`/group-sync settings work ONLY with the
+`REMOTE_AUTH_SUPERUSER_GROUPS`/group-sync settings work ONLY with the
 header/proxy backend — native OIDC/SAML ignores them and needs a custom
 `SOCIAL_AUTH_PIPELINE` function to map IdP groups to NetBox roles — plus OIDC
 backend gotchas (redirect URI shape, RS256-only default, PKCE off by default) and the

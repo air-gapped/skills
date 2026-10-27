@@ -65,6 +65,7 @@ curl -s https://charts.netbox.oss.netboxlabs.com/index.yaml \
 | python-social-auth.readthedocs.io/en/latest/backends/oidc.html | SOCIAL_AUTH_OIDC_* setting names (ENDPOINT/KEY/SECRET/SCOPE/USERNAME_KEY/JWT_ALGORITHMS) | 2026-07-30 |
 | netbox discussion #19584 (+ younsl.github.io blog, **now 404 — dropped**) | corroboration: group-mapping-needs-custom-pipeline on k8s, pipeline ConfigMap-mount pattern in the wild. Discussion #19584 still live; the blog corroboration is gone, so the claim now rests on the discussion plus the in-tree pipeline source | 2026-08-18 |
 | netbox v4.7.1 release notes + issues #23112, #23130 | 4.7.0 SSO login button broken under `form-action` CSP; 4.7.0 `pg_dump` cannot restore the ltree cascade triggers; both fixed 4.7.1 (2026-09-15) | 2026-09-15 |
+| netbox `docs/release-notes/version-4.5.md` @v4.7.3 (#16137) + commit c0e4d1c1e (PR #20306) | `User.is_staff` removed in 4.5.0, together with `REMOTE_AUTH_STAFF_GROUPS`/`_STAFF_USERS` (settings.py, remote-authentication.md); `RemoteUserBackend._is_staff` returns `is_superuser` @v4.7.3; `User(AbstractUser)` still has it @v4.4.0 | 2026-10-27 |
 | netbox issue #23196 (milestone v4.7.2, closed 2026-09-24) | async bulk API writes stored plaintext v2 tokens in `Job.data` on 4.7.0–4.7.1 | 2026-10-27 |
 | netbox-chart Helm index (`index.yaml`, `.entries.netbox[]`) | chart→app pins: 8.3.66 → 4.6.10 (last 4.6), 8.3.67–8.3.77 → 4.7.0, 8.3.78–8.3.90 → 4.7.1, 8.3.91 → 4.7.2, 8.3.92–8.3.96 → 4.7.3 | 2026-10-27 |
 

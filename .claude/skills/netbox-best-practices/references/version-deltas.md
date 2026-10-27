@@ -49,6 +49,9 @@ before upgrading NetBox or writing automation that must span versions.
     (`/api/dcim/front-port-templates/`) still accepted the legacy
     `rear_port` + `rear_port_position` shape — the rework hit the
     device-level FrontPort model. Don't assume either way; probe the version.
+- `User.is_staff` removed (#16137), and with it `REMOTE_AUTH_STAFF_GROUPS` /
+  `REMOTE_AUTH_STAFF_USERS`: `is_superuser` is the only role flag. Drop
+  `is_staff` from user-seeding code and SSO pipelines (`sso-hardening.md`).
 - `/api/dcim/cable-terminations/` became **read-only** — set terminations on
   cables directly via `/api/dcim/cables/`
   (`a_terminations`/`b_terminations` lists of `{object_type, object_id}`).
