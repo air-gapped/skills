@@ -61,7 +61,7 @@ case "$TARGET" in
 esac
 
 case "$TARGET" in
-  6.1.*)
+  6.[1-9]*)
     scan '^\s*extraEnv:' && grep -nB5 -E '^\s*extraEnv:' "$VALUES" | grep -q 'kafka:' && \
       hit "kafka.extraEnv" "-> kafka.env (name-keyed merge)"
     scan '^\s*enterprise:' && hit "enterprise.image.tag" "vestigial; removed at 6.1"
@@ -102,7 +102,7 @@ case "$TARGET" in
 esac
 
 case "$TARGET" in
-  6.1.*)
+  6.[1-9]*)
     for k in minimum_step_size cost_attribution_labels prefer_availability_zone \
              grafana_alertmanager_idle_grace_period metric_relabeling_enabled \
              no_blocks_file_cleanup_enabled in_memory_tenant_meta_cache_size \
@@ -113,6 +113,15 @@ case "$TARGET" in
     done
     grep -qE 'heartbeat_(period|timeout):\s*0' "$VALUES" 2>/dev/null && \
       hit "ring.heartbeat_{period,timeout}: 0" "disabling heartbeats removed in 3.1"
+    ;;
+esac
+
+case "$TARGET" in
+  6.[2-9]*)
+    for k in enable_projection_pushdown enable_prune_toggles \
+             enable_multiple_node_remote_execution_requests; do
+      scan_key "$k" && hit "$k" "removed in app 3.2"
+    done
     ;;
 esac
 
