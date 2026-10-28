@@ -25,8 +25,9 @@ generation, upstream ships the `openshell-cli` and `generate-sandbox-policy` ski
 - **Attachment** = provider ↔ sandbox. The sandbox env gets an opaque placeholder; the
   supervisor substitutes the real value only on requests to the profile's endpoints.
   Detaching revokes it.
-- **Policy** = filesystem (Landlock), process, and network rules. Network rules hot-reload;
-  filesystem/Landlock/process settings are fixed at creation (recreate to change).
+- **Policy** = filesystem (Landlock), process, and network rules. Network rules hot-reload
+  (each revision closes open connections); filesystem/Landlock/process settings are fixed once
+  the workload first starts (until then, within the 300 s admission window, they can change).
 
 ## Provider workflow
 
@@ -37,7 +38,7 @@ openshell profile lint -f providers/openai.yaml
 openshell profile import -f providers/openai.yaml --global        # or --url <raw https>
 # 2. provider: secret from the local env var, never on the command line
 openshell provider create --name openai --type openai --global-profile --credential OPENAI_API_KEY
-#    (--from-existing loads all of a profile's env vars from local state)
+#    (--from-existing loads the env vars the profile's discovery.credentials lists)
 # 3. attach
 openshell sandbox create --name work --from <image> --provider openai -- opencode
 openshell sandbox provider attach work openai     # existing sandbox
@@ -69,10 +70,10 @@ and traffic is denied, because `binaries` don't match the image.
 | Agent | Credential path |
 |---|---|
 | Claude Code | `claude-code` profile takes a Console **API key** (`ANTHROPIC_API_KEY`, sent as `x-api-key`); subscription tokens don't work through the provider. A subscription works only by `claude auth login --claudeai` *inside* the sandbox — the OAuth token then lives on the sandbox disk |
-| Codex | `codex` profile: ChatGPT OAuth tokens (`CODEX_AUTH_ACCESS_TOKEN`, `_REFRESH_TOKEN`, `_ACCOUNT_ID`, `_ID_TOKEN`) taken from the host's `~/.codex/auth.json`, with gateway-managed `oauth2_refresh_token` refresh (see `examples/codex-app-server`). Codex also fetches `*.oaiusercontent.com`, which no profile allows (#4885) |
+| Codex | `codex` profile: ChatGPT OAuth tokens (`CODEX_AUTH_ACCESS_TOKEN`, `_REFRESH_TOKEN`, `_ACCOUNT_ID`, `_ID_TOKEN`) taken from the host's `~/.codex/auth.json`, gateway-managed `oauth2_refresh_token` refresh only in the `examples/codex-app-server` profile (the stock `providers/codex.yaml` has no refresh block). Codex also fetches `*.oaiusercontent.com`, which no profile allows (#4885) |
 | OpenCode | Reads provider keys from env (`OPENAI_API_KEY`, …) → works with providers. Its own ChatGPT login inside the sandbox ("Codex device code") stores tokens in `/sandbox/.local/share/opencode/` |
 | Local models | Profile naming the real endpoint, `credentials: []`, `--env OPENAI_BASE_URL=http://host.openshell.internal:<port>/v1` (never `localhost`) |
-| LiteLLM / vLLM in the cluster | Custom profile for its hostname; private IPs need `allowed_ips: ["10.0.0.0/8"]` in the endpoint (SSRF guard; loopback/link-local always blocked). Don't point the stock `openai`/`anthropic` profiles at another host — a provider whose base URL is elsewhere is treated as endpointless |
+| LiteLLM / vLLM in the cluster | Custom profile for its **FQDN** (no DNS search domains in sandboxes) with `allowed_ips` covering its address. An exact host whose rule lists the calling binary reaches private IPs without it, but approved proposals, wildcards and other binaries don't — see `air-gap-and-ca.md`. Plain HTTP sends the key in cleartext. Don't point the stock `openai`/`anthropic` profiles at another host — a provider whose base URL is elsewhere is treated as endpointless |
 
 Rule of thumb: an agent's **own** login inside the sandbox puts the real token in the
 sandbox; only providers keep secrets out. Prefer providers for anything shared.
@@ -92,9 +93,11 @@ sandbox; only providers keep secrets out. Prefer providers for anything shared.
   credential — tests show it grants exfiltration targets 12/12 times. Never let the agent
   approve its own proposals.
 - Incremental edit: `openshell policy update <sb> --rule-name github_ro --binary /usr/bin/gh
-  --add-endpoint api.github.com:443:read-only:rest:enforce --wait` (`--rule-name` and every
-  `--binary`, or `--any-binary`, are mandatory). Some fields (`allow_encoded_slash`, `tls: skip`)
-  can't be set this way (#4926, #4903) — edit the full policy.
+  --add-endpoint api.github.com:443:read-only:rest:enforce --wait`. A 6th segment takes
+  `allowed-ip=…`, `allow-uninspected-credentials` and the rewrite flags; `--add-allow` /
+  `--add-deny` need `--rule-name` plus every `--binary` (or `--any-binary`). Some fields
+  (`allow_encoded_slash`, `tls: skip`) can't be set this way (#4926, #4903) — edit the full
+  policy. Rarely used fields: `rare-settings.md`.
 - Full edit: `openshell policy get <sb> --base | sed '1,/^---$/d' > p.yaml` (the `--full` output
   has a header `policy set` rejects), edit, `openshell policy set <sb> --policy p.yaml --wait`.
 - What is actually allowed: `policy get <sb> --full` — `rule get` lists only proposals and can
@@ -120,7 +123,8 @@ sandbox; only providers keep secrets out. Prefer providers for anything shared.
 - Placeholders are scoped by **endpoint**, not by calling binary: any binary the network
   policy lets reach a bound host can use the credential there.
 - `tls: skip` (needed for pinned or mTLS clients) disables inspection and credential rewrite;
-  credentialed endpoints then need `allow_uninspected_credentials`.
+  credentialed endpoints that are `tls: skip` **or** L4-only (no `protocol`) need
+  `allow_uninspected_credentials`, and token-grant profiles refuse `tls: skip` outright.
 - Isolation is a shared kernel (Landlock + seccomp + network namespace). For stronger
   boundaries, layer a VM/Kata runtime (`server.defaultRuntimeClassName`, or the VM driver).
 - Landlock and process events go to the workload container log only, not the gateway or

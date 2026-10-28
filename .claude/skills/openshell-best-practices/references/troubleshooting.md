@@ -39,18 +39,29 @@ Landlock, seccomp or host networking (#4133, #3694).
    the policy.
 4. `policy_dns_trusted_gateway_unavailable` on `host.openshell.internal`: the host alias isn't
    resolvable in this topology (seen with the Docker `grpc_endpoint` workaround).
-5. Private IPs (in-cluster services) are blocked by the SSRF guard unless the endpoint lists
-   `allowed_ips`; loopback and link-local are always blocked.
-6. Plain-HTTP port-80 endpoints behind a CONNECT-only corporate proxy stall silently (#4278).
-7. Pending proposals: `openshell rule get <sb> --status pending` → approve/reject. Remember
-   filesystem/Landlock/process changes need a recreated sandbox.
+5. **Allowed, then rejected at once** (`firewall_rule` `ssrf`, `resolves to internal address`,
+   `internal IP without allowed_ips`): the host resolves to a private address (RFC 1918,
+   CGNAT, `198.18.0.0/15`, …) and the matching rule is an approved proposal, a wildcard, or
+   lists other binaries. Add `allowed_ips` to the endpoint. Not a CA problem. Loopback and
+   link-local are always blocked; ports 2379/2380/6443/10250/10255 to internal addresses too.
+   Details and a test matrix: `air-gap-and-ca.md`.
+6. `Could not resolve host` inside the sandbox for a name a rule covers: a wildcard rule
+   without `allowed_ips` whose name resolves internal (no answer is returned), or a short name
+   (the sandbox applies no search domains — use the FQDN). A `198.18.x.x` answer is OpenShell's
+   stand-in address, not the real one.
+7. `request_authority_mismatch`: the `Host` header lacks the non-default port
+   (`host:4000`).
+8. Plain-HTTP port-80 endpoints behind a CONNECT-only corporate proxy stall silently (#4278).
+9. Pending proposals: `openshell rule get <sb> --status pending` → approve/reject. Remember
+   filesystem/Landlock/process changes need a recreated sandbox once the workload has started.
 
 ## Provisioning and lifecycle
 
 | Symptom | Cause / fix |
 |---|---|
-| `ConfigurationInvalid` → `ProvisioningTimedOut` after 300 s | Invalid image-baked or supplied policy (e.g. `tls: terminate` from the archived community `base` image, #4467). Pass a valid `--policy`; `policy set` on the stuck sandbox reports "unchanged" and doesn't recover it |
+| `ConfigurationInvalid` → `ProvisioningTimedOut` after 300 s | Invalid image-baked or supplied policy (e.g. `tls: terminate` from the archived community `base` image, #4467); the reason is only in `openshell logs` (`Image policy is invalid`). Docs: a *changed* valid `policy set` within the 300 s window repairs it (an unchanged write doesn't count); after `ProvisioningTimedOut`, fix it, then `sandbox start`. Most reliable: recreate with an explicit `--policy` |
 | `IdentityResolutionFailed … UID or GID zero` | Image runs as root (#4030): add a non-root `USER` |
+| Kubernetes: a pod and PVC keep reappearing for a sandbox the CLI says is deleted | A `--no-keep` run left its `Sandbox` object behind and the controller re-creates the pod (seen 2026-10-28). `kubectl get sandboxes.agents.x-k8s.io -n <ns>`; delete objects `openshell sandbox get` reports as not found |
 | `ProvisioningTimedOut` with a large local image (VM driver) or slow runtime (Kata/CoCo) | Hard-coded 5-minute deadlines (#4364, #4771); warm the image cache with a throwaway sandbox |
 | All sandboxes `Error (StartFailed)` after a gateway restart | #4910: `sandbox stop` + `sandbox start` each (workspace kept) |
 | Sandbox stuck `Error` after a startup failure | 0.1.5+: stop/start recovers it; earlier versions needed delete |

@@ -22,6 +22,14 @@ Authoritative external references the skill points at. `freshen` mode probes the
 | https://github.com/NVIDIA/OpenShell/blob/v0.1.6/docs/observability/telemetry.mdx | Telemetry default and opt-out | 2026-10-28 | v0.1.6 |
 | https://github.com/NVIDIA/OpenShell/tree/v0.1.6/providers | Example provider profiles | 2026-10-28 | v0.1.6 |
 | https://github.com/NVIDIA/OpenShell/tree/v0.1.6/scripts/agents | Gator manifest-driven agent harness | 2026-10-28 | v0.1.6 |
+| https://github.com/NVIDIA/OpenShell/blob/v0.1.6/docs/how-it-works/policies/schema.mdx | Every policy and endpoint field, defaults | 2026-10-28 | v0.1.6 |
+| https://github.com/NVIDIA/OpenShell/blob/v0.1.6/docs/how-it-works/policies/manage-policies.mdx | Live vs startup sections, 300 s admission window, error codes | 2026-10-28 | v0.1.6 |
+| https://github.com/NVIDIA/OpenShell/blob/v0.1.6/docs/how-it-works/providers/profiles.mdx | Profile schema, token grants, refresh strategies | 2026-10-28 | v0.1.6 |
+| https://github.com/NVIDIA/OpenShell/blob/v0.1.6/docs/how-it-works/gateways/configuration.mdx | gateway.toml reference, upstream proxy, driver keys | 2026-10-28 | v0.1.6 |
+| https://github.com/NVIDIA/OpenShell/blob/v0.1.6/docs/security/best-practices.mdx | Private-IP defaults, `allowed_ips`, hostAliases | 2026-10-28 | v0.1.6 |
+| https://github.com/NVIDIA/OpenShell/blob/v0.1.6/crates/openshell-core/src/net.rs | Internal / always-blocked address ranges | 2026-10-28 | v0.1.6 |
+| https://github.com/NVIDIA/OpenShell/blob/v0.1.6/crates/openshell-supervisor-network/src/proxy/destination.rs | Address authorization modes (exact host, `allowed_ips`, default public-only) | 2026-10-28 | v0.1.6 |
+| https://github.com/NVIDIA/OpenShell/blob/v0.1.6/deploy/helm/openshell/values.yaml | Chart values (no schema in 0.1.6) | 2026-10-28 | v0.1.6 |
 | https://github.com/NVIDIA/OpenShell/pull/3292 | Additional destination CAs (after 0.1.6) | 2026-10-28 | — |
 | https://github.com/NVIDIA/OpenShell/issues/4218 | Enterprise deployment blockers tracker | 2026-10-28 | — |
 | https://github.com/NVIDIA/OpenShell-Community | Archived 2026-10-07 (community images) | 2026-10-28 | — |
@@ -42,6 +50,9 @@ Authoritative external references the skill points at. `freshen` mode probes the
 | https://github.com/NVIDIA/OpenShell/issues/4098 | Chromium sandbox (open) | 2026-10-28 | — |
 | https://github.com/NVIDIA/OpenShell/issues/4949 | Access after main program exits (open) | 2026-10-28 | — |
 | https://github.com/NVIDIA/OpenShell/issues/4515 | Go SDK caches edge token (TUI analogue) | 2026-10-28 | — |
+| https://github.com/NVIDIA/OpenShell/issues/4662 | `allowed_ips` must agree across overlapping endpoints (open) | 2026-10-28 | — |
+| https://github.com/NVIDIA/OpenShell/issues/3672 | OIDC CA scoped to the OIDC client (closed 2026-10-28, after 0.1.6) | 2026-10-28 | — |
+| https://github.com/NVIDIA/OpenShell/issues/4295 | `--no-keep` discards audit logs (open) | 2026-10-28 | — |
 
 ## Kubernetes prerequisite
 

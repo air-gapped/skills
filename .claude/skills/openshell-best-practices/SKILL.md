@@ -9,9 +9,9 @@ description: >-
   (RPM/deb/brew/snap, clean reinstall from 0.0.x); Kubernetes Helm deployment with Agent Sandbox,
   ingress without Gateway API, OIDC/Keycloak, gatewayConfig vs deprecated server.* aliases, HA;
   agent images and session model (detach, exec, device-code logins); providers, binaries real
-  paths, policy approval and its limits; air-gap mirroring, telemetry, private CAs (supervisor
-  image); automation (headless runs, SDKs, client credentials); and a field-tested gotcha list
-  with issue numbers.
+  paths, policy approval and its limits; air-gap operation (mirrors, telemetry, supervisor CAs,
+  RFC 1918 destinations and allowed_ips, 198.18 stand-in DNS, corporate proxy); rarely used
+  gateway, policy, profile and sandbox settings; automation; and a gotcha list with issues.
 when_to_use: >-
   Use whenever the user mentions OpenShell, `openshell` CLI commands (sandbox create/connect/exec,
   gateway add/login, provider/profile, policy, rule approve, term), `openshell-gateway`,
@@ -22,8 +22,12 @@ when_to_use: >-
   ProvisioningTimedOut, `NET:OPEN ... DENIED`, `credential_endpoint_mismatch`, `invalid token:
   ExpiredSignature` in the TUI, gateway refusing to start after 0.1.6, Docker Desktop supervisor
   never ready, Landlock/seccomp probe failures, OAuth callback to 127.0.0.1 failing inside a
-  sandbox, and on planning questions ("should we run agents in OpenShell", "upgrade OpenShell",
-  "air-gapped OpenShell", "OpenShell with Keycloak"). Prefer upstream's `openshell-cli` /
+  sandbox, a connection "allowed" then rejected (`resolves to internal address`, `internal IP
+  without allowed_ips`, `ssrf`), `Could not resolve host` or `198.18.x.x` addresses inside a
+  sandbox, `request_authority_mismatch`, an internal LiteLLM/mirror/Git server unreachable
+  despite a rebuilt CA, and on planning questions ("should we run agents in OpenShell",
+  "upgrade OpenShell", "air-gapped OpenShell", "OpenShell with Keycloak", "what does setting X
+  do"). Prefer upstream's `openshell-cli` /
   `debug-openshell-cluster` / `generate-sandbox-policy` skills for exhaustive flag references and
   policy generation; this skill is the decisions, deployment patterns and current gotchas. Do
   NOT trigger for NemoClaw-only questions (it pins OpenShell 0.0.116), unrelated "OpenShift",
@@ -86,6 +90,10 @@ in `references/versions.md`.
    upgrading it; require a NetworkPolicy-enforcing CNI; write new settings in `gatewayConfig`;
    set the data StorageClass at install (immutable).
 10. **Private CA for agent egress goes into the supervisor image** (0.1.6), not the agent image.
+11. **Give every internal endpoint `allowed_ips` and an FQDN.** Private destinations (RFC 1918,
+    CGNAT, VIPs) are rejected for approved proposals, wildcards and unlisted binaries even when
+    the policy "allows" them, and sandboxes resolve no short names. This, not the CA, is the
+    usual reason an air-gapped install can't reach its mirrors or model endpoint.
 
 ## Where to read next
 
@@ -97,7 +105,8 @@ in `references/versions.md`.
 | OIDC/Keycloak client, interactive vs unattended login, token lifetimes, TUI expiry, mTLS | `references/auth.md` |
 | Profiles, providers, binaries, Claude Code/Codex/OpenCode/local-model credentials, policy loop, limits | `references/providers-and-policy.md` |
 | Agent images, session model, device-code logins, multi-agent layouts (herdr/tmux), broken tools | `references/sandboxes-and-agents.md` |
-| Air-gap mirror list, telemetry, private CAs per component | `references/air-gap-and-ca.md` |
+| Air-gapped sites: mirror list, telemetry, internal destinations and `allowed_ips`, sandbox DNS, private CAs per component, corporate proxy, agents against mirrors, bring-up order | `references/air-gap-and-ca.md` |
+| Rarely used settings: gateway/driver knobs, supervisor topology, every policy endpoint field, plain HTTP, filesystem/lifecycle fields, profile fields, `sandbox create` flags | `references/rare-settings.md` |
 | Headless agents, CI, SDKs, fleets, Claude self-hosted sandboxes, middleware/interceptors | `references/automation.md` |
 | Denials, stuck sandboxes, auth errors, where logs live | `references/troubleshooting.md` |
 

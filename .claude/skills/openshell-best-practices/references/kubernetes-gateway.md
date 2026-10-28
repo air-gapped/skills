@@ -15,6 +15,8 @@ them.
 - Authentication on Kubernetes
 - Rendering offline, image lists
 - Upgrades
+- RBAC, HA and scale
+- Known Kubernetes issues (open at 0.1.6)
 - Verification
 
 ## Components and prerequisites
@@ -76,11 +78,11 @@ cluster RBAC), `operator` (pre-provisioned allowlisted namespaces + workspace ch
 | `server.credentialStorage.existingSecret` | Required for GitOps/`helm template` workflows: without Helm's `lookup`, the chart regenerates the credential key-encryption key on every render and stored credentials become unreadable |
 | `global.image.registry` / `.tag` | Mirror for gateway, supervisor and sandbox runtime. Keep supervisor and sandbox runtime on the same release — a mismatch fails at sandbox start |
 | `sandbox.image.*` | Default workload image (`nvcr.io/nvidia/base/ubuntu:24.04`); a full reference, not rewritten by `global.image.registry` |
-| `server.sandboxImagePullSecrets`, `imagePullSecrets` | Pull secrets for sandbox pods (must exist in the sandbox namespace) and for gateway/hook pods |
-| `upstreamProxy.*` | Corporate forward proxy for policy-approved TLS egress; `caBundle` for an intercepting proxy |
+| `server.sandboxImagePullSecrets`, `imagePullSecrets` | Pull secrets for sandbox workload **and** per-sandbox supervisor pods (must exist in the sandbox namespace; managed workspace mode copies them), and for gateway/hook/shared-supervisor pods |
+| `upstreamProxy.*` | Corporate forward proxy for policy-approved TLS egress; `caBundle` for an intercepting proxy. Plain HTTP is never proxied, the auth Secret lives in the sandbox namespace, and the CA is trusted for all upstreams — details in `air-gap-and-ca.md` |
 | `server.externalDbSecret` + `workload.kind: deployment` | PostgreSQL; required for `replicaCount > 1` |
 | `server.credentialDrivers.kubernetesSecrets` / `.vault` | Store provider credentials outside the gateway DB |
-| `pkiInitJob.serverDnsNames` | Extra SANs on the gateway cert (a wildcard also enables sandbox service URLs) |
+| `pkiInitJob.serverDnsNames` | Extra SANs on the gateway cert (a wildcard also enables sandbox service URLs). Set at install: the certgen hook skips while its three Secrets exist |
 | `agentSandbox.preflight.enabled` | Leave on for installs; offline renders pass the API instead (below) |
 
 **Chart schema v2 (since 0.1.x, #3060):** application settings live in `gatewayConfig`,
@@ -102,7 +104,10 @@ conflict, and they will go away — write new values in `gatewayConfig`
 Kubernetes resources stay chart values: `server.disableTls`, TLS Secret names,
 `server.externalDbSecret`, `server.sandboxNamespace`, `server.oidc.caConfigMapName`,
 `server.telemetryEnabled`, Service and certificate settings. The chart rejects
-`database_url`, inline URL credentials and PEM keys in `gatewayConfig`.
+`database_url`, inline URL credentials and PEM keys in `gatewayConfig`, and silently
+overwrites the driver keys `namespace`, `service_account_name`, `host_gateway_ip` and
+`client_tls_secret_name` from chart values. There is no `values.schema.json`: a misspelled
+value is ignored. Less common driver and gateway knobs: `rare-settings.md`.
 
 ## Ingress
 
@@ -158,10 +163,12 @@ the gateway refuses to start with no user authentication unless
   disabling the check: `-a agents.x-k8s.io/v1beta1 -a agents.x-k8s.io/v1beta1/Sandbox`.
 - The rendered pods show only the gateway image. The supervisor and default workload images
   appear inside the `gateway.toml` ConfigMap (`supervisor_image`, `default_image`).
-  `sandbox_runtime_image` is written **only when overridden**; otherwise the gateway binary's
-  default `ghcr.io/nvidia/openshell/sandbox:<version>` applies — add it by hand (same registry
-  and tag as the supervisor). Full mirror set: gateway, supervisor, sandbox, default workload,
-  agent-sandbox-controller, plus every agent image users run.
+  `sandbox_runtime_image` is written only when `sandboxRuntime.image` or
+  `global.image.registry`/`.tag` is set (a mirrored values file renders it); with stock values
+  the gateway binary's default `ghcr.io/nvidia/openshell/sandbox:<version>` applies — derive it
+  from the supervisor (same registry and tag) for the image list. Full mirror set: gateway,
+  supervisor, sandbox, default workload, agent-sandbox-controller, plus every agent image users
+  run (`air-gap-and-ca.md`).
 
 ## Upgrades
 
@@ -197,7 +204,8 @@ the gateway refuses to start with no user authentication unless
   hosts many sandboxes, roughly doubling pod-limited capacity. Requires gateway TLS, rejects
   upstream proxy and SPIFFE settings, needs `supervisor.replicas ≥ 2` for failover; sandboxes
   freeze during takeover (`supervisor.recoveryTimeoutSeconds`, default 60). Readiness can
-  report healthy before attachment (#4960).
+  report healthy before attachment (#4960). Resources are hard-coded (50m/64Mi, 1Gi limit) and
+  only new generations switch topology (`rare-settings.md`).
 - **OpenShift**: ≥ 4.19 (Landlock in RHCOS); null the pod/container `runAsUser`/`fsGroup`
   (`ci/values-openshift-scc.yaml`); passthrough Route + `certManager.serverIssuerRef`, or
   Gateway API on 4.22+.

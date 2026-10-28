@@ -4,7 +4,7 @@
   "provenance": {
     "created": "2026-10-28",
     "harness": "skill-creator eval loop (aggregate_benchmark)",
-    "revised": "2026-10-28: grader feedback from iteration-1 (tls: terminate, MCP rules, base image)"
+    "revised": "2026-10-28: grader feedback from iteration-1 (tls: terminate, MCP rules, base image); 2026-10-28: added airgap-internal-litellm case (verified on a 0.1.6 gateway)"
   },
   "evals": [
     {
@@ -130,6 +130,33 @@
         },
         {
           "text": "Does not recommend continuing to use the community base image (e.g. `--from base` or the archived image) as the fix"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "airgap-internal-litellm-allowed-then-blocked",
+      "prompt": "Air-gapped RKE2 cluster, OpenShell 0.1.6 gateway. We rebuilt the supervisor image with our site CA. An agent in a sandbox must call our LiteLLM, which is a Cilium LoadBalancer VIP in 10.0.0.0/8; all our internal services are on 10.x. In the logs the traffic is first allowed and then immediately blocked. Inside the sandbox the LiteLLM name resolves to a 198.x.x.x address, and we never get connected. We also see no sign of our CA inside the sandbox. We tried mounting our CA bundle into several other pods. Which other images need our custom CA, and what is wrong?",
+      "expected_output": "Not a CA problem: 0.1.6 rejects internal (RFC 1918) destinations unless the endpoint has allowed_ips or is an exact host in a hand-written rule listing the calling binary; approved proposals and wildcards get no exemption. 198.18.x.x is OpenShell's stand-in DNS address. Sandbox never sees the site CA (it sees the OpenShell per-sandbox CA). Only the supervisor needs the CA (first non-empty bundle file). Fix: allowed_ips on the LiteLLM endpoint, FQDN, check logs for ssrf / internal address.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Identifies OpenShell's private/internal-address (SSRF) check on the 10.x destination as the cause of allowed-then-blocked, not the CA"
+        },
+        {
+          "text": "Gives the fix as allowed_ips on the LiteLLM endpoint covering its address (CIDR or /32)"
+        },
+        {
+          "text": "Says rules approved from pending proposals and/or wildcard hosts get no private-address exemption, while an exact host in a hand-written rule or profile listing the calling binary can reach it"
+        },
+        {
+          "text": "Explains the 198.x address inside the sandbox is OpenShell's stand-in (policy DNS) address, not the real IP"
+        },
+        {
+          "text": "Says no image other than the supervisor needs the CA (agent and other pods don't), and that not seeing the site CA inside the sandbox is expected"
+        },
+        {
+          "text": "Gives a way to confirm in the logs (openshell logs filtered for ssrf / internal address / allowed_ips)"
         }
       ]
     }

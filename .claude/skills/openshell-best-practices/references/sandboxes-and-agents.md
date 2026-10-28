@@ -44,7 +44,12 @@ Requirements and conventions:
 - Bake agent config the sandbox needs, e.g. opencode keybindings (below), under `/sandbox`.
 - Note each agent binary's **real path** for provider `binaries` (`readlink -f $(which claude)`).
 - Optional default policy at `/etc/openshell/policy.yaml` (used only when the sandbox has no
-  saved policy; an invalid file blocks provisioning).
+  saved policy and the gateway has no global policy; an invalid file blocks provisioning).
+  The built-in default policy lacks `/dev/pts`, so terminal multiplexers (herdr, tmux) fail
+  with `openpty: Permission denied`: bake a policy that adds it to `read_write`. A
+  `filesystem_policy` section flips `include_workdir` to false — set it to `true` explicitly.
+- Bake mirror settings and model base URLs too; proxy variables are stripped inside sandboxes
+  (`air-gap-and-ca.md`).
 - No image allowlist exists; to restrict images use admission control (Kyverno/Gatekeeper) or
   a gateway interceptor on `CreateSandbox`. Sandbox templates help users pick, not enforce.
 
@@ -56,7 +61,7 @@ Requirements and conventions:
 | Ctrl-D, or Ctrl-P then Ctrl-Q | **Detach** from the main program; it keeps running with stdin open. OpenShell consumes these keys on the main session — the program never sees Ctrl-D there |
 | `sandbox connect x` | Reattach to the main program; replays up to 1 MiB of output; auto-reconnects for 60 s after sleep/network loss |
 | `sandbox exec -n x --tty -- bash -l` | A separate shell. **Cannot detach**; leaving it ends what runs in it. Ctrl-D reaches the program |
-| main program exits | Sandbox → `Completed` (exit 0) or `Error`; `connect`/`exec` are refused, SSH/upload/download/forward still work (#4949). Detach rather than quit an agent you want to come back to |
+| main program exits | With the default `--restart-policy never`: sandbox → `Completed` (exit 0) or `Error`; `connect`/`exec` are refused, SSH/upload/download/forward still work (#4949). Detach rather than quit an agent you want to come back to; `--restart-policy on-failure`/`always` restarts it (backoff 1 s → 3 min) |
 | `sandbox stop` / `start` | Keeps the workspace. `suspend`/`resume` exist in the 0.1.6 CLI but every built-in driver returns "does not support sandbox suspend" |
 
 Make the agent the main program (`-- opencode`, or **Command** in the TUI create dialog), not
