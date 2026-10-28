@@ -63,7 +63,7 @@
           "text": "Gives a Traefik route that re-encrypts to the gateway (scheme https / ServersTransport trusting the chart-generated CA) or TLS passthrough"
         },
         {
-          "text": "States the private CA for agents calling internal HTTPS must be trusted by the supervisor (supervisor image in 0.1.6, or the newer additional CA ConfigMap), not just the agent image"
+          "text": "States the private CA for agents calling internal HTTPS must be trusted by the supervisor (rebuilt supervisor image, the upstreamProxy.caBundle route with noProxy \"*\", or the newer additional CA ConfigMap), not just the agent image"
         },
         {
           "text": "Mentions server.oidc.caConfigMapName for a Keycloak issuer behind the private CA"

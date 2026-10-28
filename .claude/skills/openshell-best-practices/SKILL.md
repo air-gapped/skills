@@ -89,7 +89,9 @@ in `references/versions.md`.
 9. **On Kubernetes**: install a pinned Agent Sandbox first and restart the gateway after
    upgrading it; require a NetworkPolicy-enforcing CNI; write new settings in `gatewayConfig`;
    set the data StorageClass at install (immutable).
-10. **Private CA for agent egress goes into the supervisor image** (0.1.6), not the agent image.
+10. **Private CA for agent egress is the supervisor's to trust**, never the agent image's. On
+    0.1.6: `upstreamProxy.caBundle` with an unused proxy URL and `noProxy: "*"` (no rebuild,
+    verified), or a rebuilt supervisor image.
 11. **Give every internal endpoint `allowed_ips` and an FQDN.** Private destinations (RFC 1918,
     CGNAT, VIPs) are rejected for approved proposals, wildcards and unlisted binaries even when
     the policy "allows" them, and sandboxes resolve no short names. This, not the CA, is the

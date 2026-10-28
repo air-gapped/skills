@@ -132,13 +132,32 @@ internal HTTPS service is made by the **supervisor**, not the agent image.
 | Gateway → OIDC issuer | `server.oidc.caConfigMapName` (key `ca.crt`) → `SSL_CERT_FILE`. **Replaces** the system roots for the whole gateway process — include every root it needs (scoped to OIDC only after 0.1.6, #3672) |
 | Gateway → Vault | `credentialDrivers.vault.caConfigMapName` (top level; `server.credentialDrivers.vault.*` is the legacy fallback) |
 | CLI → gateway | CLI pins `~/.config/openshell/gateways/<name>/mtls/ca.crt` if present, else the OS trust store |
-| Supervisor → internal HTTPS upstream (Kubernetes) | No dedicated setting in 0.1.6. Rebuild the supervisor image (below). It reads only the **first non-empty** of `/etc/ssl/certs/ca-certificates.crt`, `/etc/pki/tls/certs/ca-bundle.crt`, `/etc/ssl/ca-bundle.pem`, `/etc/ssl/cert.pem`, plus bundled Mozilla roots — a CA in a later file is ignored. Main (#3292) adds `supervisor.network.additionalCaConfigMapName` |
+| Supervisor → internal HTTPS upstream (Kubernetes) | No dedicated setting in 0.1.6. Use the proxy-CA route (below, no rebuild) or rebuild the supervisor image. The image route reads only the **first non-empty** of `/etc/ssl/certs/ca-certificates.crt`, `/etc/pki/tls/certs/ca-bundle.crt`, `/etc/ssl/ca-bundle.pem`, `/etc/ssl/cert.pem`, plus bundled Mozilla roots — a CA in a later file is ignored. Main (#3292) adds `supervisor.network.additionalCaConfigMapName` |
 | Supervisor → intercepting corporate proxy | `upstreamProxy.caBundle.configMapName` (release namespace, ≤ 256 KiB). This CA is trusted for **all** upstreams, proxied or not, and lands in the sandbox bundle too. Supply only the proxy/interception CA: a full merged bundle (e.g. OpenShift's injected trusted bundle) can exceed the sandbox boundary's control-frame budget. Per-sandbox supervisors only |
 | Supervisor → upstream (Podman) | `additional_ca_bundle` (0.1.5) |
 | Agent → supervisor | Automatic: the CA lands in `/run/openshell-supervisor-ca/material/` — `ca-bundle.crt` (system roots + sandbox CA) for `SSL_CERT_FILE`, `REQUESTS_CA_BUNDLE`, `CURL_CA_BUNDLE`, `GIT_SSL_CAINFO`; `ca.crt` for `NODE_EXTRA_CA_CERTS`, `DENO_CERT`. Tools that ignore these (Java keystores) need the CA imported |
 
-The supervisor image is distroless (`gcr.io/distroless/base-nossl-debian13` + one binary): no
-shell, no `update-ca-certificates`, no `RUN` possible on top. Build the bundle in a helper
+**Site CA without a rebuild (verified on 0.1.6, 2026-10-28).** The chart accepts
+`caBundle` only together with a proxy URL, but the supervisor trusts that CA for every
+upstream, and `noProxy: "*"` sends everything direct, so the proxy is never contacted and
+need not exist:
+
+```yaml
+upstreamProxy:
+  url: http://unused-proxy.invalid:3128   # syntactically valid, never dialled
+  noProxy: "*"
+  caBundle:
+    configMapName: site-ca                # release namespace, key ca.crt, site roots only
+```
+
+A private-CA HTTPS service went from `NET:FAIL` + `unexpected eof` to an HTTP answer, and a
+public host still worked direct. Constraints: per-sandbox supervisors only (the shared
+supervisor refuses proxy settings); the gateway restarts on the change; sandboxes created
+afterwards get the CA, existing ones keep theirs until recreated. A plain-HTTP upstream
+never uses the proxy anyway.
+
+**Rebuild route.** The supervisor image is distroless (`gcr.io/distroless/base-nossl-debian13`
++ one binary): no shell, no `update-ca-certificates`, no `RUN` possible on top. Build the bundle in a helper
 stage and **append** (the sandbox's bundle is derived from this file, so replacing it drops
 public roots for tools inside the sandbox):
 
@@ -153,10 +172,7 @@ COPY --from=ca /out.crt /etc/ssl/certs/ca-certificates.crt
 ```
 
 Point the supervisor image at it (same registry path and tag as the sandbox runtime) and
-recreate sandboxes; running ones keep their supervisor until they stop. Untested alternative
-that avoids the rebuild: because the proxy CA is trusted for every upstream,
-`upstreamProxy.url` set to any syntactically valid proxy plus `noProxy: "*"` plus
-`caBundle` should inject a site CA with per-sandbox supervisors.
+recreate sandboxes; running ones keep their supervisor until they stop.
 
 ## Corporate forward proxy
 
@@ -208,7 +224,7 @@ Each step is done when its check passes; later failures are then attributable.
 
 1. Images and chart mirrored, telemetry off, offline render passes (`kubernetes-gateway.md`).
 2. Gateway up with OIDC behind the site CA: `openshell status` shows `Authenticated`.
-3. Supervisor image with the site CA set; a throwaway sandbox whose policy allows `curl` to
+3. Site CA trusted by the supervisor (proxy-CA route or rebuilt image); a throwaway sandbox whose policy allows `curl` to
    one internal HTTPS host by FQDN with `allowed_ips` returns HTTP 200.
 4. Profiles: FQDN hosts, `allowed_ips` on every internal endpoint, `binaries` checked with
    `readlink -f` in the image, keys grepped for typos; imported and linted.

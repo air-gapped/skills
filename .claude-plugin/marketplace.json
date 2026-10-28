@@ -779,7 +779,7 @@
       "name": "openshell-best-practices",
       "source": "./",
       "description": "Run NVIDIA OpenShell 0.1.x",
-      "version": "0.20261028.2",
+      "version": "0.20261028.3",
       "author": {
         "name": "Jörgen"
       },
