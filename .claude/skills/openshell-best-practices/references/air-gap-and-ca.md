@@ -156,6 +156,14 @@ supervisor refuses proxy settings); the gateway restarts on the change; sandboxe
 afterwards get the CA, existing ones keep theirs until recreated. A plain-HTTP upstream
 never uses the proxy anyway.
 
+With cert-manager **trust-manager** distributing site CAs, point at its target ConfigMap in
+the release namespace: `caBundle.key` selects any PEM key, and the file is re-read for every
+new sandbox ("rotating the file needs no restart", `driver.rs`). The Bundle must hold only
+site CAs, not the default public set (256 KiB cap). `server.oidc.caConfigMapName` has no key
+option — `SSL_CERT_FILE` points at `ca.crt` — so give it a target whose key is `ca.crt`.
+JKS/PKCS12 targets don't help inside sandboxes: Java there must trust the per-sandbox
+OpenShell CA (`/run/openshell-supervisor-ca/material/ca.crt`), not the site CAs.
+
 **Rebuild route.** The supervisor image is distroless (`gcr.io/distroless/base-nossl-debian13`
 + one binary): no shell, no `update-ca-certificates`, no `RUN` possible on top. Build the bundle in a helper
 stage and **append** (the sandbox's bundle is derived from this file, so replacing it drops
