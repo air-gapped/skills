@@ -17,8 +17,8 @@
     },
     {
       "id": 2,
-      "question": "What does each Socket.IO frame carry during Open WebUI response streaming?",
-      "skill_answer": "The full accumulated assistant message, not the delta"
+      "question": "What does each Socket.IO frame carry during Open WebUI response streaming, before and from v0.11.1?",
+      "skill_answer": "Before v0.11.1 the full accumulated assistant message; from v0.11.1 only the new text (delta events), except a continued reply, which still sends the full message per flush"
     },
     {
       "id": 3,
