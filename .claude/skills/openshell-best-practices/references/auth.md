@@ -56,6 +56,10 @@ Client — public, for the CLI and SDKs:
 - **Redirect**: the CLI binds `127.0.0.1:<random port>` and redirects to
   `http://127.0.0.1:<port>/callback`. Register it **without a port**: Keycloak retries
   loopback redirects with the default port (RFC 8252), so any port matches. No wildcard.
+  CLI inside a container (0.1.7+): `OPENSHELL_CALLBACK_PORT` fixes the port (publish it) and
+  `OPENSHELL_CALLBACK_BIND_ADDRESS=0.0.0.0` binds beyond loopback; the redirect stays
+  `127.0.0.1`. An IPv6 bind redirects to `http://[::1]:<port>/callback`, which needs its own
+  exact redirect URI. A bad value or busy port fails the login outright.
 - **Audience mapper**: public clients don't put themselves in `aud` by default; without the
   mapper every call fails audience validation.
 - **Device grant**: lets `OPENSHELL_NO_BROWSER=1` use the device flow on headless hosts.
