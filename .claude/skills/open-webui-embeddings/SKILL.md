@@ -112,7 +112,7 @@ Failure handling: `requests.post()` exception or non-2xx → `predict()` returns
 
 ## Open WebUI environment variables
 
-**Every variable below except the prefix trio seeds the database on first boot only.** After that the stored value wins and an env change does nothing — on an existing install, change it in Admin Settings > Documents or through the REST API (`open-webui-api`), or set `ENABLE_PERSISTENT_CONFIG=false` to make env authoritative (UI edits then stop surviving restarts).
+**Every variable below except `RAG_EMBEDDING_PREFIX_FIELD_NAME` seeds the database on first boot only** (the two prefix strings too, from v0.12.5). After that the stored value wins and an env change does nothing — on an existing install, change it in Admin Settings > Documents or through the REST API (`open-webui-api`), or set `ENABLE_PERSISTENT_CONFIG=false` to make env authoritative (UI edits then stop surviving restarts).
 
 | Variable | Mode | Notes |
 |---|---|---|
@@ -123,7 +123,7 @@ Failure handling: `requests.post()` exception or non-2xx → `predict()` returns
 | `RAG_EMBEDDING_BATCH_SIZE` | embed | Texts per HTTP request. Default `1` — **one round-trip per chunk**, usually the single biggest ingestion bottleneck. `32` is a safe default. Legacy alias `RAG_EMBEDDING_OPENAI_BATCH_SIZE` still honoured (`config.py:1026-1027`). |
 | `RAG_EMBEDDING_CONCURRENT_REQUESTS` | embed | Concurrency cap. Default `0` = unlimited (`asyncio.gather` without semaphore). Set to 4-8 so a large upload doesn't burst the backend into 429s. |
 | `RAG_EMBEDDING_PREFIX_FIELD_NAME` | embed | **A mode switch, not a value — leave UNSET for `RAG_EMBEDDING_ENGINE=openai`.** Unset = prefix is string-prepended to the text (what vLLM/LiteLLM/TEI need); set = prefix is sent as a separate JSON field, which only Ollama's native API understands. Setting it empty (`""`, or a k8s `name:` with no `value:`) silently disables prefixes. See `references/prefix-models.md`. |
-| `RAG_EMBEDDING_QUERY_PREFIX` / `RAG_EMBEDDING_CONTENT_PREFIX` | embed | The query and document label strings. Unused for BGE-M3 (symmetric); **required** for every other mainstream embedder — e5, EmbeddingGemma, Qwen3-Embedding are all asymmetric. Exact per-model strings in `references/prefix-models.md`. Plain `os.getenv` (`config.py:1034-1038`), absent from the persisted `DEFAULT_CONFIG` registry: env-only, invisible in the admin UI, restart to apply. |
+| `RAG_EMBEDDING_QUERY_PREFIX` / `RAG_EMBEDDING_CONTENT_PREFIX` | embed | The query and document label strings. Unused for BGE-M3 (symmetric); **required** for every other mainstream embedder — e5, EmbeddingGemma, Qwen3-Embedding are all asymmetric. Exact per-model strings in `references/prefix-models.md`. From v0.12.5 stored settings like the rest (Admin Settings > Documents > Embedding > Advanced, or the API; no restart) — but the admin field drops the newline in Qwen3/e5-instruct prefixes, so set those via the API. v0.12.4 and earlier: env-only, restart to apply. |
 | `RAG_RERANKING_ENGINE` | rerank | Set to `external` for Cohere-shape endpoints. |
 | `RAG_EXTERNAL_RERANKER_URL` | rerank | **Full URL including path** (no auto-append). `http://litellm:4000/v1/rerank` or `https://openrouter.ai/api/v1/rerank`. |
 | `RAG_EXTERNAL_RERANKER_API_KEY` | rerank | Bearer token. |

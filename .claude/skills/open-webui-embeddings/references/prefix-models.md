@@ -238,9 +238,15 @@ content prefix at ingestion (`routers/retrieval.py:1529`, `routers/knowledge.py:
 queries and documents inconsistently — worse than labelling neither. The exception
 is the query-only models, where the document side is *specified* as empty.
 
-**5. These are plain `os.getenv`, absent from the persisted `DEFAULT_CONFIG` registry** (`config.py:1034-1038`, v0.12.4).
-They do not appear in the admin UI, cannot be set through the REST API, and take
-effect only on pod restart. Env is the only lever — unlike most other RAG settings.
+**5. From v0.12.5 the two prefix strings are stored settings; the mode switch is not.**
+`RAG_EMBEDDING_QUERY_PREFIX` / `_CONTENT_PREFIX` only seed `rag.embedding_query_prefix`
+/ `rag.embedding_content_prefix` on first boot; after that the stored value wins and
+an env change does nothing. Change them in Admin Settings > Documents > Embedding >
+Advanced or with `POST /api/v1/retrieval/embedding/update` — read per call, no restart.
+Those admin fields are single-line inputs, so editing one there drops the newline in
+the Qwen3 / e5-instruct prefix (trap 3): set those through the API.
+`RAG_EMBEDDING_PREFIX_FIELD_NAME` stays a plain env read — restart to apply. On
+v0.12.4 and earlier all three are env-only, restart to apply.
 
 **6. Changing a prefix invalidates the index.** Everything already in the vector DB
 was embedded under the old prefix (or none). Changing the string means a full
@@ -250,8 +256,8 @@ collection recreation regardless.
 
 ## Verifying the prefix is actually applied
 
-The prefix variables are plain `os.getenv` reads, so the pod environment is
-exactly what the code uses:
+The mode switch is read from the pod environment; the labels, from v0.12.5, from
+the stored settings (trap 5):
 
 ```bash
 # 1. The mode switch must be ABSENT: printenv exits 1. Exit 0 with no output
@@ -261,11 +267,12 @@ kubectl exec deploy/open-webui -- printenv RAG_EMBEDDING_PREFIX_FIELD_NAME; echo
 # 2. The exact bytes of each label. od -c prints a trailing space as an empty
 #    cell before the final \n, and a real newline as one \n cell mid-string.
 #    "\" and "n" in two separate cells is a literal backslash-n — trap 3.
+#    v0.12.5+: the stored value ($B base URL, $T admin token):
+curl -s -H "Authorization: Bearer $T" $B/api/v1/retrieval/embedding | jq -j .RAG_EMBEDDING_QUERY_PREFIX | od -c
+curl -s -H "Authorization: Bearer $T" $B/api/v1/retrieval/embedding | jq -j .RAG_EMBEDDING_CONTENT_PREFIX | od -c
+#    v0.12.4 and earlier: the env, after a pod restart.
 kubectl exec deploy/open-webui -- printenv RAG_EMBEDDING_QUERY_PREFIX | od -c
-kubectl exec deploy/open-webui -- printenv RAG_EMBEDDING_CONTENT_PREFIX | od -c
 ```
-
-The pod must have been restarted since the last env change (trap 5).
 
 On v0.12.3 and earlier with `ENV=dev`, `GET /api/v1/retrieval/ef/{text}` returns
 the vector Open WebUI itself computes with `RAG_EMBEDDING_QUERY_PREFIX` applied.
@@ -294,4 +301,4 @@ Cross-encoder rerankers (`Qwen3-Reranker-*`, `bge-reranker-v2-m3`) take the
 | e5-instruct `Instruct: {task}\nQuery: ` | `intfloat/multilingual-e5-large-instruct` → `README.md` (`get_detailed_instruct`) | 2026-08-05 |
 | BGE-M3 needs no instructions | `BAAI/bge-m3` → `README.md`; no `prompts` in its ST config | 2026-08-05 |
 | Mode A / mode B dispatch | open-webui v0.12.4 `retrieval/utils.py:900-902, 1212-1216` | 2026-10-27 |
-| Prefix vars are not in `DEFAULT_CONFIG` | open-webui v0.12.4 `config.py:1034-1038`; `DEFAULT_CONFIG` at `config.py:2917` has no prefix key | 2026-10-27 |
+| Prefix strings are stored settings from v0.12.5; `PREFIX_FIELD_NAME` env-only | open-webui v0.13.0 `config.py:3030-3031` (`rag.embedding_query_prefix` / `_content_prefix` in `DEFAULT_CONFIG`), `config.py:1031` (`PREFIX_FIELD_NAME` `os.getenv`); `routers/retrieval.py` `get_embedding_config` / `update_embedding_config` (written only when the field is in the body); admin `Documents.svelte` single-line `<input>` (WHATWG text-input sanitization strips newlines); commit `4a10c093`, CHANGELOG 0.12.5 "Embedding prefixes in settings". Absent from `DEFAULT_CONFIG` at v0.12.4 | 2026-11-04 |

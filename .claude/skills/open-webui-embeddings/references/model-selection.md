@@ -138,7 +138,9 @@ per search: **0.6B ≈ 90 ms, 4B ≈ 750 ms** per query.
 ## Open WebUI config, per model
 
 Every block below is complete. `RAG_EMBEDDING_PREFIX_FIELD_NAME` is **absent from
-all of them** — that is deliberate and load-bearing (see `prefix-models.md`).
+all of them** — that is deliberate and load-bearing (see `prefix-models.md`). On an
+existing v0.12.5+ install the prefix env values are first-boot seeds only; change
+the stored values instead (`prefix-models.md` trap 5).
 
 ### BAAI/bge-m3 — symmetric, no prefixes
 
