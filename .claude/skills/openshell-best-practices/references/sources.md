@@ -51,7 +51,7 @@ Authoritative external references the skill points at. `freshen` mode probes the
 | https://github.com/NVIDIA/OpenShell/issues/4949 | Access after main program exits (open) | 2026-10-28 | — |
 | https://github.com/NVIDIA/OpenShell/issues/4515 | Go SDK caches edge token (TUI analogue) | 2026-10-28 | — |
 | https://github.com/NVIDIA/OpenShell/issues/4662 | `allowed_ips` must agree across overlapping endpoints (open) | 2026-10-28 | — |
-| https://github.com/NVIDIA/OpenShell/issues/3672 | OIDC CA scoped to the OIDC client (closed 2026-10-28, after 0.1.6) | 2026-10-28 | — |
+| https://github.com/NVIDIA/OpenShell/issues/3672 | OIDC CA scoped to the OIDC client: stale-bot closed NOT_PLANNED 2026-10-28, no fix; PR #3673 still open on 2026-11-03, and the v0.1.7 chart still sets process-wide `SSL_CERT_FILE` | 2026-11-03 | — |
 | https://github.com/NVIDIA/OpenShell/issues/4295 | `--no-keep` discards audit logs (open) | 2026-10-28 | — |
 
 ## Kubernetes prerequisite

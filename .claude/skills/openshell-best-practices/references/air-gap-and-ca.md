@@ -1,9 +1,8 @@
 # Air-gapped sites and private CAs (0.1.x)
 
 Verified against `v0.1.6` (source and docs). The internal-destination behaviour was also
-measured on a live 0.1.6 Kubernetes gateway on 2026-10-28. Two fixes landed on main after
-0.1.6: #3292 (additional destination CAs as a ConfigMap) and #3672 (OIDC CA scoped to the
-OIDC client).
+measured on a live 0.1.6 Kubernetes gateway on 2026-10-28. #3292 (additional destination CAs
+as a ConfigMap) landed on main after 0.1.6.
 
 ## Contents
 
@@ -129,7 +128,7 @@ internal HTTPS service is made by the **supervisor**, not the agent image.
 
 | Path | 0.1.6 mechanism |
 |---|---|
-| Gateway → OIDC issuer | `server.oidc.caConfigMapName` (key `ca.crt`) → `SSL_CERT_FILE`. **Replaces** the system roots for the whole gateway process — include every root it needs (scoped to OIDC only after 0.1.6, #3672) |
+| Gateway → OIDC issuer | `server.oidc.caConfigMapName` (key `ca.crt`) → `SSL_CERT_FILE`. **Replaces** the system roots for the whole gateway process — include every root it needs. Still so in 0.1.7: the scoping fix (PR #3673) is unmerged |
 | Gateway → Vault | `credentialDrivers.vault.caConfigMapName` (top level; `server.credentialDrivers.vault.*` is the legacy fallback) |
 | CLI → gateway | CLI pins `~/.config/openshell/gateways/<name>/mtls/ca.crt` if present, else the OS trust store |
 | Supervisor → internal HTTPS upstream (Kubernetes) | No dedicated setting in 0.1.6. Use the proxy-CA route (below, no rebuild) or rebuild the supervisor image. The image route reads only the **first non-empty** of `/etc/ssl/certs/ca-certificates.crt`, `/etc/pki/tls/certs/ca-bundle.crt`, `/etc/ssl/ca-bundle.pem`, `/etc/ssl/cert.pem`, plus bundled Mozilla roots — a CA in a later file is ignored. Main (#3292) adds `supervisor.network.additionalCaConfigMapName` |
