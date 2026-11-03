@@ -59,8 +59,9 @@ Blog posts and AI answers written before 2026-09-25 (and some after, copied from
 ## Ecosystem version lag
 
 - **NemoClaw** (OpenClaw/Hermes/Deep Agents on OpenShell) pins OpenShell **0.0.116**
-  (`nemoclaw-blueprint/blueprint.yaml`; NemoClaw v0.0.139, 2026-10-26, still uses
-  `inference.local`). Its docs describe 0.0.x behaviour; don't transplant them to a 0.1.x gateway.
+  (`min_openshell_version` and `max_openshell_version` in `nemoclaw-blueprint/blueprint.yaml`,
+  through tag v0.0.140; the blueprint still pulls archived `openshell-community` images). Its docs describe
+  0.0.x behaviour; don't transplant them to a 0.1.x gateway.
 - OpenClaw's OpenShell backend docs use bare `from: "openclaw"` (0.0.x).
 - `langchain-ai/openshell-deepagent` archived 2026-10-16 (0.0.x CLI).
 - Python SDK on PyPI can lag the GitHub release by a version.
