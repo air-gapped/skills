@@ -50,7 +50,7 @@ Authoritative external references the skill points at. `freshen` mode probes the
 | https://github.com/NVIDIA/OpenShell/issues/4287 | CLI client-credentials expiry (open, PR #4389) | 2026-10-28 | — |
 | https://github.com/NVIDIA/OpenShell/issues/4910 | Gateway restart → sandboxes Error (open) | 2026-10-28 | — |
 | https://github.com/NVIDIA/OpenShell/issues/4290 | readOnlyRootFilesystem admission (open) | 2026-10-28 | — |
-| https://github.com/NVIDIA/OpenShell/issues/3415 | Supervisor BestEffort QoS (open) | 2026-10-28 | — |
+| https://github.com/NVIDIA/OpenShell/issues/3415 | Supervisor BestEffort QoS: stale-bot closed NOT_PLANNED 2026-10-30, no fix or PR — still BestEffort at 0.1.7 | 2026-11-03 | — |
 | https://github.com/NVIDIA/OpenShell/issues/4102 | Make setresuid denial (open) | 2026-10-28 | — |
 | https://github.com/NVIDIA/OpenShell/issues/4098 | Chromium sandbox (open) | 2026-10-28 | — |
 | https://github.com/NVIDIA/OpenShell/issues/4949 | Access after main program exits (open) | 2026-10-28 | — |

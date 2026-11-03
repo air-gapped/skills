@@ -16,7 +16,7 @@ them.
 - Rendering offline, image lists
 - Upgrades
 - RBAC, HA and scale
-- Known Kubernetes issues (open at 0.1.6)
+- Known Kubernetes issues (open at 0.1.7)
 - Verification
 
 ## Components and prerequisites
@@ -25,7 +25,7 @@ them.
 |---|---|
 | Gateway | StatefulSet `openshell` (SQLite on a PVC) or Deployment (with PostgreSQL via `server.externalDbSecret`) |
 | Agent Sandbox controller | kubernetes-sigs project; turns `Sandbox` objects (`agents.x-k8s.io/v1beta1`) into workload pods + `/sandbox` PVC |
-| Supervisor | One pod per sandbox (default) or a shared pool (`supervisor_topology = "gateway"`, experimental in 0.1.6); owns the network boundary, policy, credential injection |
+| Supervisor | One pod per sandbox (default) or a shared pool (`supervisor_topology = "gateway"`, experimental in 0.1.7); owns the network boundary, policy, credential injection |
 | Sandbox runtime | Init container `openshell-sandbox-bootstrap` copies a static binary into the workload pod; the workload image's entrypoint is replaced |
 
 Prerequisites (setup.mdx): Kubernetes 1.29+, a CNI that **enforces** ingress and egress
@@ -202,7 +202,7 @@ the gateway refuses to start with no user authentication unless
 - **Credentials at rest**: default store is AES-256-GCM in the gateway DB with the KEK in a
   retained Secret — back up the database and the KEK together. Kubernetes Secrets and
   Vault/OpenBao drivers exist; only one driver at a time, no migration between them.
-- **Shared supervisor** (`supervisor_topology = "gateway"`, experimental in 0.1.6): one pool
+- **Shared supervisor** (`supervisor_topology = "gateway"`, experimental in 0.1.7): one pool
   hosts many sandboxes, roughly doubling pod-limited capacity. Requires gateway TLS, rejects
   upstream proxy and SPIFFE settings, needs `supervisor.replicas ≥ 2` for failover; sandboxes
   freeze during takeover (`supervisor.recoveryTimeoutSeconds`, default 60). Readiness can
@@ -215,12 +215,12 @@ the gateway refuses to start with no user authentication unless
   per subject. For hard tenant separation run separate gateways. No IdP-group → workspace
   mapping yet (#4286).
 
-## Known Kubernetes issues (open at 0.1.6)
+## Known Kubernetes issues (open at 0.1.7)
 
 | Symptom | Issue | Workaround |
 |---|---|---|
 | Admission (Kyverno/Gatekeeper) rejects the agent pod: no `readOnlyRootFilesystem`; "timed out waiting for gated workload Pod" | #4290 | Exempt sandbox pods from that rule; the driver overwrites securityContext |
-| Supervisor pod evicted under memory pressure (BestEffort QoS), sandbox dies | #3415 | Namespace `LimitRange` with default requests |
+| Supervisor pod evicted under memory pressure (BestEffort QoS), sandbox dies | #3415 (stale-closed, unfixed) | Namespace `LimitRange` with default requests |
 | `openshell policy set --global` makes every sandbox start fail ("policy is managed globally") | #4299 | Clear the global policy; pass `--policy` per sandbox |
 | Gateway restart leaves sandboxes in `Error (StartFailed)` | #4910 | `sandbox stop` + `sandbox start` each (workspace kept) |
 | Sandbox stuck `Provisioning` with replicas 0 after node reboot or fast stop/start | #4371 | None supported |

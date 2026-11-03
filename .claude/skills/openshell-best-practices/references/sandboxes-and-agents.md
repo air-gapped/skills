@@ -106,7 +106,7 @@ Both are valid; the second is often the pragmatic choice for one person's own wo
 
 ## Tools that break inside the sandbox
 
-The child seccomp filter and namespace hardening break some common tools (open at 0.1.6):
+The child seccomp filter and namespace hardening break some common tools (open at 0.1.7):
 
 | Symptom | Cause | Workaround |
 |---|---|---|
