@@ -8,7 +8,7 @@ when_to_use: |-
 
 # Open WebUI REST API administration — operator reference
 
-Target: operators who script Open WebUI (create users, reconcile model catalogs, drive RAG pipelines, export configs) instead of clicking the admin UI. Grounded in v0.11.0 source (2026-07-27); the API is officially "experimental" with no versioning policy, so every claim here is version-stamped. **First step on any instance: `GET /api/version`** — never trust `openapi.json`'s `info.version` (always says "0.1.0").
+Target: operators who script Open WebUI (create users, reconcile model catalogs, drive RAG pipelines, export configs) instead of clicking the admin UI. Grounded in v0.11.0 source (2026-07-27), with mounts, auth, floors and new routes re-checked at v0.13.0 (2026-11-04); the API is officially "experimental" with no versioning policy, so every claim here is version-stamped. **First step on any instance: `GET /api/version`** — never trust `openapi.json`'s `info.version` (always says "0.1.0").
 
 ## Security floor: v0.12.2 published, latest release in practice
 
@@ -55,7 +55,7 @@ Four surfaces, one Bearer header (`Authorization: Bearer <jwt-or-api-key>`):
 
 | Surface | What lives there | Examples |
 |---|---|---|
-| `/api/v1/*` | Resource CRUD — 27 routers (+2 feature-gated) | users, groups, auths, configs, models, knowledge, files, retrieval, tools, functions, prompts, chats, evaluations |
+| `/api/v1/*` | Resource CRUD — 31 routers at v0.13.0 (+2 feature-gated) | users, groups, auths, configs, models, knowledge, files, retrieval, tools, functions, prompts, chats, evaluations |
 | `/api/*` | Runtime endpoints in main.py | `chat/completions`, `models`, `config`, `version`, `events` (webhooks), `tasks`, `usage` |
 | `/ollama/*`, `/openai/*` | Authenticated proxies to backends | inference = user-level; model lifecycle + config = admin |
 | `/ws` | socket.io | invisible to openapi.json |
@@ -114,7 +114,7 @@ authenticating proxy does **not** cover most of it:
 | IdP provisioning (SCIM), audit/event webhooks | `references/events-scim.md` |
 | Verify a claim / freshen | `references/sources.md` |
 
-## Gotchas that cost hours (all verified in v0.11.0 source or live)
+## Gotchas that cost hours (verified in v0.11.0 source or live; still true at v0.13.0)
 
 - **HTML-200 trap**: the SPA catch-all serves `index.html` with HTTP 200 for any unknown path. A typo'd endpoint "succeeds" with HTML. Always check `Content-Type: application/json`.
 - **`/docs` and `/openapi.json` need `ENV=dev`** — the Docker image ships `ENV=prod`, so production instances return the SPA for both. Flipping to `dev` also skips the prod-only default `OLLAMA_BASE_URL` Docker rewrite — safe on external-connection setups, breaking on default-Ollama containers.
