@@ -27,9 +27,13 @@ benchmark believed **absent** from that model's training data.
 | Qwen/Qwen3-Embedding-0.6B | 596M | 99% | 64.34 | 64.65 | 1024 | 32k |
 | intfloat/multilingual-e5-large-instruct | 560M | 99% | 63.22 | 57.11 | 1024 | 512 |
 | google/embeddinggemma-300m | 308M | 99% | 61.15 | 62.49 | 768 | 2048 |
-| BAAI/bge-m3 | 568M | 98% | 59.55 | 54.59 | 1024 | 8192 |
-| intfloat/multilingual-e5-large | 560M | 99% | 58.57 | 53.67 | 1024 | 512 |
+| BAAI/bge-m3 | 568M | 98% | 59.55† | 54.59 | 1024 | 8192 |
+| intfloat/multilingual-e5-large | 560M | 99% | 58.57† | 53.67† | 1024 | 512 |
 | nvidia/Nemotron-3-Embed-1B-BF16 | 1.1B | 95% | **—** | **—** | 2048 | 32k |
+
+† Last published aggregate. The board now shows none for these two because a
+task result is missing (bge-m3 has 130 of 131 tasks, e5-large 121); treat them as
+approximate.
 
 **Read `ZS` before `Mean(Task)`.** Harrier tops the board at 78% zero-shot,
 meaning up to 22% of the benchmark may be in its training data, and its per-task
