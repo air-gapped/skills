@@ -89,7 +89,7 @@ Content-Type: application/json
 
 Response parsed as `data["data"][i]["embedding"]` (OpenAI shape).
 
-Async fan-out (`get_embedding_function` at `utils.py:1107`, batching + `asyncio.gather` at `utils.py:1157-1173`, v0.12.4): chunks bundled into batches of `RAG_EMBEDDING_BATCH_SIZE` (default `1`); all batches dispatched concurrently via `asyncio.gather`, wrapped in an `asyncio.Semaphore` only when `RAG_EMBEDDING_CONCURRENT_REQUESTS` is non-zero (default `0` = unlimited). A 100-chunk file at default config fires **100 concurrent single-chunk requests**.
+Async fan-out (`get_embedding_function` at `utils.py:1107`, batching + `asyncio.gather` at `utils.py:1157-1173`, v0.12.4): chunks bundled into batches of `RAG_EMBEDDING_BATCH_SIZE` (default `1`); all batches dispatched concurrently via `asyncio.gather`, wrapped in an `asyncio.Semaphore` only when `RAG_EMBEDDING_CONCURRENT_REQUESTS` is non-zero (default `0` = unlimited). A 100-chunk file at default config fires **100 concurrent single-chunk requests**. From v0.12.5 file ingestion runs in waves of `RAG_EMBEDDING_BUFFER_SIZE` chunks (default `1000`, rounded up to a multiple of the batch size), each embedded and stored before the next, so at most that many are in flight; a failure part-way rolls back the rows already inserted. Memory embedding is not buffered.
 
 ### Rerank — Open WebUI code path
 
@@ -134,6 +134,7 @@ Failure handling: `requests.post()` exception or non-2xx → `predict()` returns
 
 | Variable | Since | Notes |
 |---|---|---|
+| `RAG_EMBEDDING_BUFFER_SIZE` | v0.12.5 | Chunks embedded and stored per wave during file ingestion; default `1000`, invalid or ≤0 falls back to `1000`. Env-only (not a stored setting). `RAG_EMBEDDING_TIMEOUT` becomes one budget shared across waves. `backend/open_webui/env.py:743-750`, applied in `routers/retrieval.py` `save_docs_to_vector_db`. |
 | `RAG_SOURCE_METADATA_KEYS` | v0.11.4 | Comma-separated allowlist of per-chunk metadata keys forwarded to the model alongside retrieved text. Empty (default) means no custom metadata reaches the model even if it was attached at upload. `backend/open_webui/env.py:375`, applied in `retrieval/utils.py:1375`. |
 | `RAG_METADATA_MAX_VALUE_CHARS` | v0.11.1 | Caps any single stored chunk-metadata value; oversized values are dropped. Default: `RAG_FILE_MAX_SIZE` (MB) converted to characters; no cap only when both are unset. `backend/open_webui/env.py:852-856`. |
 | `ENABLE_KNOWLEDGE_FILE_RETENTION` | v0.11.1 | `false` by default. When `true`, removing a file from a knowledge base (or emptying one) keeps the stored file and its vector-search data instead of deleting them. `backend/open_webui/config.py:992`. |
