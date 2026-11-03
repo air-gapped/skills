@@ -347,9 +347,9 @@ and any harrier number you have not reproduced yourself.
 | All MTEB(Multilingual, v2) scores, ZS column, Nemotron's `—` aggregate and rank | <https://mteb-leaderboard.hf.space/benchmark/MTEB(Multilingual,%20v2)>; machine-readable: `https://mteb-leaderboard-backend.hf.space/v1/benchmarks/MTEB(Multilingual,%20v2)/scores` | 2026-11-04 |
 | RTEB(beta) field size and Nemotron ranks | <https://mteb-leaderboard.hf.space/benchmark/RTEB(beta)>; backend `…/v1/benchmarks/RTEB(beta)/scores` (292 models; #1 `mongodb/voyage-4-large`, #2 Nemotron-3-Embed-8B, #14 the 1B) | 2026-11-04 |
 | MTEB publishes no speed metric | leaderboard MODELS page enumerates its own fields | 2026-11-04 |
-| Reranker table | `Qwen/Qwen3-Reranker-4B` → `README.md` §Evaluation | 2026-10-27 |
-| Third-party reranker ranking | <https://aimultiple.com/rerankers> §Key findings (page "Last updated: October 15, 2026"); the earlier 18-language BGE 67.64 vs Qwen3-0.6B 59.59 figures are no longer on the page | 2026-10-27 |
-| Nemotron self-reported RTEB / MMTEB-Retrieval | `nvidia/Nemotron-3-Embed-1B-BF16` → `README.md` | 2026-08-05 |
+| Reranker table | `Qwen/Qwen3-Reranker-4B` → `README.md` §Evaluation | 2026-11-04 |
+| Third-party reranker ranking | <https://aimultiple.com/rerankers> §Key findings — the article and its ranking are dated **2026-02-26** (`dateModified`, "Retrieved February 26, 2026"); the "Last updated: October 15, 2026" line belongs to the data-ZIP download card, not the article. The earlier 18-language BGE 67.64 vs Qwen3-0.6B 59.59 figures are no longer on the page | 2026-11-04 |
+| Nemotron self-reported RTEB / MMTEB-Retrieval | `nvidia/Nemotron-3-Embed-1B-BF16` → `README.md` | 2026-11-04 |
 | OpenRouter model lists | `GET https://openrouter.ai/api/v1/models?output_modalities={embeddings,rerank}` — 12 rerank models, all priced `"0"`; `voyageai/*` renamed `mongodb/*` | 2026-11-04 |
 | OpenRouter real prices | openrouter.ai/models model cards, `pricing_json` (API pricing metadata is wrong for rerank) | 2026-11-04 |
 | OpenRouter rerank request shape | `https://openrouter.ai/docs/client-sdks/python/sdks/rerank/README.md` — required `documents`, `model`, `query`, optional `top_n`; `documents` may also be `{text, image}` objects | 2026-11-04 |
