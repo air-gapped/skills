@@ -274,22 +274,24 @@ $0.02/M.
 |---|---|---|
 | `nvidia/nemotron-3.5-rerank-8b:free` | 32k | **$0** |
 | `nvidia/llama-nemotron-rerank-vl-1b-v2:free` | 10k | **$0** |
-| `voyageai/rerank-2.5-lite` | 32k | $0.02/M tokens |
-| `voyageai/rerank-2.5` | 32k | $0.05/M tokens |
+| `mongodb/rerank-2.5-lite`, `mongodb/rerank-3-lite` | 32k | $0.02/M tokens |
+| `mongodb/rerank-2.5`, `mongodb/rerank-3` | 32k | $0.05/M tokens |
 | `cohere/rerank-v3.5` | 4k | $0.001/**search** |
 | `cohere/rerank-4-fast` | 33k | $0.002/search |
 | `cohere/rerank-4-pro` | 33k | $0.0025/search |
+| `cohere/rerank-5-fast` | — | $0.02/M tokens |
+| `cohere/rerank-5-pro` | — | $0.05/M tokens |
+| `qwen/qwen3-reranker-8b` | 40k | $0.20/M tokens |
 
-Also listed, price on the model page: `qwen/qwen3-reranker-8b` (40k),
-`voyageai/rerank-3`, `voyageai/rerank-3-lite`.
+The Voyage rerankers are listed under `mongodb/*` now; the old `voyageai/*` ids
+are gone. Cohere's v5 rerankers price per token, v3.5 and v4 per search.
 
 ⚠️ **`GET /api/v1/models?output_modalities=rerank` reports
 `{"prompt":"0","completion":"0"}` for every model, free or not.** That is missing
-metadata, not ten free models — Cohere is priced per search unit. Read prices off the model page,
-not the API.
+metadata, not twelve free models. Read prices off the model page, not the API.
 
 `llama-nemotron-rerank-vl-1b-v2` is a **vision-language** reranker (actually 1.7B)
-built for chart/table RAG. It accepts text-only input, but bench it against
+built for chart/table RAG (`nemotron-3.5-rerank-8b` also takes images). It accepts text-only input, but bench it against
 Qwen3-Reranker-0.6B before treating it as a text reranker.
 
 ### OpenRouter config — no LiteLLM needed
@@ -348,8 +350,8 @@ and any harrier number you have not reproduced yourself.
 | Reranker table | `Qwen/Qwen3-Reranker-4B` → `README.md` §Evaluation | 2026-10-27 |
 | Third-party reranker ranking | <https://aimultiple.com/rerankers> §Key findings (page "Last updated: October 15, 2026"); the earlier 18-language BGE 67.64 vs Qwen3-0.6B 59.59 figures are no longer on the page | 2026-10-27 |
 | Nemotron self-reported RTEB / MMTEB-Retrieval | `nvidia/Nemotron-3-Embed-1B-BF16` → `README.md` | 2026-08-05 |
-| OpenRouter model lists | `GET https://openrouter.ai/api/v1/models?output_modalities={embeddings,rerank}` — 10 rerank models, all priced `"0"` | 2026-10-27 |
-| OpenRouter real prices | openrouter.ai/models model cards (API pricing metadata is wrong for rerank) | 2026-08-05 |
-| OpenRouter rerank request shape | `https://openrouter.ai/docs/client-sdks/python/sdks/rerank/README.md` | 2026-10-27 |
-| OpenRouter rerank response shape | `https://openrouter.ai/docs/api/api-reference/rerank/submit-a-rerank-request.md` — `results` "sorted by relevance", items `index`, `relevance_score`, `document` | 2026-10-27 |
+| OpenRouter model lists | `GET https://openrouter.ai/api/v1/models?output_modalities={embeddings,rerank}` — 12 rerank models, all priced `"0"`; `voyageai/*` renamed `mongodb/*` | 2026-11-04 |
+| OpenRouter real prices | openrouter.ai/models model cards, `pricing_json` (API pricing metadata is wrong for rerank) | 2026-11-04 |
+| OpenRouter rerank request shape | `https://openrouter.ai/docs/client-sdks/python/sdks/rerank/README.md` — required `documents`, `model`, `query`, optional `top_n`; `documents` may also be `{text, image}` objects | 2026-11-04 |
+| OpenRouter rerank response shape | `https://openrouter.ai/docs/api/api-reference/rerank/submit-a-rerank-request.md` — `results` "sorted by relevance", items `index`, `relevance_score`, `document` (`{text, image}`) | 2026-11-04 |
 | MFU calibration | this skill's `references/performance.md` BGE-M3 baseline | 2026-08-05 |
