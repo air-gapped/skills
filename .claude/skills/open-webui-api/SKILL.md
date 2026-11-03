@@ -1,7 +1,7 @@
 ---
 name: open-webui-api
 description: |-
-  Administer Open WebUI entirely via its REST API (v0.11.x): user/group lifecycle, permissions, model catalog GitOps (export/import/sync), knowledge/RAG pipelines, config-as-code, SCIM provisioning, event webhooks, and backup surfaces. Grounded in the v0.11.0 source — covers the 476-path surface the official docs leave ~96% undocumented, the auth bootstrapping traps (ENABLE_API_KEYS default-off, JWT 4-week expiry, one unscoped key per user), and the 0.10.0 breaking changes (access_control→access_grants with inverted public/private defaults, flat dot-keyed config) that silently break every pre-0.10 script and most LLM training-data knowledge.
+  Administer Open WebUI entirely via its REST API (v0.11+): user/group lifecycle, permissions, model catalog GitOps (export/import/sync), knowledge/RAG pipelines, config-as-code, SCIM provisioning, event webhooks, and backup surfaces. Grounded in the v0.11.0 source — covers the 476-path surface the official docs leave ~96% undocumented, the auth bootstrapping traps (ENABLE_API_KEYS default-off, JWT 4-week expiry, one unscoped key per user), and the 0.10.0 breaking changes (access_control→access_grants with inverted public/private defaults, flat dot-keyed config) that silently break every pre-0.10 script and most LLM training-data knowledge.
 when_to_use: |-
   Trigger on "open-webui api", "openwebui rest", "open-webui automation", "provision open-webui users", "open-webui api key", "access_grants", "access_control open-webui", "models/sync", "open-webui config export", "configs/import", "PersistentConfig", "open-webui scim", "custom_params", "chat_template_kwargs open-webui", "open-webui webhook events", "/api/v1/", "api_type responses", or any task scripting/automating an Open WebUI instance (create users, manage groups, sync model catalog, upload knowledge, read analytics) rather than clicking the UI. Also trigger on symptoms: "API returns HTML", "403 with valid API key", "env var change ignored", "custom parameter shows [object Object]", "reasoning missing from API response". NOT for Open WebUI RAG/embedding wiring (open-webui-embeddings), multi-pod scaling (open-webui-valkey-websocket), or generic OpenAI-API client questions.
 ---
@@ -10,16 +10,18 @@ when_to_use: |-
 
 Target: operators who script Open WebUI (create users, reconcile model catalogs, drive RAG pipelines, export configs) instead of clicking the admin UI. Grounded in v0.11.0 source (2026-07-27); the API is officially "experimental" with no versioning policy, so every claim here is version-stamped. **First step on any instance: `GET /api/version`** — never trust `openapi.json`'s `info.version` (always says "0.1.0").
 
-## Security floor: v0.11.1 published, latest release in practice
+## Security floor: v0.12.2 published, latest release in practice
 
-**Run the latest release (v0.12.4 as of 2026-10-27); v0.11.1 is the published
+**Run the latest release (v0.13.0 as of 2026-11-04); v0.12.2 is the published
 floor.** Note what that means here: this file is grounded in **v0.11.0 source**,
 which is *below* the floor. The file:line claims still describe 0.11.0
-accurately; the instance you point them at should not be on it. Every published
-advisory (feed checked 2026-10-27, newest published 2026-09-10) is patched at
-0.11.1. **But v0.12.0 and v0.12.4 ship security fixes their notes say are not
-listed, with advisories to follow after CVE assignment** — re-check the
-advisory feed when new GHSAs appear and expect the published floor to rise.
+accurately; the instance you point them at should not be on it. The repository's
+advisory list (`gh api repos/open-webui/open-webui/security-advisories`, checked
+2026-11-04) tops out at `< 0.12.2` (channel members spoofing webhook messages,
+published 2026-10-18); the global advisory database still tops out at 0.11.1 and
+trails it by weeks. **v0.12.0, v0.12.4, v0.12.5 and v0.13.0 ship security fixes
+their notes say are not listed, with advisories to follow after CVE assignment**
+— re-check the repository list when new GHSAs appear.
 
 Four of the advisories defeat things this skill teaches, so knowing the version
 comes before trusting the permission model:
@@ -41,7 +43,7 @@ Check first, before any scripting: `GET /api/version` (already the recon step
 above) — and treat anything below `0.11.1` as "fix the version, then script".
 
 **Derivation:** take the floor from the highest `vulnerable_version_range`
-ceiling, not from `first_patched_version` — that field is filled on almost all
+ceiling in the repository's list, not the global database and not from `first_patched_version` — that field is filled on almost all
 current advisories but still `null` on some, and withheld fixes appear in
 neither. The volume is large enough that it is worth re-deriving rather than
 re-reading this table. `open-webui-valkey-websocket` §"Security floor" carries
