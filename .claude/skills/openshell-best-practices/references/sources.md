@@ -30,7 +30,8 @@ Authoritative external references the skill points at. `freshen` mode probes the
 | https://github.com/NVIDIA/OpenShell/blob/v0.1.6/crates/openshell-core/src/net.rs | Internal / always-blocked address ranges | 2026-10-28 | v0.1.6 |
 | https://github.com/NVIDIA/OpenShell/blob/v0.1.6/crates/openshell-supervisor-network/src/proxy/destination.rs | Address authorization modes (exact host, `allowed_ips`, default public-only) | 2026-10-28 | v0.1.6 |
 | https://github.com/NVIDIA/OpenShell/blob/v0.1.6/deploy/helm/openshell/values.yaml | Chart values (no schema in 0.1.6) | 2026-10-28 | v0.1.6 |
-| https://github.com/NVIDIA/OpenShell/pull/3292 | Additional destination CAs (after 0.1.6) | 2026-10-28 | — |
+| https://github.com/NVIDIA/OpenShell/pull/3292 | Additional destination CAs: merged 2026-10-27T18:45Z, after the v0.1.6 tag, first released in 0.1.7. Lifecycle (startup-only read, restart + stop/start), Helm key `ca.crt`, RBAC: v0.1.7 `docs/how-it-works/gateways/configuration.mdx` "Additional Destination CAs" | 2026-11-03 | v0.1.7 |
+| https://github.com/NVIDIA/OpenShell/pull/5155 | Podman `[openshell.drivers.podman] additional_ca_bundle` kept as a deprecated alias of `[openshell.supervisor.network]` | 2026-11-03 | v0.1.7 |
 | https://github.com/NVIDIA/OpenShell/issues/4218 | Enterprise deployment blockers tracker | 2026-10-28 | — |
 | https://github.com/NVIDIA/OpenShell-Community | Archived 2026-10-07 (community images) | 2026-10-28 | — |
 | https://raw.githubusercontent.com/NVIDIA/product-security/main/2026/5872/5872.md | Aug 2026 CVE bulletin (0.0.x) | 2026-10-28 | — |

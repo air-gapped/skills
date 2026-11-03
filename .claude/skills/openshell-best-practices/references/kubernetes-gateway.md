@@ -79,6 +79,7 @@ cluster RBAC), `operator` (pre-provisioned allowlisted namespaces + workspace ch
 | `global.image.registry` / `.tag` | Mirror for gateway, supervisor and sandbox runtime. Keep supervisor and sandbox runtime on the same release — a mismatch fails at sandbox start |
 | `sandbox.image.*` | Default workload image (`nvcr.io/nvidia/base/ubuntu:24.04`); a full reference, not rewritten by `global.image.registry` |
 | `server.sandboxImagePullSecrets`, `imagePullSecrets` | Pull secrets for sandbox workload **and** per-sandbox supervisor pods (must exist in the sandbox namespace; managed workspace mode copies them), and for gateway/hook/shared-supervisor pods |
+| `supervisor.network.additionalCaConfigMapName` | 0.1.7+: site CAs for agent egress (ConfigMap key `ca.crt`, read at gateway start) — `air-gap-and-ca.md` |
 | `upstreamProxy.*` | Corporate forward proxy for policy-approved TLS egress; `caBundle` for an intercepting proxy. Plain HTTP is never proxied, the auth Secret lives in the sandbox namespace, and the CA is trusted for all upstreams — details in `air-gap-and-ca.md` |
 | `server.externalDbSecret` + `workload.kind: deployment` | PostgreSQL; required for `replicaCount > 1` |
 | `server.credentialDrivers.kubernetesSecrets` / `.vault` | Store provider credentials outside the gateway DB |

@@ -1,8 +1,8 @@
 # Air-gapped sites and private CAs (0.1.x)
 
 Verified against `v0.1.6` (source and docs). The internal-destination behaviour was also
-measured on a live 0.1.6 Kubernetes gateway on 2026-10-28. #3292 (additional destination CAs
-as a ConfigMap) landed on main after 0.1.6.
+measured on a live 0.1.6 Kubernetes gateway on 2026-10-28. 0.1.7 adds a supported setting for
+site CAs on agent egress (#3292); the 0.1.6 routes below stay for older gateways.
 
 ## Contents
 
@@ -126,17 +126,17 @@ Agent traffic is intercepted: the workload talks to the supervisor, which termin
 a per-sandbox CA and opens the real upstream connection itself. So the trust decision for an
 internal HTTPS service is made by the **supervisor**, not the agent image.
 
-| Path | 0.1.6 mechanism |
+| Path | Mechanism |
 |---|---|
 | Gateway → OIDC issuer | `server.oidc.caConfigMapName` (key `ca.crt`) → `SSL_CERT_FILE`. **Replaces** the system roots for the whole gateway process — include every root it needs. Still so in 0.1.7: the scoping fix (PR #3673) is unmerged |
 | Gateway → Vault | `credentialDrivers.vault.caConfigMapName` (top level; `server.credentialDrivers.vault.*` is the legacy fallback) |
 | CLI → gateway | CLI pins `~/.config/openshell/gateways/<name>/mtls/ca.crt` if present, else the OS trust store |
-| Supervisor → internal HTTPS upstream (Kubernetes) | No dedicated setting in 0.1.6. Use the proxy-CA route (below, no rebuild) or rebuild the supervisor image. The image route reads only the **first non-empty** of `/etc/ssl/certs/ca-certificates.crt`, `/etc/pki/tls/certs/ca-bundle.crt`, `/etc/ssl/ca-bundle.pem`, `/etc/ssl/cert.pem`, plus bundled Mozilla roots — a CA in a later file is ignored. Main (#3292) adds `supervisor.network.additionalCaConfigMapName` |
+| Supervisor → internal HTTPS upstream (Kubernetes) | **0.1.7+**: `supervisor.network.additionalCaConfigMapName` — a ConfigMap you own in the release namespace, key `ca.crt` (no key option), certificates only; added to the default roots. The gateway reads it **only at startup** and refuses to start on a bad bundle. After any change: restart the gateway (the chart's config checksum does not cover this ConfigMap), then `sandbox stop` + `start` every sandbox. The chart grants the gateway ConfigMap `get`/`create` (cluster-wide in managed/operator workspace mode); a `gatewayConfig."openshell.supervisor.network"` table alongside it fails the render. **0.1.6**: no dedicated setting — proxy-CA route or rebuilt image (below). The image route reads only the **first non-empty** of `/etc/ssl/certs/ca-certificates.crt`, `/etc/pki/tls/certs/ca-bundle.crt`, `/etc/ssl/ca-bundle.pem`, `/etc/ssl/cert.pem`, plus bundled Mozilla roots — a CA in a later file is ignored |
 | Supervisor → intercepting corporate proxy | `upstreamProxy.caBundle.configMapName` (release namespace, ≤ 256 KiB). This CA is trusted for **all** upstreams, proxied or not, and lands in the sandbox bundle too. Supply only the proxy/interception CA: a full merged bundle (e.g. OpenShift's injected trusted bundle) can exceed the sandbox boundary's control-frame budget. Per-sandbox supervisors only |
-| Supervisor → upstream (Podman) | `additional_ca_bundle` (0.1.5) |
+| Supervisor → upstream (Docker, Podman, VM) | 0.1.7+: `[openshell.supervisor.network] additional_ca_bundle = "<PEM path>"` in gateway.toml, same startup-only lifecycle. The 0.1.5 Podman-only `[openshell.drivers.podman] additional_ca_bundle` still works but is deprecated |
 | Agent → supervisor | Automatic: the CA lands in `/run/openshell-supervisor-ca/material/` — `ca-bundle.crt` (system roots + sandbox CA) for `SSL_CERT_FILE`, `REQUESTS_CA_BUNDLE`, `CURL_CA_BUNDLE`, `GIT_SSL_CAINFO`; `ca.crt` for `NODE_EXTRA_CA_CERTS`, `DENO_CERT`. Tools that ignore these (Java keystores) need the CA imported |
 
-**Site CA without a rebuild (verified on 0.1.6, 2026-10-28).** The chart accepts
+**0.1.6: site CA without a rebuild (verified 2026-10-28).** The chart accepts
 `caBundle` only together with a proxy URL, but the supervisor trusts that CA for every
 upstream, and `noProxy: "*"` sends everything direct, so the proxy is never contacted and
 need not exist:
@@ -159,11 +159,12 @@ With cert-manager **trust-manager** distributing site CAs, point at its target C
 the release namespace: `caBundle.key` selects any PEM key, and the file is re-read for every
 new sandbox ("rotating the file needs no restart", `driver.rs`). The Bundle must hold only
 site CAs, not the default public set (256 KiB cap). `server.oidc.caConfigMapName` has no key
-option — `SSL_CERT_FILE` points at `ca.crt` — so give it a target whose key is `ca.crt`.
+option — `SSL_CERT_FILE` points at `ca.crt` — so give it a target whose key is `ca.crt`; the
+same holds for 0.1.7's `additionalCaConfigMapName`, whose rotation needs the restart sequence.
 JKS/PKCS12 targets don't help inside sandboxes: Java there must trust the per-sandbox
 OpenShell CA (`/run/openshell-supervisor-ca/material/ca.crt`), not the site CAs.
 
-**Rebuild route.** The supervisor image is distroless (`gcr.io/distroless/base-nossl-debian13`
+**0.1.6: rebuild route.** The supervisor image is distroless (`gcr.io/distroless/base-nossl-debian13`
 + one binary): no shell, no `update-ca-certificates`, no `RUN` possible on top. Build the bundle in a helper
 stage and **append** (the sandbox's bundle is derived from this file, so replacing it drops
 public roots for tools inside the sandbox):
@@ -231,7 +232,7 @@ Each step is done when its check passes; later failures are then attributable.
 
 1. Images and chart mirrored, telemetry off, offline render passes (`kubernetes-gateway.md`).
 2. Gateway up with OIDC behind the site CA: `openshell status` shows `Authenticated`.
-3. Site CA trusted by the supervisor (proxy-CA route or rebuilt image); a throwaway sandbox whose policy allows `curl` to
+3. Site CA trusted by the supervisor (`additionalCaConfigMapName` on 0.1.7; proxy-CA route or rebuilt image on 0.1.6); a throwaway sandbox whose policy allows `curl` to
    one internal HTTPS host by FQDN with `allowed_ips` returns HTTP 200.
 4. Profiles: FQDN hosts, `allowed_ips` on every internal endpoint, `binaries` checked with
    `readlink -f` in the image, keys grepped for typos; imported and linted.
