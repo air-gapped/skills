@@ -124,14 +124,14 @@ Every variable in that block still exists and is still read in v0.12.4 (verified
 
 Practical use: keep the global at `10`, and set `stream_delta_chunk_size: 20` (or higher) in `params` on the reasoning and long-output models specifically — those are the ones whose O(N²) constant hurts most — without coarsening streaming for short chat models. This predates 0.11.0 (present in 0.10.2) but is absent from most deployment guides.
 
-## Security floor: v0.12.4, and the advisory feeds trail the release
+## Security floor: v0.13.0, and the advisory feeds trail the release
 
-**Run v0.12.4 or later.** Open WebUI ships security fixes before it publishes
+**Run v0.13.0 or later.** Open WebUI ships security fixes before it publishes
 the advisories, so no advisory feed gives you the floor on its own:
 
-- **v0.12.4's notes say it contains security fixes that are "not listed in this
-  changelog"**; the advisories follow CVE assignment. v0.12.0 and v0.11.1 carry
-  the same "some may be withheld" warning. The newest release is the floor until
+- **v0.13.0's notes say it contains security fixes that are "not listed in this
+  changelog"**; the advisories follow CVE assignment. v0.12.5, v0.12.4, v0.12.0
+  and v0.11.1 carry the same warning. The newest release is the floor until
   its advisories appear.
 - **Read the repository's advisory list, not the global database.** `gh api
   repos/open-webui/open-webui/security-advisories` carries advisories weeks
@@ -140,7 +140,8 @@ the advisories, so no advisory feed gives you the floor on its own:
   ceiling / `patched_versions` there, then raise it to the newest release if
   that release announced unlisted fixes.
 - Releases that changed the floor so far: v0.11.1, v0.11.4, v0.12.2 (published
-  ceilings) and v0.12.4 (unlisted fixes).
+  ceilings) and v0.12.4, v0.12.5, v0.13.0 (unlisted fixes). The highest published
+  ceiling is still `< 0.12.2`.
 
 **Do not assume an internal-only deployment behind an authenticating proxy is
 covered.** The proxy removes one narrow slice — advisories needing an
@@ -254,7 +255,7 @@ The full audit of fixes (PR #19097 Nov 2025, tjbck commit drops `meta.profile_im
 
 These are the few things that will sink a deployment if missed. The env block above and the references cover the full configuration; this list is the irreducible minimum to internalize.
 
-- **≥v0.12.4.** It is the security floor (§Security floor), it carries the v0.12.1 Sentinel fixes (case-sensitive master names, password-protected Sentinels), and it fixes the v0.12.3 websocket-reconnect hang. Read §Version upgrades before the hop: 0.11.0, 0.11.1, 0.12.0 and 0.12.1 all forbid rolling updates. Load-test the target on staging (below) before production; release notes are not a scaling test.
+- **≥v0.13.0.** It is the security floor (§Security floor), it carries the v0.12.1 Sentinel fixes (case-sensitive master names, password-protected Sentinels), and v0.12.4's fix for the v0.12.3 websocket-reconnect hang. Read §Version upgrades before the hop: 0.11.0, 0.11.1, 0.12.0, 0.12.1 and 0.13.0 all forbid rolling updates. Load-test the target on staging (below) before production; release notes are not a scaling test.
 - **`CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=10`.** The single highest-leverage knob until #23733 lands. See `references/issue-23733.md` for why.
 - **Identical `WEBUI_SECRET_KEY` on every pod.** Different keys → login loops and OAuth-token decryption failures across pods.
 - **One pod runs migrations** (or a separate Job). Other pods set `ENABLE_DB_MIGRATIONS=false`. Concurrent migrations on rolling restart corrupt schema state.
