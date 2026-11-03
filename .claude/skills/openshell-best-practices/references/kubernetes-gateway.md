@@ -176,7 +176,7 @@ the gateway refuses to start with no user authentication unless
 - 0.1.x → 0.1.y: `helm upgrade` with the new version and the same values; read every
   release's "Upgrade notes" in between (0.1.5: OCSF log file rename `.log`→`.jsonl`,
   annotation/label allowlists; 0.1.6: auth required, supervisor/sandbox runtime pairing,
-  connection direction). Running sandboxes keep their supervisor and runtime images until
+  connection direction; 0.1.7: OCSF 1.8.0 only, `server.ocsfLog.schemaVersion` ignored). Running sandboxes keep their supervisor and runtime images until
   `sandbox stop` + `start` (workspace kept). To change a sandbox's own workload image without
   recreating it (0.1.7+), see `sandboxes-and-agents.md` "Image update".
 - From 0.0.x: not in place. Remove every sandbox, back up the DB, migrate `gatewayConfig` to

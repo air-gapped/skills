@@ -87,7 +87,10 @@ Landlock, seccomp or host networking (#4133, #3694).
 - Supervisor OCSF JSONL lives in the **supervisor** container's `/var/log` (tmpfs), not the
   workload: read it via the supervisor container's logs (also on stderr since 0.1.3). Files are
   `openshell-ocsf.YYYY-MM-DD.jsonl` since 0.1.5 (collectors matching `*.log` see nothing new).
-  The VM driver writes no OCSF file (#3855).
+  The VM driver writes no OCSF file (#3855). Since 0.1.7 every record is OCSF **1.8.0**: the
+  1.1/1.3 downgrade (`ocsf_schema_version`, `server.ocsfLog.schemaVersion`,
+  `OPENSHELL_OTLP_OCSF_SCHEMA_VERSION`) is ignored with a startup warning, so parsers and SIEM
+  mappings written for 1.1/1.3 need updating.
 - Landlock and process-launch events appear only in the workload container log.
 - Gateway: OTLP traces (`openshell.gateway.otlp`), Prometheus metrics on 9090, and since 0.1.6
   OCSF audit events for authorization denials and accepted credentials, plus a High-severity
