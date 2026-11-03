@@ -239,9 +239,9 @@ PR #29736).
 
 ## Verifying ingestion (changed in 0.11.0)
 
-The obvious way to confirm a knowledge base actually extracted text — list its files and look at the content — **stopped working in 0.11.0**. `Knowledges.get_file_metadatas_by_id` became a column-only `SELECT File.id, File.hash, File.meta, File.created_at, File.updated_at` (`models/knowledge.py:674-685` at v0.12.4), deliberately excluding `File.data`, which is where the extracted text lives. Its own docstring says so.
+The obvious way to confirm a knowledge base actually extracted text — list its files and look at the content — **stopped working in 0.11.0**: the listing query leaves out `File.data`, which is where the extracted text lives. On v0.13.0 the paginated `GET /api/v1/knowledge/{id}/files` defers `File.data` (`Knowledges.search_files_by_id`), `GET /api/v1/knowledge/{id}` returns no files at all, and from v0.12.5 the add/update/remove-file calls return only the affected file or `[]`.
 
-Consequence: `GET /api/v1/knowledge/{id}` and the KB detail view now return file entries with **no extracted content**, so an empty-looking listing no longer distinguishes "extraction failed" from "extraction succeeded, field not selected". To verify extraction actually produced text, fetch the individual file (`GET /api/v1/files/{id}`) rather than reading the collection listing. Knowledge list items gained a `file_count` in exchange.
+Consequence: no knowledge-base response carries **extracted content**, so an empty-looking listing does not distinguish "extraction failed" from "extraction succeeded, field not selected". To verify extraction actually produced text, fetch the individual file (`GET /api/v1/files/{id}`) rather than reading the collection listing. Knowledge list items gained a `file_count` in exchange.
 
 This is a pure API-shape change — embedding and retrieval quality are unaffected. It matters only for ingestion-verification scripts and health checks.
 
