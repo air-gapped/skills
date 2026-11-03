@@ -12,7 +12,7 @@ curl -X POST $B/api/events/webhooks -H "Authorization: Bearer $T" -H "Content-Ty
 # PUT /api/events/webhooks/{id} to edit, DELETE to remove
 ```
 
-Event names are dot-namespaced strings (registry: `backend/open_webui/events.py`). Families as of 0.10.2: `auth.*` (login, logout, signup, password_changed, api_key.created/deleted, oauth_session.deleted), `chat.*` (created, deleted, deleted_all, imported, shared, archived, pinned, cloned, compacted, tag_added/removed, folder_updated), `channel.*` (+member/webhook subevents), `automation.*` (created/updated/deleted, run_started/completed/failed, enabled/disabled), `calendar.*` (+event subevents), plus model/config/user families. Pull the live catalog from `GET /api/events` rather than hardcoding — the registry grows per release.
+Event names are dot-namespaced strings (registry: `backend/open_webui/events.py`). Families as of 0.10.2: `auth.*` (login, logout, signup, password_changed, api_key.created/deleted, oauth_session.deleted), `chat.*` (created, deleted, deleted_all, imported, shared, archived, pinned, cloned, compacted, tag_added/removed, folder_updated), `channel.*` (+member/webhook subevents), `automation.*` (created/updated/deleted, run_started/completed/failed, enabled/disabled), `calendar.*` (+event subevents), plus model/config/user families; 0.13.0 adds `comment.created`, `comment.updated`, `tool.enabled`, `tool.disabled`. Pull the live catalog from `GET /api/events` rather than hardcoding — the registry grows per release.
 
 Inbound (different feature): channels accept unauthenticated posts at `POST /api/v1/channels/webhooks/{webhook_id}/{token}` (token-in-URL).
 
@@ -54,7 +54,7 @@ Base URL `/api/v1/scim/v2`, auth `Authorization: Bearer $SCIM_TOKEN` — **outsi
 | `GET /ServiceProviderConfig`, `/ResourceTypes`, `/Schemas` | discovery, unauthenticated |
 | `GET /Users?filter=...` | eq/ne/co/sw/ew/pr operators, incl. externalId; case-sensitivity is non-compliant (open-webui/open-webui#17964 / open-webui/open-webui#18039) |
 | `POST|GET|PUT|PATCH /Users(/{id})` | create/read/replace/patch |
-| `DELETE /Users/{id}` | **hard-deletes** the account, its chats and group memberships — irreversible; v0.12.2+ answers 403 for admins. To deactivate, `PATCH` `active: false` (role → pending) |
+| `DELETE /Users/{id}` | **hard-deletes** the account, its chats and group memberships (from v0.13.0 also its comments and inbox notifications) — irreversible; v0.12.2+ answers 403 for admins. To deactivate, `PATCH` `active: false` (role → pending) |
 | same set for `/Groups` | group membership sync |
 
 Semantics that surprise IdP admins:
