@@ -1,6 +1,6 @@
 # Air-gapped sites and private CAs (0.1.x)
 
-Verified against `v0.1.6` (source and docs). The internal-destination behaviour was also
+Verified against `v0.1.7` (source and docs). The internal-destination behaviour was also
 measured on a live 0.1.6 Kubernetes gateway on 2026-10-28. 0.1.7 adds a supported setting for
 site CAs on agent egress (#3292); the 0.1.6 routes below stay for older gateways.
 

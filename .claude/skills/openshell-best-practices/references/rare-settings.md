@@ -1,12 +1,12 @@
-# Rarely used settings (0.1.6)
+# Rarely used settings (0.1.7)
 
 Settings that stay at their defaults until one of them is the reason something fails. Read
-from the `v0.1.6` tag: `deploy/helm/openshell/`, `crates/openshell-driver-kubernetes/src/`,
+from the `v0.1.7` tag: `deploy/helm/openshell/`, `crates/openshell-driver-kubernetes/src/`,
 `docs/how-it-works/policies/schema.mdx`, `docs/how-it-works/providers/profiles.mdx`, the CLI.
 Air-gap-specific settings (images, CAs, proxy, DNS, `allowed_ips`) are in
 `air-gap-and-ca.md`; everyday Helm values in `kubernetes-gateway.md`.
 
-The chart has **no `values.schema.json`** in 0.1.6, and provider profiles drop unknown keys:
+The chart has **no `values.schema.json`** in 0.1.7, and provider profiles drop unknown keys:
 a misspelled key in either is silently ignored. Diff the rendered `gateway.toml`
 (`helm template … | grep -A40 gateway.toml`) and grep imported profiles after every change.
 

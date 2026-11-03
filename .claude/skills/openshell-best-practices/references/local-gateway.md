@@ -1,6 +1,6 @@
 # Local gateway — workstation installs (0.1.x)
 
-Verified against `v0.1.6` (`docs/about/installation.mdx`, `docs/how-it-works/sandboxes/runtimes.mdx`,
+Verified against `v0.1.7` (`docs/about/installation.mdx`, `docs/how-it-works/sandboxes/runtimes.mdx`,
 `install.sh`) and field reports.
 
 ## Contents
@@ -14,7 +14,7 @@ Verified against `v0.1.6` (`docs/about/installation.mdx`, `docs/how-it-works/san
 
 `curl -LsSf https://raw.githubusercontent.com/NVIDIA/OpenShell/main/install.sh | sh` picks a
 package for the host: **RPM** (Fedora/RHEL), **deb** (Debian/Ubuntu), **Homebrew** (macOS);
-`OPENSHELL_INSTALL_METHOD=snap` for the snap, `OPENSHELL_VERSION=v0.1.6` to pin. For
+`OPENSHELL_INSTALL_METHOD=snap` for the snap, `OPENSHELL_VERSION=v0.1.7` to pin. For
 reproducible or air-gapped installs, download the release assets and verify them against
 `openshell-checksums-sha256.txt` / `openshell-gateway-checksums-sha256.txt` instead of piping
 `main/install.sh` (the RPMs are unsigned; trust comes from the checksum file).
@@ -51,7 +51,7 @@ with `openshell gateway add https://127.0.0.1:17670 --local --name openshell` (a
    register with `gateway add … --local --name openshell`, `openshell status`.
 6. Import profiles and recreate providers and sandboxes.
 
-Note the 0.1.6 RPM default config listens on `127.0.0.1` only (0.0.x defaults bound `0.0.0.0`).
+Note the RPM default config listens on `127.0.0.1` only on 0.1.6 and 0.1.7 (0.0.x defaults bound `0.0.0.0`).
 
 ## Runtime selection
 

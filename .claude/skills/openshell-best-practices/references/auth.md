@@ -1,6 +1,6 @@
 # Authentication — users, automation, tokens (0.1.x)
 
-Verified against `v0.1.6` (`docs/how-it-works/gateways/authentication.mdx`,
+Verified against `v0.1.7` (`docs/how-it-works/gateways/authentication.mdx`,
 `docs/kubernetes/access-control.mdx`, `crates/openshell-cli/src/oidc_auth.rs`,
 `crates/openshell-server/src/cli.rs`).
 
@@ -94,7 +94,7 @@ and cannot revoke one early; the refresh token carries the long login (SSO idle/
 CLI refreshes automatically. **The TUI (`openshell term`) does not**: the CLI hands it one
 bearer value at launch (`EdgeAuthInterceptor` with a fixed header) and it never reloads or
 refreshes — after the access-token lifetime every action fails with
-`invalid token: ExpiredSignature`. Unreported upstream as of 0.1.6 (siblings: #4515 Go SDK
+`invalid token: ExpiredSignature`. Unreported upstream as of 0.1.7 (siblings: #4515 Go SDK
 caches an edge token forever, #4514 Go SDK never uses the refresh token).
 
 Workarounds: restart the TUI (starting it after a fresh `openshell gateway login` gives a

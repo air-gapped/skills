@@ -1,6 +1,6 @@
 # Automation: headless agents, SDKs, fleets (0.1.x)
 
-Verified against `v0.1.6` (`docs/how-it-works/sandboxes/overview.mdx`, `docs/sdk/*.mdx`,
+Verified against `v0.1.7` (`docs/how-it-works/sandboxes/overview.mdx`, `docs/sdk/*.mdx`,
 `scripts/agents/` "gator", `examples/multi-agent-notepad`, `examples/codex-app-server`).
 
 ## Contents

@@ -1,6 +1,6 @@
 # Sandboxes, agent images and daily use (0.1.x)
 
-Verified against `v0.1.6` (`docs/how-it-works/sandboxes/*.mdx`,
+Verified against `v0.1.7` (`docs/how-it-works/sandboxes/*.mdx`,
 `examples/bring-your-own-container/`) and field reports dated after 2026-09-25.
 
 ## Contents
@@ -75,7 +75,9 @@ workload and supervisor pods are gone (terminating pods block the update); read
 and the CLI's bearer token (`~/.config/openshell/gateways/<gw>/oidc_token.json`,
 `.access_token`); `grpc-status: 0` leaves it `Stopped`; then `sandbox start`. The gateway serves
 `grpc.reflection.v1`, so grpcurl needs no proto files. "must be Stopped" means stop has not
-settled — retry. Don't roll the gateway back below 0.1.7 after an update.
+settled — retry; `ABORTED` = stale `resource_version`, re-read it. If `start` reports a pending
+update, resume it with `UpdateSandbox` carrying only the current `resource_version`. Don't
+roll the gateway back below 0.1.7 after an update.
 
 **opencode quits on Ctrl-D** by its own default (`app_exit: ctrl+c,ctrl+d,<leader>q`), which
 bites in `exec` shells. Bake into the image:

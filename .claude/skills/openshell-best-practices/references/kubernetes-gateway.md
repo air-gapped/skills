@@ -1,6 +1,6 @@
 # Kubernetes gateway — deployment reference (0.1.x)
 
-Verified against the `v0.1.6` tag (chart `helm-chart` 0.1.6, `deploy/helm/openshell`,
+Verified against the `v0.1.7` tag (chart `helm-chart` 0.1.7, `deploy/helm/openshell`,
 `docs/kubernetes/*.mdx`). Re-read the chart's `values.yaml` and the docs at the tag you
 deploy: the chart has ~220 values plus a free-form `gatewayConfig`, and weekly releases move
 them.
@@ -43,7 +43,7 @@ Helm chart is not published and does not upgrade its CRD — use the manifest.
 - Version: the docs install the floating `releases/latest`; OpenShell's CI tests pinned
   versions (`AGENT_SANDBOX_VERSION` in `e2e/support/install-agent-sandbox.sh`,
   `.github/workflows/release-canary.yml`, lanes in `branch-e2e.yml` — v1.0.3 for v1beta1,
-  v0.4.6 for v1alpha1 at 0.1.6). Pin a version yourself. Treat CI's pin as tested-with, not a
+  v0.4.6 for v1alpha1 at 0.1.7; the additional-CA lane uses v0.5.0). Pin a version yourself. Treat CI's pin as tested-with, not a
   ceiling: upstream releases weekly; read the core-controller
   sections of every release between, diff the manifest (`kubectl diff --server-side`), and
   sweep issues. Router and warm-pool bugs don't affect OpenShell (not installed by `sandbox.yaml`).

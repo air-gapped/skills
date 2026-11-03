@@ -1,6 +1,6 @@
 # Providers, profiles and policy (0.1.x)
 
-Verified against `v0.1.6` docs (`docs/how-it-works/providers/*.mdx`,
+Verified against `v0.1.7` docs (`docs/how-it-works/providers/*.mdx`,
 `docs/how-it-works/policies/*.mdx`, `providers/*.yaml`). For exhaustive CLI flags and policy
 generation, upstream ships the `openshell-cli` and `generate-sandbox-policy` skills
 (`npx skills add NVIDIA/OpenShell`).
@@ -33,7 +33,7 @@ generation, upstream ships the `openshell-cli` and `generate-sandbox-policy` ski
 
 ```bash
 # 1. profile: copy from the clone at your release tag, edit binaries, lint, import
-git -C ~/src/OpenShell show v0.1.6:providers/openai.yaml > providers/openai.yaml
+git -C ~/src/OpenShell show v0.1.7:providers/openai.yaml > providers/openai.yaml
 openshell profile lint -f providers/openai.yaml
 openshell profile import -f providers/openai.yaml --global        # or --url <raw https>
 # 2. provider: secret from the local env var, never on the command line
