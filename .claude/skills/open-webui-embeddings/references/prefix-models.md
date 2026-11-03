@@ -291,14 +291,14 @@ Cross-encoder rerankers (`Qwen3-Reranker-*`, `bge-reranker-v2-m3`) take the
 
 | Claim | Source | Verified |
 |---|---|---|
-| EmbeddingGemma prompt strings + full task menu | `google/embeddinggemma-300m` → `config_sentence_transformers.json` (gated repo; needs `HF_TOKEN`) | 2026-08-05 |
-| EmbeddingGemma MEAN pooling, `include_prompt: true` | same repo → `1_Pooling/config.json` | 2026-08-05 |
-| Qwen3 query prompt, empty document prompt | `Qwen/Qwen3-Embedding-0.6B` → `config_sentence_transformers.json` | 2026-10-27 |
-| Qwen3 instruction guidance (1–5%, write in English) | `Qwen/Qwen3-Embedding-0.6B` → `README.md` | 2026-08-05 |
-| e5 `query: ` / `passage: `, required even for non-English | `intfloat/multilingual-e5-large` → `README.md` FAQ | 2026-10-27 |
-| Nemotron `query: ` / `passage: `; MEAN pooling, 2048d, 32768 max_seq_length, no Dense module | `nvidia/Nemotron-3-Embed-1B-BF16` → `config_sentence_transformers.json`, `modules.json`, `1_Pooling/config.json`, `sentence_bert_config.json` | 2026-08-05 |
+| EmbeddingGemma prompt strings + full task menu | `google/embeddinggemma-300m` → `config_sentence_transformers.json` (gated repo; needs `HF_TOKEN`) | 2026-11-04 |
+| EmbeddingGemma MEAN pooling, `include_prompt: true` | same repo → `1_Pooling/config.json` | 2026-11-04 |
+| Qwen3 query prompt, empty document prompt | `Qwen/Qwen3-Embedding-0.6B` → `config_sentence_transformers.json` | 2026-11-04 |
+| Qwen3 instruction guidance (1–5%, write in English) | `Qwen/Qwen3-Embedding-0.6B` → `README.md` | 2026-11-04 |
+| e5 `query: ` / `passage: `, required even for non-English | `intfloat/multilingual-e5-large` → `README.md` FAQ | 2026-11-04 |
+| Nemotron `query: ` / `passage: `; MEAN pooling, 2048d, 32768 max_seq_length, no Dense module | `nvidia/Nemotron-3-Embed-1B-BF16` → `config_sentence_transformers.json`, `modules.json`, `1_Pooling/config.json`, `sentence_bert_config.json` | 2026-11-04 |
 | Nemotron vLLM support is unregistered + version-bounded | `Ministral3Model` absent from vLLM main's `registry.py`; model card validates `vllm serve` on v0.20.0–v0.24.0 and `/v2/embed` on v0.25.0 (vLLM stable is v0.32.0 as of 2026-11-04, seven minors past the newest version the card validates; v0.33.0rc3 is GitHub's isLatest); [vLLM #48621](https://github.com/vllm-project/vllm/issues/48621) YaRN bug still OPEN, retitled "Ministral3 RoPE scaling ignores YaRN mscale and nested Llama 4 fields" | 2026-11-04 |
-| e5-instruct `Instruct: {task}\nQuery: ` | `intfloat/multilingual-e5-large-instruct` → `README.md` (`get_detailed_instruct`) | 2026-08-05 |
-| BGE-M3 needs no instructions | `BAAI/bge-m3` → `README.md`; no `prompts` in its ST config | 2026-08-05 |
+| e5-instruct `Instruct: {task}\nQuery: ` | `intfloat/multilingual-e5-large-instruct` → `README.md` (`get_detailed_instruct`) | 2026-11-04 |
+| BGE-M3 needs no instructions | `BAAI/bge-m3` → `README.md`; no `prompts` in its ST config | 2026-11-04 |
 | Mode A / mode B dispatch | open-webui v0.13.0 `retrieval/utils.py:891-893, 1203-1207` | 2026-11-04 |
 | Prefix strings are stored settings from v0.12.5; `PREFIX_FIELD_NAME` env-only | open-webui v0.13.0 `config.py:3030-3031` (`rag.embedding_query_prefix` / `_content_prefix` in `DEFAULT_CONFIG`), `config.py:1031` (`PREFIX_FIELD_NAME` `os.getenv`); `routers/retrieval.py` `get_embedding_config` / `update_embedding_config` (written only when the field is in the body); admin `Documents.svelte` single-line `<input>` (WHATWG text-input sanitization strips newlines); commit `4a10c093`, CHANGELOG 0.12.5 "Embedding prefixes in settings". Absent from `DEFAULT_CONFIG` at v0.12.4 | 2026-11-04 |

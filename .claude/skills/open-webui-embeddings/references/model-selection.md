@@ -5,7 +5,7 @@ numbers, throughput estimates, and a complete copy-paste Open WebUI config block
 per model — because **every model needs different env vars**, and getting that
 wrong degrades retrieval silently.
 
-Leaderboard figures read from <https://mteb-leaderboard.hf.space> on **2026-08-05**.
+Leaderboard figures read from <https://mteb-leaderboard.hf.space> on **2026-11-04**.
 Re-read before trusting; this list moved substantially in the twelve months prior.
 
 ## Embedders — quality
@@ -247,8 +247,8 @@ re-ingest — existing vectors were built under the old label.
 ## Hosted option: OpenRouter
 
 Useful when no GPU is available, or as a zero-setup A/B harness for candidate
-models. Catalogues and embedding prices read on **2026-10-27**; rerank prices
-from the model pages on **2026-08-05**.
+models. Catalogues, embedding prices and rerank prices (from the model pages) read
+on **2026-11-04**.
 
 🔒 **Egress warning.** Every chunk ingested and every query is sent to a third
 party. Fine for a lab; a data-classification decision anywhere else, and
@@ -356,4 +356,4 @@ and any harrier number you have not reproduced yourself.
 | OpenRouter real prices | openrouter.ai/models model cards, `pricing_json` (API pricing metadata is wrong for rerank) | 2026-11-04 |
 | OpenRouter rerank request shape | `https://openrouter.ai/docs/client-sdks/python/sdks/rerank/README.md` — required `documents`, `model`, `query`, optional `top_n`; `documents` may also be `{text, image}` objects | 2026-11-04 |
 | OpenRouter rerank response shape | `https://openrouter.ai/docs/api/api-reference/rerank/submit-a-rerank-request.md` — `results` "sorted by relevance", items `index`, `relevance_score`, `document` (`{text, image}`) | 2026-11-04 |
-| MFU calibration | this skill's `references/performance.md` BGE-M3 baseline | 2026-08-05 |
+| MFU calibration | this skill's `references/performance.md` BGE-M3 baseline (internal measurement, not a web source; not re-run) | 2026-08-05 |
