@@ -117,6 +117,14 @@ Only one addition is admin-gated; the rest are user-level. Route set diffed AST-
 - `POST /ollama/v1/embeddings[/{url_idx}]` [user] — OpenAI-shaped embeddings proxy.
 - **Removed**: `POST /api/v1/tasks/active/chats` (present in 0.10.2, gone in 0.11.0).
 
+## New in 0.12.5 and 0.13.0 (+41 routes, −0 against 0.12.4)
+
+AST route diff `v0.12.4..v0.13.0` (614 → 655 method+path routes; 0.12.5 alone +8). No surviving route changed its auth dependency.
+
+- **0.12.5:** `POST /users/{id}/api_key/rotate` and `DELETE /users/{id}/api_key` [admin] — rotate returns the new key once (`Cache-Control: no-store`), 403s while API keys are off or when a non-admin target lacks `features.api_keys`, and only the primary admin may rotate the primary admin's key; delete works even with API keys off. `GET /analytics/sessions`, `/sessions/{chat_id}`, `…/messages/{message_id}/events`, `…/trace` [admin, and 403 unless `ENABLE_ADMIN_CHAT_ACCESS`]. `GET /chats/{id}/search/snippet`, `POST /notes/{id}/pages/update` [user].
+- **0.13.0:** `/comments/*` (11 routes) [user]; `GET /notifications/inbox`, `/inbox/count`, `POST /inbox/open`, `PATCH /inbox/{id}` [user] (404 when `ENABLE_NOTIFICATIONS` is off); `POST /tools/id/{id}/toggle` [user + write access] and `POST /tools/id/{id}/mcp/app/rpc` [user]; `POST /knowledge/{id}/files/validate` [user + write access]; `GET /automations/{id}/runs/{run_id}` [user]; `POST /api/tasks/chat/{chat_id}/resume` [user].
+- **0.13.0 terminals:** `…/terminals/{server_id}/browser/view/{sid}/{ticket}/{path}` (all methods, plus a websocket) has **no auth dependency** — a signed ticket in the URL authenticates it. The websockets `…/terminals/{server_id}/events`, `/desktop/stream`, `/desktop/audio`, `/execute`, `/execute/{process_id}/status` read a JWT from the first message, so **`sk-` API keys do not work there**.
+
 ### Public (no auth) — complete list, v0.11.0 (24 routes)
 
 `/auths/signin|signup|signout|ldap`, `POST /auths/oauth/{provider}/token/exchange`, oauth login/callback/backchannel-logout, SCIM discovery trio (ServiceProviderConfig/ResourceTypes/Schemas), `GET|HEAD /ollama/`, channels inbound webhook `POST /api/v1/channels/webhooks/{webhook_id}/{token}`, `/health`, `/health/db`, `/ready`, `/api/config`, `/api/version`, `/api/changelog`, `/manifest.json`, `/opensearch.xml`.
