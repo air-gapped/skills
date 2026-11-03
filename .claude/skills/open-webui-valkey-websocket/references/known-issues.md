@@ -1,6 +1,6 @@
 # Known issues, fixes shipped, and what to watch
 
-Issue states re-probed 2026-10-27 against v0.12.4: #23733 closed won't-fix but its amplification is fixed from v0.11.1; #15162 fixed in v0.11.4; #19840 fixed from v0.11.2; #23650 closed unmerged; #27622 and #27651 fixed in v0.11.1. Cross-reference for the triage table in `SKILL.md` and the timeline in `references/icons-thumbnails.md`.
+Issue states re-probed 2026-11-04 against v0.13.0: #23733 closed won't-fix but its amplification is fixed from v0.11.1; #15162 fixed in v0.11.4; #19840 fixed from v0.11.2; #23650 closed unmerged; #27622 and #27651 fixed in v0.11.1. Cross-reference for the triage table in `SKILL.md` and the timeline in `references/icons-thumbnails.md`.
 
 ## Open issues that affect multi-pod
 
