@@ -62,10 +62,20 @@ Requirements and conventions:
 | `sandbox connect x` | Reattach to the main program; replays up to 1 MiB of output; auto-reconnects for 60 s after sleep/network loss |
 | `sandbox exec -n x --tty -- bash -l` | A separate shell. **Cannot detach**; leaving it ends what runs in it. Ctrl-D reaches the program |
 | main program exits | With the default `--restart-policy never`: sandbox → `Completed` (exit 0) or `Error`; `connect`/`exec` are refused, SSH/upload/download/forward still work (#4949). Detach rather than quit an agent you want to come back to; `--restart-policy on-failure`/`always` restarts it (backoff 1 s → 3 min) |
-| `sandbox stop` / `start` | Keeps the workspace. `suspend`/`resume` exist in the 0.1.6 CLI but every built-in driver returns "does not support sandbox suspend" |
+| `sandbox stop` / `start` | Keeps the workspace; `start` picks up the gateway's current supervisor and runtime images. From 0.1.7 `stop` also moves a Completed/Error sandbox to `Stopped`, keeping its exit code. `suspend`/`resume` exist in the CLI but every built-in driver returns "does not support sandbox suspend" (0.1.7 too) |
+| New workload image, same sandbox (Kubernetes, 0.1.7+) | gRPC `openshell.v1.SandboxUpdates/UpdateSandbox` on a **stopped** sandbox — no CLI command or curated SDK method. Keeps ID, PVC, approved rules and on-disk logins; the workspace is not reseeded. Needs `enable_sandbox_updates` (`rare-settings.md`). Steps below |
 
 Make the agent the main program (`-- opencode`, or **Command** in the TUI create dialog), not
 something started from an extra shell, when you want detach/reattach.
+
+**Image update** (verified on a 0.1.7 Kubernetes gateway): `sandbox stop`, then wait until the
+workload and supervisor pods are gone (terminating pods block the update); read
+`resource_version` from `openshell sandbox get <name> -o json`; call `UpdateSandbox` with
+`{"workspace_scope":{"workspace":"<ws>"},"name":"<name>","image":"<ref>","expected_resource_version":<rv>}`
+and the CLI's bearer token (`~/.config/openshell/gateways/<gw>/oidc_token.json`,
+`.access_token`); `grpc-status: 0` leaves it `Stopped`; then `sandbox start`. The gateway serves
+`grpc.reflection.v1`, so grpcurl needs no proto files. "must be Stopped" means stop has not
+settled — retry. Don't roll the gateway back below 0.1.7 after an update.
 
 **opencode quits on Ctrl-D** by its own default (`app_exit: ctrl+c,ctrl+d,<leader>q`), which
 bites in `exec` shells. Bake into the image:

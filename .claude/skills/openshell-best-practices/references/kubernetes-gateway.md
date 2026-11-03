@@ -177,7 +177,8 @@ the gateway refuses to start with no user authentication unless
   release's "Upgrade notes" in between (0.1.5: OCSF log file rename `.log`→`.jsonl`,
   annotation/label allowlists; 0.1.6: auth required, supervisor/sandbox runtime pairing,
   connection direction). Running sandboxes keep their supervisor and runtime images until
-  they stop.
+  `sandbox stop` + `start` (workspace kept). To change a sandbox's own workload image without
+  recreating it (0.1.7+), see `sandboxes-and-agents.md` "Image update".
 - From 0.0.x: not in place. Remove every sandbox, back up the DB, migrate `gatewayConfig` to
   schema v2 (`docs/kubernetes/migrate-gateway-config.mdx`), export provider profiles, then
   install 0.1.x and recreate sandboxes (`docs/upgrade/0-1-0.mdx`).

@@ -25,6 +25,7 @@ a misspelled key in either is silently ignored. Diff the rendered `gateway.toml`
 | Setting | Default | Consequence |
 |---|---|---|
 | `[openshell.gateway] image_preparation_timeout_seconds` | 1800 | Budget for image pull plus first supervisor start (1–86400) |
+| `[openshell.gateway] enable_sandbox_updates` (0.1.7) | false | Allows `UpdateSandbox` (image/command/env of stopped Kubernetes sandboxes). Setting it attests every gateway writing the database is ≥ 0.1.7: keep it false through rolling upgrades; never downgrade while a sandbox has an update pending or retained. Helm: `gatewayConfig."openshell.gateway".enable_sandbox_updates` |
 | `policy_validation_failure_mode` (gateway setting) | `fail_closed` | A bad policy revision blocks all network; `retain_last_valid` keeps the last good one |
 | `workspace_default_storage_size` / `workspace_storage_class` (`openshell.drivers.kubernetes`) | 2Gi, cluster default class | RWO PVC per sandbox; new sandboxes only |
 | `sandbox_uid` / `sandbox_gid` | OpenShift SCC annotation, else **10001**; GID = UID | Build images for this UID. `configuration.mdx` says 1000; the code says 10001 |
