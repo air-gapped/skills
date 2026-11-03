@@ -1,15 +1,17 @@
-# Endpoint map with auth levels — v0.11.0
+# Endpoint map with auth levels — v0.11.0 (mounts and deltas re-checked at v0.13.0)
 
 Roles: **[admin]** = `get_admin_user`, **[user]** = `get_verified_user` (role user/admin; resource ACLs apply on top), **[current]** = any authenticated identity incl. `pending`, **[public]** = no auth. API keys pass wherever JWTs do (key inherits owner's role); SCIM uses its own bearer token.
 
-Derived from `backend/open_webui/main.py:785–829` (mounts) and per-router `Depends()` audit. Live-instance surface may differ only by feature flags (SCIM, analytics, channels) — diff the instance's `openapi.json` (needs `ENV=dev`) against this map, never assume version drift first.
+Derived from `backend/open_webui/main.py:785–829` at v0.11.0 (mounts; `814–865` at v0.13.0) and per-router `Depends()` audit. Live-instance surface may differ only by feature flags (SCIM, analytics, channels) — diff the instance's `openapi.json` (needs `ENV=dev`) against this map, never assume version drift first.
 
 ## Mount table (main.py)
 
 | Prefix | Router | Notes |
 |---|---|---|
 | `/api/v1/{pipelines,tasks,images,audio,retrieval,configs,auths,users,channels,chats,notes,models,knowledge,prompts,tools,skills,memories,folders,groups,files,functions,evaluations,utils,terminals,automations,calendars}` | routers/*.py | calendar mounts at plural `/calendars` |
-| `/api/v1/notifications` | notifications.py | new in 0.11.0; unconditional mount (`main.py:808`) |
+| `/api/v1/notifications` | notifications.py | new in 0.11.0; unconditional mount (`main.py:844` at v0.13.0); inbox routes added in 0.13.0 |
+| `/api/v1/{auths/mfa,apps,search}` | mfa.py, apps.py, search.py | mfa from 0.12.0; apps and search present by 0.12.4 |
+| `/api/v1/comments` | comments.py | new in 0.13.0; mounted unconditionally, but every route 403s "Comments are disabled" until `comments.enable` (env `ENABLE_COMMENTS`, default false) |
 | `/api/v1/analytics` | analytics.py | only if `ENABLE_ADMIN_ANALYTICS` (default true) |
 | `/api/v1/scim/v2` | scim.py | only if `ENABLE_SCIM` (default false); toggle needs restart |
 | `/ollama`, `/openai` | proxies | not under /api/v1 |
@@ -66,7 +68,7 @@ Derived from `backend/open_webui/main.py:785–829` (mounts) and per-router `Dep
 - app-level: `GET /api/models` (effective list) [user], `GET /api/models/base` [admin], `GET /models/base/tags` [admin] — sorted distinct tags; the `tag` filter on `/models/base` is unusable without it, `POST /api/models/unload` [admin]
 
 ### knowledge + files + retrieval (RAG)
-- `POST /knowledge/create` `{name, description, access_grants?}`; `GET /knowledge/{id}` (with files); `/update`, `/delete`, `/reset` [user+ACL]
+- `POST /knowledge/create` `{name, description, access_grants?}`; `GET /knowledge/{id}` (returns `files: null` since 0.11.0 — list files with `GET /knowledge/{id}/files?page=`, 30 per page); `/update`, `/delete`, `/reset` [user+ACL]
 - `POST /files/` [user] multipart, `?process=true&process_in_background=true` → **poll `GET /files/{id}/process/status` until `completed`** before attaching (else 400)
 - `POST /knowledge/{id}/file/add|update|remove` `{file_id}`; batch `/files/batch/add`; diff `/sync/diff`; `GET /{id}/export` [admin]
 - `POST /knowledge/reindex` [user-perm], `/metadata/reindex` [admin]
@@ -106,7 +108,7 @@ Neither router appears elsewhere in this map; a config-backup or secret-audit sc
 Only one addition is admin-gated; the rest are user-level. Route set diffed AST-wise across `v0.10.2..v0.11.0`, auth levels read from each handler's `Depends()`.
 
 - **`GET|POST /configs/subagents` [admin]** — the only new admin surface. `SubagentsConfigForm`: `ENABLE_SUBAGENTS`, `SUBAGENTS_BACKGROUND_ENABLED`, `SUBAGENTS_MAX_CONCURRENT|MAX_ASYNC|MAX_ITERATIONS|MAX_OUTPUT`, `SUBAGENTS_SYSTEM_PROMPT`. POST emits `EVENTS.CONFIG_UPDATED` (`routers/configs.py:778,786`).
-- **`/notifications/*` [user]** — per-user outbound webhook targets, stored in `user.settings['notifications']`, not a table. `GET /events` (catalog), `GET|POST /targets`, `PUT|DELETE /targets/{id}`, `PUT /targets/{id}/default`, `POST /targets/{id}/test`. Double-gated: **404** if config `ui.enable_user_webhooks` (env `ENABLE_USER_WEBHOOKS`) is falsy, **403** for non-admins lacking the `features.webhooks` permission. Subscribable events: `chat.finished`, `chat.failed`, `channel.message`, `calendar.alert`. Responses mask the URL (`config.url_masked`) — secrets never round-trip, so a GET cannot be used to back up a target's URL.
+- **`/notifications/*` [user]** — per-user outbound webhook targets, stored in `user.settings['notifications']`, not a table. `GET /events` (catalog), `GET|POST /targets`, `PUT|DELETE /targets/{id}`, `PUT /targets/{id}/default`, `POST /targets/{id}/test`. Double-gated: **404** if config `ui.enable_user_webhooks` (env `ENABLE_USER_WEBHOOKS`) is falsy, **403** for non-admins lacking the `features.webhooks` permission. Subscribable events (v0.11.0): `chat.finished`, `chat.failed`, `channel.message`, `calendar.alert`; `retrieval.content.process_failed` was offered until 0.12.5 and removed in 0.13.0, `automation.run_failed` added in 0.12.5 — read `GET /notifications/events` rather than hardcoding. Responses mask the URL (`config.url_masked`) — secrets never round-trip, so a GET cannot be used to back up a target's URL.
 - `GET /users/usage` [user] — own token/message stats; query `days` (7–732) or `start_date`/`end_date` epoch-seconds.
 - `GET /users/user/variables`, `POST /users/user/variables/update` [user] — chat variables; update **replaces** the whole dict and validates key regex / value length (400 on violation).
 - `POST /chats/read`, `POST /chats/{id}/unread`, `POST /folders/{id}/read` [user] — unread tracking; responses carry `folder_unread_counts`.
