@@ -1,6 +1,6 @@
 # Helm chart reference (`open-webui/helm-charts`)
 
-Chart **v17.0.0 → appVersion 0.12.0** (2026-10-10). **The chart trails the app:** 0.12.1–0.12.4 sit on unmerged `automation/open-webui-0.12.N` branches, so reaching the v0.12.4 floor through the chart means setting `image.tag` yourself, on chart defaults written for 0.12.0. 0.12.1 changes the schema — see SKILL.md §Version upgrades before overriding. The 16→17 bump is the 0.12.0 appVersion bump only (one commit); the `websocket:` block, `replicaCount: 1`, `workload.kind` auto-selection, the env wiring and the no-PVC bundled Redis below are unchanged at 17.0.0. Repo URL: `https://helm.openwebui.com/`. The maintainers describe the repo as volunteer-run: *"this repo is maintained by volunteers and is admittedly not always perfect."*
+Chart **v18.0.0 → appVersion 0.13.0** (2026-11-03). The chart now tracks the app release by release (17.1.0–17.4.0 for 0.12.1–0.12.4 on 2026-10-28, 17.5.0 for 0.12.5), so the v0.13.0 floor needs no `image.tag` override. Every 17.x and 18.0.0 bump is an appVersion bump only: `values.yaml` and the templates are byte-identical from 17.0.0 to 18.0.0, and the major moves with each 0.x minor because it "may include breaking migrations". 0.13.0 changes the schema: on a Deployment set `strategy: {type: Recreate}` for the hop (values `strategy:`; `workload-manager.yaml` renders it as `updateStrategy` on a StatefulSet, which accepts only `RollingUpdate`/`OnDelete` — scale that to 0 instead). See SKILL.md §Version upgrades. The `websocket:` block, `replicaCount: 1`, `workload.kind` auto-selection, the env wiring and the no-PVC bundled Redis below are unchanged at 18.0.0. Repo URL: `https://helm.openwebui.com/`. The maintainers describe the repo as volunteer-run: *"this repo is maintained by volunteers and is admittedly not always perfect."*
 
 This is the supported Kubernetes deployment path (per the maintainer's own confirmation on issue #338, 2026-02-01) but it ships sparse defaults. The list below is what to override and what the chart doesn't cover.
 
@@ -200,7 +200,10 @@ startupProbe:
 
 | Version | Change |
 |---|---|
-| v17.0.0 | appVersion 0.12.0. 2026-10-10. **Current stable as of 2026-10-27.** |
+| v18.0.0 | appVersion 0.13.0. 2026-11-03. **Current stable as of 2026-11-04.** |
+| v17.5.0 | appVersion 0.12.5. 2026-10-30. |
+| v17.1.0–v17.4.0 | appVersion 0.12.1–0.12.4. All 2026-10-28. |
+| v17.0.0 | appVersion 0.12.0. 2026-10-10. |
 | v16.6.0 | appVersion 0.11.4. 2026-09-21. |
 | v16.0.0 | appVersion 0.11.0. 2026-07-31. |
 | v15.2.0 | appVersion 0.10.2. 2026-07-01. |
