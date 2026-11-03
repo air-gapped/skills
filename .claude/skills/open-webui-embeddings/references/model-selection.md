@@ -40,11 +40,12 @@ meaning up to 22% of the benchmark may be in its training data, and its per-task
 rows are dense with ⚠️ markers. Qwen3, EmbeddingGemma and e5 are all 99%. The
 most impressive numbers here are the least trustworthy.
 
-**Nemotron-3-Embed has no aggregate score.** It sits at rank #321 with `—`
-because it has run only a fraction of the 131 tasks. NVIDIA's own card claims
+**Nemotron-3-Embed has no aggregate score.** It sits at rank #293 of 485 with `—`
+because it has run only 4 of the 131 tasks. NVIDIA's own card claims
 71.04 on "MMTEB (Retrieval)" and 72.38 on RTEB, but those are self-run at
-sequence length 4096 and not comparable to this column. It tops RTEB(beta)
-Multilingual — against a 6-model field. Treat as **unproven, not proven-better**.
+sequence length 4096 and not comparable to this column. On RTEB(beta), now a
+292-model field, the 1B ranks #14 and its 8B sibling #2 (behind
+voyage-4-large). Treat as **unproven, not proven-better**.
 
 Also note MTEB ranks by Borda count, not by `Mean(Task)` — rank order and score
 order differ. Compare scores, ignore rank.
@@ -341,9 +342,9 @@ and any harrier number you have not reproduced yourself.
 
 | Claim | Source | Verified |
 |---|---|---|
-| All MTEB(Multilingual, v2) scores, ZS column, Nemotron's `—` aggregate | <https://mteb-leaderboard.hf.space/benchmark/MTEB(Multilingual,%20v2)> | 2026-08-05 |
-| RTEB(beta) field size and Nemotron-3-Embed-8B at #1 | <https://mteb-leaderboard.hf.space/benchmark/RTEB(beta)> | 2026-08-05 |
-| MTEB publishes no speed metric | leaderboard MODELS page enumerates its own fields | 2026-08-05 |
+| All MTEB(Multilingual, v2) scores, ZS column, Nemotron's `—` aggregate and rank | <https://mteb-leaderboard.hf.space/benchmark/MTEB(Multilingual,%20v2)>; machine-readable: `https://mteb-leaderboard-backend.hf.space/v1/benchmarks/MTEB(Multilingual,%20v2)/scores` | 2026-11-04 |
+| RTEB(beta) field size and Nemotron ranks | <https://mteb-leaderboard.hf.space/benchmark/RTEB(beta)>; backend `…/v1/benchmarks/RTEB(beta)/scores` (292 models; #1 `mongodb/voyage-4-large`, #2 Nemotron-3-Embed-8B, #14 the 1B) | 2026-11-04 |
+| MTEB publishes no speed metric | leaderboard MODELS page enumerates its own fields | 2026-11-04 |
 | Reranker table | `Qwen/Qwen3-Reranker-4B` → `README.md` §Evaluation | 2026-10-27 |
 | Third-party reranker ranking | <https://aimultiple.com/rerankers> §Key findings (page "Last updated: October 15, 2026"); the earlier 18-language BGE 67.64 vs Qwen3-0.6B 59.59 figures are no longer on the page | 2026-10-27 |
 | Nemotron self-reported RTEB / MMTEB-Retrieval | `nvidia/Nemotron-3-Embed-1B-BF16` → `README.md` | 2026-08-05 |
