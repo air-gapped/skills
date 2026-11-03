@@ -1,6 +1,6 @@
 # Versions, upgrade notes and outdated patterns
 
-Snapshot 2026-10-28. OpenShell ships roughly weekly; re-list releases before acting
+Snapshot: 0.1.7 (2026-11-03). OpenShell ships roughly weekly; re-list releases before acting
 (`gh release list --repo NVIDIA/OpenShell`) and read every note between installed and target.
 From 0.1.5 on, upgrade notes live in the release notes, not in `docs/upgrade/` (#4398).
 
@@ -22,7 +22,7 @@ From 0.1.5 on, upgrade notes live in the release notes, not in `docs/upgrade/` (
 | 0.1.4 | 10-13 | Stable credential placeholders; stale bootstrap image after gateway upgrade fixed (#4376); SSH connection sharing disabled; operator-only credential retrieval (mTLS `OU=operator`); provider labels |
 | **0.1.5** | 10-20 | OCSF files `.log` → `.jsonl` (collect history first); Kubernetes template annotations/labels need operator allowlists; reserved `internal.openshell.ai/` keys rejected; **hostname policy bound to supervisor-controlled DNS** (private security review, #4602); Restricted PSA for chart; Docker `supervisor_network_mode = "bridge"`; Error sandboxes can be restarted; `--env-from`; snap no longer enables the user gateway for every user |
 | **0.1.6** | 10-27 | Gateway **refuses to start without user auth** (`allow_unauthenticated_users = true` opt-out; earlier 0.1.x gave unauthenticated callers an admin-level dev principal, #4814); control connection now sandbox → supervisor: **upgrade supervisor and sandbox runtime together**; `sandbox suspend/resume` (CLI/SDK; no built-in driver implements it yet — use stop/start); experimental shared supervisor on Kubernetes; OCSF audit events for auth denials and credential misuse; `server.extraEnv`, `pkiInitJob.podLabels/podAnnotations`; webpki emSign distrust (CVE-2026-111943), russh GHSA-4wc5-f2rc-q74m |
-| main after 0.1.6 | — | Additional destination CAs for the Kubernetes supervisor (#3292, `supervisor.network.additionalCaConfigMapName`); hashed service hostnames for multi-gateway clusters (#4842) |
+| **0.1.7** | 11-03 | OCSF is **native 1.8.0 only**: `ocsf_schema_version`, `server.ocsfLog.schemaVersion` and `OPENSHELL_OTLP_OCSF_SCHEMA_VERSION` are ignored with a warning — collectors parsing 1.1/1.3 must adapt (#5036); private destination CAs for every driver: `[openshell.supervisor.network] additional_ca_bundle`, chart `supervisor.network.additionalCaConfigMapName` (#3292; Podman's driver-level `additional_ca_bundle` deprecated, #5155); in-place image/command/env update of a **stopped** Kubernetes sandbox, off until `enable_sandbox_updates`, gRPC only (#4873); stopping a Completed/Error sandbox now moves it to `Stopped`; `[openshell.gateway.supervisor_pool]` rejected when the driver has no shared supervision (#4988); MicroVM sandboxes run as the image's `sandbox` user (#5131); `service_hostname_format = "hashed"` (#4842); OTLP over HTTP, headers, private CA/mTLS, agent trace relay; `OPENSHELL_CALLBACK_PORT` / `OPENSHELL_CALLBACK_BIND_ADDRESS` for CLI browser login from a container (#5065); `zip`, `russh` dependency fixes |
 
 ## Security history and support policy
 

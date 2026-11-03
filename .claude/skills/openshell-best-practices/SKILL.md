@@ -36,8 +36,8 @@ when_to_use: >-
 
 # OpenShell best practices (0.1.x)
 
-Snapshot: OpenShell **0.1.6** (2026-10-27), researched 2026-10-28 from the v0.1.6 tag, release
-notes, GitHub issues filed since 0.1.0, and practitioner write-ups. OpenShell releases about
+Snapshot: OpenShell **0.1.7** (2026-11-03), from the v0.1.7 tag, release notes, GitHub issues
+filed since 0.1.0, and practitioner write-ups (history in `references/sources.md`). OpenShell releases about
 weekly and breaks things between minors — **check the installed and latest versions before
 advising** (`openshell --version`, `gh release list --repo NVIDIA/OpenShell`) and read every
 release note in between. When this skill and the code at the user's tag disagree, the code wins.
