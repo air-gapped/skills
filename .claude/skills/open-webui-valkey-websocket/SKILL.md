@@ -171,13 +171,18 @@ For a schema-changing upgrade on Kubernetes:
 - **Back up the database first.** The 0.11.0 migration set includes a case-insensitive unique index on user email (`uq_user_email_lower`) whose migration **raises `RuntimeError` and aborts startup** if two accounts differ only by case — a real possibility on OAuth-provisioned instances. Dedupe before upgrading.
 - Accept a hard maintenance window. There is no zero-downtime path across a schema change.
 
-**The same warning is on v0.11.1, v0.12.0 and v0.12.1** — four schema-changing
-releases from 0.11.0 through 0.12.1. Any hop that crosses one of them is a `Recreate` upgrade.
+**The same warning is on v0.11.1, v0.12.0, v0.12.1 and v0.13.0** — five
+schema-changing releases from 0.11.0 through 0.13.0 (v0.13.0 adds three migrations).
+Any hop that crosses one of them is a `Recreate` upgrade.
 
 **From v0.12.0 a mixed-version fleet also drops live chat updates even without a
 schema change.** With `WEBSOCKET_REDIS_ROOM_CHANNELS` on (the default), updates
 sent by an upgraded pod do not reach a pod still on <0.12.0. Upgrade all pods at
 once, or set `WEBSOCKET_REDIS_ROOM_CHANNELS=false` on every pod for the transition.
+
+v0.12.5 has no migrations but renamed the note socket events (`join-note` →
+`note:join`): browser tabs and pods still on older code cannot join note rooms
+until they reload or are replaced.
 
 Not every release changes the schema; check the CHANGELOG.md entry's "Database
 Migrations" warning (the GitHub release body can omit it — v0.12.0's does) or diff
