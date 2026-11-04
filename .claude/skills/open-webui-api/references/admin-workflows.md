@@ -107,7 +107,9 @@ curl -X POST $B/api/v1/knowledge/$KB/file/add -H "Authorization: Bearer $T" -H "
   -d "{\"file_id\":\"$FID\"}"
 ```
 
-Batch: `POST /knowledge/{id}/files/batch/add`; reconcile a directory: `POST /knowledge/{id}/sync/diff`. Query it in chat: `POST /api/chat/completions` with `"files":[{"type":"collection","id":"<kb-id>"}]`.
+Batch: `POST /knowledge/{id}/files/batch/add`; reconcile a directory: `POST /knowledge/{id}/sync/diff`.
+
+From v0.12.5 `file/add` returns only the added file (and `file/remove` `files: []`) — read the KB's files from the paginated `GET /knowledge/{id}/files?page=`. From v0.13.0 uploads can hit admin or per-KB limits: 400 "You can only upload a maximum of N file(s) per batch" or "Knowledge base file limit exceeded", 413 for a too-large file; preflight with `POST /knowledge/{id}/files/validate` `{"count":N,"file_size":<bytes>,"removed_file_ids":[]}`. Query it in chat: `POST /api/chat/completions` with `"files":[{"type":"collection","id":"<kb-id>"}]`.
 
 ## Backup / migration surface
 
