@@ -89,7 +89,7 @@ This is the dangerous shape for GitOps: a read-only service account exports, get
 - SCIM: open-webui/open-webui#17964 / open-webui/open-webui#18039 (filter case-sensitivity), open-webui/open-webui#21280 (externalId, fixed 0.8.1), open-webui/open-webui#24501 (deactivate-on-deprovision request, closed with no fix — DELETE still hard-deletes)
 - Streaming behind buffering proxies (IIS/ARR): open-webui/open-webui#24579; `CHAT_STREAM_RESPONSE_BUFFER` exists since 0.6.37
 
-## 0.11.0 issues — triage status (re-checked 2026-10-27)
+## 0.11.0 issues — triage status (re-checked 2026-11-04)
 
 All closed; match a symptom to the version that fixed it before reporting.
 
