@@ -2,7 +2,7 @@
 
 ## Storage model
 
-Since 0.10.0 config is per-key rows (`config` table: key TEXT PK, value JSON), dot-namespaced: `ui.default_models`, `openai.api_base_urls`, `auth.enable_api_keys`, `ldap.enable`, `rag.template`, … No published key registry — the authoritative list is a live `GET /api/v1/configs/export`, or `config.py`'s `ConfigVar(...)` declarations in source.
+Since 0.10.0 config is per-key rows (`config` table: key TEXT PK, value JSON), dot-namespaced: `ui.default_models`, `openai.api_base_urls`, `auth.enable_api_keys`, `ldap.enable`, `rag.template`, … No published key registry — the authoritative list is a live `GET /api/v1/configs/export`, or the `DEFAULT_CONFIG` dict in `config.py` (439 keys at v0.13.0; there is no `ConfigVar` class in any version).
 
 ```bash
 curl $B/api/v1/configs/export -H "Authorization: Bearer $T" > config-backup.json   # ALL keys, flat
@@ -28,11 +28,11 @@ Operational rule: manage runtime config via API (`configs/import` in CI), reserv
 Both are env-only. Confusing them costs real state.
 
 - **`SAFE_MODE=true` is a destructive DB mutation, not a runtime flag.** At every startup it runs `Functions.deactivate_all_functions()` (`main.py:354-355`), an unconditional `UPDATE function SET is_active = false` across **every row** (`models/functions.py:417-429`). It gates no router and no endpoint — the whole `/api/v1/functions/*` surface stays callable, and you can even re-activate a function while it is on; the next restart wipes that again. **Turning `SAFE_MODE` back off does not restore anything** — every function stays deactivated and must be re-enabled one by one via `POST /api/v1/functions/id/{id}/toggle`. Pipe models disappear from `/api/models` and filter/action hooks stop firing purely as a data consequence.
-- **`ENABLE_PLUGINS=false` (new in 0.11.0, default true) is the non-destructive equivalent** (`env.py:1112`). It gates tools *and* functions at request time without touching the DB. Its failure mode is the opposite one: list endpoints return **`200 []` instead of an error** (`functions.py:49,57,74`, `tools.py:75,205`), so an inventory script reads "everything was deleted" rather than "plugins are off". Surfaced as `features.enable_plugins` in `GET /api/config`.
+- **`ENABLE_PLUGINS=false` (new in 0.11.0, default true) is the non-destructive equivalent** (`env.py:1112` at v0.11.0, `:1182` at v0.13.0). It gates tools *and* functions at request time without touching the DB. Its failure mode is the opposite one: list endpoints return **`200 []` instead of an error** (`functions.py:49,57,74`, `tools.py:75,205`), so an inventory script reads "everything was deleted" rather than "plugins are off". Surfaced as `features.enable_plugins` in `GET /api/config`.
 
 If the intent is "no plugin code executes", `ENABLE_PLUGINS=false` is the correct mechanism in 0.11.0; `SAFE_MODE` additionally destroys activation state.
 
-**v0.12.0+: `ENABLE_PLUGINS` is a master over three finer env switches** — `ENABLE_TOOLS`, `ENABLE_FUNCTIONS`, `ENABLE_TOOL_SERVERS` (each default true, each forced false when `ENABLE_PLUGINS=false`; `env.py:1206-1210`). The master now also cuts external OpenAPI/MCP/Open Terminal servers and personal direct connections; to stop in-process Python while keeping tool servers, set `ENABLE_TOOLS=false ENABLE_FUNCTIONS=false` instead. All four need a restart.
+**v0.12.0+: `ENABLE_PLUGINS` is a master over three finer env switches** — `ENABLE_TOOLS`, `ENABLE_FUNCTIONS`, `ENABLE_TOOL_SERVERS` (each default true, each forced false when `ENABLE_PLUGINS=false`; `env.py:1182-1186` at v0.13.0). The master now also cuts external OpenAPI/MCP/Open Terminal servers and personal direct connections; to stop in-process Python while keeping tool servers, set `ENABLE_TOOLS=false ENABLE_FUNCTIONS=false` instead. All four need a restart.
 
 **`AUDIT_EXCLUDED_PATHS=""` flipped meaning in 0.11.0.** Empty entries are now filtered out (`env.py:1167-1180`). In 0.10.2 an empty value compiled to `^/api(?:/v1)?/()\b`, which matched *every* `/api/...` path — auditing was silently off. In 0.11.0 it compiles to `None` and nothing is excluded, so the same config audits everything. Expect a step change in audit-log volume on upgrade; use a sentinel like `__NONE__` if the intent is "exclude nothing" and you want it to read explicitly.
 
