@@ -33,7 +33,7 @@ At stream end the parser layer takes `prev_tool_call_arr[-1]["arguments"]`, stri
 
 5. **Parallel calls support varies.** Only some parsers handle multiple tool calls in streaming. Grep the parser file for `current_tool_id > 0` to see rejection behavior.
 
-6. **Pythonic re-parse is O(n²).** `pythonic`/`llama4_pythonic`/`olmo3` re-`ast.parse` the whole buffer per delta. Long arg strings spike TTFT.
+6. **Pythonic re-parse is O(n²).** `pythonic`/`llama4_pythonic`/`olmo3` re-`ast.parse` the whole buffer per delta. Long arg strings spike TTFT. Before v0.33.0 the engine parsers for `glm45`/`glm47`, `gemma4`, `qwen3_coder`/`qwen3_xml` and `minimax_m2` also re-converted the whole argument per chunk — seconds of parser CPU for one 10 KB+ argument (a file-write tool). Fix: upgrade to v0.33.0, where argument values stream incrementally.
 
 7. **Apostrophe bug in `compute_tool_delta`.** Naive `'`→`"` substitution. Strings containing `'` (e.g. `"it's"`) corrupt. Check `vllm/tool_parsers/utils.py` before relying on this helper.
 
