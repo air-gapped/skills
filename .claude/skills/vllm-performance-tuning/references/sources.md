@@ -115,7 +115,7 @@ v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02) and git tag `v0.33.0`; the 
 - [Scaling DeepSeek-style MoEs — 2025-09-08](https://developers.redhat.com/articles/2025/09/08/scaling-deepseek-style-moes-vllm-and-llm-d-using-wide-ep)
 - [torch.compile deep-dive — 2025-09-03](https://developers.redhat.com/articles/2025/09/03/vllm-torchcompile-efficient-llm-inference-pytorch)
 - [Practical strategies — 2026-03-03](https://developers.redhat.com/articles/2026/03/03/practical-strategies-vllm-performance-tuning)
-- [5 steps to triage — 2026-03-09](https://developers.redhat.com/articles/2026/03/09/5-steps-triage-vllm-performance)
+- [5 steps to triage — 2026-03-09](https://developers.redhat.com/articles/2026/03/09/5-steps-triage-vllm-performance) — preemption advice on the page is "reduce `--max-num-seqs`"; the page contains no `--swap-space` text (checked 2026-11-09)
 - [Red Hat MLPerf v5.1 — 2025](https://www.redhat.com/en/blog/efficient-and-reproducible-llm-inference-red-hat-mlperf-inference-v51-results)
 
 ## Cloud + partner posts

@@ -101,7 +101,7 @@ For deeper KV-tier sizing (CPU / NVMe / LMCache / GDS) see companion `vllm-cachi
 
 1. Isolate TTFT vs ITL via Prometheus histograms.
 2. Read `num_requests_waiting` + `num_requests_running`. Waiting=0 but TTFT high ⇒ **compute-bound**, not queue-bound.
-3. KV cache occupancy + `num_preemptions_total` climbing ⇒ **thrashing** (raise `--watermark` or lower `--max-num-seqs`; the article's `--swap-space` advice predates its removal).
+3. KV cache occupancy + `num_preemptions_total` climbing ⇒ **thrashing** (lower `--max-num-seqs`, the article's fix, or raise `--watermark`).
 4. Separate ISL (drives TTFT) from OSL (drives total). RAG's vector-DB lookup is NOT in vLLM TTFT.
 5. Multi-GPU: `nvidia-smi topo -m`. PCIe ⇒ bottleneck. Rule: **"minimum TP that fits the model, then scale out with replicas."**
 
