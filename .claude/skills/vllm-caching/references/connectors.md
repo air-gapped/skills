@@ -99,7 +99,7 @@ Setting it remains harmless and is still the safe choice for a mixed-version fle
 - `host` is used verbatim as both the bind address and the identity peers dial back, with no auto-detection — same shape as `VLLM_NIXL_SIDE_CHANNEL_HOST`, so in K8s feed it the pod IP via the downward API. `localhost` silently confines the tier to one host.
 - The bound port is `port + data_parallel_index`, one socket per DP replica.
 - **Hash seed must match on every peer.** On v0.26.0–v0.28.x an unset `PYTHONHASHSEED` raises at startup (`PYTHONHASHSEED must be set for P2P KV offload...`). On v0.29.0+ the tier starts without it, but each handshake compares the effective seed and rejects a peer with `hash seed mismatch ... Ensure PYTHONHASHSEED (if set) matches on all P2P peers` — set it on all peers or on none.
-- **Run v0.32.0+ when peers are not all trusted.** Earlier versions let unique peer addresses exhaust the tier's ZMQ sockets (#51504). v0.32.0 bounds sessions with `VLLM_P2P_MAX_PEERS` (default 128), `VLLM_P2P_HANDSHAKE_TIMEOUT_S` (30) and `VLLM_P2P_IDLE_TIMEOUT_S` (300) — raise `VLLM_P2P_MAX_PEERS` for a fleet larger than 128 instances.
+- **Run v0.32.0+ when peers are not all trusted.** v0.26.0–v0.31.x let unique peer addresses exhaust the tier's ZMQ sockets (CVE-2026-94624, fixed by #51504). v0.32.0 bounds sessions with `VLLM_P2P_MAX_PEERS` (default 128), `VLLM_P2P_HANDSHAKE_TIMEOUT_S` (30) and `VLLM_P2P_IDLE_TIMEOUT_S` (300) — raise `VLLM_P2P_MAX_PEERS` for a fleet larger than 128 instances.
 
 Upstream reference: `docs/features/kv_offloading_usage.md`.
 
