@@ -80,7 +80,7 @@ vllm bench serve \
 - Run A and B back-to-back on the same hardware in the same session to avoid thermal/neighbor noise.
 - **Done when** every rate has an output JSON on both sides with `failed == 0` (re-run any rate with failures; through v0.33.0 also confirm the server log shows no stream errors — `troubleshooting.md`), each side's knee is named as the highest rate whose P99 TTFT and P99 ITL stay within SLO, and the report lists rate, achieved RPS, P50/P99 TTFT and ITL, and tok/s for every rate on both sides.
 
-See `scripts/bench-sweep.sh` for a parametrized sweep runner that emits one JSON file per rate for plotting. Every rate replays the same seeded prompts, so it resets the server's prefix/MM/encoder caches before each rate; start the server with `VLLM_SERVER_DEV_MODE=1` or every rate after the first runs on a warm prefix cache.
+See `scripts/bench-sweep.sh` for a parametrized sweep runner that emits one JSON file per rate for plotting and exits 2 when any rate has failed requests, no P99 fields or no output file. Every rate replays the same seeded prompts, so it resets the server's prefix/MM/encoder caches before each rate; start the server with `VLLM_SERVER_DEV_MODE=1` or every rate after the first runs on a warm prefix cache.
 
 ## Critical pitfalls
 

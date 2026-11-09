@@ -12,6 +12,8 @@
 #   rates:        space-separated rates (default: 1 2 4 8 16 32 inf)
 #
 # Output: sweep-<tag>-<rate>.json in the current directory.
+# Exit:   0 only when every rate has its JSON with failed == 0 and the P99
+#         TTFT/ITL fields; 2 otherwise (the summary names the unusable rates).
 #
 # Every rate replays the same seeded prompts, so a warm prefix cache from the
 # previous run would inflate the next one. The script resets the server's caches
@@ -80,16 +82,43 @@ for RATE in "${RATES[@]}"; do
 done
 
 echo "=== Summary ==="
+BAD=0
 for RATE in "${RATES[@]}"; do
   OUT="sweep-${TAG}-${RATE}.json"
-  [[ -f "$OUT" ]] || continue
-  python3 -c "
-import json, sys
-d = json.load(open('$OUT'))
-rps = d.get('request_throughput', d.get('requests_per_second', 0))
-p99_ttft = d.get('p99_ttft_ms', 0)
-p99_itl = d.get('p99_itl_ms', 0)
-tok_s = d.get('total_token_throughput', d.get('output_throughput', 0))
-print(f'rate=$RATE  rps={rps:.2f}  p99_ttft={p99_ttft:.0f}ms  p99_itl={p99_itl:.0f}ms  tok/s={tok_s:.0f}')
-"
+  if [[ ! -f "$OUT" ]]; then
+    echo "rate=${RATE}  MISSING ${OUT}"
+    BAD=1
+    continue
+  fi
+  python3 - "$OUT" "$RATE" <<'PY' || BAD=1
+import json
+import sys
+
+path, rate = sys.argv[1], sys.argv[2]
+d = json.load(open(path))
+
+
+def fmt(key, spec, unit=""):
+    v = d.get(key)
+    return f"{v:{spec}}{unit}" if isinstance(v, (int, float)) else "n/a"
+
+
+failed = d.get("failed")
+print(
+    f"rate={rate}  rps={fmt('request_throughput', '.2f')}"
+    f"  p99_ttft={fmt('p99_ttft_ms', '.0f', 'ms')}"
+    f"  p99_itl={fmt('p99_itl_ms', '.0f', 'ms')}"
+    f"  tok/s={fmt('total_token_throughput', '.0f')}"
+    f"  completed={d.get('completed', 'n/a')}  failed={failed if failed is not None else 'n/a'}"
+)
+missing = [k for k in ("request_throughput", "p99_ttft_ms", "p99_itl_ms") if k not in d]
+if failed != 0 or missing:
+    print(f"  NOT USABLE: failed={failed} missing={missing or 'none'}", file=sys.stderr)
+    sys.exit(1)
+PY
 done
+
+if [[ "$BAD" -ne 0 ]]; then
+  echo "One or more rates failed requests or lack metrics. Re-run them before comparing." >&2
+  exit 2
+fi
