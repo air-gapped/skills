@@ -20,6 +20,13 @@
         "assertion_index": 0,
         "was": "Verifies every row of sources.md against its live source (online), not a sample and not from memory",
         "reason": "Failed 18 of 18 judge votes across both arms in the 2026-11-09 benchmark, on answers that named all four rows and a live check for each ('Probe all four rows in one background wave', run 2 of the skill arm). The prompt gives the model no tool access and asks what happens when the blog row cannot be reached, so an answer can only plan the checks and must leave one row unverified; the old wording ('Verifies every row') cannot hold for it. The rule under test is that every row is attempted, none sampled, none taken from memory. Re-run of the case after the rewording: skill arm 3 of 3, without arm 2 of 3. The figures in benchmark.plugin-eval.json were computed against the OLD text and are not restated."
+      },
+      {
+        "date": "2026-11-09",
+        "eval_id": 11,
+        "assertion_index": 1,
+        "was": "Names a single skill (or the stalest group) as the next freshen target",
+        "reason": "Unsatisfiable under the runner, in both arms: the case has no fixture fleet, a plugin-eval run starts in an empty workspace with no personal or project skills loaded, and outcome-eval.py grants only Read, Glob, Grep and Skill, so the staleness report cannot run and there is no skill to name. All six runs of the 2026-11-09 benchmark failed it; the skill arm's answers named the report, said why it could not run, and declined to guess ('Any ranking I gave would be a guess', run 1). Naming a target without the data would be the wrong answer. The assertion keeps its demand whenever data is available and accepts the refusal when it is not. Re-run of the case: skill arm 3 of 3, without arm 3 of 3 — the assertion no longer separates the arms here; the first assertion (runs the fleet report) does, 3 of 3 against 0 of 3. A fixture fleet would restore it; the runner has no per-case fixture or Bash grant. The figures in benchmark.plugin-eval.json were computed against the OLD text and are not restated."
       }
     ],
     "case_replacements": [
@@ -256,7 +263,7 @@
       "files": [],
       "assertions": [
         "Runs, or says it would run, a fleet-wide staleness report (a script that prints each skill's last verification date against its last content change) instead of reading the skills one by one",
-        "Names a single skill (or the stalest group) as the next freshen target",
+        "Names a single skill (or the stalest group) as the next freshen target. When the report could not be run and no skill dates could be read in the session, it passes by saying that no target can be named without that data and by not guessing one",
         "Does not start freshening, scoring or editing any skill"
       ]
     },
