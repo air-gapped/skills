@@ -12,8 +12,6 @@
 | A killed run leaves its session resumable; any opencode service sharing that data dir resumes it unattended | Never share `XDG_DATA_HOME`; delete the scratch home (runner default) |
 | Wedged tunnel: zero events while `/v1/models` still answers | Connect to the engine directly instead of through the tunnel; restart the run |
 | Exit 124 after a `step_finish` with no errors | `--timeout` hit during final text; raise it (runner default 600 s) |
-| `opencode run --agent <unknown>` does not fail closed | Only use `build` (default) or agents defined in the config |
-
 ## When not to use this harness
 
 | Need | Use instead |
