@@ -189,6 +189,14 @@ Setting `include_reasoning: false` on the request null-ifies the `reasoning` fie
 
 So `include_reasoning: false` is a display-only toggle, not a performance win.
 
+## Bonus: continued answer returned as reasoning (`continue_final_message`)
+
+**Repro.** Thinking-on parser, request with `continue_final_message: true` whose final assistant message already contains the closed `<think>…</think>` block.
+
+**Symptom.** Non-streaming returns the continuation in `reasoning` with `content: null`; `usage` counts every generated token as a reasoning token (streaming too). Streaming content is correct.
+
+**Fix.** Upgrade to v0.33.0 ([#61857](https://github.com/vllm-project/vllm/pull/61857)) for adapter-path parsers that declare turn boundaries — the GLM family (`glm45`, `glm47`, `ling3`) and the Qwen3 family (`qwen3`, `mimo`, `minicpmv`, `nemotron_v3`, `granite_thinking_parser`, `step3p5`, `seed_oss`). Not covered: `deepseek_v4`, `kimi_k2`, `minimax_m2` (no turn boundaries) and every legacy `ReasoningParser`, whose `set_prompt_token_ids` is a no-op — in a custom parser, override it and start in content when `is_reasoning_end(prompt_token_ids)` is true for the current turn.
+
 ## Bonus: streamed answer loses the text right after `</think>` (through v0.31.x)
 
 **Repro.** Adapter-path reasoning parser (e.g. `qwen3`) with **no** `--tool-call-parser`, streaming, and a delta that carries several tokens around `</think>` (`--stream-interval 2`, speculative decoding).

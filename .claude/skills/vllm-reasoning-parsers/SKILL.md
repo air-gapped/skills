@@ -40,6 +40,7 @@ Optional:
 
 - `count_reasoning_tokens(token_ids)` — for usage accounting. Default returns `0`. `BaseThinkingReasoningParser` implements it via depth counter so nested `<think>…<think>…</think>…</think>` are handled.
 - `adjust_request(request)` — mutate request (rare).
+- `set_prompt_token_ids(prompt_token_ids)` — v0.33.0+, called with the rendered prompt before the output is parsed, streaming and non-streaming; default no-op. Override it when the prompt can already close reasoning (`continue_final_message`) — see `references/pitfalls.md` §"continued answer returned as reasoning".
 - `prepare_structured_tag(original, tool_server)` — emit a `structural_tag` JSON. Base returns `original` unchanged; harmony builds its tag in `HarmonyParser.adjust_request`, not here.
 - `reasoning_start_str` / `reasoning_end_str` — expose delimiter strings so `ReasoningConfig.initialize_token_ids` can derive the multi-token ID sequences automatically.
 
