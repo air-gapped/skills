@@ -95,6 +95,8 @@ errors              list[str]     # empty string = success
 
 Large file — use for forensic analysis after a failed run, not for routine reporting.
 
+**`--backend openai-chat`, client ≤ v0.32:** the role-only opening chunk was timed as the first token, so each request's `itls[i][0]` is a spurious near-zero sample and min / low-percentile ITL read too low. Drop the first sample per request before comparing with v0.33.0+ output. Mean, median and P99 TTFT/ITL/TPOT are not materially affected (#62341).
+
 **Splitting a bad TTFT (v0.33.0+ client):** start the server with `--enable-per-request-metrics` and bench with `--backend openai`, `vllm` or `openai-chat`. The detailed result then also carries, index-aligned with the lists above:
 
 ```
