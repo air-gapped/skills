@@ -23,6 +23,10 @@ python3 -c "from transformers import AutoTokenizer; t=AutoTokenizer.from_pretrai
 
 If the server loaded a local path but the benchmark used the HF id (or vice versa), token counts silently diverge. Pass `--tokenizer` explicitly matching what's actually on the server.
 
+### `WARNING: /tokenize ... skipping alignment` on a `random` or `prefix_repetition` run
+
+The client aligns synthetic prompts to the server tokenizer through `POST /tokenize` with `model` set to `--model`. When that call fails the run continues unaligned, so the server sees input lengths other than the ones requested — treat the input-token counts as unverified until the warning is gone. A 404 means the endpoint has no `/tokenize` route (a gateway in front of vLLM) or serves no model named exactly `--model`; compare with `GET /v1/models`. v0.33.0+ prints the cause; ≤ v0.32 prints only `/tokenize unavailable, skipping alignment.` for every cause.
+
 ### New request failures after upgrading to v0.30.0 that weren't there before
 
 Not a regression. Before v0.30.0, a streaming request that never received a valid chunk was counted as **success with `ttft=0`** (silently skewing TTFT/E2EL percentiles down); v0.30.0 correctly marks it failed with `error: "Never received a valid chunk to calculate TTFT."` (#55508). Rising `failed` counts post-upgrade with unchanged traffic likely mean those requests were always failing and the old numbers were wrong, not that v0.30.0 introduced a regression.
