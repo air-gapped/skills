@@ -124,14 +124,14 @@ The v0.24.1 Qwen-Image fix reaches v0.26.0 **as a separate backport, not by desc
 | #8424 | [Bugfix][Frontend] Share the runtime voice registry across API processes | **MERGED 2026-10-15**; in v0.32.0. v0.30.0 `api_server.py:1604,1664` reject voice upload and deletion with 409 when `--api-server-count` > 1; v0.32.0 keeps that guard only for async video jobs (1615) and sleep/wakeup (3089, 3111). Persistence: `serving_speech.py:341` at v0.32.0 (240 at v0.30.0) reads `SPEAKER_SAMPLES_DIR`, default `~/.cache/vllm-omni/speakers`; `docs/serving/speech_api.md` ("persisted to disk … On server restart the directory is scanned") at both tags; local-filesystem advice in v0.32.0 `docs/cli/serve.md` | <https://github.com/vllm-project/vllm-omni/pull/8424> | 2026-11-09 |
 | #5172 | [Refactor] Reject unknown diffusion config fields | **MERGED 2026-09-19**; in v0.30.0 | <https://github.com/vllm-project/vllm-omni/pull/5172> | 2026-10-18 |
 | #7820 | [Rebase] Rebase to vLLM 0.30.0 | In v0.30.0 notes; #8459 aligns v0.31.0rc1 to vLLM 0.31.0 | <https://github.com/vllm-project/vllm-omni/pull/7820> | 2026-10-18 |
-| #2595 | Qwen3-TTS max_model_len validation error | **CLOSED 2026-04-28 on a workaround, not a fix**: set `VLLM_ALLOW_LONG_MAX_MODEL_LEN=1` (see PR #2508). Expect it still to be needed | <https://github.com/vllm-project/vllm-omni/issues/2595> | 2026-10-18 |
+| #2595 | Qwen3-TTS max_model_len validation error | **CLOSED 2026-04-28 — fixed** by PR #2508 ("[Bugfix][Model] Fix Qwen3-TTS Code2Wav max_model_len validation", merged 2026-04-22, merge commit `2903f528d2b7`, first contained in v0.20.0rc1 / v0.20.0). The issue's only comment (2026-04-08) predates the merge and offers `VLLM_ALLOW_LONG_MAX_MODEL_LEN=1` as a workaround, which earlier passes misread as the resolution. Regression test `tests/engine/test_arg_utils.py::test_qwen3_tts_code2wav_injects_max_position_embeddings` present at v0.32.0; `vllm_omni/engine/stage_init_utils.py` auto-sets the env var for a stage whose `max_model_len` exceeds the HF default (1530-1534 at v0.30.0, 1593-1597 at v0.32.0) | <https://github.com/vllm-project/vllm-omni/issues/2595> | 2026-11-09 |
 | #2562 | Audio gaps on Qwen3-TTS streaming | **CLOSED 2026-07-04 for INACTIVITY, not fixed** — verbatim: *"close as no response over 1 month. I can reopen if needed."* Treat as still open | <https://github.com/vllm-project/vllm-omni/issues/2562> | 2026-10-18 |
 
 **Reading the closures (freshen-patterns §3.0).** Six of this skill's tracked
 issues flipped to `CLOSED` / `COMPLETED` between the 2026-05-28 and 2026-07-21
 passes. Only **one** (#4964) closed against a named fix PR. The rest split into
 *answered* (#2898 — use YAML, not CLI), *root-caused but unconfirmed* (#2683,
-#2635, #2880), *closed on a workaround* (#2595), and *closed for inactivity*
+#2635, #2880), *fixed by a PR the thread links but never confirms* (#2595, PR #2508), and *closed for inactivity*
 (#2562, and #2768 whose last word is a reproduction). Reading the state field
 alone would have retired five live caveats from this skill.
 

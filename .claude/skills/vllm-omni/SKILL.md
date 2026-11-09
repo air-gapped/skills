@@ -99,8 +99,6 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
 
 - **Two v0.26.0 breaking changes that rename or remove things you may be using.** (1) **LTX pipeline registry names changed** (#5148): `LTX2Pipeline` is now the single one-stage entry for LTX-2 *and* LTX-2.3, T2V *and* I2V — checkpoint metadata picks the version, `image=` picks I2V. `LTX2ImageToVideoPipeline`, `LTX23Pipeline` and `LTX23ImageToVideoPipeline` were removed. On v0.30.0 the supported list names `LTX2TwoStagePipeline`, `LTX2DistilledOneStagePipeline` and `LTX2DistilledTwoStagePipeline` (`LTX2DistilledPipeline` is still registered). Expect higher compute too: the official guidance recipe runs up to four transformer passes per denoise step (cond / uncond / STG perturbation / cross-modality). (2) **GGUF diffusion support moved out of tree** (#4769) to `vllm-project/vllm-gguf-plugin` — a GGUF DiT deployment now needs that plugin installed, and the in-core path is gone.
 
-- **Qwen3-TTS `max_model_len` validation error** (#2595). Serving fails when `max_model_len` exceeds the derived maximum. Set `VLLM_ALLOW_LONG_MAX_MODEL_LEN=1`; the issue closed on that workaround, not a root-cause fix.
-
 - **Assuming vllm-omni serves text-only models**. If the model has no multimodal output, use stock vLLM — vllm-omni adds overhead for features a text-only model won't exercise, and the community skill explicitly recommends against it. The decision rule: output modality is non-text OR the model name ends `-Omni`/`-Image`/`-TTS`/`-Video` → vllm-omni; otherwise stock vLLM.
 
 ## Operator cheat sheet
