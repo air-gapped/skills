@@ -65,6 +65,7 @@ Use this table first. Load `references/model-families.md` for the specific model
 | `<think>` content leaks into final output | `--reasoning-parser` missing | `skip_special_tokens=true` stripping control tokens before parser (#38855) |
 | Garbled prompt with repeated `<image>` placeholders | Template has placeholder AND multimodal parser adds one | `interleave_strings` mismatch — see `get_full_multimodal_text_prompt()` in `renderers/chat_utils/chat_message.py` |
 | `IndexError` / Jinja exception on multi-turn tool calls | Tool-call ID format regex too strict (Kimi-K2, Mistral) | Historical `tool_calls=[]` in assistant msg crashes template (Llama #13978) |
+| Tool calling works on turn 1; from turn 2 calls degrade or come back as text | Shipped tool template mis-renders the assistant tool-call history — `references/model-families.md` § Defects in shipped tool templates | Tool-call ID regex (pattern #5) |
 | Server starts, first request works, subsequent requests fail | State-ful template bug: leading whitespace accumulating (DeepSeek V3.1 #28804) | Concurrent-request regression (Gemma-4 `<pad>` tokens #39392) |
 | `reasoning_effort="none"` but the model still reasons, or the answer comes back empty | Template declares neither `reasoning_effort` nor `enable_thinking`, or vLLM < v0.23.0 (pattern #11) | Wrong reasoning parser |
 | Works on SGLang / TGI, broken on vLLM | vLLM applies template differently (HF precedence + kwarg allowlist) | Check `--tokenizer-mode` differences |

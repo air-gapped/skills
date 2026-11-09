@@ -16,6 +16,7 @@ Load this when the operator names a model family. Each section: required flags �
 8. [Phi-4 / Phi-4-reasoning](#phi-4)
 9. [GLM-4.7 / GLM-5.1](#glm)
 10. [Hermes / Granite / Hunyuan / Toolace / XLAM / FunctionGemma](#other-tool-families)
+11. [Defects in shipped tool templates](#defects-in-shipped-tool-templates)
 
 ---
 
@@ -275,6 +276,7 @@ No native JSON tool calling in tokenizer template — use community pythonic.
 | [vLLM #15403](https://github.com/vllm-project/vllm/issues/15403) | Same. |
 | [vLLM #14734](https://github.com/vllm-project/vllm/issues/14734) | Setup guidance unclear for Gemma-3 tool calling. |
 | [vLLM #20341](https://github.com/vllm-project/vllm/issues/20341) | Gemma-3 produces empty or repeated output. |
+| [vLLM #66298](https://github.com/vllm-project/vllm/issues/66298) | `gemma3_pythonic.jinja` corrupts tool-call history — [Defects in shipped tool templates](#defects-in-shipped-tool-templates). |
 
 ### Gemma-4 (2026)
 
@@ -345,6 +347,16 @@ These all live in `examples/tool_chat_template_<name>.jinja`:
 - `functiongemma` — Gemma function-calling variant
 
 Pair each with the matching `--tool-call-parser`. If unsure, check the vLLM docs page [`docs/features/tool_calling.md`](https://docs.vllm.ai/en/latest/features/tool_calling/) — per-family table is authoritative.
+
+---
+
+## Defects in shipped tool templates
+
+Open upstream, present in every release v0.28.0–v0.33.0 (the template files are byte-identical across those tags). All return HTTP 200 unless noted. Before launch with any shipped tool template, render a history holding one assistant tool call with a string, a boolean, an integer and a null argument; a pythonic template's rendered call must pass `ast.parse`. Fix: patch a copy of the template and pass the copy with `--chat-template`.
+
+| Template | Defect | Effect |
+|---|---|---|
+| `gemma3_pythonic` ([#66298](https://github.com/vllm-project/vllm/issues/66298)) | History call renders with no separator between arguments: `[get_weather(city="Paris"metric=truelimit=3unit=null)]`. | From turn 2 the model reads its own earlier calls as invalid Python. Patch: emit `, ` between arguments. |
 
 ---
 
