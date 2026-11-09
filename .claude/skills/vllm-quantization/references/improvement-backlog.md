@@ -5,16 +5,24 @@ iteration, plus changes the metric registered this pass.
 
 ## Open
 
-- **Unconfirmed quantization reports against v0.32.0 / v0.33.0** (Dim 5/9;
-  `references/troubleshooting.md`, one row each). Blocked on upstream triage:
-  on 2026-11-09 each is a single-reporter issue with no maintainer confirmation
-  and no merged fix — #66211 (compressed-tensors NVFP4/MXFP4 scale groups cut by
-  the TP split), #66074 and #66437 (Humming MXFP4 / W4A16 wrong values), #66109
-  (Marlin NVFP4 subnormal scales), #65944 (ModelOpt FP8 KV scales not loaded
-  into MLA), #62945 (GLM-5.3-NVFP4 with EP + TP>1 + PCP), #65821 (FP8 KV with
-  skip-layers on FA3). Add the row, with the fixing release, when a maintainer
-  confirms the report or its fix PR merges; symptoms are in the `sources.md`
-  issue-sweep row.
+- **Humming W4A16 returns wrong output for group sizes that do not tile its K
+  blocks** (Dim 5/9; one line in `references/kernels.md`). vllm-project/vllm#66437,
+  OPEN, fix PR #66445 OPEN, one reporter, no maintainer reply on 2026-11-09.
+  Read at v0.33.0: `HummingLinearKernel.can_implement`
+  (`kernels/linear/mixed_precision/humming.py:30-37`) checks platform, install and
+  activation dtype only, and Humming is the last CUDA entry in `_POSSIBLE_KERNELS`
+  (`kernels/linear/__init__.py:540-547`), so it accepts group sizes Marlin
+  (`[-1, 32, 64, 128]`) refuses. **Blocked on** the wrong-output claim: it sits in
+  the JIT-compiled CUDA main loop of `vllm-project/humming` v0.1.19
+  (`humming/include/humming/arith/mainloop_arith.cuh` :256, :372, :502 apply a
+  group's scales at `k_index % kWeightScaleGroupSize == 0` or at the warp-tile
+  end), and
+  reading does not establish the tile K the W4A16 dense GEMM is compiled for, nor
+  whether Humming's schema layer rejects such sizes first. Any one of these
+  unblocks it: a second reproduction of the rel-L2 figures (reported on SM120,
+  synthetic layers, sizes 24 / 40 / 48 / 56 / 80 / 96 / 112 / 160 …), a Humming
+  maintainer statement, or #66445 merging. The reporter knows no published
+  checkpoint with an affected group size.
 
 ## Resolved this pass (2026-10-18, improve)
 
