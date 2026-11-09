@@ -135,7 +135,7 @@ curl http://localhost:8091/v1/audio/voices \
   -F "audio_sample=@voice.wav"
 ```
 
-Uploaded voices are process-local: with `--api-server-count` > 1 the upload returns **409**.
+Uploaded voices persist as one `.safetensors` file each under `SPEAKER_SAMPLES_DIR` (default `~/.cache/vllm-omni/speakers`) and are reloaded at startup. Every server run by the same user shares that default — set `SPEAKER_SAMPLES_DIR` per deployment. With `--api-server-count` > 1: v0.30.0 returns **409** on upload and delete; v0.32.0 shares the registry across API processes (#8424) — keep the directory on a local filesystem, not NFS.
 
 ## `/v1/audio/speech/stream` (WebSocket)
 

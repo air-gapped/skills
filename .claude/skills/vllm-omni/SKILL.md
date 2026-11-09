@@ -67,7 +67,7 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
   - Turn-mode wire contract per version: v0.32.0 takes PCM16 mono 24 kHz and needs `response.create`; v0.30.0 takes 16 kHz and emits `transcription.*`
   - `async_chunk` no longer blocks realtime (v0.22.0+)
   - Qwen3-TTS CustomVoice / VoiceDesign / Base modes, 12 Hz / 25 Hz tokenizers
-  - Voice-upload surface (`name` + `consent` + audio ≤10 MB or a speaker embedding; process-local)
+  - Voice-upload surface (`name` + `consent` + audio ≤10 MB or a speaker embedding; persisted under `SPEAKER_SAMPLES_DIR`)
 
 ## The top operator mistakes this skill exists to prevent
 

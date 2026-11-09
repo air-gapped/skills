@@ -171,7 +171,7 @@ curl http://localhost:8091/v1/audio/voices \
   -F "audio_sample=@jane_voice_30s.wav"
 ```
 
-Required: `name`, `consent` (consent-recording ID), and exactly one of `audio_sample` (≤10 MB) or `speaker_embedding` (JSON float list, 1024-dim for 0.6B, 2048-dim for 1.7B). `ref_text` and `speaker_description` are optional; `ref_text` enables the higher-quality ICL clone. From audio, the embedding is extracted on first use (Base models only). Uploads are process-local — re-upload after every restart, and expect 409 with `--api-server-count` > 1. Metadata comes back in `GET /v1/audio/voices`.
+Required: `name`, `consent` (consent-recording ID), and exactly one of `audio_sample` (≤10 MB) or `speaker_embedding` (JSON float list, 1024-dim for 0.6B, 2048-dim for 1.7B). `ref_text` and `speaker_description` are optional; `ref_text` enables the higher-quality ICL clone. From audio, the embedding is extracted on first use (Base models only). Uploads persist under `SPEAKER_SAMPLES_DIR` (default `~/.cache/vllm-omni/speakers`) and survive restarts; set it per deployment, since servers run by one user share the default. With `--api-server-count` > 1 expect 409 on v0.30.0; v0.32.0 shares the registry across API processes. Metadata comes back in `GET /v1/audio/voices`.
 
 ### Streaming TTS
 
