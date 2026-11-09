@@ -149,7 +149,7 @@ Before shipping, sanity-check the effective config:
 ```bash
 # Startup log: flags that differ from defaults, then the resolved engine config.
 # Both print once at boot — read from the head of the log, not --tail
-kubectl logs <pod> | grep -E 'non-default args:|with config:'
+kubectl logs "$POD" | grep -E 'non-default args:|with config:'
 
 # /metrics: block size, KV dtype, gpu_memory_utilization, prefix caching as labels
 curl -s http://localhost:8000/metrics | grep -E '^vllm:cache_config_info|^vllm:prefix_cache'

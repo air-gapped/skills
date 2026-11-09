@@ -208,7 +208,7 @@ curl -s http://localhost:8000/v1/models | jq '.data[].id'
 curl -s http://localhost:8000/metrics | grep -E '^vllm:cache_config_info|^vllm:prefix_cache'
 
 # 3. Startup log — printed once at boot, so read the head, not --tail
-kubectl logs <pod> | grep -E 'non-default args:|with config:'
+kubectl logs "$POD" | grep -E 'non-default args:|with config:'
 
 # 4. Dev endpoint: full resolved VllmConfig + every VLLM_* value the server sees.
 #    Unauthenticated even with --api-key — never enable on a reachable server

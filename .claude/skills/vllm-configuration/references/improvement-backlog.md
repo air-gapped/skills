@@ -5,6 +5,15 @@ Work-not-done log from skill-improver passes. Open = attempted but not applicabl
 ## Open
 
 - Trim generic implicit triggers (`audit model X`, `deploy-memo`) from `when_to_use` — Dim 1, SKILL.md frontmatter (L7). Not applied: removing these risks under-triggering on the implicit per-model deploy-recipe contexts they were added for. Validating the trade-off needs trigger-mode measurement (60/40 split, 3 runs/query, blinded test scores), which this APPLY stage does not run. Carry to a dedicated trigger-mode pass. (carried 2026-05-28, 2026-10-18)
+- Bound the "harmless through v0.33.0" note on the offline `Error retrieving safetensors` startup lines — `references/air-gapped.md` §Common failure modes. Blocked on: no vLLM release carries the fix yet (PR #66012, merged 2026-11-06, in no tag on 2026-11-09). When one ships, name it as the first clean version.
+- Shrink or delete the per-parser table — `references/env-vars.md` §Boolean values, and the boolean-word check in `scripts/check-config.sh`. Blocked on: upstream issue #66493 is open and neither candidate fix (#66536, #66543) is merged. When a release carries one parser for all boolean vars, re-read `vllm/envs.py` at that tag and keep only what still differs.
+- Bound the "missing under the Rust frontend through v0.33.0" note for `vllm:cache_config_info` — `references/troubleshooting.md` §Verifying effective config and the fallback message in `scripts/check-config.sh`. Blocked on: PR #65635 (merged 2026-11-05) is in no tag on 2026-11-09.
+
+## Resolved this pass (2026-11-09)
+
+Freshen to v0.33.0; every `sources.md` row probed; `scripts/check-config.sh` rewritten against planted cases.
+- Discard: "a YAML `key: null` breaks the config". `load_config_file` does emit `--key None`, but `optional_type` (`vllm/engine/arg_utils.py`) maps the string back to `None` for every field whose type includes `None`. Copying the catalog's `null` defaults is safe; do not add a warning.
+- Discard: "`--config` fails under the Rust frontend". `vllm-rs serve --config` is refused, but `vllm serve` expands the file into argv and drops the flag before the hand-off, so the supported entry point works.
 
 ## Resolved this pass (2026-10-18)
 
