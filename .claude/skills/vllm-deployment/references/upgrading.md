@@ -13,6 +13,8 @@ its rollout plan:
   `VLLM_USE_RAY_WRAPPED_PP_COMM` and `VLLM_USE_RAY_V2_EXECUTOR_BACKEND` went with
   the legacy compiled-graph executor. A manifest still setting them silently
   does nothing; `--distributed-executor-backend ray` always runs `RayExecutorV2`.
+- **`NixlConnector` requires NIXL ≥ 1.5** from v0.33.0 (#61032). Roll prefill
+  and decode pools to an image carrying it together — `references/disagg.md`.
 - **CORS is closed by default** (#61009, v0.32.0): `--allowed-origins` now
   defaults to `[]`, so a browser front end calling vLLM directly gets CORS
   errors after the upgrade. Set `--allowed-origins '["https://ui.example"]'`;
