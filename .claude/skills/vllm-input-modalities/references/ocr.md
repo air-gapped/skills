@@ -29,6 +29,9 @@ biases them hard toward transcription of document images.
 | `Lighton/Ocr-*` | `LightOnOCRForConditionalGeneration` | `lightonocr.py` | lightweight |
 | Qianfan-OCR | `QianfanOCRForConditionalGeneration` | `qianfan_ocr.py` | added v0.21.0 (#40136) |
 | `baidu/Unlimited-OCR` | `UnlimitedOCRForCausalLM` | `unlimited_ocr.py` | added v0.25.0 (#46564); Triton R-SWA backend #47102. Benchmarked on OmniDocBench |
+| `nvidia/Nemotron-3.5-Parse` | `RadioMBartPrefixForCausalLM` | `nemotron_parse3_5.py` | added v0.33.0 (#61651); `--trust-remote-code`. Its MTP draft (`ParseAuxMTPModel`) runs on Model Runner V2 only |
+| `openbmb/MiniCPM-OCR-1.0` | `MiniCPMOcrForConditionalGeneration` | `minicpm_ocr.py` | added v0.33.0 (#63095). Send `chat_template_kwargs={"enable_thinking": false}` for plain transcription — otherwise the output opens with `<think>` |
+| `PaddlePaddle/PaddleOCR-VL` | `PaddleOCRVLForConditionalGeneration` | `paddleocr_vl.py` | vision encoder batched across images from v0.33.0 (#61458) |
 
 Plus: any general VLM (Qwen2.5-VL, InternVL, GLM-4.1V, MiniCPM-V) handles
 OCR reasonably well via chat completion — just not as efficiently or
