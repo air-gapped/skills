@@ -15,8 +15,24 @@ copy-paste recipe; the section gives a start point and the sweep that finds
 the knee and the util cliff.
 
 **Blocked on:** an H200 141GB measurement run (knee sweep plus util-cliff
-search). No H200 was available this pass. With the run, replace the start
-point with a LIGHT/PUSH-style recipe and add its rows to `bench-numbers.md`.
+search). No H200 is reachable (re-checked 2026-11-09); renting one is a spend
+decision. With the run, replace the start point with a LIGHT/PUSH-style
+recipe and add its rows to `bench-numbers.md`.
+
+### Re-measure LIGHT / PUSH on a current engine (Dim 9 — added 2026-11-09)
+
+**Pointer:** `references/bench-numbers.md`; `SKILL.md` recipes, decision guide
+and the 0.94 util cliff.
+
+**Finding:** every figure is a v0.20.0 observation on the all-Triton path.
+From v0.31.0, H100 with `--kv-cache-dtype fp8` runs per-layer FA3/FA4 (fact
+#1); from v0.32.0 the WNA16 kernel on SM90 is Humming; from v0.29.0 MRv2
+reserves CUDA-graph memory, which moves the util cliff.
+
+**Blocked on:** a 2× H100 80GB run of the `bench-numbers.md` phases on
+v0.33.0 or newer. No H100 is reachable (checked 2026-11-09); renting is a
+spend decision. With the run, replace the tables and re-derive the TP
+decision guide and the util cliff.
 
 ## Decided — do not re-propose
 
@@ -64,15 +80,14 @@ startup, `<turn|>` leak, `tool_choice` ignored, AWQ chat template, EAGLE3
 acceptance) to the trigger text. Not applied — same author mandate. Use
 `trigger` mode to measure misses.
 
-### 4. No "hold at 0.25.1" version ceiling (operator decision 2026-10-18)
+### 4. No version ceiling (operator decision 2026-10-18)
 
 **Pointer:** `SKILL.md` "Version floor" callout
 
-**Decision:** the operator runs Gemma 4 31B on vLLM 0.30.0 in production and
-has ruled the 0.25.1 ceiling out. The skill states a floor (0.29.0+, the
-#49955 fix) and treats #50159 as a headroom mitigation, not a downgrade
-reason. Do NOT reintroduce a ceiling from an open upstream issue; record new
-regressions as known issues with mitigations.
+**Decision:** the skill states a floor (0.29.0+, the #49955 fix) and no upper
+bound. Do NOT introduce a "hold at" or "do not take" version from an open
+upstream issue. A source-confirmed breakage on a specific release is written
+as a known failure: symptom, affected versions, fix or mitigation.
 
 ## Resolved this pass (2026-10-18, improve)
 
@@ -88,157 +103,6 @@ operator. Stop: cap reached (5), zero discards — no ceiling mapped.
 - Kept: unmeasured gemma-3-vs-gemma-4 mechanisms and bench questions moved to
   `references/open-questions.md` — closes former Open #2.
 - Kept: second-person phrasing converted to imperative.
-- Post-cap: parser section decision-first; scope line reads 0.20+ held at
-  0.25.1; H200 start point with v0.32.0-checked sweep command; contents lists
-  on references over 100 lines. SKILL.md 503 → 385 lines.
-
-## Resolved — 2026-08-11 (freshen)
-
-Two vLLM minors landed since the last pass (v0.26.0, v0.27.0) plus a v0.27.1
-patch on the morning of this one. The headline result is a **non-event that
-required work to establish**: the version ceiling holds unchanged.
-
-- **The ceiling extends, it does not lift.** All five cited gemma-4 issues
-  (#49955, #50477, #50159, #50158, #49475) are still **OPEN**, and all three
-  fix PRs (#50964, #51524, #50263) are **unmerged**. Not one is stale-bot
-  noise — each has substantive 2026-07/08 activity. Ceiling text now reads
-  "do not take 0.26.0, 0.27.0 or 0.27.1" with per-issue fix-PR status, so the
-  next reader can see *why* it holds rather than re-deriving it.
-- **Corrected a claim this skill got wrong** (the pass's real finding). SKILL.md
-  said the trailing `<turn|>` leak was "not reproducible without spec-decode."
-  The same reporter's 2026-07-31 matrix reproduces it on 0.26.0 with **MTP
-  completely disabled**, and identifies `stream=true` as the actual
-  discriminator. Rewrote the pitfall (including its heading, which asserted
-  "Spec-decode can leak…"), added the community root-cause — an
-  `enable_thinking` default mismatch, **verified verbatim at v0.27.0** in
-  `examples/tool_chat_template_gemma4.jinja:180` (`default(false)`) versus
-  `vllm/parser/gemma4.py:403` (`.get("enable_thinking", True)`) — the resulting
-  mitigation (send `enable_thinking` explicitly), and a corrected cheap test
-  that specifies streaming. The old test was non-streaming and would have
-  cleared an affected deployment.
-- **#50159 localised.** Two independent A/B runs (Qwen2.5-0.5B; Gemma-4 31B on
-  2× RTX 3090) show the "extra available KV" is **CUDA-graph capture headroom
-  accounting**, not KV capacity — MRv1 reserves ~0.65 GiB vs MRv2 ~0.12 GiB,
-  and the gap vanishes under `--enforce-eager`. Severity scales with model size
-  and inversely with card size.
-- **#50477 widened.** A second reporter extends it from *named* forced
-  `tool_choice` to `tool_choice: "required"`, which returns HTTP 200 with
-  `finish_reason: "tool_calls"`, prose in `content`, and `tool_calls: null`.
-- **One genuine 0.27.0 gain recorded, without recommending the upgrade:** the
-  ViT CUDA graph for Gemma-4 (#46837). Named explicitly so the ceiling reads as
-  a trade-off rather than a blanket "nothing there."
-- **Benchmark numbers labelled, not restamped.** `bench-numbers.md` already
-  stated "Engine: vLLM 0.20.0"; SKILL.md's intro did not. Added the
-  measured-on version there. **No number was changed** — re-measuring needs GPU
-  time, not a probe.
-- **chat_template drift paused.** r01 re-pulled: `ae53464b…`, 18683 B —
-  **identical to 2026-07-21**, the first pass in four with no drift. cyankiwi
-  still frozen at `94899c0f…`, re-diffed at exactly 114 lines behind. Recorded
-  as one stable interval, not as the chain having stopped.
-- **v0.27.1 checked for Gemma relevance and cleared.** Its single change
-  (#50424) touches one file, `vllm/model_executor/models/qwen3_dspark.py`, and
-  is scoped to `Qwen3DSparkModel` — no Gemma surface. Recorded so the next pass
-  doesn't re-open it on the strength of the word "DSpark".
-
-**Not done (needs GPU time, not a probe):** re-running the benchmark set on any
-engine past 0.20.0. Open items #1–#4 all carry forward unchanged — each is
-blocked on an author decision or an environment guard, none on evidence.
-
-## Resolved — 2026-07-21 (freshen)
-
-- **chat_template staleness: converted from inference to measurement (highest
-  value).** Prior passes asserted the community quant "is stale until they
-  re-pull." This pass diffed the two files. `cyankiwi/gemma-4-31B-it-AWQ-4bit`
-  ships a `chat_template.jinja` hashing `94899c0f…25bff413` — byte-identical to
-  the 2026-04-30 canonical — while canonical is now `ae53464b…8de4c6d4`
-  (18683 B), **114 lines apart**. Rewrote SKILL.md fact #3 to name the five
-  concrete behaviours the frozen copy gives up (`preserve_thinking`,
-  `continues_into_next` turn closure, `<|channel>thought` re-open after
-  `tool_response`, null tool-argument → `null`, empty-`messages` guards) and to
-  quote the template's own new header: *"Published: 2026-07-09 — Fixed
-  tool-calling loops, turn closures, and thinking content-ordering."*
-- **Corrected an over-broad claim.** Fact #3 previously implicated
-  "cyankiwi/RedHatAI quants." `RedHatAI/gemma-4-31B-it-speculator.eagle3` ships
-  **no `chat_template.jinja` at all** (4 files: README, config.json, config.py,
-  model.safetensors) and is untouched since 2026-04-14. Scoped the claim to
-  cyankiwi.
-- **Closed the 2026-05-28 honest gap: r05/r06 re-pinned at v0.25.1.** Both
-  source claims survived five minors. `get_batch_defaults` moved 2207-2288 →
-  2397-2478 with GPU-branch logic unchanged (H100/H200 still share a path); the
-  P-EAGLE requirement moved 341 → 352-366 and **reversed check order**
-  (`dflash_config.mask_token_id` now first). Replaced the line-number pins in
-  SKILL.md and `hbm-saturation.md` with symbol pins — these numbers have now
-  been rewritten twice for zero semantic change.
-- **Qualified "the only hardware-aware default."** v0.25.1 added a
-  `current_platform.is_tpu()` sub-branch (V6E/V5E) *inside*
-  `get_batch_defaults`. The claim now reads as "only function," not "only
-  branch." The H100-vs-H200 conclusion is unaffected.
-- **§3.0 catch on r08.** Issue #22780 was recorded as "closed," implying the
-  BnB-4bit concurrency regression was addressed. It was closed `NOT_PLANNED` on
-  2025-12-14 by the inactivity bot. Re-annotated as unaddressed — which
-  *strengthens* the skill's AWQ-over-BnB recommendation. Also flagged #6801 as
-  stale-bot-marked and likely to close for the same non-reason.
-- **r04 re-stamped:** vLLM v0.21.0 → **v0.25.1** (2026-07-14). The "0.20+"
-  floor stays valid; recorded that the v0.20.0 audit baseline behind
-  `bench-numbers.md` is now five minors old.
-
-**Not done (needs GPU time, not a probe):** re-running the benchmark set against
-0.25, and re-checking the EAGLE3 / TRITON_ATTN / spec-config CLI surface across
-0.21–0.25. Open items #1–#4 above all carry forward unchanged — each is blocked
-on an author decision or an environment guard, none on evidence.
-
-## Resolved this pass (2026-05-28)
-
-- **Freshen — chat_template SHA DRIFTED (highest-value finding).** Re-pulled
-  `google/gemma-4-31B-it/raw/main/chat_template.jinja` (curl, HTTP 200,
-  17466 B) and recomputed the hash: it moved from `94899c0f…25bff413`
-  (2026-04-30) to `36e3a42e…bead3f0` (2026-05-28). Google re-patches the
-  `main` template, so the pinned SHA was stale. Updated SKILL.md fact #3 to
-  record BOTH hashes and reframe it as a moving target ("re-pull and re-pin
-  per deploy rather than trusting any historical SHA"); re-stamped sources.md
-  r01 to 2026-05-28 with the new hash and a **DRIFTED** marker. This
-  strengthens — not weakens — the skill's core staleness thesis (community
-  quants ship a stale template). Dim 9 lifted.
-- **Freshen — vLLM version landscape.** Re-confirmed via `gh release list
-  vllm-project/vllm`: v0.21.0 now latest (2026-05-15), v0.20.2 (2026-05-10),
-  v0.20.1 (2026-05-04), v0.20.0 audit baseline (2026-04-27). Re-stamped
-  sources.md r04 to 2026-05-28 and rewrote the stale "latest is v0.20.0 /
-  when v0.21 ships" Notes line. The "vLLM 0.20+" floor and 0.20.0 baseline
-  remain valid — no body version bump warranted.
-- **Improve — none kept.** Both improve-mode hypotheses were discarded (see
-  below). The Dim 2/6 relocation of the "why-different" + "not-measured"
-  sections to a new `references/analysis.md` was ATTEMPTED but the file Write
-  was blocked by the subagent guard ("return findings as text, not write
-  report files"). Rather than ship a dangling `references/analysis.md`
-  pointer with the content lost, the relocation was fully reverted — both
-  sections remain inline in SKILL.md (the "why-different" section did gain the
-  one-line "plausible mechanisms, not measured attributions" framing as a
-  net-neutral edit). SKILL.md stays at ~243 lines; Open item #3 (length) and
-  Open item #2 (relocate the speculative section) remain OPEN.
-
-**NOT re-stamped (honest gap):** r05/r06 line-pinned vLLM source paths were
-not re-probed against v0.21.0 (line numbers drift); flagged in sources.md
-Notes for a future freshen. They keep their 2026-04-30 dates.
-
-**Score this pass (self):** 80/100 (up from 78). Dim 9 7→8 (SHA + version
-re-stamp lifts the staleness picture; the SHA-drift catch is a real freshen
-win). No improve-mode structural edit landed — two discards (Dim 1 trigger
-surface: author mandate; PUSH-recipe collapse: user veto) plus the reverted
-analysis.md relocation (blocked by environment guard).
-
-## Resolved 2026-04-30
-
-- Created `references/sources.md` with 10 verified upstream refs (HF
-  models, vLLM source paths, GH issues / PRs) all stamped
-  `Last verified: 2026-04-30`. Lifted Dim 9 from 6/10 (capped) to 9/10.
-- Swept SKILL.md to imperative voice — removed `your`/`we`/`us`
-  constructions at original lines 14, 126, 146, 150, 152, 200, 219.
-  Lifted Dim 3 from 5-7/10 to 9/10 (blind).
-- Removed personal-memory absolute path at original line 163
-  (`~/.claude/projects/.../feedback_one_restart_means_fail.md`).
-  Surrounding paragraph already explains the rule. Lifted Dim 8 to 9/10.
-- Added `references/sources.md` pointer to SKILL.md References list so the
-  new file is discoverable.
-
-**Final score (2026-04-30):** self 84/100, blind 86/100. Up from baseline
-self 78 / blind 79. Four kept iterations, zero discards.
+- Post-cap: parser section decision-first; H200 start point with a
+  v0.32.0-checked sweep command; contents lists on references over 100 lines.
+  SKILL.md 503 → 385 lines.

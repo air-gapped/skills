@@ -26,8 +26,8 @@ and not re-run since** (see `references/bench-numbers.md`; the shape of the
 curves has held, but treat the absolute figures as 0.20.0 observations) — and
 the upstream constraints that shape the answer.
 
-> **Version floor: run vLLM 0.29.0 or newer; 0.30.0+ is the production line.**
-> Do not pin 0.25.1 or older: they carry the `<turn|>` / `enable_thinking`
+> **Version floor: run vLLM 0.29.0 or newer.**
+> Do not pin an older release: v0.28.x and below carry the `<turn|>` / `enable_thinking`
 > bug ([#49955](https://github.com/vllm-project/vllm/issues/49955)) that
 > [#52430](https://github.com/vllm-project/vllm/pull/52430) fixed in v0.29.0,
 > and miss the 0.30.0+ multimodal-prefix Triton fix (#53147, fact #1). The
@@ -209,9 +209,9 @@ this since [#45852](https://github.com/vllm-project/vllm/pull/45852)
 (fixing #45834, in v0.24.0+): `adjust_initial_state_from_prompt()`
 reverse-scans the prompt token ids and pre-initialises the reasoning
 parser when the prompt ends inside an open `<|channel>` block
-(`vllm/parser/gemma4.py:482` at v0.25.1). Live-verified 2026-08-02 on
-v0.25.1 (temp 0, stream + non-stream, with and without tool schemas in
-the request): **no CoT leaks into `content`**.
+(`vllm/parser/gemma4.py`; line 561 at v0.33.0). Measured on v0.25.1 (temp 0,
+stream + non-stream, with and without tool schemas in the request):
+**no CoT leaks into `content`**.
 
 The remaining defect is the opposite one: the generated CoT is
 **silently dropped** — a raw-completions bypass of the same prompt shows

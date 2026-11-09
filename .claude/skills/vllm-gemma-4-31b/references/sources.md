@@ -63,21 +63,6 @@ or git ref where applicable. Re-probe via `/skill-improver freshen vllm-gemma-4-
 
 ## Notes
 
-**A closed-looking tracker that is entirely open (2026-08-11).** All five
-gemma-4 issues this skill cites are OPEN, and all three fix PRs are unmerged.
-v0.27.0 shipped the day before this pass and clears none of them, so the version
-ceiling extends rather than lifts. The pass's substantive correction was in the
-opposite direction from the usual freshen finding: not "this warning is stale,
-delete it" but "this warning understates its own scope" — #49955 is not
-spec-decode-specific, and the skill said it was.
-
-**Not re-probed this pass (honest gap):** r03 (RedHatAI eagle3 repo), r05/r06
-(vLLM source blobs pinned at v0.25.1 — still the skill's supported ceiling, so
-re-pinning them at v0.27.0 would misrepresent what the skill recommends running),
-and r07–r10. Budget went to the regression tracker, which is what gates the
-version recommendation.
-
-
 **The staleness thesis is no longer inferential (2026-07-21).** The prior two
 passes argued "the quant's template is probably stale because canonical keeps
 moving." This pass diffed them directly: `cyankiwi`'s file is byte-identical to
@@ -104,10 +89,12 @@ read it before hashing anything.
   r02 reported 2026-07-03 while its template had not been touched since
   2026-04-30 — the commit edited the README. Read
   `/api/models/<repo>/commits/main` titles, not the timestamp.
-- **r05/r06 are now re-pinned at v0.25.1** (the honest gap the 2026-05-28 pass
-  flagged is closed). Both claims survived five minors; only line numbers and
-  the P-EAGLE check *order* moved. Cite symbols, not lines — the line-number
-  pins have been re-written twice now for zero semantic change.
-- **Still not re-probed:** the EAGLE3 / TRITON_ATTN / spec-config CLI surface
-  against 0.21–0.25, and the `bench-numbers.md` measurements, which remain
-  v0.20.0 observations. Re-running those needs GPU time, not a probe.
+- **Cite symbols, not lines, for r05/r06.** The shared H100/H200 branch and
+  the prepared-checkpoint requirement held from v0.20.0 to v0.33.0; line
+  numbers, the surrounding tiers and the P-EAGLE key list and order moved.
+- **`gh release list` can show an rc tag for a final release.** The v0.33.0
+  Release object hangs off tag `v0.33.0rc3`. Before treating a listed rc as
+  unreleased, read the release `name`, the plain tag
+  (`gh api repos/<o>/<r>/git/refs/tags/<version>`) and the PyPI version.
+- **`bench-numbers.md` remains a set of v0.20.0 observations.** Re-running it
+  needs GPU time, not a probe (tracked in `improvement-backlog.md`).
