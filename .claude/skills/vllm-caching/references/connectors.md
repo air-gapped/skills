@@ -78,6 +78,7 @@ Config keys that bite:
 
 - **`cpu_bytes_to_use` is in bytes and is the total across all workers**, not per-worker — same total-not-per-rank convention as `--kv-offloading-size`, different unit (bytes vs GiB). This is the multi-tier equivalent of the sizing flag; `--kv-offloading-size` drives the CLI shorthand path instead.
 - `block_size` is the offloaded block size in tokens and must be a multiple of the GPU block size.
+- **The CPU tier bounds what one request can load from a secondary tier.** Every secondary hit is staged through it, and a hit larger than `cpu_bytes_to_use` loads nothing (vLLM #62931, open at v0.33.0). Size the CPU tier above the KV of the longest prompt.
 - `offload_prompt_only` defaults to `true` — decode-phase blocks are skipped. Flip it only with a measured reason.
 - `store_threshold` is single-tier only — `TieringOffloadingSpec` raises `ValueError: store_threshold is not supported for TieringOffloadingSpec` (still true at v0.33.0). `self_describing_kv_events` **used** to be rejected the same way; since v0.26.0 (#48679) it works with `TieringOffloadingSpec`, including full payloads on blocks promoted back up from a secondary tier.
 - Per-request cap: a request may set `kv_transfer_params.max_offload_tokens` to bound how much of it is eligible for offload (`0` disables offload for that request). From v0.31.0, `kv_transfer_params.max_load_tokens` separately caps how many tokens are loaded back from the offload tier (`0` = no loads; stores stay on) (#55885). Both are marked experimental upstream.

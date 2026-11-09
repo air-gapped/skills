@@ -204,6 +204,7 @@ States verified 2026-11-09. Before authoring an offload deploy, recheck each row
 
 | Issue | State | Affects | Avoidance |
 |---|---|---|---|
+| [vLLM#62931](https://github.com/vllm-project/vllm/issues/62931) | **open** | `TieringOffloadingSpec`: a prefix hit that lives only in a secondary tier and is larger than the CPU tier loads nothing — full re-prefill, `vllm:kv_offload_tiering_promotion_allocation_failures` rises | Size `cpu_bytes_to_use` above the KV of the longest prompt that must come back from `fs`/`obj`/`p2p` |
 | [LMCache#2942](https://github.com/LMCache/LMCache/issues/2942) | closed by the stale bot — **NOT fixed** (fix PR #3006 closed unmerged) | `LocalCPUBackend.allocate()` deadlocks when the staging buffer fills; reproduced with `use_hot=False` and with `use_hot=True` | Keep `LMCACHE_LOCAL_CPU=True` (default); never `use_hot=False`. Treat the closure as live in 0.5.x |
 | [LMCache#3106](https://github.com/LMCache/LMCache/issues/3106) | **open** | `LMCacheConnectorV1` unusable on hybrid-attention models (Gemma-4, Qwen3.5/3.6, DeepSeek-V4): single-shape `MemoryObj.tensor` fails on a multi-group buffer | Use native offload or LMCache **MP** mode; never the in-process connector |
 | [LMCache#6156](https://github.com/LMCache/LMCache/issues/6156) | closed unfixed — maintainers no longer fix in-process mode | In-process `LMCacheConnectorV1` with a remote backend stores an all-zero V half (K intact) on vLLM v0.29.0: garbage output, no error, no metric | Move the deploy to native tiering or LMCache MP |
