@@ -167,6 +167,7 @@ Floors that change what to deploy today:
 | v0.30.x | Dense drafter + EP-enabled MoE target fails startup: *"Number of experts in the model must be greater than 0 when expert parallelism is enabled"* | Upgrade to ≥ v0.31.0 |
 | < v0.31.0 | P/D (KV connector) deployment with MTP stalls under KV pressure (#57104) | Upgrade to ≥ v0.31.0 |
 | v0.31.x | `use_heterogeneous_vocab: true` (TLI) device-side assert at startup | Upgrade to v0.32.0, or set `VLLM_USE_V2_MODEL_RUNNER=0` |
+| ≥ v0.33.0 | Serving a Speculators checkpoint directly fails when its metadata names a local verifier (#61587) | Serve the verifier as the model and pass the checkpoint in `--speculative-config` (§Air-gapped operation) |
 | ≥ v0.33.0 | `method: "medusa"` / `"mlp_speculator"`, or a Medusa / MLP-speculator draft checkpoint, fails config validation | Move the deployment to `eagle3` before upgrading |
 
 ## Critical pitfalls
@@ -253,6 +254,11 @@ adapters) live on Hugging Face. Treat them like any other HF model per the
   Qwen2.5-32B) also live on HF — mirror before cutover.
 - MTP heads ship *inside* the target model checkpoint — no separate artefact.
   Air-gap story is the same as the base model.
+- v0.33.0+: `vllm serve <speculators-checkpoint>` fails startup when the
+  checkpoint's `speculators_config.verifier.name_or_path` is a local path, or a
+  repo ID that also exists as a local directory. Serve the local verifier
+  explicitly instead:
+  `vllm serve /path/to/verifier --speculative-config '{"model":"/path/to/speculator","method":"eagle3","num_speculative_tokens":3}'`.
 
 ## When spec-dec is the wrong lever
 
