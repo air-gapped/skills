@@ -206,7 +206,7 @@ per target family, chunked-prefill composability) use the separate
 
 ## Online quantization
 
-Introduced by the v0.14 redesign ([PR #37776](https://github.com/vllm-project/vllm/pull/37776)). Quantizes a BF16 checkpoint **at load time**, no pre-quantization step. Trade-off: peak load memory is BF16 size.
+Shipped in v0.20.0 ([PR #38138](https://github.com/vllm-project/vllm/pull/38138)) — on v0.19.x and earlier none of the shorthands below is a valid `--quantization` value. Quantizes a BF16 checkpoint **at load time**, no pre-quantization step. Trade-off: peak load memory is BF16 size.
 
 ```bash
 # Per-tensor FP8 (static scales, simplest)

@@ -270,7 +270,7 @@ on CPU.
 - Passed via **`--quantization-config`** (JSON or dotted keys). There is no `--quantization-config-file` flag, no `global_scheme` / `linear_scheme_override` / `moe_scheme_override` keys, and no `OnlineQuantScheme` enum — that was the pre-v0.25 shape.
 - XPU: non-block FP8 scaled-mm linear defaults to W8A16; `--linear-backend xpu` forces W8A8, `--linear-backend xpu_woq` pins weight-only.
 
-RFC: [PR #37776](https://github.com/vllm-project/vllm/pull/37776). Schema doc: `docs/features/quantization/online.md`.
+Frontend: [PR #38138](https://github.com/vllm-project/vllm/pull/38138), v0.20.0. Schema doc: `docs/features/quantization/online.md`.
 
 Advanced-config example:
 

@@ -193,7 +193,7 @@ v0.20.0 went **stable** 2026-04-27 (not a pre-release), followed by v0.20.1
 - [PR #32694](https://github.com/vllm-project/vllm/pull/32694) — **Petit NVFP4 removed.** Listed under the release's own Breaking Changes and V0 deprecation.
 
 **The online-quantization frontend was rebuilt here.** Anything written against the pre-v0.20 online schema is wrong:
-- [PR #38138](https://github.com/vllm-project/vllm/pull/38138) — new end-to-end online quantization frontend.
+- [PR #38138](https://github.com/vllm-project/vllm/pull/38138) — new end-to-end online quantization frontend. First release where `fp8_per_tensor` / `fp8_per_block` exist as `--quantization` values.
 - [PR #39736](https://github.com/vllm-project/vllm/pull/39736) — `experts_int8` consolidated into the FP8 online path.
 - [PR #38463](https://github.com/vllm-project/vllm/pull/38463) — MXFP8 online quant moved onto the new frontend.
 - [PR #40152](https://github.com/vllm-project/vllm/pull/40152) — follow-up to the same frontend work.
@@ -385,7 +385,6 @@ Security / memory leak patch on top of v0.14.0. No quantization changes.
 
 ## v0.14.0
 
-- [PR #37776](https://github.com/vllm-project/vllm/pull/37776) — **online quantization redesign** (`fp8_per_tensor` / `fp8_per_block` / `int8_per_channel_weight_only`).
 - [PR #31926](https://github.com/vllm-project/vllm/pull/31926) — MXFP4 W4A16 for compressed-tensors dense.
 - [PR #31572](https://github.com/vllm-project/vllm/pull/31572) — activation-quantization fix for compressed-tensors W4A16.
 
