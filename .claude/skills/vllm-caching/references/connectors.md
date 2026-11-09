@@ -92,6 +92,8 @@ Config keys that bite:
 
 Setting it remains harmless and is still the safe choice for a mixed-version fleet.
 
+**Sharing a secondary tier across TP sizes needs `"canonical_layout": true`** in `kv_connector_extra_config` on every sharing instance (default `false`). Without it each TP size writes its own layout: MRV2 engines reuse nothing across sizes, MRV1 engines load corrupt KV (vLLM #62283). Limits: tensor parallelism only (no PP, PCP or DCP), KV heads must divide evenly across TP ranks or be MLA, no packed or cross-layer KV layouts, no per-token-head KV quantization; an unmappable layer fails startup with an error naming `canonical_layout`. Every load and store becomes a scatter/gather copy — leave it off when all sharers run one TP size.
+
 **p2p tier** shares blocks between vLLM instances over NIXL. It replaces the `P2pNcclConnector` removed in v0.24.0 (#44854). Keys (v0.33.0, `tiering/p2p/manager.py`): `backends` default `["UCX"]` (also `MOONCAKE`, `LIBFABRIC`), `num_threads` default 4 on the UCX-only path, plus `host` / `port` which since v0.26.0 (#47636) default to the env vars **`VLLM_P2P_SIDE_CHANNEL_HOST` (`localhost`) and `VLLM_P2P_SIDE_CHANNEL_PORT` (`5710`)** — the old literal `7777` default is gone. Two traps:
 
 - `host` is used verbatim as both the bind address and the identity peers dial back, with no auto-detection — same shape as `VLLM_NIXL_SIDE_CHANNEL_HOST`, so in K8s feed it the pod IP via the downward API. `localhost` silently confines the tier to one host.
