@@ -98,7 +98,8 @@ python examples/online_serving/qwen3_omni/openai_realtime_client.py \
 1. **`--trust-remote-code`** required — custom model code lives in the HF repo.
 2. **`--task-type`** must match the checkpoint variant: `CustomVoice`, `VoiceDesign`, or `Base`.
 3. **`--enforce-eager`** was mandatory on v0.18 (issue #2866: code2wav crashed with CUDA graphs enabled). **#2866 is CLOSED (2026-04-29)** and v0.20.0 adds TTS CUDA-graph capture + shared memory pools (release notes cite #2690/#2758/#2803) — drop `--enforce-eager` on v0.20.0+ to regain throughput.
-4. **v0.30.0 default CUDA profile runs experimental Model Runner V2** with event-driven orchestration (#7930, #7088). On a regression, set `model_runner: v1` in the deploy YAML (or `VLLM_OMNI_EVENT_DRIVEN_ORCH` to change orchestration); non-CUDA platforms already use V1.
+4. **The default CUDA profile runs experimental Model Runner V2** since v0.30.0 (#7930); ROCm, NPU, XPU and MUSA overrides in `qwen3_tts.yaml` stay on V1. On a regression set `model_runner: v1` in the deploy YAML. Event-driven orchestration is the default for Qwen3-TTS on v0.30.0 (#7088) and for every pipeline on v0.32.0 (#8675); `VLLM_OMNI_EVENT_DRIVEN_ORCH=0` restores the legacy 1 ms poll loop.
+5. **Single-GPU option (v0.32.0):** `--deploy-config vllm_omni/deploy/qwen3_tts_fused_single_gpu.yaml` runs one stage whose Talker decodes PCM itself (no Code2Wav stage, #8259). Opt-in; the two-stage `qwen3_tts.yaml` stays the default.
 
 ### Three task types
 
@@ -192,11 +193,11 @@ with client.audio.speech.with_streaming_response.create(
             f.write(chunk)
 ```
 
-v0.16 (#1438) made streaming first-class for Qwen3-TTS. Chunk cadence is per-sentence boundary for `/v1/audio/speech/stream` WebSocket, or per-codec-frame for `stream: true` + `stream_format: "audio"` + `response_format` `pcm`/`wav` on `/v1/audio/speech` (`stream: true` alone sends OpenAI `speech.audio.*` SSE events).
+Sporadic silence gaps in streamed Qwen3-TTS audio (#2562) have no upstream fix — the issue was closed for inactivity. v0.16 (#1438) made streaming first-class for Qwen3-TTS. Chunk cadence is per-sentence boundary for `/v1/audio/speech/stream` WebSocket, or per-codec-frame for `stream: true` + `stream_format: "audio"` + `response_format` `pcm`/`wav` on `/v1/audio/speech` (`stream: true` alone sends OpenAI `speech.audio.*` SSE events).
 
 ### Batch TTS
 
-`POST /v1/audio/speech/batch` with `BatchSpeechRequest` (array of per-item requests). Returns `{"results": [{"success": bool, "audio_data": base64, "error": str}]}`.
+`POST /v1/audio/speech/batch` with `BatchSpeechRequest` (`{"items": [...]}`; request-level fields are per-item defaults). Returns `{"id", "results": [{"index", "status": "success"|"error", "audio_data": base64, "media_type", "error"}], "total", "succeeded", "failed"}` — check each item's `status`.
 
 Useful for large synthesis runs that don't require interactive streaming.
 
