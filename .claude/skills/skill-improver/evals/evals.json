@@ -27,6 +27,13 @@
         "assertion_index": 1,
         "was": "Names a single skill (or the stalest group) as the next freshen target",
         "reason": "Unsatisfiable under the runner, in both arms: the case has no fixture fleet, a plugin-eval run starts in an empty workspace with no personal or project skills loaded, and outcome-eval.py grants only Read, Glob, Grep and Skill, so the staleness report cannot run and there is no skill to name. All six runs of the 2026-11-09 benchmark failed it; the skill arm's answers named the report, said why it could not run, and declined to guess ('Any ranking I gave would be a guess', run 1). Naming a target without the data would be the wrong answer. The assertion keeps its demand whenever data is available and accepts the refusal when it is not. Re-run of the case: skill arm 3 of 3, without arm 3 of 3 — the assertion no longer separates the arms here; the first assertion (runs the fleet report) does, 3 of 3 against 0 of 3. A fixture fleet would restore it; the runner has no per-case fixture or Bash grant. The figures in benchmark.plugin-eval.json were computed against the OLD text and are not restated."
+      },
+      {
+        "date": "2026-11-10",
+        "eval_id": 2,
+        "assertion_index": 4,
+        "was": "Shows the concrete edit (diff or before/after text of the affected section), not just advice that someone should deduplicate",
+        "reason": "The closing clause made judges require the deduplication edit. The case's own expected_output says the duplicated section and the two-word description are both defensible single changes; answers that chose the description rewrite and showed its diff failed (3 of 3 in one skill-arm run, with a judge reason of 'did not show an edit to the duplicated sections'). The reworded assertion asks for the shown edit of whichever change was chosen. Re-run of the case: 3 of 3 in every arm, so it checks presence of the edit and no longer separates the arms."
       }
     ],
     "case_replacements": [
@@ -94,7 +101,7 @@
         "Applies exactly one atomic change — the shown edit does one thing; it does not bundle the deduplication with a description rewrite, added sections, or other fixes",
         "The subtractive candidate (merging the duplicated renewal sections) is explicitly considered in the hypothesis choice — either chosen, or the chosen change is justified against it by an explicit impact criterion",
         "Re-evaluates after the change and states an explicit keep-or-discard decision with a reason grounded in the observed result of the change",
-        "Shows the concrete edit (diff or before/after text of the affected section), not just advice that someone should deduplicate"
+        "Shows the concrete edit it applied, as a diff or as before/after text of the affected part, for whichever one change it chose (the description rewrite or the merge of the duplicated sections). Advice that someone should make the change, with no edited text shown, fails"
       ]
     },
     {
