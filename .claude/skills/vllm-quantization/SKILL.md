@@ -180,6 +180,12 @@ is right, the second is wrong. The order is:
    # EAGLE-3: '{"method":"eagle3","model":"<drafter-dir>"}'
 ```
 
+**v0.33.0+, drafter shares the target's lm_head (EAGLE / EAGLE-3 / MTP):** add
+`"draft_lm_head_quantization":"fp8"` (or `"nvfp4"`, weight-only) to
+`--speculative-config` instead of PTQ-ing the drafter head offline. Not for
+dflash or Gemma-4 MTP (rejected at startup). The target still verifies with its
+own head, so output is unchanged — measure acceptance length before and after.
+
 **Pick the drafter — state the pick, don't leave it to the user:**
 
 | Target | Pick | Reason |

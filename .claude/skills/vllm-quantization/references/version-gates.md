@@ -49,6 +49,7 @@ same commit; it is the final release, not an rc.
 Quantization:
 - [PR #61875](https://github.com/vllm-project/vllm/pull/61875) — Humming on SM90 runs a checkpoint's MXFP8 MoE activations (DeepSeek-V4 / V4.1 MXFP4 experts) as block FP8; an explicit `--quantization-config.moe.activation` wins ([#62751](https://github.com/vllm-project/vllm/pull/62751)).
 - [PR #60276](https://github.com/vllm-project/vllm/pull/60276) — online re-quantization extended from linear to MoE: serialized compressed-tensors / ModelOpt / Quark NVFP4 experts to any online MoE method.
+- [PR #59973](https://github.com/vllm-project/vllm/pull/59973) — `draft_lm_head_quantization` (`fp8` / `nvfp4`) in `--speculative-config`: quantized drafter copy of a shared target lm_head, EAGLE / EAGLE-3 / MTP, Model Runner V2.
 - [PR #63125](https://github.com/vllm-project/vllm/pull/63125) — Quark MXFP8 (W8A8) routed experts. [PR #51933](https://github.com/vllm-project/vllm/pull/51933) — `--linear-backend torch` for MXFP8 on XPU. [PR #50415](https://github.com/vllm-project/vllm/pull/50415) — MoNe expert-pruning checkpoints.
 - Batch invariance under `VLLM_BATCH_INVARIANT`: compressed-tensors W4A16/W8A16 linear ([#60524](https://github.com/vllm-project/vllm/pull/60524)), online FP8 MoE ([#57092](https://github.com/vllm-project/vllm/pull/57092)).
 
