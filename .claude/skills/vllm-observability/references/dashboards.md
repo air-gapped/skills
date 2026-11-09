@@ -115,9 +115,9 @@ Ray 2.51+ auto-exposes vLLM engine metrics through Ray's metrics endpoint (port 
 
 ## vLLM Performance Dashboard (release-engineering, not ops)
 
-`https://hud.pytorch.org/benchmark/llms?repoName=vllm-project/vllm` — nightly performance dashboard triggered every 4 hours by a PyTorch CI workflow. Runs on every PR tagged `perf-benchmarks + ready`.
+`https://hud.pytorch.org/benchmark/llms?repoName=vllm-project/vllm` — continuous benchmark dashboard. A PyTorch CI workflow runs serving, throughput and latency tests every 4 hours, on commits labelled both `perf-benchmarks` and `ready`, and on merge.
 
-Nightly comparisons: vLLM vs TGI vs TRT-LLM vs LMDeploy. Useful for operators only as a pre-upgrade sanity check ("is this release regressing on the workload shape I care about?"). Not for live production monitoring.
+It benchmarks vLLM builds only — there is no comparison against other engines. Use it as a pre-upgrade sanity check by comparing two release branches; the default 7-day view can be empty, so widen the time range. Not for live production monitoring.
 
 ## DCGM pairing — minimum viable GPU-side metrics
 
