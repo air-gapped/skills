@@ -31,6 +31,7 @@ T=/tmp/oc-ci-XXXXXX                                              # from stderr
 SID=$(jq -r .sessionID t.ndjson | head -1)
 ( export OPENCODE_TEST_HOME=$T HOME=$T XDG_CONFIG_HOME=$T/config XDG_DATA_HOME=$T/data \
     XDG_CACHE_HOME=$T/cache XDG_STATE_HOME=$T/state TMPDIR=$T/tmp OPENCODE_CONFIG_PROJECT_DISABLE=1
+  unset OPENCODE_DB OPENCODE_CONFIG OPENCODE_CONFIG_DIR
   cd "$WORKDIR" && opencode session export "$SID" --standalone </dev/null ) > session.json
 jq 'keys' session.json    # discover the shape before writing paths
 rm -rf "$T"

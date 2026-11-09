@@ -14,7 +14,7 @@ variant of the runner or checking that isolation held.
 | `OPENCODE_CONFIG_PROJECT_DISABLE=1` (+ `OPENCODE_DISABLE_PROJECT_CONFIG=1`) | | No `.opencode/` `.claude/` `.agents/` walk-up from the workdir |
 | `OPENCODE_DISABLE_MODELS_FETCH=1` | `--base-url` runs only | No catalog download; `--credential` runs need the catalog |
 | `OPENCODE_LOG_LEVEL=DEBUG` + `--print-logs` | | Server logs on stderr |
-| unset `OPENCODE_CONFIG`, `OPENCODE_CONFIG_DIR`, `OPENCODE_CONSOLE_TOKEN`, `OPENCODE_SERVER_URL`, `OPENCODE_PASSWORD` | | Caller overrides that bypass the scratch home |
+| unset `OPENCODE_DB`, `OPENCODE_CONFIG`, `OPENCODE_CONFIG_DIR`, `OPENCODE_PASSWORD`, `OPENCODE_SERVER_PASSWORD` | | Caller overrides that bypass the scratch home. `OPENCODE_DB` moves the database (sessions and credentials) out of `XDG_DATA_HOME` |
 | `cd "$WORKDIR"` | | `run` takes its project root from `$PWD` |
 | `</dev/null` when the prompt is an argument | | `run` appends any non-TTY stdin to the message |
 
@@ -61,6 +61,7 @@ SRC=${XDG_DATA_HOME:-$HOME/.local/share}/opencode/opencode.db   # resolve BEFORE
 export OPENCODE_TEST_HOME=$T HOME=$T XDG_CONFIG_HOME=$T/config XDG_DATA_HOME=$T/data \
   XDG_CACHE_HOME=$T/cache XDG_STATE_HOME=$T/state TMPDIR=$T/tmp OPENCODE_CONFIG_PROJECT_DISABLE=1 \
   OPENCODE_CONFIG_CONTENT='{"mcp":{},"plugin":[]}'
+unset OPENCODE_DB OPENCODE_CONFIG OPENCODE_CONFIG_DIR
 mkdir -p $T/{config,data,cache,state,tmp,wd}; cd $T/wd
 python3 -I ${CLAUDE_SKILL_DIR}/scripts/inject-credential.py "$SRC" INTEGRATION 1200 |
   opencode auth import --standalone

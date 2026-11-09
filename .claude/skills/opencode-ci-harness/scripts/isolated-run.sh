@@ -111,8 +111,9 @@ export OPENCODE_DISABLE_PROJECT_CONFIG=1
 # need the catalog to resolve their models.
 [[ -z "$CREDENTIAL" ]] && export OPENCODE_DISABLE_MODELS_FETCH=1
 export OPENCODE_LOG_LEVEL=DEBUG
-# Caller overrides that would bypass the scratch home.
-unset OPENCODE_CONSOLE_TOKEN OPENCODE_CONFIG OPENCODE_CONFIG_DIR OPENCODE_SERVER_URL OPENCODE_PASSWORD || true
+# Caller overrides that would bypass the scratch home. OPENCODE_DB relocates
+# the database (sessions and credentials) to wherever the caller pointed it.
+unset OPENCODE_DB OPENCODE_CONFIG OPENCODE_CONFIG_DIR OPENCODE_PASSWORD OPENCODE_SERVER_PASSWORD || true
 
 PROVIDER_ALIAS="${MODEL%%/*}"
 MODEL_ID="${MODEL#*/}"
