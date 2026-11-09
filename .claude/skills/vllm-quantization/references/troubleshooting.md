@@ -55,6 +55,7 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 | Qwen3-14b-AWQ PTX toolchain error v0.16.0 | — | [#36235](https://github.com/vllm-project/vllm/issues/36235) | Upgrade driver |
 | MemoryError loading AWQ/GPTQ v0.11.1+ | — | [#29762](https://github.com/vllm-project/vllm/issues/29762) | `parse_safetensors_file_metadata` regression |
 | ModelOpt Llama-4 load > 5 min | — | [#31624](https://github.com/vllm-project/vllm/issues/31624) | Open |
+| Startup `TypeError: Input tensor data type is not supported for NCCL process group: Float8_e8m0fnu`, or `EPLB communicator 'pynccl' requested but expert weights contain unsupported dtypes` | MXFP4 / MXFP8 experts with EPLB enabled, ≤ v0.32.x | Fixed [PR #61786](https://github.com/vllm-project/vllm/pull/61786) | Upgrade to v0.33.0, or run without EPLB |
 
 ## OOM / memory
 
