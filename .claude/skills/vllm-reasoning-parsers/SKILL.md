@@ -102,9 +102,10 @@ Routing (which family each name belongs to — `<think>` two-token, delegating w
 
 `references/writing-custom-parser.md` for the step-by-step. **A `ReasoningParser`
 subclass is the only shape an out-of-tree parser can take** — it is what
-`--reasoning-parser-plugin` loads (from v0.30.0 a plugin can also be discovered
-from site-packages entry points,
-[#45241](https://github.com/vllm-project/vllm/pull/45241)). 20 of the 42 names
+`--reasoning-parser-plugin` loads (from v0.30.0 the flag also takes an importable
+module name from site-packages, tried before the file path —
+[#45241](https://github.com/vllm-project/vllm/pull/45241); there is no
+entry-point discovery). 20 of the 42 names
 use it.
 
 The other two shapes are in-tree only (name lists: the matrix path table):
