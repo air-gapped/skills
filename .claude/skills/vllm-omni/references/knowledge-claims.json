@@ -8,7 +8,7 @@
     {
       "id": 0,
       "question": "What is the current stable version of vllm-omni and its release date?",
-      "skill_answer": "v0.26.0, released 2026-08-03, rebased on upstream vLLM 0.26.0"
+      "skill_answer": "v0.32.0, released 2026-10-28, aligned with upstream vLLM 0.32.0"
     },
     {
       "id": 1,
@@ -18,17 +18,17 @@
     {
       "id": 2,
       "question": "What is the minimum Python version required for vllm-omni?",
-      "skill_answer": "Python 3.12; 3.11 is not supported"
+      "skill_answer": "Python 3.11 on v0.32.0 (requires >=3.11,<3.14; v0.30.0 still accepted 3.10); use 3.12"
     },
     {
       "id": 3,
       "question": "What audio format does Qwen3-Omni's `/v1/realtime` endpoint require for input, and what does it output?",
-      "skill_answer": "16-bit PCM mono at 16 kHz in; PCM at 24 kHz out"
+      "skill_answer": "16-bit PCM mono in, at 24 kHz on v0.32.0 and 16 kHz through v0.30.0; PCM16 at 24 kHz out"
     },
     {
       "id": 4,
       "question": "What stage-config setting blocks a `/v1/realtime` WebSocket connection in vllm-omni?",
-      "skill_answer": "`async_chunk: true` \u2014 realtime rejects at connection time"
+      "skill_answer": "`async_chunk: true`, but only on v0.20.x and older; v0.22.0+ serves realtime with it on"
     },
     {
       "id": 5,
@@ -52,8 +52,8 @@
     },
     {
       "id": 9,
-      "question": "What is the hardcoded timeout for the `/v1/videos/sync` endpoint?",
-      "skill_answer": "About 1200 seconds; returns 504 past that"
+      "question": "What is the default timeout for the `/v1/videos/sync` endpoint?",
+      "skill_answer": "600 seconds, overridable with `VLLM_OMNI_VIDEO_SYNC_TIMEOUT` (v0.24.0+); returns 504 past that"
     }
   ]
 }
