@@ -134,7 +134,8 @@ v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02) and git tag `v0.33.0`; the 
 
 - [GB200 multi-node NCCL tuning](https://docs.nvidia.com/multi-node-nvlink-systems/multi-node-tuning-guide/nccl.html)
 - [NCCL env vars](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html)
-- [DCGM field IDs](https://docs.nvidia.com/datacenter/dcgm/latest/dcgm-api/dcgm-api-field-ids.html)
+- [DCGM field IDs](https://docs.nvidia.com/datacenter/dcgm/latest/dcgm-api/dcgm-api-field-ids.html) — lists the DCGM 4.7 names only (`DCGM_FI_PROF_SM_OCCUPANCY_RATIO` 1003, `DCGM_FI_PROF_TENSOR_UTIL_RATIO` 1004); the pre-4.6 names survive as deprecated aliases in `NVIDIA/DCGM` `dcgmlib/dcgm_fields.h` (renamed between tags v4.5.3 and v4.6.0)
+- `NVIDIA/dcgm-exporter` `etc/default-counters.csv` at tags `4.8.4` and `4.9.0` — exported metric names, units, and which rows ship commented out; [4.9.0 release](https://github.com/NVIDIA/dcgm-exporter/releases/tag/4.9.0), published 2026-11-06, ships DCGM 4.7.0: "renames default metrics and labels, changes some units"
 
 ## MLCommons / MLPerf
 

@@ -57,7 +57,7 @@ From Red Hat's 5-step triage ([2026-03-09](https://developers.redhat.com/article
 | Preemptions climbing | KV thrashing | raise `--watermark`, lower `--max-num-seqs`, or add replicas (`--swap-space` is gone — V1 always recomputes) |
 | `num_running` < configured concurrency | scheduler stall | check async-sched blockers, multimodal path, structured output |
 
-**DCGM signals** (not `GPU_UTIL`): `DCGM_FI_PROF_SM_OCCUPANCY`, `DCGM_FI_PROF_PIPE_TENSOR_ACTIVE`. Low tensor-core active on a GEMM-bound workload = memory-bound.
+**DCGM signals** (not `GPU_UTIL`): `DCGM_FI_PROF_SM_OCCUPANCY`, `DCGM_FI_PROF_PIPE_TENSOR_ACTIVE`. Low tensor-core active on a GEMM-bound workload = memory-bound. dcgm-exporter ≥ 4.9.0 exports these as `DCGM_FI_PROF_SM_OCCUPANCY_RATIO` / `DCGM_FI_PROF_TENSOR_UTIL_RATIO`, and SM occupancy is commented out of the default counters file on every version — name map in `references/distributed.md` §DCGM.
 
 ## Quick-answer router
 

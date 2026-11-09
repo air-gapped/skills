@@ -66,14 +66,17 @@ EFA installer bundles NCCL-OFI-plugin; works transparently with NCCL ≥2.18. IB
 
 Source: [DCGM field IDs](https://docs.nvidia.com/datacenter/dcgm/latest/dcgm-api/dcgm-api-field-ids.html).
 
-| Field | Meaning | Action |
-|---|---|---|
-| `DCGM_FI_PROF_SM_OCCUPANCY` | Ratio of resident warps per SM | **The real saturation signal, not `GPU_UTIL`** |
-| `DCGM_FI_PROF_SM_ACTIVE` × `DCGM_FI_PROF_GR_ENGINE_ACTIVE` | % SMs in use when GPU active | Low + high GPU_UTIL = lots of idle SMs |
-| `DCGM_FI_PROF_PIPE_TENSOR_ACTIVE` | TensorCore activity | Low on GEMM-bound workload = memory-bound |
-| `DCGM_FI_DEV_POWER_USAGE` | Draw watts | Rack-level health |
-| `DCGM_FI_DEV_GPU_TEMP` | °C | Thermal throttling risk |
-| `DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL` | NVLink GB/s | Bottleneck check for MoE all-to-all |
+Metric names depend on the dcgm-exporter version: **4.9.0 (ships DCGM 4.7) renamed the default and profiling metrics and changed some units.** Check which set the cluster exports before writing a query or alert; a dashboard built on one set shows no data on the other.
+
+| dcgm-exporter ≤ 4.8.x | dcgm-exporter ≥ 4.9.0 | Meaning | Action |
+|---|---|---|---|
+| `DCGM_FI_PROF_SM_OCCUPANCY` | `DCGM_FI_PROF_SM_OCCUPANCY_RATIO` | Ratio of resident warps per SM | **The real saturation signal, not GPU util.** Commented out in the shipped `default-counters.csv` on both — uncomment it to collect |
+| `DCGM_FI_PROF_SM_ACTIVE` × `DCGM_FI_PROF_GR_ENGINE_ACTIVE` | `DCGM_FI_PROF_SM_UTIL_RATIO` × `DCGM_FI_PROF_GR_ENGINE_UTIL_RATIO` | Share of SMs in use while the GPU is active | Low with high GPU util = many idle SMs. The SM row is also commented out by default |
+| `DCGM_FI_PROF_PIPE_TENSOR_ACTIVE` | `DCGM_FI_PROF_TENSOR_UTIL_RATIO` | TensorCore activity | Low on GEMM-bound workload = memory-bound |
+| `DCGM_FI_DEV_GPU_UTIL` (percent) | `DCGM_FI_DEV_GPU_UTIL_RATIO` (0–1) | Any kernel running | Misleading for saturation; rescale thresholds by 100 across the rename |
+| `DCGM_FI_DEV_POWER_USAGE` | `DCGM_FI_DEV_BOARD_POWER_WATTS` | Draw watts | Rack-level health |
+| `DCGM_FI_DEV_GPU_TEMP` | `DCGM_FI_DEV_GPU_TEMP_CELSIUS` | °C | Thermal throttling risk |
+| `DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL` (MB/s) | `DCGM_FI_DEV_NVLINK_THROUGHPUT_BYTES_PER_SECOND` (bytes/s) | NVLink throughput, all lanes | Bottleneck check for MoE all-to-all |
 
 **DCGM exporter + vLLM Prometheus + Grafana** = the standard pattern. See `vllm-observability` for dashboard setup.
 
