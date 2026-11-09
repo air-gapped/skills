@@ -2,12 +2,6 @@
 
 ## Open
 
-### v0.32.0 LMCache MP adapter import — re-run step 2 on a GPU node (added 2026-10-18)
-
-Dim 9. File-set: SKILL.md § Version gates (bundling row) + § Two-step bundling verification, sources.md row "v0.32.0 runtime imports".
-
-**Blocked on:** a host with the NVIDIA driver and container runtime. `verify-bundling.sh v0.32.0` ran on a GPU-less host: every package imports and all four KV-offload connectors load, but the MP adapter classes fail with `ImportError: libcuda.so.1`. Re-run with the GPU visible. If it passes, change the bundling row to "full pass on v0.32.0". If it still fails, the image is broken for `LMCacheMPConnector`; say so in the row.
-
 ### Hybrid-attention live-lab matrix — runtime re-run on a current image (carried 2026-10-18)
 
 Dim 5 / Dim 9. File-set: SKILL.md § Hybrid models + sources.md.

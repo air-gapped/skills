@@ -36,9 +36,9 @@ Confirm the vLLM version before recommending any config.
 
 Latest stable: **v0.33.0** (2026-11-02). Its GitHub Release object hangs on the tag `v0.33.0rc3`, so `gh release view v0.33.0` 404s and `gh release list` shows an rc as latest — the `v0.33.0` git tag, PyPI `0.33.0` and the `vllm/vllm-openai:v0.33.0` image are the release. Confirm the deployed tag before recommending a config; per-tag evidence lives in `references/sources.md`.
 
-| Question | Answer at v0.32.0 | Action |
+| Question | Answer at v0.33.0 | Action |
 |---|---|---|
-| Does the image bundle LMCache / NIXL / Mooncake? | Build flag `INSTALL_KV_CONNECTORS=true` confirmed on `v0.14.0`+, `v0.19.0`, `v0.19.0-cu130`, `v0.20.x`–`v0.27.x`, `v0.29.0`, `v0.32.0`, `v0.32.0-cu129`, model tags like `glm51-cu130`. Runtime imports: full pass on `v0.29.0`; on `v0.32.0` every package imports and all four KV-offload connectors load, MP adapter step unverified (see step 2). | Run the two-step check below on the exact tag before production. `v0.28.x`–`v0.31.x` are unverified, not known-bad. |
+| Does the image bundle LMCache / NIXL / Mooncake? | Build flag `INSTALL_KV_CONNECTORS=true` confirmed on `v0.14.0`+, `v0.19.0`, `v0.19.0-cu130`, `v0.20.x`–`v0.27.x`, `v0.29.0`, `v0.32.0`, `v0.32.0-cu129`, `v0.33.0`, `v0.33.0-efa`, model tags like `glm51-cu130`. Runtime imports: full pass on `v0.29.0`, `v0.32.0` and `v0.33.0` (the last two ship lmcache 0.5.6, nixl 1.5.0). | Run the two-step check below on the exact tag before production. `v0.28.0`, `v0.30.0` and `v0.31.0` are unverified, not known-bad. |
 | Is the tag safe to run? | Bundled ≠ safe. Floor **v0.22.0** (CVE-2026-48746, `--api-key` bypass via `Host:` header). **v0.14.1** (CVE-2026-22778, pre-auth RCE, video models only). | Run ≥ v0.22.0. `v0.14.0`, `v0.19.0`, `v0.19.0-cu130` bundle correctly but sit below the floor. Detail: `vllm-configuration` § Server auth. |
 | CUDA 12 (`-cu129`) tag? | None from v0.33.0: wheels and images are CUDA 13.0 only (#62575). The v0.31.0–v0.32.0 `-cu129` images pin `lmcache == 0.4.4`, `nixl == 1.4.1`. | Use the CUDA 13 tag. Never serve LMCache from a `-cu129` image: 0.4.4 is below the lmcache 0.5.6 security floor and too old for MP on a hybrid model. |
 | Installing a NIXL or LMCache wheel by hand? | At v0.33.0 `requirements/kv_connectors.txt` pins `nixl == 1.5.0` exactly, `lmcache >= 0.5.6` (`>= 0.3.9` through v0.32.0), `mooncake-transfer-engine >= 0.3.12`, `cupy-cuda13x != 14.1.0`. From v0.33.0 NixlConnector raises `RuntimeError: NIXL >= 1.5.0 is required` on an older wheel (#61032). | Match the pin of the tag in use: read `requirements/kv_connectors.txt` at that tag (v0.30.0–v0.31.0 pin `nixl == 1.4.1`). `ImportError: libcudart.so.12` importing `nixl_ep` on a CUDA 13 image = dual-wheel build bug, fixed in v0.22.1. |
@@ -62,11 +62,11 @@ Prints `LMCache/NIXL/Mooncake: YES (built with INSTALL_KV_CONNECTORS=true)` if t
 ~/.claude/skills/lmcache-mp/scripts/verify-bundling.sh <tag>
 ```
 
-Starts a sleep-overridden container, exec's a Python probe that confirms `lmcache`, `nixl`, `mooncake` import cleanly; checks the LMCache MP adapter classes and the `ParallelStrategy` version-hazard symbol; lists all registered KV connectors; loads each connector class through the factory's own thunk. Exit 0 = the connectors are usable on that tag (bundling only; the security floor is separate). The four connectors it loads are the KV-offload set; the factory registers more (16 at v0.29.0), and its list is the only place the rest appear.
+Starts a sleep-overridden container, exec's a Python probe that confirms `lmcache`, `nixl`, `mooncake` import cleanly; checks the LMCache MP adapter classes and the `ParallelStrategy` version-hazard symbol; lists all registered KV connectors; loads each connector class through the factory's own thunk. Exit 0 = the connectors are usable on that tag (bundling only; the security floor is separate). The four connectors it loads are the KV-offload set; the factory registers more (17 at v0.33.0), and its list is the only place the rest appear.
 
 **lmcache version compatibility:** vLLM main imports `ParallelStrategy` from the lmcache MP adapter. The symbol was added in lmcache 0.4.4 and is absent in 0.4.3 (verified against the v0.4.3 tag), so images built around that era raise `ImportError: cannot import name 'ParallelStrategy'` when their bundled lmcache is mixed with vLLM main. The v0.29.0 image ships 0.5.4 and the symbol is present — the hazard is now confined to pinning an older image, not to the current one. Fix by pinning the pair or `pip install -U lmcache>=0.4.4` inside the container.
 
-**Run step 2 on a GPU node.** With lmcache 0.5.6 (the `v0.32.0` image) the MP adapter classes load `libcuda.so.1` at import, so on a host or container without the NVIDIA driver the script prints `MP adapter classes FAIL  ImportError: libcuda.so.1` and exits 1 although every package imports. Treat that line alone as a probe-environment failure, not a bundling failure.
+**Step 2 needs no GPU.** With lmcache 0.5.6+ the first MP-adapter import fails on `libcuda.so.1` where the NVIDIA driver is absent; the script retries once and prints `OK  (retried: …)`. A remaining `MP adapter classes FAIL` line is a real bundling failure.
 
 For other diagnostics (LMCache logs, `gdscheck`, Prometheus metrics), see `references/diagnostics.md`.
 
@@ -110,7 +110,7 @@ If an SGLang config was 200 GB per GPU × 8 GPUs = 1600 GB, then on vLLM use `--
 
 **This changed in v0.23.0 (#41847) and the old advice is now actively harmful.** `disable_hybrid_kv_cache_manager` is tri-state, defaulting to `None` (auto): vLLM turns HMA off by itself, with a warning, only when the selected connector does not subclass `SupportsHMA`. Passing the flag by reflex on a modern build costs hybrid-model support and sliding-window performance for nothing.
 
-Which connectors declare `SupportsHMA` at v0.32.0 (re-verified 2026-10-18 against `kv_connector/v1/base.py` and the connector classes; `HiSparseConnector`, `MoRIIOConnector` and `SimpleCPUOffloadConnector` also declare it):
+Which connectors declare `SupportsHMA` at v0.33.0 (`HiSparseConnector`, `MoRIIOConnector` and `SimpleCPUOffloadConnector` also declare it):
 
 | Connector | `SupportsHMA`? | Consequence |
 |---|---|---|
@@ -134,7 +134,7 @@ If a deploy still hits that error on v0.23.0+, the cause is a connector genuinel
 
 Pick in this order: native offload → native multi-tier (disk/object tier) → LMCache MP → never the in-process `LMCacheConnectorV1`.
 
-| Path | Status at v0.32.0 | Action |
+| Path | Status at v0.33.0 | Action |
 |---|---|---|
 | Native offload (`OffloadingConnector`) | Works from v0.21.0; HMA on by default from v0.23.0 | Serve with `--kv-offloading-size` and no HMA flag. Do NOT apply the old Gemma-4 + spec-decode workaround (disable HMA + shrink `--max-model-len`): the 0% hit-rate bug (vLLM#40624) is fixed and the workaround now costs performance. |
 | LMCache MP (`LMCacheMPConnector`, lmcache ≥ 0.5.6 — 0.3.9–0.5.5 have an unauthenticated RCE over the MP transport) | Supported; upstream recipes for Gemma 3/4, gpt-oss, Qwen3.5/3.6, DeepSeek-V4-Flash, GLM 5.1/5.2, MiniMax-M3 | Use when a hybrid needs an LMCache tier. Needs a CUDA 13 image (`-cu129` bundles lmcache 0.4.4). Detail: `lmcache-mp`. |
@@ -158,7 +158,7 @@ Recheck the hybrid state at a new tag:
 ```bash
 gh issue view 3106 --repo LMCache/LMCache --json state,updatedAt   # LMCacheConnectorV1 hybrid block
 # which connectors declare HMA support at a given tag:
-git -C <vllm-clone> grep -n "SupportsHMA)" v0.32.0 -- vllm/distributed/kv_transfer/kv_connector/v1/
+git -C <vllm-clone> grep -n "SupportsHMA)" v0.33.0 -- vllm/distributed/kv_transfer/kv_connector/v1/
 ```
 
 ### `--cpu-offload-gb` is NOT the same as `--kv-offloading-size`
@@ -192,7 +192,7 @@ Check in order, most common first:
 
 1. **Concurrency is already at the memory wall, not the cache.** On an 8× H200 with a 300–500 GB weight footprint serving 200k+ contexts, 1–2 live slots is physics — compute jumped ~6× over the previous generation but memory bandwidth only ~1.6×. Adding offload doesn't raise live concurrency; it raises the *warm-set* size (sessions that skip re-prefill on return). Confirm the expectation is "more warm sessions," not "more simultaneous running."
 2. **Hit rate is low.** No prefix reuse in the workload → offload gains nothing. Check `prefix_cache_hits_total` / `prefix_cache_queries_total`. Non-agentic, non-RAG traffic often has low prefix locality.
-3. **Prefix caching is off.** It is on by default (`enable_prefix_caching: bool = True` in `vllm/config/cache.py` at v0.32.0); check the serve args for `--no-enable-prefix-caching`. With it off, offload has nothing to hit against.
+3. **Prefix caching is off.** It is on by default (`enable_prefix_caching: bool = True` in `vllm/config/cache.py` at v0.33.0); check the serve args for `--no-enable-prefix-caching`. With it off, offload has nothing to hit against.
 4. **Flag sized as per-GPU (SGLang habit).** Check `vllm:cache_config_info` — the number reported is what vLLM actually allocated. If it's 1/TP of what was expected, this is the cause.
 5. **Cold cache.** First N requests pay full prefill cost while filling the cache. Measure steady-state, not ramp-up.
 6. **Max context set higher than needed.** If `--max-model-len` is 200k but typical requests are 8k, the scheduler reserves capacity for 200k; effective concurrency is starved. Tune `--max-model-len` to the 95th or 99th percentile of real traffic, not the theoretical maximum.
@@ -281,7 +281,7 @@ The recipe is finished only when every item holds for the exact tag deployed:
 ## External references
 
 - vLLM source: `vllm/v1/kv_offload/` (native), `vllm/distributed/kv_transfer/kv_connector/v1/` (all connectors), `requirements/kv_connectors.txt` (bundled backend pins)
-- `docs/features/disagg_prefill.md` — overview of the disaggregation connector types (the doc says 9 at v0.32.0)
+- `docs/features/disagg_prefill.md` — overview of the disaggregation connector types (the doc says 9 at v0.33.0)
 - LMCache config reference: https://docs.lmcache.ai/api_reference/configurations.html
 - NVIDIA GPU Operator GDS: https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-rdma.html
 

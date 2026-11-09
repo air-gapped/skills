@@ -67,7 +67,7 @@ vllm:external_prefix_cache_hits_total
 
 ### `vllm:kv_offload_*` — the offload tier's own gauges (v0.26.0+)
 
-The native offloading path publishes its own family, so you no longer have to infer tier health from the log line alone. Names verified at tag v0.32.0 in `vllm/v1/kv_offload/cpu/common.py`, `tiering/base.py` and `vllm/v1/metrics/loggers.py`; the family has more members than listed (load/store bytes and times, promotion/cascade job counters) — `grep vllm:kv_offload_` on `/metrics` for the full set:
+The native offloading path publishes its own family, so you no longer have to infer tier health from the log line alone. Names present at tag v0.33.0 in `vllm/v1/kv_offload/cpu/common.py`, `tiering/base.py` and `vllm/v1/metrics/loggers.py`; the family has more members than listed (load/store bytes and times, promotion/cascade job counters) — `grep vllm:kv_offload_` on `/metrics` for the full set:
 
 ```
 vllm:kv_offload_stores_skipped                     # v0.25.x and earlier too
