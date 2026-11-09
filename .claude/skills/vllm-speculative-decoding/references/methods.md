@@ -34,6 +34,9 @@ own history, returns the tokens that followed the match.
   divided by TP size, L48-51). Pre-triggers JIT with a 1024-length dummy seq
   on engine start (L57).
 - No attention-backend dependency, no draft-model load, no draft-VRAM.
+- Turns async scheduling off on every build before v0.33.0 (a V1-runner limit
+  that v0.32.x still applied after `ngram` moved to MRV2; explicit
+  `--async-scheduling` is a `ValueError` there). `ngram_gpu` keeps it on.
 - Good on repetitive prompts (JSON emission, code with boilerplate, agents
   retrying similar queries). Dies on open-ended chat — expected AL 1.3–2.0.
 

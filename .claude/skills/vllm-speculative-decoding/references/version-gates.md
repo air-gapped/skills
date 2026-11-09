@@ -49,6 +49,7 @@ build older than a row that applies, upgrade before benchmarking or debugging.
 | DFlash / DSpark draft slots no longer charged to the scheduler token budget (#59468) | **v0.33.0** | Before: each request reserved K (DFlash) or K − 1 (DSpark) tokens of `--max-num-batched-tokens`. After: 0, with running requests capped at `max_num_batched_tokens // num_lookahead_tokens` |
 | Quantized draft `lm_head` (#59973) | **v0.33.0** | `draft_lm_head_quantization: "fp8" \| "nvfp4"` for `eagle` / `eagle3` / `mtp` on MRV2; decode gain at low concurrency, acceptance length is the only thing that can change |
 | Prefix-cache hits keep their last block under spec-dec: lookahead block hashes for `eagle`/`eagle3`/`mtp` (#61589), no drop for `dflash`/`dspark` (#54163) | **v0.33.0** | Before: one cache unit lost per hit (full-context recompute on hybrid Mamba targets with DFlash/DSpark). Lookahead hashes change block hashes — off with any KV connector, or via `disable_lookahead_block_hashes: true` |
+| Async scheduling kept for `ngram` (and `disable_padded_drafter_batch`) on MRV2 (#62521) | **v0.33.0** | v0.32.x moved `ngram` to MRV2 but still forced async scheduling off for it; the fallbacks are now V1-runner-only |
 
 ## Composability history
 
