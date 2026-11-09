@@ -240,7 +240,7 @@ implications:
 | `VLLM_ENGINE_READY_TIMEOUT_S` | 600 | Raise if cold load > 10 min (405B FP8 from slow PVC) |
 | `VLLM_RPC_TIMEOUT` | removed (v0.23.0, #44128) | Delete from manifests — it has no effect |
 | `VLLM_NCCL_SO_PATH` | auto | Only for custom NCCL builds |
-| `VLLM_USE_RAY_COMPILED_DAG_CHANNEL_TYPE` | `auto` | `nccl` on IB clusters, `shm` on single-node multi-GPU |
+| `VLLM_USE_RAY_COMPILED_DAG_CHANNEL_TYPE` and the other `VLLM_USE_RAY_*` vars | removed (v0.33.0, #61712) | Delete from manifests — they have no effect |
 | `VLLM_CACHE_ROOT` | `~/.cache/vllm` | Arbitrary-UID images only — point at a mounted path (see §Compile-cache survival) |
 | `HF_HOME` | `~/.cache/huggingface` | Point at PVC mount for pre-warmed cache |
 | `HF_HUB_OFFLINE` | unset | Set `1` in air-gapped; see `vllm-configuration` skill |

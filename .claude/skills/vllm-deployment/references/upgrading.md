@@ -8,6 +8,11 @@ its rollout plan:
   `-ubuntu2404` tag has no v0.33.0 tag to roll to and fails with
   `ImagePullBackOff`. Switch to the plain tag once the node driver supports
   CUDA 13.0; otherwise hold at `v0.32.0-cu129`.
+- **Ray tuning env vars are removed** (#61712, #62228, v0.33.0):
+  `VLLM_USE_RAY_COMPILED_DAG_CHANNEL_TYPE`, `VLLM_USE_RAY_COMPILED_DAG_OVERLAP_COMM`,
+  `VLLM_USE_RAY_WRAPPED_PP_COMM` and `VLLM_USE_RAY_V2_EXECUTOR_BACKEND` went with
+  the legacy compiled-graph executor. A manifest still setting them silently
+  does nothing; `--distributed-executor-backend ray` always runs `RayExecutorV2`.
 - **CORS is closed by default** (#61009, v0.32.0): `--allowed-origins` now
   defaults to `[]`, so a browser front end calling vLLM directly gets CORS
   errors after the upgrade. Set `--allowed-origins '["https://ui.example"]'`;
