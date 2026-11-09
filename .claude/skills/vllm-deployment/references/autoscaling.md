@@ -124,7 +124,7 @@ saturation, token backlog or estimated latency — with a KEDA-owned HPA, plus K
 replicas compete for an accelerator quota.
 
 - On llm-d, write a KEDA `ScaledObject` on EPP metrics; do not adopt WVA for new deployments.
-- Existing WVA installs: follow llm-d's *Migrating off WVA* doc (`docs/architecture/advanced/autoscaling/wva.md`).
+- Existing WVA installs: follow llm-d's *Migrating off WVA* doc (`docs/architecture/autoscaling/wva.md` at v1.0.0).
 - Off llm-d, KEDA on `vllm:num_requests_waiting` as above.
 
 ## KServe / OpenShift AI autoscaling

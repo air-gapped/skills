@@ -59,13 +59,13 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 ### llm-d
 
 - **Repo / site**: https://github.com/llm-d/llm-d · https://llm-d.ai/
-- **Version**: **v0.10.0** (2026-09-29) — base image `vllm/vllm-openai:v0.30.0`, GAIE CRDs still **v1.5.0**, LWS 0.11.0. `ghcr.io/llm-d/llm-d-cuda` is **deprecated in favour of `docker.io/vllm/vllm-openai`**; WVA deprecated (KEDA on EPP metrics instead — `references/autoscaling.md`); `llm-d-kv-cache` merged into `llm-d-router`. Release notes carry a per-component version table — read it rather than assuming the umbrella tag applies to every sub-component
+- **Version**: **v1.0.0** (2026-10-20) — all llm-d components now share the v1.0.0 version; router configuration API is `v1`. Pins `vllm/vllm-openai:v0.30.0` (other accelerators differ), GAIE CRDs **v1.6.2**, LWS **v1.0.0**. P/D guides run prefill/decode as an LWS `DisaggregatedSet`: LWS ≥ v0.11.1 installed with `enableDisaggregatedSet=true`, or they break. llm-d's own `llm-d-cuda` and `llm-d-rocm` images are deprecated in favour of upstream vLLM images; WVA deprecated (KEDA on EPP metrics instead — `references/autoscaling.md`). Release notes carry the model-server image per accelerator — read the table rather than assuming one vLLM tag
 - **Maintainer / license**: Red Hat + Google Cloud + IBM + NVIDIA + CoreWeave · Apache-2.0
 - **CNCF status**: Sandbox as of Mar 2026 (https://www.cncf.io/blog/2026/03/24/welcome-llm-d-to-the-cncf-evolving-kubernetes-into-sota-ai-infrastructure/)
 - **Role**: K8s-native distributed vLLM orchestrator. Inference scheduler (P/D-aware, KV-aware, SLA-aware, load-aware). "The orchestrator to vLLM's engine."
 - **Architecture**: https://llm-d.ai/docs/architecture
 - **Current shape**: Helm chart (https://github.com/llm-d-incubation/llm-d-modelservice). The old CRD-operator `llm-d/llm-d-model-service` is **deprecated** (consolidation mid-2025).
-- **Deployer**: https://github.com/llm-d/llm-d-deployer
+- **Install path**: the `guides/` tree in `llm-d/llm-d` (`llm-d/llm-d-deployer` and `llm-d-incubation/llm-d-infra` are archived — do not start from them)
 - **GAIE integration**: Native. Uses upstream `InferencePool`; the full-featured Endpoint Picker (EPP) now lives in llm-d (moved from GAIE in v1.6.0) and plugs into Envoy/Istio/kgateway.
 - **Pick when**: Disagg P/D is first-class; KV-aware routing, HA, and GAIE-native gateway needed without assembling three projects.
 - **Key blog posts**:
@@ -120,7 +120,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 
 - **Site**: https://gateway-api-inference-extension.sigs.k8s.io/
 - **Repo**: https://github.com/kubernetes-sigs/gateway-api-inference-extension
-- **Status**: v1 `InferencePool` **GA** (Sept 2025); latest **v1.6.2** (2026-09-17). v1.6.0 moved the full EPP, Body-Based Routing and the latency predictor to llm-d, removed the alpha `InferenceObjective` / `InferenceModelRewrite` / `EndpointPickerConfig`, and made `InferencePool.spec.endpointPickerRef` optional. llm-d v0.10.0 still pins GAIE v1.5.0 CRDs — check both sides before mixing versions
+- **Status**: v1 `InferencePool` **GA** (Sept 2025); latest **v1.6.2** (2026-09-17). v1.6.0 moved the full EPP, Body-Based Routing and the latency predictor to llm-d, removed the alpha `InferenceObjective` / `InferenceModelRewrite` / `EndpointPickerConfig`, and made `InferencePool.spec.endpointPickerRef` optional. llm-d v1.0.0 pins GAIE v1.6.2 CRDs; llm-d ≤ v0.10.0 pins v1.5.0 — check both sides before mixing versions
 - **Maintainer / license**: K8s SIG-Network · Apache-2.0
 - **CRDs**: `InferencePool` (v1) + alpha `InferencePoolImport`. `InferenceModel` is gone (v1.0). Endpoint Picker (EPP) is the ext_proc gRPC server that picks the endpoint; GAIE itself now ships only the conformance `lwepp`.
 - **Implementers**: llm-d, Agent Router (formerly Envoy AI Gateway), kgateway, Istio 1.28+, NGINX Gateway Fabric
