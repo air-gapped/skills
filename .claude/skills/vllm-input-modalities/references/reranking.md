@@ -175,6 +175,15 @@ v0.31.0** (#57666). For non-separator rerankers (e.g. Qwen3-Reranker and its
 Separator-based cross-encoders (BGE-reranker) were unaffected. Re-score if an
 older engine ranked with this field set.
 
+**HTTP 500 with `max_tokens_per_doc` on BERT-style cross-encoders — below
+v0.33.0** (#61871). When the query alone fills the token limit
+(`truncate_prompt_tokens` at or below the query length, or a query longer than
+the model context), `/rerank` and `/score` fail with `Truncation error:
+Sequence to truncate too short to respect the provided max_length`. v0.33.0
+truncates the query as usual, or returns the normal 400 "maximum context
+length". On older engines drop `max_tokens_per_doc` for long-query
+("find similar") requests.
+
 ### `/score`
 
 ```python
