@@ -52,8 +52,8 @@ allocated even when the flag was accepted.
 ### async-scheduling compatibility
 
 Incompatible-or-fragile paths:
-- Structured outputs — fixed in [#26866](https://github.com/vllm-project/vllm/issues/26866)
-- Spec-dec — fixed in [#24799](https://github.com/vllm-project/vllm/issues/24799), [#29821](https://github.com/vllm-project/vllm/issues/29821)
+- Structured outputs — fixed in [#26866](https://github.com/vllm-project/vllm/pull/26866)
+- Spec-dec — fixed in [#24799](https://github.com/vllm-project/vllm/pull/24799), [#29821](https://github.com/vllm-project/vllm/pull/29821)
 - Pipeline parallelism — umbrella tracker [#27679](https://github.com/vllm-project/vllm/issues/27679) closed 2025-12-29, sub-PRs merged. Model Runner V1 + PP>1 still auto-disables async scheduling; forcing it on there with structured output is rejected at startup (v0.31.0+)
 - Spec-dec methods other than EAGLE/MTP/draft-model/GPU n-gram/DSpark/DFlash, or `disable_padded_drafter_batch=True`, auto-disable it (hard error if forced on) — on Model Runner V1 only from v0.33.0 (#62521); on ≤ v0.32.0 on both runners
 - Pooling models default it off

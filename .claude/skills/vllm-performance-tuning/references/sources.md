@@ -172,11 +172,11 @@ v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02) and git tag `v0.33.0`; the 
 
 ### Async-scheduling status (states re-probed 2026-10-18)
 - [#27679](https://github.com/vllm-project/vllm/issues/27679) — Async Scheduling Plan (umbrella tracker, PP/struct-out/spec-dec/MM) — **CLOSED 2025-12-29** (all sub-PRs merged)
-- [#27614](https://github.com/vllm-project/vllm/issues) — default-on landing
-- [#28250](https://github.com/vllm-project/vllm/issues) — follow-up
-- [#26866](https://github.com/vllm-project/vllm/issues) — structured-output fix
-- [#24799](https://github.com/vllm-project/vllm/issues) — spec-dec fix
-- [#29821](https://github.com/vllm-project/vllm/issues) — spec-dec follow-up
+- [#27614](https://github.com/vllm-project/vllm/pull/27614) — PR "[Core] Enable async scheduling by default" — **MERGED 2025-12-29**
+- [#28250](https://github.com/vllm-project/vllm/pull/28250) — PR "[Core] Rework handling of async scheduling config" — **MERGED 2025-11-07**
+- [#26866](https://github.com/vllm-project/vllm/pull/26866) — PR "[Core] Async scheduling + structured outputs compatibility" — **MERGED 2025-11-01**
+- [#24799](https://github.com/vllm-project/vllm/pull/24799) — PR "[Core] Async Scheduling X Spec Decoding Compatibility" — **MERGED 2025-11-17**
+- [#29821](https://github.com/vllm-project/vllm/pull/29821) — PR "[Perf] Async Scheduling + Speculative Decoding + Structured Outputs" — **MERGED 2026-01-06**
 - [#31679](https://github.com/vllm-project/vllm/issues/31679) — multimodal (Qwen3-VL) — **CLOSED 2026-01-07**
 - [#63549](https://github.com/vllm-project/vllm/issues/63549) — async scheduling + preemption crashes Model Runner V1 with `KeyError all_token_ids[req_id]` — **OPEN** (opened 2026-10-25). Reported on v0.30.0; the thread traces the lookup to #27756 (first release v0.11.1) and scopes it to the V1 worker; `--no-async-scheduling` is the reporter's control. V1 removal is merged on `main` ([PR #63373](https://github.com/vllm-project/vllm/pull/63373), 2026-11-07) and in no release
 

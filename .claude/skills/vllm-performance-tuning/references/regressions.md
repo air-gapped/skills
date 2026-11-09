@@ -149,12 +149,12 @@ allreduce-fusion detail.
 ### async-scheduling default-on timeline
 
 PRs to know:
-- [#27614](https://github.com/vllm-project/vllm/issues/27614) — default-on landing
-- [#28250](https://github.com/vllm-project/vllm/issues/28250) — follow-up fixes
+- [#27614](https://github.com/vllm-project/vllm/pull/27614) — default-on landing
+- [#28250](https://github.com/vllm-project/vllm/pull/28250) — follow-up fixes
 - [#27679](https://github.com/vllm-project/vllm/issues/27679) — Async Scheduling umbrella tracker (PP, struct-out, spec-dec, MM) — **CLOSED 2025-12-29**, all sub-PRs merged. Verified 2026-04-24.
 - [#31679](https://github.com/vllm-project/vllm/issues/31679) — Qwen3-VL + async-sched — **CLOSED 2026-01-07**.
 
-For deployments mixing spec-dec + async-sched with post-upgrade perf drop, verify [#24799](https://github.com/vllm-project/vllm/issues/24799) and [#29821](https://github.com/vllm-project/vllm/issues/29821) fixes landed in the running version.
+For deployments mixing spec-dec + async-sched with post-upgrade perf drop, verify [#24799](https://github.com/vllm-project/vllm/pull/24799) and [#29821](https://github.com/vllm-project/vllm/pull/29821) fixes landed in the running version.
 
 ## Execution-path changes by minor, v0.22.0 → v0.32.0
 
