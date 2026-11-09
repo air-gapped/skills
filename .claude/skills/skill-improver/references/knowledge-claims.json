@@ -16,7 +16,7 @@
     {
       "id": 1,
       "question": "How many runs per query does skill-creator's trigger eval use for decisions?",
-      "skill_answer": "7 runs per query"
+      "skill_answer": "3 runs per query (skill-improver's own trigger mode decides on 7)"
     },
     {
       "id": 2,
@@ -27,11 +27,6 @@
       "id": 3,
       "question": "What is the minimum Claude Code version for dynamic workflows (the Workflow tool)?",
       "skill_answer": "v2.1.154"
-    },
-    {
-      "id": 4,
-      "question": "Which Claude models support Claude Code dynamic workflows?",
-      "skill_answer": "Fable 5 / Opus 5"
     },
     {
       "id": 5,
@@ -96,7 +91,7 @@
     {
       "id": 17,
       "question": "What does the first-party Claude Code /doctor command do to skills and CLAUDE.md files?",
-      "skill_answer": "Rightsizes them in one simplification pass"
+      "skill_answer": "/doctor prompt-audit [path] audits them for instructions written for older models, missing files or commands, and contradictions; it reports only and edits on request (v2.1.283+)"
     },
     {
       "id": 18,
