@@ -69,7 +69,26 @@ diff "$d/g4.jinja" "$d/cy.jinja" | grep -c '^[<>]'
 | 2026-04-30 | `94899c0f…25bff413` | 16934 |
 | 2026-05-28 | `36e3a42e…bead3f0` | 17466 |
 | 2026-07-21 | `ae53464b…8de4c6d4` | 18683 |
-| 2026-08-11 → 2026-10-18 | `ae53464b…8de4c6d4` | 18683 (held) |
+| 2026-08-11 → 2026-11-09 | `ae53464b…8de4c6d4` | 18683 (held) |
+
+## Known gap in the vetted revision: thinking off, prompt ends on a tool response
+
+With `enable_thinking=false` (the template default) revision `68abe480` ends
+the generation prompt at `<tool_response|>`. It appends the empty thought
+channel (`<|channel>thought\n<channel|>`) only on a fresh model turn, so after
+a tool response the model has to write it itself.
+
+| Symptom (reported on gemma-4-26B-A4B, same template bytes; unmeasured on 31B) | Check |
+|---|---|
+| `content` empty on long tool loops — the model opens the thought channel and never closes it | run a multi-step tool loop with thinking off and long tool responses; assert non-empty `content` on the final turn |
+| `content` starts with a stray `thought` | grep the first token of `content` on tool-turn continuations |
+
+Fix candidate: HF PR
+[#147](https://huggingface.co/google/gemma-4-31B-it/discussions/147) — one
+added branch that emits the empty thought after a tool response; every other
+render is unchanged. Adopt it as a local candidate only through the re-vet
+procedure above. vLLM tracks the same branch of its own example template in
+[vllm#66430](https://github.com/vllm-project/vllm/issues/66430).
 
 ## Candidate local edits and upstream PRs
 
@@ -80,4 +99,8 @@ diff "$d/g4.jinja" "$d/cy.jinja" | grep -c '^[<>]'
   [#137](https://huggingface.co/google/gemma-4-31B-it/discussions/137) (keep
   tool-call reasoning across later user turns — prefix-cache win on agent loops),
   [#140](https://huggingface.co/google/gemma-4-31B-it/discussions/140)
-  (multimodal placeholders emitted outside the tool_response block), #147, #148.
+  (multimodal placeholders emitted outside the tool_response block), #147
+  (section above), #148 (trailing space after the last system text part),
+  [#154](https://huggingface.co/google/gemma-4-31B-it/discussions/154)
+  (assistant `content` rendered after its `tool_calls` and tool results
+  instead of before).

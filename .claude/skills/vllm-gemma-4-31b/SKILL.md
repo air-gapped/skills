@@ -224,6 +224,11 @@ shape is invisible to benchmark suites whose multi-turn fixtures always
 end on a *user* message — test the tool-terminated shape explicitly
 (render-probe the prompt tail, then diff bypass vs chat output).
 
+Thinking **off** has its own tool-turn gap: the template adds no empty
+thought channel after a `tool_response`. Empty `content`, or `content`
+starting with a stray `thought`, on tool-turn continuations → checks and fix
+candidate in `references/chat-template-drift.md`.
+
 ### Bare tool-call openers silently dropped on < v0.30.0 (fixed)
 
 Some checkpoints emit `<|tool_call>:name{...}` — colon directly after the
