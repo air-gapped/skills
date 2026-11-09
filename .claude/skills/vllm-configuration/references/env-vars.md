@@ -136,15 +136,13 @@ out of FlashInfer all-reduce.
 | `VLLM_HTTP_MAX_REQUEST_BODY_SIZE` | `33554432` (32 MiB) | v0.33.0+, **Rust frontend only**: largest accepted request body in bytes; `0` removes the limit. The Python frontend enforces none |
 | `VLLM_CHAT_TEMPLATE_FUEL` | `500000` | v0.33.0+, **Rust frontend only**: instruction budget for a request-supplied chat template (`--trust-request-chat-template`); `0` disables. The server's own template is unlimited |
 
-**The Rust frontend is opt-in and fails loudly, in two different directions.**
-Setting `VLLM_RUST_FRONTEND_PATH` *without* also setting `VLLM_USE_RUST_FRONTEND=1`
-or `VLLM_USE_RUST_BENCH=1` logs a warning and is otherwise ignored — the path
-alone does not switch anything on. Conversely, enabling either flag while leaving
-the path at `auto` raises `FileNotFoundError` at startup if the binary is not
-present next to the package ("Build with setuptools-rust or set the path
-explicitly"). Images that do not ship `vllm-rs` therefore fail at boot, not at
-first request — worth knowing before flipping this on in an air-gapped image you
-did not build yourself.
+**Rust frontend failure modes** — check all three before setting `VLLM_USE_RUST_FRONTEND=1`:
+
+| Setup | Result |
+|---|---|
+| `VLLM_RUST_FRONTEND_PATH` set, neither `VLLM_USE_RUST_*` flag set | Warning; the path is ignored |
+| A flag set, path `auto`, image ships no `vllm-rs` next to the package | `FileNotFoundError` at startup ("Build with setuptools-rust or set the path explicitly") |
+| A frontend flag or YAML key `vllm-rs` does not implement, at a non-default value | Startup fails: `The following arguments are not implemented in Rust frontend yet`. At v0.33.0 that covers `log-config-file`, `root-path`, `middleware`, `uvicorn-log-level`, `otlp-traces-endpoint`, `collect-detailed-traces`, `enable-offline-docs`, `allowed-local-media-path`, `max-log-len`, `tokens-only`. Older releases ignored some of them silently. Remove the key or stay on the Python frontend |
 
 ## Hugging Face integration (inherited)
 
