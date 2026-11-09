@@ -4,8 +4,18 @@ Work-not-done log from skill-improver passes. "Open" = issues attempted or ident
 
 ## Open
 
-_None._ Nothing here is waiting on an absent ruling, credential, release, or
-measurement nobody can run.
+- **Replace "through v0.33.0 … in no release yet" with the fixing version.** Dim 9.
+  Blocked on: the vLLM release after v0.33.0 does not exist yet (checked
+  2026-11-09). Seven bench-client fixes sit on `main` only, and the skill bounds
+  each failure at v0.33.0. When the next release is tagged, read each at that tag
+  and rewrite the bound:
+  - `SKILL.md` pitfall 10, `datasets.md` `custom` — client chat template on chat backends (#65245)
+  - `SKILL.md` Methodology B done-condition, `troubleshooting.md` — error-event streams counted as success (#57519)
+  - `troubleshooting.md` — `reasoning_content` deltas skipped by the chat client (#64937)
+  - `commands.md` `bench throughput` — `--input-len`/`--output-len`/`--prefix-len` ignored on `random` (#64227)
+  - `datasets.md` `custom` — number-shaped prompts loaded as numbers (#65083)
+  - `commands.md` "Which implementation runs" — Rust client mis-runs (#64551, #64946, #64308)
+  - `commands.md` `--probe-request-rate` — probes inherit `--extra-body` (issue #66246, no fix merged)
 
 ## Resolved this pass (2026-10-18, improve)
 
