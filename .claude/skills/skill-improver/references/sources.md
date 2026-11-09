@@ -606,6 +606,9 @@ Observed 2026-07-21 in two unrelated repos on the same day:
 - sgl-project/sglang#20184 and sgl-project/sglang#17623 — both CLOSED/COMPLETED, both closed by "This issue has been automatically closed due to inactivity."
 - huggingface/transformers#45205 — CLOSED/COMPLETED 2026-06-10, closed by "automatically marked as stale because it has not had recent activity."
 
+#### 3.0a "No fix PR" takes three probes
+Observed 2026-11-09 on nine vllm-project/vllm issues (#66211, #66074, #66437, #66109, #65944, #65946, #66120, #66129, #65821): the timeline returned no cross-referenced PR for any of them, and each had an open fix PR (#66213, #66112, #66445, #66110, #65948, #65950, #65950, #66471 + #66519, #65891). Re-run the same day on six of them: `timelineItems(itemTypes: [CROSS_REFERENCED_EVENT])` empty on all six; `closedByPullRequestsReferences(includeClosedPrs: true)` on the issue returned the PR(s) in the same query; `gh search prs "66211"` returned #66213, whose `closingIssuesReferences` is `[66211]`; `gh search prs "66129"` also returned #64329, which does not close it. #66074 carries three `ReferencedEvent` commits in vllm-project/humming, and `commits/<sha>/pulls` there resolves them to vllm-project/humming#193 (open) — a fix no query against the issue's own repo finds. Missed, such a report is recorded as "no fix PR, single reporter" and kept out of the skill.
+
 #### 3.0b A tag is not a release
 Observed 2026-09-22 — a `messages-api` row recording opencode v2.0.3 was "corrected" to "has never existed" because `gh release list` topped out at v1.18.32. The operator's machine was running v2.0.8. Tags `v2.0.0` through `v2.0.13`, a `2.0` branch, npm `@opencode/cli` at 2.0.13, a `/v2/` docs tree and a `/v2/install` script all existed; only a Release object did not. Cross-reference: [[the-skill-outranks-training-data]].
 

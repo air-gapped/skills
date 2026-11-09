@@ -352,6 +352,18 @@ Classify on the *evidence of a fix*:
 
 When a claim survives this check, say *why* in the skill ("shows closed, but stale-bot closed — no fix landed").
 
+### 3.0a "No fix PR" takes three probes, not the timeline
+
+An issue's timeline `cross-referenced` events miss its fix PRs. Write "no fix PR" — or weigh a report as one unconfirmed reporter — only when all three come back empty:
+
+| Probe | Finds |
+|---|---|
+| `closedByPullRequestsReferences(first:10, includeClosedPrs:true) { nodes { number state } }` on the issue, in the per-repo GraphQL batch | same-repo PRs that declare they close it |
+| `gh search prs --repo <o>/<r> "<N>"`, then `gh pr view <PR> -R <o>/<r> --json closingIssuesReferences` on each hit | PRs that only mention the number; the second call says which close it |
+| timeline `REFERENCED_EVENT { commit { oid } commitRepository { nameWithOwner } }`, then `gh api repos/<o>/<sibling>/commits/<sha>/pulls` | a fix that lives in a sibling repo |
+
+An open fix PR is not a fix: state the issue as open with the PR number and "unmerged".
+
 ### 3.0b A tag is not a release, and "no release" is not "no version"
 
 **`gh release list` answers "what Release objects exist", never "what versions ship".** A project can tag, publish to a registry and document a major line without a GitHub Release. Never downgrade or delete a version claim on that evidence. Before writing that a version does not exist, check **all** of:
