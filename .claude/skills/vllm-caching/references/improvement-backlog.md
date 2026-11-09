@@ -2,19 +2,19 @@
 
 ## Open
 
-### Hybrid-attention live-lab matrix — runtime re-run on a current image (carried 2026-10-18)
+### Hybrid-attention runtime matrix — re-run on a current image (carried 2026-10-18)
 
 Dim 5 / Dim 9. File-set: SKILL.md § Hybrid models + sources.md.
 
-**Blocked on:** datacenter GPU time — a 2× H100-class session serving a hybrid model (Qwen3.6-27B-FP8 or Gemma-4). Not available on the local lab; needs an operator-approved rental. The static `SupportsHMA` matrix is current at v0.32.0; only the runtime verdicts are missing.
+**Blocked on:** datacenter GPU time — a 2× H100-class session serving a hybrid model (Qwen3.6-27B-FP8 or Gemma-4). Needs an operator-approved rental. The static `SupportsHMA` matrix is current at v0.33.0; only the runtime verdicts are missing.
 
-**Partially closed by the 2026-07-21 freshen pass.** The *static* half of this item is done: a `SupportsHMA` connector matrix verified against vLLM tag **v0.25.1** source now lives in SKILL.md "Critical pitfalls", and the decision-tree/Hybrid-models sections were rewritten around it. What remains is **author-only live-lab work**: the v0.19.1-era runtime verdicts below (fail-to-start, TOCTOU `AssertionError`, symmetric-mode no-discovery) have not been re-run on a modern image. Static `SupportsHMA` declarations tell you what vLLM *intends*; only a run tells you what happens. Needs a 2× H100 session on `vllm/vllm-openai:v0.25.1` with a hybrid model (Qwen3.6-27B-FP8 or Gemma-4).
+**Partially closed by the 2026-07-21 freshen pass.** The *static* half of this item is done: a `SupportsHMA` connector matrix verified against vLLM tag **v0.25.1** source now lives in SKILL.md "Critical pitfalls", and the decision-tree/Hybrid-models sections were rewritten around it. What remains is **runtime work**: the v0.19.1-era runtime verdicts below (fail-to-start, TOCTOU `AssertionError`, symmetric-mode no-discovery) have not been re-run on a modern image. Static `SupportsHMA` declarations tell you what vLLM *intends*; only a run tells you what happens. Needs a 2× H100 session on `vllm/vllm-openai:v0.25.1` with a hybrid model (Qwen3.6-27B-FP8 or Gemma-4).
 
-Specifically worth re-measuring: native offload on a hybrid model with HMA left **on** (the new recommendation — never yet validated in this lab); `TieringOffloadingSpec` with an `fs` secondary tier, including the `PYTHONHASHSEED` cross-instance sharing requirement; and whether LMCache **MP** 0.5.x really serves a hybrid model end-to-end (upstream claims it does; `lmcache-mp` skill now says so on the strength of upstream docs + a source-level `SupportsHMA` check, with no local run behind it).
+Specifically worth re-measuring: native offload on a hybrid model with HMA left **on** (the new recommendation — never yet validated by a run); `TieringOffloadingSpec` with an `fs` secondary tier, including the `PYTHONHASHSEED` cross-instance sharing requirement; and whether LMCache **MP** 0.5.x really serves a hybrid model end-to-end (upstream claims it does; `lmcache-mp` skill now says so on the strength of upstream docs + a source-level `SupportsHMA` check, with no local run behind it).
 
 #### v0.19.1-era connector matrix (historical — runtime verdicts superseded, kept for the perf numbers)
 
-Verified 2026-04-25 against vLLM v0.19.1 + LMCache 0.4.4 on Verda 2× H100 SXM5 80GB serving `Qwen/Qwen3.6-27B-FP8`. **Do not quote the `SupportsHMA` column** — see SKILL.md for the v0.25.1-verified one; several rows (OffloadingConnector, native, SimpleCPUOffloadConnector) are known-flipped.
+Verified 2026-04-25 against vLLM v0.19.1 + LMCache 0.4.4 on 2× H100 SXM5 80GB serving `Qwen/Qwen3.6-27B-FP8`. **Do not quote the `SupportsHMA` column** — see SKILL.md for the v0.25.1-verified one; several rows (OffloadingConnector, native, SimpleCPUOffloadConnector) are known-flipped.
 
 | Connector | `SupportsHMA`? (v0.19.1) | Outcome on hybrid model (v0.19.1) |
 |---|---|---|

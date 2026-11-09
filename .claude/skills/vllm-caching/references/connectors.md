@@ -191,7 +191,7 @@ LMCache WARNING: Failed to allocate memory block of size 37748736 because no mem
 
 This is allocator-pressure: `LocalCPUBackend.allocate()` couldn't satisfy immediately → LRU evicts to disk → retries → succeeds. Every request still returns 200 OK, every retrieval still lands. The log chatter is proportional to eviction rate, not failure rate. `LMCACHE_LOG_LEVEL=ERROR` hides it while preserving real errors (source: `lmcache/logging.py` env-var lookup, default `INFO`).
 
-Verified 2026-04-25 on Qwen3-4B + 12 GB DRAM + 30 GB disk at `/models/lmcache-kv` ext4: 128-request 16-prefix × 10 K-token bench → **81.5 % combined external-tier hit rate** (vs 2.1 % for native offload on the same workload, 39.4 % for DRAM-only). 624 chunks written to disk, DRAM-tier reads at 6.2 GB/s, disk-tier reads at 0.7–1.5 GB/s. No crashes, no `ERROR`-level lines — only the benign `WARNING` allocator noise.
+Verified 2026-04-25 on Qwen3-4B + 12 GB DRAM + 30 GB disk on ext4: 128-request 16-prefix × 10 K-token bench → **81.5 % combined external-tier hit rate** (vs 2.1 % for native offload on the same workload, 39.4 % for DRAM-only). 624 chunks written to disk, DRAM-tier reads at 6.2 GB/s, disk-tier reads at 0.7–1.5 GB/s. No crashes, no `ERROR`-level lines — only the benign `WARNING` allocator noise.
 
 ## LMCache P2P — KV sharing across instances
 
@@ -225,7 +225,7 @@ Three pieces: one controller + N vLLM pods with LMCacheConnectorV1 + `kv_role=kv
 
 ### Required configuration (6 non-obvious settings)
 
-All six must be set. Miss any one → silent 0 %-hit-rate failure with no error logs. Confirmed by live diagnosis on the lab; the LMCache README examples imply these but don't call them out.
+All six must be set. Miss any one → silent 0 %-hit-rate failure with no error logs.
 
 | Setting | Default | Required | Why |
 |---|---|---|---|
@@ -305,7 +305,7 @@ If you see `LMCache hit tokens: 0, need to load: 0` on pod-b, the 6-setting matr
 
 ### Known limitation — NIXL transport only
 
-`transfer_channel: "nixl"` requires NIXL + UCX built into the image. `vllm/vllm-openai:cu130-nightly` and `INSTALL_KV_CONNECTORS=true` images ship it. `UCX_TLS=tcp` disables RDMA for lab hardware without an RDMA NIC.
+`transfer_channel: "nixl"` requires NIXL + UCX built into the image. `vllm/vllm-openai:cu130-nightly` and `INSTALL_KV_CONNECTORS=true` images ship it. `UCX_TLS=tcp` disables RDMA for hardware without an RDMA NIC.
 
 ### Combining P2P with the local-disk tier
 
@@ -318,7 +318,7 @@ local_disk: "file:///models/lmcache-kv-a"   # /-b on the other instance
 max_local_disk_size: 20
 ```
 
-Verified 2026-04-25 on the same 2× 4060 Ti lab. Three backends register per pod (`Created backend: LocalCPUBackend`, `P2PBackend`, `LocalDiskBackend`). LMCache writes chunks to both DRAM and NVMe simultaneously (shadow-write pattern; eviction kicks in only at DRAM cap). Disk write bandwidth observed: **932–2188 MB/s sustained** (consistent with PCIe Gen4 NVMe). When pod-b queries the controller for a prefix pod-a stored, the lookup is **tier-agnostic** — controller returns pod-a's instance regardless of whether the chunk is currently in DRAM or NVMe; pod-a's P2P handler reads from whichever tier holds it.
+Verified 2026-04-25 on the same 2× RTX 4060 Ti setup. Three backends register per pod (`Created backend: LocalCPUBackend`, `P2PBackend`, `LocalDiskBackend`). LMCache writes chunks to both DRAM and NVMe simultaneously (shadow-write pattern; eviction kicks in only at DRAM cap). Disk write bandwidth observed: **932–2188 MB/s sustained** (consistent with PCIe Gen4 NVMe). When pod-b queries the controller for a prefix pod-a stored, the lookup is **tier-agnostic** — controller returns pod-a's instance regardless of whether the chunk is currently in DRAM or NVMe; pod-a's P2P handler reads from whichever tier holds it.
 
 Usage payoff: the DRAM tier is still the hot path for repeated cross-pod hits, but the NVMe tier extends pod-a's effective working set far beyond DRAM cap without losing P2P-serveability. For the same workload, the combined-tier hit rate matches or exceeds DRAM-only.
 
@@ -385,7 +385,7 @@ vllm serve <model> ... \
 
 Bundled in v0.14.0+ images via `nixl-cu12` / `nixl-cu13` (matched to the image's CUDA).
 
-### Verified K8s 1P1D recipe (consumer-lab)
+### Verified K8s 1P1D recipe (consumer GPUs)
 
 Tested 2026-04-25 on 2× RTX 4060 Ti + cu130-nightly + Qwen3-4B + vLLM v0.19.2rc1. Prefiller pod (GPU 0, `kv_role=kv_producer`) + decoder pod (GPU 1, `kv_role=kv_consumer`) + proxy pod running `tests/v1/kv_connector/nixl_integration/toy_proxy_server.py`. Client request → proxy → prefiller (2-token prefill) → NIXL UCX transfer of KV blocks → decoder (10 tokens decoded) → stream back to client. Round-trip 755 ms. Decoder log: `Transfer plan: TransferTopology(tp_ratio=1, K=8, local_tp=1, remote_tp=1, local_rank=0, remote_block_len=65536)`.
 
@@ -447,7 +447,7 @@ Set `OPENAI_API_KEY=sk-dummy` on the proxy pod (its code reads it for auth heade
 
 ### 1P1D vs single-pod — when disaggregation pays off
 
-On the consumer lab (2× 4060 Ti, same-node, `cuda_copy,sm,tcp` transport, `--enforce-eager`) disaggregation is **slower than a monolithic pod on short decode-dominated workloads**. Measured 2026-04-25 with `vllm bench serve --random-input-len 512 --random-output-len 64 --num-prompts 30 --request-rate 3`:
+On consumer GPUs (2× RTX 4060 Ti, same-node, `cuda_copy,sm,tcp` transport, `--enforce-eager`) disaggregation is **slower than a monolithic pod on short decode-dominated workloads**. Measured 2026-04-25 with `vllm bench serve --random-input-len 512 --random-output-len 64 --num-prompts 30 --request-rate 3`:
 
 | Metric | 1P1D via proxy | Single-pod (same HW) | Delta |
 |---|---|---|---|
@@ -505,7 +505,7 @@ The only thing that meaningfully lifts this ceiling on same-node K8s is getting 
 **Summary of fixes in order of verified payoff:**
 
 1. **Run on H100/H200 + NVLink or InfiniBand.** This is what NIXL 1P1D is designed for — `cuda_ipc` selects NVLink; reported throughput jumps to 10 GB/s+ per vllm-project/vllm PR #36475 test data.
-2. **Share `/dev/shm` via `hostPath`** even on consumer HW — upgrades UCX to `intra-node cfg`. Minor throughput impact but removes a correctness trap (the `inter-node` TCP path had more handshake overhead and the 6-ms NIXL overhead obscured any gain). Security trade-off: any pod with the hostPath mount can see other pods' shm — acceptable for a lab, not for multi-tenant.
+2. **Share `/dev/shm` via `hostPath`** even on consumer HW — upgrades UCX to `intra-node cfg`. Minor throughput impact but removes a correctness trap (the `inter-node` TCP path had more handshake overhead and the 6-ms NIXL overhead obscured any gain). Security trade-off: any pod with the hostPath mount can see other pods' shm — acceptable on a single-tenant test node, not for multi-tenant.
 3. **Collapse prefiller + decoder into one pod with two containers** if you just want to demonstrate the protocol at full intra-process speed. Defeats pod-level disaggregation.
 4. **Verify `cuda_ipc` is actually selected** via `UCX_PROTO_INFO=y` on H100/H200 — grep decoder log for `ucp_context_0 intra-node cfg#N ... cuda_ipc/cuda`. If you see `cuda_copy` or `host memory to cuda` instead, cuda_ipc is not engaged and you're leaving NVLink on the table (vllm-project/vllm issue #34054 / PR #36475).
 
