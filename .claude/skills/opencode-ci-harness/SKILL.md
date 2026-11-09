@@ -21,7 +21,8 @@ when_to_use: >-
 # opencode-ci-harness
 
 Targets opencode **v2** (`opencode --version` → `v2.x`). On v1 the runner
-fails: v1 has no `--standalone`.
+fails: v1 has no `--standalone`. Read the version before diagnosing: rows
+marked "before v2.2.x" apply only below that release.
 
 ## Rules
 
