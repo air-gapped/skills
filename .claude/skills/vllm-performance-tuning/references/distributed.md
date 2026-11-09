@@ -98,6 +98,8 @@ Source: [disagg prefill docs](https://docs.vllm.ai/en/latest/features/disagg_pre
 | `MoRIIOConnector` | AMD MORI-IO | P/D on AMD nodes |
 | `MultiConnector` | compose | tiered or fallback chains |
 
+`--kv-transfer-config` recipes per connector (`kv_connector_extra_config`, buffers, load-failure policy) → `vllm-caching` `references/connectors.md`. Proxy, router and pod wiring → `vllm-deployment` `references/disagg.md`.
+
 **v0.33.0: the NIXL connectors require NIXL ≥ 1.5.0** — the worker refuses to start on older NIXL (#61032). Upgrade NIXL in the image before the vLLM bump.
 
 ### NIXL flow (from [LMCache blog 2025-04-11](https://blog.lmcache.ai/en/2025/04/11/shaping-nixl-based-pd-disaggregation-in-vllm-v1))

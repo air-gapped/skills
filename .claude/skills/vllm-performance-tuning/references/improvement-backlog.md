@@ -2,8 +2,12 @@
 
 ## Open
 
-- **PD-disagg connector wiring is thin** (Dim 5) (carried 2026-10-18) — `references/distributed.md` + SKILL.md router. Nixl/Mooncake/LMCache are named but the connector-config recipe (KVTransferConfig fields, proxy wiring) is shallow. Blocked on an operator ruling: where the boundary with `vllm-caching` (which also covers NixlConnector/MooncakeConnector) sits, so the recipe is written once.
-- **No bundled scripts** (Dim 7, ceiling) (carried 2026-10-18) — skill points at vLLM's `benchmark_moe.py` / `auto_tune.sh` rather than shipping a wrapper. Blocked on a GPU host with vLLM installed: a tuned-config-presence checker must resolve `device_name` and the fused-MoE config dir on real hardware before it can ship tested.
+- **`deepep_v2` startup `ZeroDivisionError` when `ibstat` is missing from the image** (Dim 3/9) — would go in `references/moe-and-ep.md` §DeepEP all-to-all. Single report, [vllm#62677](https://github.com/vllm-project/vllm/issues/62677) (v0.32.0 official image, 2× 8× B300, `--all2all-backend deepep_v2`): `Failed to get RDMA connection speed: [Errno 2] No such file or directory: 'ibstat'`, then `ZeroDivisionError` in `deep_ep` `get_theoretical_num_sms()`. Blocked on a second source: the issue had zero comments on 2026-11-09 — no maintainer confirmation, no named workaround, no fix PR. Add it when one of those exists.
+
+## Decided
+
+- **P/D connector configuration is not duplicated here** (2026-11-09). `vllm-caching` `references/connectors.md` owns `--kv-transfer-config` recipes and `vllm-deployment` `references/disagg.md` owns proxy and pod wiring; `references/distributed.md` keeps the registered connector names, the when-to-disaggregate rules and the measurements, and points at both.
+- **No bundled tuned-config checker** (2026-11-09). vLLM's own startup log is the check: a miss prints the exact file name it looked for, a hit prints the path it loaded. Both strings are in SKILL.md mistake 1.
 
 ## Resolved this pass (2026-10-18)
 
