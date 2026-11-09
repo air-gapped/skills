@@ -33,12 +33,12 @@
     {
       "id": 5,
       "question": "What UID does the upstream vllm/vllm-openai image run as?",
-      "skill_answer": "root"
+      "skill_answer": "root (UID 0) by default; from v0.22.0 the image also carries a built-in non-root user vllm (UID 2000, GID 0) to run as instead"
     },
     {
       "id": 6,
-      "question": "What is the RHAIIS vLLM CUDA image reference for OpenShift?",
-      "skill_answer": "registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.3.0"
+      "question": "What is the Red Hat (RHAIIS, renamed Red Hat AI Inference at 3.4) vLLM CUDA image reference for OpenShift?",
+      "skill_answer": "registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1 (rhaiis/vllm-cuda-rhel9:3.3.x before the 3.4 rename)"
     },
     {
       "id": 7,
