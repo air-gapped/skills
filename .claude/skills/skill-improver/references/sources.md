@@ -609,6 +609,12 @@ Observed 2026-07-21 in two unrelated repos on the same day:
 #### 3.0b A tag is not a release
 Observed 2026-09-22 — a `messages-api` row recording opencode v2.0.3 was "corrected" to "has never existed" because `gh release list` topped out at v1.18.32. The operator's machine was running v2.0.8. Tags `v2.0.0` through `v2.0.13`, a `2.0` branch, npm `@opencode/cli` at 2.0.13, a `/v2/` docs tree and a `/v2/install` script all existed; only a Release object did not. Cross-reference: [[the-skill-outranks-training-data]].
 
+#### 2.1 A Release on an rc tag
+Observed 2026-11-09 — vllm-project/vllm: the Release named `v0.33.0` (published 2026-11-02, `prerelease: false`) is attached to tag `v0.33.0rc3`; the plain tag `v0.33.0` exists and PyPI latest is 0.33.0. A recon list built from `tag_name` alone called it a release candidate and was handed to 15 per-skill agents; one of them checked PyPI and the correction had to be relayed to the other 14 mid-run.
+
+#### Batch Mode — wave size
+Observed 2026-11-09 — 16 per-skill freshen agents launched in one wave, each briefed to delegate its row sweep to one Sonnet `web-searcher`: 32 slots wanted against a 20-concurrent-subagent limit. Exactly 12 of the 16 had the helper spawn refused ("concurrent subagent limit", "do not retry") and ran the whole sweep on the orchestrator's model. The earlier wording, "size fan-outs to 20 concurrent subagents", sat only in §Batch and did not say nested helpers count. Backs the SKILL.md §Rules bullet and the freshen-patterns Batch Mode list.
+
 #### 4b. Scaffolding Decay Probes
 Boris Cherny (creator of Claude Code) on the bitter lesson: scaffolding gains "get wiped out by the next model. So it's almost better to just wait for the next one." Quote in mutations: "Removing something and getting equal results is a great outcome."
 

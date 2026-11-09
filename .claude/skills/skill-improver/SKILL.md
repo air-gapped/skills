@@ -127,6 +127,11 @@ noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
 - **State the spend before any fan-out** of subagents or `claude -p` probes:
   calls, model, rough dollars from `scripts/model-rates.json`. Pin a cheap model
   on mechanical work (graders, row probes).
+- **Size every fan-out to 20 concurrent subagents, helpers included.** An agent
+  that delegates holds `1 + helpers` slots. Launch `20 // (1 + helpers)` agents
+  (10 when each spawns one sweep), then one more as each finishes. Over the
+  limit a helper spawn is refused and its mechanical work runs on the agent's
+  own model.
 - **Git is the state.** Commit each kept change; `git diff` before reverting.
   Never `rm`: revert with git, put temp dirs and snapshots under a fresh
   `mktemp -d` and leave them.
@@ -271,8 +276,8 @@ cap 5 iterations per skill. The batch is done when every listed skill has a
 summary row (skipped, crashed and capped included). With the `Workflow` tool
 opted in, use `scripts/batch-workflow.js`
 (`args: ["keda", "helm", ...]`); no agent there does git — commit per skill
-after review. Size fan-outs to 20 concurrent subagents and the workflow size
-guideline.
+after review. Wave size: §Rules for every mode; a workflow also follows the
+workflow size guideline.
 
 ## Files
 

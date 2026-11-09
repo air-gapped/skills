@@ -58,6 +58,8 @@ A pass verifies **every ref**, so the F6 stamp is true. **Delegate the sweep to 
   table: `ref | ok|drifted|gone|blocked | evidence`, nothing else."
 - **`Explore`** (read-only, has Bash) — local-clone checks: file paths, tags, symbols cited by rows, against a local clone of `<org>/<repo>`.
 
+A refused spawn (session subagent limit) means the wave was oversized: run the same batched probes inline and say so in the report. Never fall back to row-by-row probing.
+
 Batch the probes:
 
 - URL rows → ONE bulk liveness sweep (`xargs -P 8 curl -sL -w '%{http_code}'`)
@@ -153,6 +155,12 @@ Anchor the substitution to the row shape (`| ... | <date> |`), or replace each r
 3. As each findings table returns: apply mutations for drifted rows (cap 5 findings per skill), stamp the header, move on.
 4. Print ranked summary: skill, findings, kept, new stamp date — every skill from step 1 gets a row.
 
+More skills than the main context can apply (about 6 or more): give each skill its own applying agent with `isolation: "worktree"`, which spawns its own verifier and commits on its branch; the orchestrator reviews and lands each branch.
+
+- Each such agent holds two subagent slots. Launch 10, then one more each time one lands — never the whole list at once.
+- Skills sharing an upstream get ONE recon file written before launch: the release list read per §2.1, the local clone refreshed once (agents read it, never pull). Confirm its newest version against the package registry before any agent reads it.
+- A cross-skill fact found mid-run (a release mislabelled, an issue that belongs to a sibling skill) goes to the orchestrator, which relays it to the running agents or applies it to the sibling after landing.
+
 ### Anti-Patterns
 
 - Do NOT replace concrete guidance with "see release notes" — extract the specific change.
@@ -233,6 +241,8 @@ Compare latest `tagName` against `Pinned` or skill-body version strings.
 **Read `isLatest`; never sort by date and never take `[0]`.** Parallel-line projects publish maintenance patches on older lines after a newer minor. Report per-line ceilings, not one number.
 
 **An empty `gh release list` does not mean no tags.** Check `gh api repos/O/R/tags` before writing any "no releases/tags" absence claim.
+
+**A Release can hang on an rc tag and still be the final version.** Read `name` and `isPrerelease` next to `tagName`. Before calling the newest entry a release candidate, check for the plain tag (`gh api repos/O/R/git/ref/tags/v<X>`) and the registry's latest version.
 
 ### 2.2 GitHub doc / code churn
 
