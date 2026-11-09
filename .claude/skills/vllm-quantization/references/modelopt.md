@@ -1,6 +1,6 @@
 # NVIDIA ModelOpt — PTQ + speculative-decoding training
 
-Canonical repo: [NVIDIA/Model-Optimizer](https://github.com/NVIDIA/Model-Optimizer) (formerly TensorRT-Model-Optimizer; old URLs redirect). Current release **0.47.0** (2026-09-23).
+Canonical repo: [NVIDIA/Model-Optimizer](https://github.com/NVIDIA/Model-Optimizer) (formerly TensorRT-Model-Optimizer; old URLs redirect). Current release **0.48.0** (2026-11-02); 0.47.1 (2026-11-06) is a later patch on the previous line, so read `isLatest`, not the newest date.
 
 Produces vLLM-loadable checkpoints via `--quantization modelopt` / `modelopt_fp4` / `modelopt_mxfp8` / `modelopt_mixed`. Also produces TRT-LLM engines (not our concern).
 
@@ -27,13 +27,12 @@ Example: `examples/hf_ptq/hf_ptq.py` (0.47.0 removed the `examples/llm_ptq` syml
 ```bash
 python examples/hf_ptq/hf_ptq.py \
     --pyt_ckpt_path meta-llama/Llama-3.1-70B-Instruct \
-    --qformat nvfp4 \
-    --kv_cache_qformat fp8_cast \
+    --recipe general/ptq/nvfp4_default-kv_fp8_cast \
     --calib_size 512 \
     --export_path export/llama-3.1-70b-nvfp4
 ```
 
-`--qformat` takes a preset basename from `modelopt_recipes/configs/ptq/presets/model/` (`nvfp4`, `nvfp4_mlp_only`, `fp8`, `w4a16_nvfp4`, `mxfp8`, …), or use `--recipe` (e.g. `general/ptq/nvfp4_default-kv_fp8_cast`). 0.47.0 removed the short aliases `nvfp4_awq`, `nvfp4_mse`, `int8_sq`, `int8_wo`, `w4a8_awq`, `fp8_pb_wo`, `fp8_pc_pt` — use `nvfp4_awq_lite`, `nvfp4_w4a4_weight_mse_fp8_sweep`, `int8_smoothquant`, `int8_weight_only`, `w4a8_awq_beta`, `fp8_2d_blockwise_weight_only`, `fp8_per_channel_per_token`. The `--auto_quantize_*` flags are gone too — use an AutoQuantize `--recipe`. `--batch_size 0` (default) sizes calibration batches automatically.
+**Select the scheme with `--recipe`** — a path under `modelopt_recipes/`, e.g. `general/ptq/nvfp4_default-kv_fp8_cast`, `general/ptq/nvfp4_mlp_only-kv_fp8_cast`, `general/ptq/fp8_default-kv_fp8_cast`; a recipe carries weight format, calibration algorithm and KV-cache setting together and already overrode the flags. From 0.48.0 `--qformat` / `--kv_cache_qformat` are deprecated (still accepted, `FutureWarning` when passed); on ≤ 0.47.x `--qformat` takes a preset basename from `modelopt_recipes/configs/ptq/presets/model/` (`nvfp4`, `nvfp4_mlp_only`, `fp8`, `w4a16_nvfp4`, `mxfp8`, …). 0.48.0 also resolves `--recipe` filesystem-first: a same-named file under the current directory shadows the built-in. 0.47.0 removed the short aliases `nvfp4_awq`, `nvfp4_mse`, `int8_sq`, `int8_wo`, `w4a8_awq`, `fp8_pb_wo`, `fp8_pc_pt` — use `nvfp4_awq_lite`, `nvfp4_w4a4_weight_mse_fp8_sweep`, `int8_smoothquant`, `int8_weight_only`, `w4a8_awq_beta`, `fp8_2d_blockwise_weight_only`, `fp8_per_channel_per_token`. The `--auto_quantize_*` flags are gone too — use an AutoQuantize `--recipe`. `--batch_size 0` (default) sizes calibration batches automatically.
 
 Output:
 
@@ -294,7 +293,7 @@ No QAT hooks in `modelopt/torch/speculative/`. No example in `examples/chained_o
 ```bash
 python examples/hf_ptq/hf_ptq.py \
     --pyt_ckpt_path export/llama-3.1-8b-eagle3 \
-    --qformat nvfp4_mlp_only \
+    --recipe general/ptq/nvfp4_mlp_only-kv_fp8_cast \
     --export_path export/llama-3.1-8b-eagle3-nvfp4
 ```
 
