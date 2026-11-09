@@ -145,7 +145,7 @@ Pick in this order: native offload → native multi-tier (disk/object tier) → 
 **`--prefix-cache-retention-interval` (SWA and SSM models only).** From v0.29.0 the default is `0`: only the latest replayable prompt boundary is retained (the system prompt is still kept); a positive `N` retains every `N` tokens.
 
 - Set it as the CLI flag. `VLLM_PREFIX_CACHE_RETENTION_INTERVAL` is removed from v0.30.0 and does nothing.
-- Hybrids running EAGLE or MTP get dense retention automatically; they need no flag.
+- Hybrids running EAGLE or MTP get dense retention automatically; they need no flag. Never set a positive interval on one that also runs a KV connector (`--kv-offloading-size`, `--kv-transfer-config`): the first revisit of a prefix then hits only up to the interval (vLLM#64808, open at v0.33.0).
 - Agentic multi-turn traffic without spec-decode is where `0` bites. If prefix hit rate drops after an upgrade to v0.29.0+, set a positive interval and re-measure before changing anything else.
 - From v0.30.0 the interval also gates which SWA/SSM chunks `OffloadingConnector` offloads (native and multi-tier). It must be a multiple of the SWA group's `tokens_per_chunk`, or startup raises `ValueError`.
 
