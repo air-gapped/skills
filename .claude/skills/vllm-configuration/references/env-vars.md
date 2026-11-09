@@ -7,6 +7,19 @@ Check a name against the installed `vllm/envs.py` before writing it into a manif
 
 The docs page at https://docs.vllm.ai/en/stable/configuration/env_vars/ is literally generated from `vllm/envs.py` via an `--8<--` include, so both are the same list.
 
+## Boolean values: write `1` / `0`
+
+Each boolean var has its own parser (open upstream issue #66493). `1` / `0` is the
+only spelling every one of them accepts.
+
+| Parser | `=true` does | Catalogued vars |
+|---|---|---|
+| `== "1"` | **silently nothing** | `VLLM_NO_USAGE_STATS`, `VLLM_DO_NOT_TRACK`, `DO_NOT_TRACK`, `VLLM_SKIP_P2P_CHECK`, `VLLM_USE_AOT_COMPILE`, `VLLM_USE_MEGA_AOT_ARTIFACT` |
+| `bool(int(...))` | raises `ValueError: invalid literal for int()` when read | `VLLM_SERVER_DEV_MODE`, `VLLM_CONFIGURE_LOGGING`, `VLLM_ALLOW_INSECURE_SERIALIZATION`, `VLLM_DISABLE_COMPILE_CACHE`, `VLLM_USE_RUST_FRONTEND`, `VLLM_USE_RUST_BENCH`, `VLLM_USE_DEEP_GEMM`, `VLLM_USE_DEEP_GEMM_E8M0`, `VLLM_ALLREDUCE_USE_FLASHINFER` |
+| `in ("1", "true")` | works | `VLLM_USE_MODELSCOPE`, `VLLM_ALLOW_LONG_MAX_MODEL_LEN`, `VLLM_ALLOW_RUNTIME_LORA_UPDATING` |
+
+`VLLM_NO_USAGE_STATS=true` leaves telemetry **on**.
+
 ## Quick-grouping
 
 - **Storage / cache** — where models, compile artifacts, assets live
@@ -160,12 +173,12 @@ did not build yourself.
 | Variable | Default | Purpose |
 |---|---|---|
 | `VLLM_USAGE_STATS_SERVER` | `https://stats.vllm.ai` | Phone-home endpoint |
-| `VLLM_NO_USAGE_STATS` | `0` | Set `1` to disable |
-| `VLLM_DO_NOT_TRACK` | `false` | Set `true`/`1` to disable |
+| `VLLM_NO_USAGE_STATS` | `0` | Set `1` to disable; `true` is ignored |
+| `VLLM_DO_NOT_TRACK` | `0` | Set `1` to disable; `true` is ignored |
 | `DO_NOT_TRACK` | `0` | `dnt.sh` standard; also honoured |
 | `VLLM_USAGE_SOURCE` | `production` | Free-form tag in the payload |
 
-Belt-and-braces: set **both** `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1`, or simply `touch $HOME/.config/vllm/do_not_track`.
+Belt-and-braces: set **both** `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1` (literal `1`), or simply `touch $HOME/.config/vllm/do_not_track`.
 
 ## Logging & debug
 

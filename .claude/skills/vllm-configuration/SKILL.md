@@ -76,7 +76,7 @@ Full catalog in `references/env-vars.md`. The ones that matter most in productio
 - Delete removed env vars from manifests — the feature they controlled is simply off, and the only trace is a startup warning `Unknown vLLM environment variable detected: <NAME>` (v0.17.0+). Add `--fail-on-environ-validation` in CI or a canary to make any unknown `VLLM_*` name fatal. Table with replacements: `references/env-vars.md` §Removed and renamed.
 
 **Telemetry (disable in air-gap):**
-- `VLLM_NO_USAGE_STATS=1` **or** `VLLM_DO_NOT_TRACK=1` **or** `DO_NOT_TRACK=1` **or** touch `$HOME/.config/vllm/do_not_track`. Default endpoint is `https://stats.vllm.ai`. In air-gap, connection errors in logs result otherwise.
+- `VLLM_NO_USAGE_STATS=1` **or** `VLLM_DO_NOT_TRACK=1` **or** `DO_NOT_TRACK=1` **or** touch `$HOME/.config/vllm/do_not_track`. Default endpoint is `https://stats.vllm.ai`. In air-gap, connection errors in logs result otherwise. Write the literal `1`: `=true` is silently ignored and telemetry stays on. Same rule for every boolean `VLLM_*` var — some raise on `true` (`references/env-vars.md` §Boolean values).
 
 **Networking (internal — read the warning below):**
 - `VLLM_HOST_IP` — **internal inter-worker bind IP for distributed (TP/PP/DP) init**. NOT the API server host. Use `--host` on the CLI for the API server.
