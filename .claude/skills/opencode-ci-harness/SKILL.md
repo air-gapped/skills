@@ -140,7 +140,7 @@ Before v2.2.3 the last step usually loses its `step_finish` and often its `step_
 | `error` event but the run finished with a correct answer (before v2.2.6) | A transient provider error was retried | Treat as pass if the final step completed; exit code is 1 regardless. From v2.2.6 a recovered error is a `retry` event with exit 0, so an `error` event there is a real failure |
 | Break only on the last step, and `step_start` count = `--max-turns` | That step is the cap request (trailing assistant message, `tool_choice: "none"`); a tool call there fails with `Tools are disabled after the maximum agent steps` | Raise `--max-turns` and re-run before blaming the tier; an engine or template that rejects a trailing assistant turn fails only here |
 | `--credential` run: one `error` `provider.no-route`, `Model unavailable: …`, for a model the provider does serve | The fresh home resolved the model before its first catalog download finished; only models missing from the catalog bundled in the binary are hit | Re-run. Still failing → list what the catalog has with `opencode models --standalone` in an injected home (`references/isolation.md`) |
-| Run hangs, zero events, `/v1/models` still answers | Wedged tunnel or proxy that serves short requests but stalls streams | Connect to the engine directly; restart the run |
+| Run hangs with nothing after `step_start` (no `retry`), `/v1/models` still answers | Wedged tunnel or proxy that serves short requests but stalls streams | Connect to the engine directly; restart the run |
 | Exit 124 after a `step_finish` with no errors | `--timeout` hit during final text | Raise `--timeout` |
 
 A run that delivers nothing (no events, or no final text after the last tool call) outranks every other result: a template, parser or flag change after which any run delivers nothing is unsafe — revert it, even if other tiers improved.
@@ -172,7 +172,7 @@ bash ${CLAUDE_SKILL_DIR}/scripts/scan-token-leakage.sh plant.ndjson <model-sourc
 | `scripts/inject-credential.py` | Emits one store credential for `opencode auth import` (used by `--credential`) |
 | `scripts/assert-tool-sequence.sh` | `assert_tool_order`, `assert_tool_called`, `assert_no_errors`, `assert_turn_count`, `assert_tool_input_matches`, `assert_final_text_matches` |
 | `scripts/scan-token-leakage.sh` | Special-token leakage scan |
-| `scripts/cleanup.sh` | Remove leftover `/tmp/oc-ci-*` homes |
+| `scripts/cleanup.sh` | Remove leftover `/tmp/oc-ci-*` homes; keeps those of runs still in progress |
 
 ## References
 

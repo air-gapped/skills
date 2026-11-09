@@ -10,7 +10,7 @@
 | Before v2.2.6: exit code is 1 after any `error` event, even when a retried step then succeeded, and a retry that fails before any output is invisible | Decide pass/fail from events: last step completed + expected tools + final text. From v2.2.6 the exit code follows the session's final outcome and retries appear as `retry` events |
 | Before v2.2.3: the last step's `step_finish` and often its `step_start` are missing from `--format json` | Upgrade; on older v2 require neither and read final-step tokens from `opencode session export` |
 | A killed run leaves its session resumable; any opencode service sharing that data dir resumes it unattended | Never share `XDG_DATA_HOME`; delete the scratch home (runner default) |
-| Wedged tunnel: zero events while `/v1/models` still answers | Connect to the engine directly instead of through the tunnel; restart the run |
+| Wedged tunnel: nothing after `step_start` while `/v1/models` still answers | Connect to the engine directly instead of through the tunnel; restart the run |
 | Exit 124 after a `step_finish` with no errors | `--timeout` hit during final text; raise it (runner default 600 s) |
 ## When not to use this harness
 

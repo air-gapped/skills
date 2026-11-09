@@ -765,7 +765,7 @@
       "name": "opencode-ci-harness",
       "source": "./",
       "description": "Run opencode (v2) CLI as a headless, fully-isolated test harness against any OpenAI-, Responses- or Messages-compatible endpoint (local inference engine or remote API), or against any provider…",
-      "version": "0.20261109.20",
+      "version": "0.20261109.21",
       "author": {
         "name": "Jörgen"
       },
