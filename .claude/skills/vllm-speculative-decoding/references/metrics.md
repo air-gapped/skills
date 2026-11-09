@@ -6,7 +6,7 @@ diagnosing why measured throughput gain doesn't match expected AL.
 ## Metric surface
 
 Source of truth: `vllm/v1/spec_decode/metrics.py`, class `SpecDecodingProm`
-(counters defined at L229-259 at v0.32.0). Four counters, one of them labeled.
+(counters defined at L229-259 at v0.33.0). Four counters, one of them labeled.
 
 | Metric (base) | Type | Labels | Exported as |
 |---|---|---|---|
@@ -20,7 +20,7 @@ suffix on export (prometheus_client convention) — so PromQL must reference
 `vllm:spec_decode_num_drafts_total`, not `vllm:spec_decode_num_drafts`.
 
 In-memory aggregator (`SpecDecodingStats`, L18-50) feeds `SpecDecodingLogging`,
-which writes the engine log-line every `log-stats-interval` (format at v0.32.0):
+which writes the engine log-line every `log-stats-interval` (format at v0.33.0):
 
 ```
 SpecDecoding metrics: Mean acceptance length: 2.73, Accepted throughput: 12.40 tokens/s,

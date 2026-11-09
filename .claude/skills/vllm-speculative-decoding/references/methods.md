@@ -26,7 +26,7 @@ there is no `vllm/spec_decode/` V0 path in current main.
 CPU, Numba-JIT. Matches the trailing n-gram of the active sequence against its
 own history, returns the tokens that followed the match.
 
-- Proposer: `NgramProposer`, `v1/spec_decode/ngram_proposer.py:12-179` (line refs in this file: v0.32.0)
+- Proposer: `NgramProposer`, `v1/spec_decode/ngram_proposer.py:12-179` (line refs in this file: v0.33.0)
 - Config fields: `prompt_lookup_min`, `prompt_lookup_max`,
   `num_speculative_tokens`. Defaults: min=5, max=5 (TODO in source —
   "arbitrarily chosen").
@@ -83,8 +83,8 @@ expensive.
 
 - Proposer: `DraftModelProposer`, `v1/spec_decode/draft_model.py:17-122` (V1);
   on v0.31.0+ the default is the Model Runner V2 `StandaloneARSpeculator`
-  (`v1/worker/gpu/spec_decode/standalone_ar/`, #43091), which at v0.32.0
-  captures no CUDA graphs. TLI and `parallel_drafting` keep it on V1.
+  (`v1/worker/gpu/spec_decode/standalone_ar/`, #43091), which at v0.33.0
+  still captures no CUDA graphs. TLI and `parallel_drafting` keep it on V1.
 - Config: `model` (drafter HF path), `num_speculative_tokens`,
   `draft_tensor_parallel_size`, `parallel_drafting` (v0.16+ PARD-style
   parallel forward)
@@ -157,19 +157,19 @@ EAGLE heads run on target's hidden states; EAGLE-3 additionally consumes
 auxiliary hidden states from designated intermediate layers.
 
 - Proposer (V1 runner): `EagleProposer`, `v1/spec_decode/eagle.py:11-22`
-  (thin subclass of `SpecDecodeBaseProposer`, `v1/spec_decode/llm_base_proposer.py:72-1820`)
+  (thin subclass of `SpecDecodeBaseProposer`, `v1/spec_decode/llm_base_proposer.py:73-1822`)
 - Method-enum detection: `"eagle-"` → `eagle`, `"eagle3"` → `eagle3`, substring
-  of the lower-cased `model` field (`config/speculative.py:1333-1336`)
+  of the lower-cased `model` field (`config/speculative.py:1445-1448`)
 - Shares embeddings with target (`llm_base_proposer.py::_maybe_share_embeddings`,
   only when PP world size is 1) — drafter VRAM much smaller than `draft_model`
 - `parallel_drafting: true` enables P-EAGLE variant (v0.16+, PR #32887); see
   `eagle3.md`
 - **EAGLE-3 target support is the `SupportsEagle3` interface**
   (`model_executor/models/interfaces.py`), not a name list — there is no
-  allow-list in `config/speculative.py` (none at v0.32.0). See SKILL.md.
+  allow-list in `config/speculative.py` (none at v0.33.0). See SKILL.md.
 - EAGLE-3 auxiliary layers picked via `eagle_aux_hidden_state_layer_ids` in
   HF config (`v1/worker/gpu/spec_decode/eagle/eagle3_utils.py::get_eagle3_aux_layers_from_config`,
-  L100-137; falls back to `dflash_config`/`dspark` `target_layer_ids`)
+  L113-150; falls back to `dflash_config`/`dspark` `target_layer_ids`)
 - Per-target EAGLE-3 head classes exist: `llama_eagle3.py` (first layer is
   `2*hidden_size` to pack embeds + hidden), `deepseek_eagle3.py`, etc.
 - No tree speculation: tree attention was removed in v0.21.0 (#42121) and a
@@ -188,8 +188,8 @@ embedding query.
   (v0.33.0+) `xpress/` selected by checkpoint architecture
 - Model: `model_executor/models/qwen3_dflash.py`
 - Method-enum detection: `"dflash"` substring in model name, or
-  `MuseGlimmerAssistantModel` architecture (`config/speculative.py:1338-1343`)
-- **Forces `parallel_drafting: true`** regardless of config (L1468-1469, also
+  `MuseGlimmerAssistantModel` architecture (`config/speculative.py:1449-1454`)
+- **Forces `parallel_drafting: true`** regardless of config (L1581-1582, also
   for `dspark`) — the architecture requires all k tokens in one forward
 - **Requires `--attention-backend flash_attn`**. Non-causal attention is not
   supported by Triton or FlashInfer-TRTLLM paths
@@ -205,10 +205,10 @@ Deprecated aliases (`deepseek_mtp`, `glm4_moe_mtp`, `qwen3_next_mtp`, etc.) all
 route here via PR #25232. Target model itself is the drafter.
 
 - Proposer: `EagleProposer` with `method="mtp"` (shared code path)
-- Auto-detection: `config/speculative.py:1141-1145` logs "method `%s` is
+- Auto-detection: `config/speculative.py:1246-1250` logs "method `%s` is
   deprecated and replaced with mtp" when an old alias is seen
 - HF-config remapping: `SpeculativeConfig.hf_config_override`
-  (`config/speculative.py:661-1073`) rewrites
+  (`config/speculative.py:711-1170`) rewrites
   `model_type` to the appropriate `*_mtp` variant based on the base
   architecture (see `mtp.md` for the full list)
 - `num_speculative_tokens` interaction with model's `n_predict`: see `mtp.md`
@@ -227,7 +227,7 @@ completions. No drafter model.
 - Proposer: `SuffixDecodingProposer`, `v1/spec_decode/suffix_decoding.py:9-102`.
   V1 runner only — `suffix` forces Model Runner V1.
 - Requires `pip install arctic-inference` — engine raises `ImportError` at
-  startup if missing (`SpeculativeConfig._validate_suffix_decoding`, L1596-1601)
+  startup if missing (`SpeculativeConfig._validate_suffix_decoding`, L1726-1731)
 - Config fields (all prefixed `suffix_decoding_`):
   - `max_tree_depth: int = 24`
   - `max_cached_requests: int = 10000` (0 disables global cache, prompt-only)
@@ -350,7 +350,7 @@ select different N on the same model.
 
 **Covered elsewhere in this skill:** `use_heterogeneous_vocab` (TLI),
 `kv_cache_dtype`, `attention_backend`, `enable_adaptive_verification` (`version-gates.md`
-version gates). Also present at v0.32.0: `dspark_draft_topk`, `num_speculative_tokens_per_batch_size`,
+version gates). Also present at v0.33.0: `dspark_draft_topk`, `num_speculative_tokens_per_batch_size`,
 `disable_eagle_block_drop`, `index_share_for_mtp_iteration` — read their
 docstrings in `config/speculative.py` before setting.
 

@@ -44,7 +44,7 @@ refinement pass to the drafter's top-C candidates (`0` = full vocabulary; unset
 1. **`--attention-backend flash_attn` is required.** The non-causal
    cross-attention path is not supported by Triton or FlashInfer-TRTLLM.
    DFlash won't fit if a different backend is pinned for the target.
-2. **`parallel_drafting: true` is force-enabled** (`config/speculative.py:1468-1469` at v0.32.0)
+2. **`parallel_drafting: true` is force-enabled** (`config/speculative.py:1581-1582` at v0.33.0)
    — can't turn it off. The architecture demands it.
 3. **Target support**: same rule as EAGLE-3 — the target model class must
    implement `SupportsEagle3` (`model_executor/models/interfaces.py`); there is

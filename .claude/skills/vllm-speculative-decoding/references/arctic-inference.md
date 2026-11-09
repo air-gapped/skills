@@ -115,8 +115,8 @@ based on `suffix_decoding_max_spec_factor × prefix_match_length`.
 
 - `ImportError: Arctic Inference is required for suffix decoding. Install via
   pip install arctic-inference==0.1.1` — raised at engine start by
-  `SpeculativeConfig._validate_suffix_decoding` (`config/speculative.py:1596-1601`
-  at v0.32.0). vLLM only checks that `arctic_inference` imports; the `==0.1.1`
+  `SpeculativeConfig._validate_suffix_decoding` (`config/speculative.py:1726-1731`
+  at v0.33.0). vLLM only checks that `arctic_inference` imports; the `==0.1.1`
   pin is message text. Pick the ArcticInference release whose notes name your
   vLLM base.
 - Low AL on suffix method for a workload expected to benefit → inspect

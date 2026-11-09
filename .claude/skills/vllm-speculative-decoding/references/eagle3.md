@@ -24,7 +24,7 @@ wrong. Upgrade before benchmarking.
 
 ## Target-model support
 
-No name allow-list (none in `vllm/config/speculative.py` at v0.32.0). A target
+No name allow-list (none in `vllm/config/speculative.py` at v0.33.0). A target
 accepts EAGLE-3 (and DFlash) when its model class implements
 `SupportsEagle3` (`vllm/model_executor/models/interfaces.py`); grep the model
 file for it. Without it, startup raises `RuntimeError("Model does not support
@@ -56,7 +56,7 @@ sample sizes, and target-family guidance — see
 
 vLLM sets `method="eagle3"` automatically only when `method` is unset and
 `"eagle3"` is a substring of the lower-cased `model` field of
-`--speculative-config` (`config/speculative.py:1335-1336` at v0.32.0). Setting
+`--speculative-config` (`config/speculative.py:1447-1448` at v0.33.0). Setting
 `eagle_aux_hidden_state_layer_ids` in the HF config does **not** select it.
 
 **Gotcha**: mirroring a checkpoint locally and renaming the directory to

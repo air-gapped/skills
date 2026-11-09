@@ -68,11 +68,11 @@ The target's MTP head has a fixed width: `n_predict` (or
 ships `n_predict=1` by default; the V3 paper describes 4 heads but the public
 release uses 1. Qwen3-Next ships `n_predict=1`. Nemotron-H varies.
 
-Rule from `config/speculative.py:1489-1501` (v0.32.0): unset defaults to
+Rule from `config/speculative.py:1600-1612` (v0.33.0): unset defaults to
 `n_predict`; a value above `n_predict` must be divisible by it, else
 `ValueError: num_speculative_tokens:N must be divisible by n_predict=M`. Above
 `n_predict`, vLLM re-runs the MTP layer sequentially. Any value > 1 also logs
-(L1377-1385, skipped for `step3p5_mtp` / `step5_mtp` / `inkling_mtp`):
+(L1486-1495, skipped for `step3p5_mtp` / `step5_mtp` / `inkling_mtp`):
 
 > Enabling num_speculative_tokens > 1 will run multiple times of forward on
 > same MTP layer,which may result in lower acceptance rate
@@ -93,7 +93,7 @@ Practical implications:
 ## Known rough edges (April 2026)
 
 **DeepSeek-V3.2 MTP + CUDA graphs** — the old `deepseek_v32_mtp` →
-`enforce_eager = True` FIXME is gone (absent at v0.30.0 and v0.32.0). Remove
+`enforce_eager = True` FIXME is gone (absent since v0.30.0). Remove
 any `--enforce-eager` a runbook added for it.
 
 **Active MTP bug cluster through v0.19** — release-notes scan shows these all

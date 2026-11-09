@@ -98,7 +98,7 @@ interaction for MTP (multiples-of-N rule) in `references/mtp.md`.
 ## Acceptance-rate metric surface
 
 vLLM V1 emits four spec-dec metrics on `/metrics`
-(`vllm/v1/spec_decode/metrics.py:229-259` at v0.32.0). Every production spec-dec deployment
+(`vllm/v1/spec_decode/metrics.py:229-259` at v0.33.0). Every production spec-dec deployment
 should scrape and dashboard all four:
 
 | Metric | Type | Purpose |
@@ -158,7 +158,7 @@ Smoke-check a live endpoint with `${CLAUDE_SKILL_DIR}/scripts/check-spec-decode.
 
 ## Version floors
 
-Full per-release gate table (v0.11.1 → v0.32.0, with PR numbers):
+Full per-release gate table (v0.11.1 → v0.33.0, with PR numbers):
 `references/version-gates.md` — load it before pinning or upgrading an image.
 Floors that change what to deploy today:
 
@@ -185,19 +185,19 @@ traps not captured by those.
 
 1. **Draft-model TP must equal target TP** — hard `ValueError` in
    `vllm/v1/spec_decode/draft_model.py::_raise_if_draft_tp_mismatch` (L63-77
-   at v0.32.0), root cause is torch.compile cache corruption. Keep them equal
+   at v0.33.0), root cause is torch.compile cache corruption. Keep them equal
    on MRV2 too. Every other method defaults the draft TP to the target TP; an
    explicit `draft_tensor_parallel_size` must be 1 or the target TP
    (`speculative.py::_verify_and_get_draft_tp`).
 2. **MTP `num_speculative_tokens` > model's native `n_predict`** must be a
    *multiple* of `n_predict` — hard `ValueError` *"must be divisible by
-   n_predict"* (`speculative.py:1493-1501` at v0.32.0); vLLM re-runs the MTP
+   n_predict"* (`speculative.py:1604-1612` at v0.33.0); vLLM re-runs the MTP
    layer. Any value > 1 also logs *"will run multiple times of forward on same
-   MTP layer, which may result in lower acceptance rate"* (L1377-1385; not for
-   `step3p5_mtp`/`inkling_mtp`). DeepSeek-V3 ships `n_predict=1` so asking for
+   MTP layer, which may result in lower acceptance rate"* (L1486-1495; not for
+   `step3p5_mtp`/`step5_mtp`/`inkling_mtp`). DeepSeek-V3 ships `n_predict=1` so asking for
    5 runs the layer 5× sequentially.
 3. **DeepSeek-V3.2 MTP no longer forces `enforce_eager=True`** (gone from
-   `config/speculative.py` by v0.30.0, still gone at v0.32.0). Remove any
+   `config/speculative.py` since v0.30.0). Remove any
    `--enforce-eager` a runbook added for V3.2 MTP; it now only costs CUDA graphs.
 4. **DFlash requires `--attention-backend flash_attn`** — Triton and
    FlashInfer-TRTLLM don't support the non-causal cross-attention path.
@@ -288,7 +288,7 @@ silent regressions after upgrade, and metric-interpretation pitfalls.
 
 ## External references
 
-Source claims are probed against **v0.32.0**. Per-row provenance, check dates
+Source claims are probed against **v0.33.0**. Per-row provenance, check dates
 and the re-verification recipe: `references/sources.md`.
 
 - Main docs: <https://docs.vllm.ai/en/latest/features/speculative_decoding/>

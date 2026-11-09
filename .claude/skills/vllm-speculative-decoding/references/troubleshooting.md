@@ -36,9 +36,9 @@ The drafter is guessing badly. Causes, in order of likelihood:
    partial HF cache transfers.
 6. **Wrong method for model.** Model ships MTP heads but EAGLE-3 is running
    instead — the MTP path is better. Check `vllm/config/speculative.py`:
-   method auto-detection in `SpeculativeConfig.__post_init__` (L1326-1366 at
-   v0.32.0) and the per-arch `model_type` remap in `hf_config_override`
-   (L661-1073).
+   method auto-detection in `SpeculativeConfig.__post_init__` (L1432-1476 at
+   v0.33.0) and the per-arch `model_type` remap in `hf_config_override`
+   (L711-1170).
 
 ### 2. AL OK (>2.5), throughput not improving
 
