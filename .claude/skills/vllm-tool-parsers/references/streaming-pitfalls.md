@@ -9,7 +9,7 @@ Cross-parser footguns. For each, the remedy is to **go read the cited file or ru
 At stream end the parser layer takes `prev_tool_call_arr[-1]["arguments"]`, strips the prefix already in `streamed_args_for_tool[-1]`, and appends the remainder to the final delta's last tool call. Implications for every custom parser:
 
 - `prev_tool_call_arr[-1]["arguments"]` must reflect the full accumulated args at stream end.
-- `streamed_args_for_tool[i]` must be appended on every arg flush. Not a prefix of the full args → the tail is dropped (no error); lagging → already-streamed text is re-sent.
+- Every argument fragment emitted for tool `i` must also be appended to `streamed_args_for_tool[i]`. A missed append → the end-of-stream flush re-sends argument text the client already has; an entry that is not a prefix of the full args → the tail is dropped (no error).
 - The tail is appended only when the final delta itself carries `tool_calls`.
 - `finish_reason="tool_calls"` fires iff some streamed delta carried `tool_calls` (serving's `tools_streamed`) and, v0.31.0+, the engine stopped on `stop`; a `max_tokens` cut keeps `length`. The `= [{"arguments": {}}]` HACK several parsers carry no longer affects it.
 

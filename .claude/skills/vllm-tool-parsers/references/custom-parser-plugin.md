@@ -71,7 +71,7 @@ vllm serve <model> --enable-auto-tool-choice \
 - [ ] Respects `current_text == previous_text + delta_text` invariant.
 - [ ] Handles multi-token deltas (scheduler may coalesce).
 - [ ] `prev_tool_call_arr[-1]["arguments"]` reflects full accumulated args at stream end.
-- [ ] `streamed_args_for_tool[i]` appended on every arg flush, so it stays a prefix of the full args.
+- [ ] Every emitted argument fragment is also appended to `streamed_args_for_tool[i]`, so the end-of-stream flush neither re-sends nor drops text.
 - [ ] At least one returned `DeltaMessage` carries `tool_calls` when a call is parsed — otherwise streaming `finish_reason` is `stop`.
 - [ ] `adjust_request` sets `skip_special_tokens=False` if sentinels are special tokens.
 - [ ] `supports_required_and_named = False` if the output shape breaks guided JSON.
