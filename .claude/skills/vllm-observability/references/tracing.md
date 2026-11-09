@@ -16,7 +16,7 @@ Plus standard OTel environment:
 |---|---|---|
 | `OTEL_SERVICE_NAME` | unset | Service identifier in the tracing backend. Recommended: `vllm-<model>-<replica>` |
 | `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL` | `grpc` | `grpc` or `http/protobuf` |
-| `OTEL_EXPORTER_OTLP_TRACES_INSECURE` | `false` | Set `true` only in dev — skips TLS verification |
+| `OTEL_EXPORTER_OTLP_TRACES_INSECURE` | — | No effect on the vLLM server: the endpoint scheme decides TLS (see § TLS to the collector) |
 | `OTEL_EXPORTER_OTLP_TRACES_HEADERS` | unset | E.g. `Authorization=Bearer ...` for authenticated collectors |
 
 All OTel Python packages (`opentelemetry-sdk`, `opentelemetry-api`, `opentelemetry-exporter-otlp`, `opentelemetry-semantic-conventions-ai`) ship with vLLM. No extra `pip install` needed.
@@ -166,9 +166,17 @@ OTel SDK buffers with BatchSpanProcessor but eventually drops on overflow. No em
 
 Enabling `opentelemetry-instrument` on Ray workers and having Ray's native instrumentation both export can produce duplicate spans for the same operation, doubling both span volume and analysis complexity. Pick one.
 
-### Trace exporter TLS issues
+### TLS to the collector
 
-Common in air-gapped: internal collector uses self-signed TLS. `OTEL_EXPORTER_OTLP_TRACES_INSECURE=true` disables verification but is inappropriate in prod. Mount the internal CA bundle instead:
+The endpoint scheme decides, not `OTEL_EXPORTER_OTLP_TRACES_INSECURE` — vLLM builds the gRPC exporter with `insecure=True` (v0.33.0):
+
+| `--otlp-traces-endpoint` | Transport |
+|---|---|
+| `grpc://host:4317` (or `http://`, or bare `host:4317`) | **Plaintext, always.** A TLS-only collector rejects it |
+| `https://host:4317` | gRPC over TLS |
+| `https://host:4318/v1/traces` with `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/protobuf` | HTTP over TLS |
+
+Internal or self-signed CA: mount the bundle and point the exporter at it.
 
 ```bash
 export OTEL_EXPORTER_OTLP_CERTIFICATE=/etc/pki/ca-trust/source/anchors/internal-ca.pem
