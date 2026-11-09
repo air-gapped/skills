@@ -8,6 +8,8 @@ How requests reach the right vLLM pod. Three architectural layers:
 
 Each layer has multiple implementations. This reference is a pointer map.
 
+**`--api-key` is not an ingress policy.** It authenticates only the `/v1`, `/v2`, `/inference` and `/cohere` path prefixes; `/invocations` (same inference as `/v1`), `/pooling`, `/classify`, `/score` and `/rerank` answer unauthenticated on the same port. At the Route / Gateway, allowlist the paths clients need and deny the rest.
+
 ## Table of Contents
 
 - [The K8s-standard surface: Gateway API Inference Extension (GAIE)](#the-k8s-standard-surface-gateway-api-inference-extension-gaie)
