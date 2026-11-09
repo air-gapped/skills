@@ -178,9 +178,16 @@ cd "$WORKDIR"
 if [[ -n "$CREDENTIAL" ]]; then
   # A fresh DB is bootstrapped from the schema, so a legacy auth.json is NOT
   # imported; pipe the one credential through `auth import` instead.
+  # Report the injector's status (3 = REFUSED), not the importer's: on a
+  # refusal `auth import` reads empty stdin and fails with 1.
+  set +e
   python3 -I "$(dirname "$(readlink -f "$0")")/inject-credential.py" \
       "$SOURCE_DB" "$CREDENTIAL" "$(( TIMEOUT + 600 ))" |
     opencode auth import --standalone >&2
+  st=("${PIPESTATUS[@]}")
+  set -e
+  [[ "${st[0]}" -eq 0 ]] || exit "${st[0]}"
+  [[ "${st[1]}" -eq 0 ]] || { echo "opencode auth import failed (${st[1]})" >&2; exit "${st[1]}"; }
 fi
 # --thinking: without it `run` emits no `reasoning` events at all.
 args=(run --standalone --format json --print-logs --thinking --model "$MODEL")
