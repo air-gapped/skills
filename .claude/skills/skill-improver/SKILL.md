@@ -282,16 +282,12 @@ opted in, use `scripts/batch-workflow.js`
 after review. Wave size: §Rules for every mode; a workflow also follows the
 workflow size guideline.
 
-## Files
+## Files beyond the mode table
 
 | File | Load when |
 |---|---|
-| `references/improve-loop.md` | running `improve` |
 | `references/quality-rubric.md` | scoring |
 | `references/improvement-patterns.md` | choosing an improvement |
-| `references/freshen-patterns.md` | running `freshen` |
-| `references/trigger-patterns.md` | running `trigger` |
-| `references/floor-patterns.md` | running or reading `floor` |
 | `references/blind-validation.md` | spawning a scorer or comparator |
 | `references/fleet-checks.md` | running or proposing a sweep |
 | `references/backlog-format.md` | writing a target's `improvement-backlog.md` |
