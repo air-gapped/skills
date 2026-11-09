@@ -100,8 +100,10 @@ resolves.
 
 **`VLLM_TEST_FORCE_FP8_MARLIN` was removed in v0.29.0** (#52182), superseded
 by `--linear-backend` / `--moe-backend`. `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM`
-was removed in v0.29.0 (#53141) and **restored in v0.31.0, default off**
-(#57055) — set it to `1` to opt back into the AITER W4A4 ASM GEMM. v0.28.0 also
+was removed in v0.29.0 (#53141), restored default-off in v0.31.0 (#57055) and
+**removed again in v0.33.0** (#61278): set it to `1` only on v0.31.x–v0.32.x.
+From v0.33.0 AITER's tuned configs pick the W4A4 GEMM kernel and there is no
+opt-in. v0.28.0 also
 removed the deprecated `calculate_kv_scales` runtime KV-scale calculation
 (#49389) and `override_attention_dtype` (#48684).
 

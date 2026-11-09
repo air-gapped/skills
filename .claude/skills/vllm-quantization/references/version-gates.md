@@ -40,6 +40,9 @@ v0.33.0 hangs off that tag and `gh release view v0.33.0` returns "release not
 found". The `v0.33.0` git tag, the PyPI wheel and the `v0.33.0` images are that
 same commit; it is the final release, not an rc.
 
+**Breaking:**
+- [PR #61278](https://github.com/vllm-project/vllm/pull/61278) — `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` removed again (restored in v0.31.0); AITER tuned configs select the W4A4 GEMM kernel.
+
 Quantization:
 - [PR #61875](https://github.com/vllm-project/vllm/pull/61875) — Humming on SM90 runs a checkpoint's MXFP8 MoE activations (DeepSeek-V4 / V4.1 MXFP4 experts) as block FP8; an explicit `--quantization-config.moe.activation` wins ([#62751](https://github.com/vllm-project/vllm/pull/62751)).
 - [PR #63125](https://github.com/vllm-project/vllm/pull/63125) — Quark MXFP8 (W8A8) routed experts. [PR #51933](https://github.com/vllm-project/vllm/pull/51933) — `--linear-backend torch` for MXFP8 on XPU. [PR #50415](https://github.com/vllm-project/vllm/pull/50415) — MoNe expert-pruning checkpoints.
