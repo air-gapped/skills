@@ -137,7 +137,7 @@ Clients that hard-code one fail on the other.
 | [HF gpt-oss-20b #160](https://huggingface.co/openai/gpt-oss-20b/discussions/160) | Chat template doesn't match Harmony spec. | Same. |
 | [HF gpt-oss-120b #69](https://huggingface.co/openai/gpt-oss-120b/discussions/69) | Errors in 120b chat template vs spec. | Same. |
 | [vLLM #22403](https://github.com/vllm-project/vllm/issues/22403) | "Expected 2 output messages (reasoning and final), got 7." Harmony parser confused by multi-segment output. | Upgrade vLLM; retry. |
-| [vLLM #37909](https://github.com/vllm-project/vllm/issues/37909) | `reasoning_effort="none"` doesn't disable reasoning and can break output. | Omit or use `"low"`. |
+| `reasoning_effort="none"` | `/v1/chat/completions` returns 400 `Harmony does not support reasoning_effort='none'` (v0.18.0+). | Omit or use `"low"`. |
 | `openai_harmony` offline vocab | Raises `HarmonyError` when loading tiktoken vocab offline. | v0.31.0+ ships `oss-harmony` (same `openai_harmony` module, vocab embedded). If it still fails, `pip install gpt-oss` pulled `openai-harmony` over it — uninstall `openai-harmony`, reinstall `oss-harmony`. v0.30.0 and older: pre-download tiktoken encodings, set `TIKTOKEN_ENCODINGS_BASE`. |
 
 ---

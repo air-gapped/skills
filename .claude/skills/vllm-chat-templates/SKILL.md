@@ -66,7 +66,7 @@ Use this table first. Load `references/model-families.md` for the specific model
 | Garbled prompt with repeated `<image>` placeholders | Template has placeholder AND multimodal parser adds one | `interleave_strings` mismatch — see `get_full_multimodal_text_prompt()` in `renderers/chat_utils/chat_message.py` |
 | `IndexError` / Jinja exception on multi-turn tool calls | Tool-call ID format regex too strict (Kimi-K2, Mistral) | Historical `tool_calls=[]` in assistant msg crashes template (Llama #13978) |
 | Server starts, first request works, subsequent requests fail | State-ful template bug: leading whitespace accumulating (DeepSeek V3.1 #28804) | Concurrent-request regression (Gemma-4 `<pad>` tokens #39392) |
-| "this model is reasoning but reasoning_effort=none" | gpt-oss #37909 — `"none"` not honored | Wrong reasoning parser |
+| `reasoning_effort="none"` but the model still reasons, or the answer comes back empty | Template declares neither `reasoning_effort` nor `enable_thinking`, or vLLM < v0.23.0 (pattern #11) | Wrong reasoning parser |
 | Works on SGLang / TGI, broken on vLLM | vLLM applies template differently (HF precedence + kwarg allowlist) | Check `--tokenizer-mode` differences |
 
 Template, parser (output), and kwarg (`chat_template_kwargs`) are orthogonal layers — diagnose one at a time, don't change multiple at once.
@@ -120,7 +120,7 @@ Consult this list for any "broken chat template" symptom. Most reports reduce to
 
 10. **Multi-turn whitespace accumulation.** DeepSeek V3.1 (#28804, won't fix): leading whitespace grows each turn, so assistant replies get progressively indented. Fix: strip leading whitespace from each assistant turn client-side.
 
-11. **`reasoning_effort="none"` silently breaks output.** gpt-oss #37909. Fix: omit or use `"low"`.
+11. **`reasoning_effort` reaches the template only as a kwarg.** v0.23.0+ (#43401): a request `reasoning_effort` also sets `enable_thinking` (`False` for `"none"`, else `True`) unless the request sets `enable_thinking` in `chat_template_kwargs`; a template that declares neither variable ignores the effort silently. v0.18.0–v0.19.x: `"none"` instead dropped the generated reasoning tokens — and the whole answer when the template pre-closes the think block (#37909). Fix: upgrade, or send `chat_template_kwargs.enable_thinking=false`. gpt-oss on `/v1/chat/completions` rejects `"none"` outright (`Harmony does not support reasoning_effort='none'`): omit it or send `"low"`.
 
 12. **Parallel *tool-call* requests → `<pad>` tokens.** Gemma-4 #39392, open at v0.32.0 — no version bump fixes it. Plain load is stable; the trigger is parallel tool-call requests. Fix: serialise the tool-calling path; `--max-num-seqs 1` only as a last resort (it throttles the whole server).
 
