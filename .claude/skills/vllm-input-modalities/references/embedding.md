@@ -216,6 +216,11 @@ r = requests.post("http://localhost:8000/v2/embed", json={
   embeddings for multi-chunk inputs below v0.31.0 — averaged normalized chunks
   were not re-normalized (#57498). Re-embed long documents indexed on an older
   engine if the index assumes unit vectors (dot product as cosine).
+- **Never combine `enable_chunked_processing` with a multimodal embedder below
+  v0.33.0.** Image/audio inputs to `/v1/embeddings` or `/v2/embed` lost their
+  multimodal data silently — even short ones — and were embedded as text
+  (#62859). v0.33.0 rejects such requests with a 400; text-only chunking is
+  unchanged. Re-embed multimodal items indexed that way.
 - Chunked prefill + prefix caching: both work on embedding models; leave
   defaults on — **but only from v0.26.0**. Below that, chunked prefill plus
   `torch.compile` (the default pair) silently produced *wrong* vectors and
