@@ -7,8 +7,8 @@
   "claims": [
     {
       "id": 0,
-      "question": "What attention backend does vLLM force for Gemma 4 due to its heterogeneous head dimensions?",
-      "skill_answer": "TRITON_ATTN (not FLASH_ATTN)"
+      "question": "Which attention backend does vLLM v0.31.0+ select for Gemma 4 on H100/H200 with an FP8 KV cache?",
+      "skill_answer": "Per-layer FA3 (head_dim 256) / FA4 (head_dim 512) for causal text, TRITON_ATTN for multimodal-prefix requests; all-Triton only when FA4 is unavailable"
     },
     {
       "id": 1,
@@ -32,8 +32,8 @@
     },
     {
       "id": 5,
-      "question": "Which vLLM version floor does the skill set for Gemma 4 31B, and why not 0.25.1?",
-      "skill_answer": "0.29.0+ (0.30.0+ production); 0.25.1 and older carry the #49955 <turn|>/enable_thinking bug fixed in v0.29.0"
+      "question": "Which vLLM version floor does the skill set for Gemma 4 31B, and why?",
+      "skill_answer": "0.29.0+; v0.28.x and older carry the #49955 <turn|>/enable_thinking bug fixed in v0.29.0"
     },
     {
       "id": 6,
