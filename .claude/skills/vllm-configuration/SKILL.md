@@ -73,7 +73,7 @@ Full catalog in `references/env-vars.md`. The ones that matter most in productio
 
 **Upgrades (v0.28.0 – v0.33.0):**
 - Stage the new dependency floors in the mirror **before** the image bump. v0.33.0 needs Python `>= 3.11, < 3.15`, `transformers >= 5.16.1, < 5.21.0` (an upper bound — a mirror holding only the newest `transformers` fails), `certifi >= 2026.10.19` and `torch == 2.14.0`. Its wheels and images are CUDA 13.0 only: the `-cu129` image tags stop at v0.32.0. Read ranges from `requirements/common.txt`, never from release-note "bumps". Full table: `references/air-gapped.md` §Mirror dependency floors.
-- Delete removed env vars from manifests — vLLM ignores them silently, so the feature they controlled is simply off. Table with replacements: `references/env-vars.md` §Removed and renamed.
+- Delete removed env vars from manifests — the feature they controlled is simply off, and the only trace is a startup warning `Unknown vLLM environment variable detected: <NAME>` (v0.17.0+). Add `--fail-on-environ-validation` in CI or a canary to make any unknown `VLLM_*` name fatal. Table with replacements: `references/env-vars.md` §Removed and renamed.
 
 **Telemetry (disable in air-gap):**
 - `VLLM_NO_USAGE_STATS=1` **or** `VLLM_DO_NOT_TRACK=1` **or** `DO_NOT_TRACK=1` **or** touch `$HOME/.config/vllm/do_not_track`. Default endpoint is `https://stats.vllm.ai`. In air-gap, connection errors in logs result otherwise.

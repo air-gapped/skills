@@ -74,8 +74,9 @@ live:
 
 ## Removed and renamed (v0.29 – v0.33)
 
-Delete these from manifests on upgrade. A removed env var is read by nothing, so
-setting it is silently inert.
+Delete these from manifests on upgrade. A removed env var is read by nothing; the
+only trace is a startup warning `Unknown vLLM environment variable detected: <NAME>`
+(v0.17.0+). `--fail-on-environ-validation` turns it into a startup `ValueError`.
 
 | Name | Status | Use instead |
 |---|---|---|
