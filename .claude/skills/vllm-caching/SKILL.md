@@ -138,8 +138,8 @@ Pick in this order: native offload → native multi-tier (disk/object tier) → 
 | Native offload (`OffloadingConnector`) | Works from v0.21.0; HMA on by default from v0.23.0 | Serve with `--kv-offloading-size` and no HMA flag. Do NOT apply the old Gemma-4 + spec-decode workaround (disable HMA + shrink `--max-model-len`): the 0% hit-rate bug (vLLM#40624) is fixed and the workaround now costs performance. |
 | LMCache MP (`LMCacheMPConnector`, lmcache ≥ 0.5.6 — 0.3.9–0.5.5 have an unauthenticated RCE over the MP transport) | Supported; upstream recipes for Gemma 3/4, gpt-oss, Qwen3.5/3.6, DeepSeek-V4-Flash, GLM 5.1/5.2, MiniMax-M3 | Use when a hybrid needs an LMCache tier. Needs a CUDA 13 image (`-cu129` bundles lmcache 0.4.4). Detail: `lmcache-mp`. |
 | LMCache in-process (`LMCacheConnectorV1`) | **Blocked**, LMCache#3106 open: no `SupportsHMA`, so HMA auto-disables and the single-shape `MemoryObj.tensor` fails on mixed attention groups | Never use on a hybrid. The object-group-collapsing workaround posted on #3106 is unverified; see `lmcache-mp`. |
-| `MoRIIOConnector` (ROCm), SWA hybrids | READ mode works from v0.30.0. WRITE raises `NotImplementedError: MoRIIO WRITE mode does not support hybrid KV cache groups` | Use READ mode, or pass `--disable-hybrid-kv-cache-manager` with WRITE. |
-| `MoRIIOConnector`, Mamba/KDA hybrids | READ mode from v0.31.0, startup-checked: one transferable attention group, two Mamba states (conv + SSM), DSpark the only spec-decode method. WRITE fails with `set kv_connector_extra_config.read_mode=true` | Set `kv_connector_extra_config.read_mode=true` and stay inside the checked limits. |
+| `MoRIIOConnector` (ROCm), SWA hybrids | READ mode works from v0.30.0. WRITE raises `NotImplementedError: MoRIIO WRITE mode does not support sliding-window cache groups` (≤ v0.32.0: `…hybrid KV cache groups`) | Use READ mode, or pass `--disable-hybrid-kv-cache-manager` with WRITE. |
+| `MoRIIOConnector`, Mamba/KDA hybrids | READ mode from v0.31.0, WRITE mode from v0.33.0 (#60544). Startup-checked: two Mamba states (conv + SSM), one cache spec across Mamba groups, DSpark the only spec-decode method; READ also needs exactly one transferable attention group. On v0.31.0–v0.32.0 WRITE fails with `set kv_connector_extra_config.read_mode=true` | On ≤ v0.32.0 set `kv_connector_extra_config.read_mode=true`. At v0.33.0 mismatched prefill/decode TP sizes need MLA or both TP sizes ≥ the KV head count, else `NotImplementedError: MoRIIO heterogeneous TP requires replicated KV heads` (#61726). |
 
 **`--prefix-cache-retention-interval` (SWA and SSM models only).** From v0.29.0 the default is `0`: only the latest replayable prompt boundary is retained (the system prompt is still kept); a positive `N` retains every `N` tokens.
 
@@ -272,7 +272,7 @@ The recipe is finished only when every item holds for the exact tag deployed:
 
 1. Every cache-related flag and env var in the serve args is accounted for: available at that tag (version gates), not removed or ignored (`--calculate-kv-scales`, `--mamba-cache-mode`, `VLLM_PREFIX_CACHE_RETENTION_INTERVAL`), and not the weights flag `--cpu-offload-gb` standing in for KV offload.
 2. `--kv-offloading-size` is the TP-wide total in GiB; with LMCache, `LMCACHE_MAX_LOCAL_CPU_SIZE` agrees with it.
-3. `--disable-hybrid-kv-cache-manager` appears only for a connector without `SupportsHMA` or MoRI-IO WRITE mode on a hybrid.
+3. `--disable-hybrid-kv-cache-manager` appears only for a connector without `SupportsHMA` or MoRI-IO WRITE mode on a sliding-window hybrid.
 4. The image tag passed both bundling steps and is ≥ v0.22.0.
 5. Every row of "Known bugs" was rechecked and its avoidance applied.
 6. A validation run shows `external_prefix_cache_hits_total` rising and a non-zero `CPU_to_GPU_total_bytes`.
