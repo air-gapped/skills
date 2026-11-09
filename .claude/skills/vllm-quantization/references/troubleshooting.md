@@ -88,7 +88,7 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 | GPT-OSS-120b SM120 → kernel not dispatched | RTX Pro 6000 | [#34817](https://github.com/vllm-project/vllm/issues/34817) | SM120 gap |
 | GLM-5 MXFP4 sparse MLA decode crash MI355x | — | [#38924](https://github.com/vllm-project/vllm/issues/38924) | Open |
 | Triton MXFP4 MoE device capability `<(11,0)` breaks RDNA3.5 | — | [#40301](https://github.com/vllm-project/vllm/issues/40301) | Open |
-| Misleading FP8 error about CUDA version | — | [#36805](https://github.com/vllm-project/vllm/issues/36805) | Error refers to wrong thing — check SM capability |
+| Misleading FP8 error about CUDA version (below v0.22.0) | torchao FP8 on an unsupported GPU | [#36805](https://github.com/vllm-project/vllm/issues/36805) | Message corrected in v0.22.0 ([PR #36854](https://github.com/vllm-project/vllm/pull/36854)); on older releases read it as an SM-capability failure |
 | Gemma 4 MoE 26B-A4B MXFP4 crash | — | [#39000](https://github.com/vllm-project/vllm/issues/39000) | Open |
 | `CompressedTensorsWNA16MarlinMoEMethod` crash actorder=null AWQ MoE | — | [#35303](https://github.com/vllm-project/vllm/issues/35303) | Open |
 | `CutlassW4A8LinearKernel` dim alignment DeepSeek-V3.1 W4AF8 (K=7168, N=2112) | — | [#33783](https://github.com/vllm-project/vllm/issues/33783) | Dims must be %128==0 |
