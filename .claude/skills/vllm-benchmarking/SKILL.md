@@ -102,7 +102,7 @@ For the full flag reference for each subcommand, see `references/commands.md`. F
 Operators who can't reach `huggingface.co` have three working patterns:
 
 1. **Reroute to a mirror** — set `HF_ENDPOINT=https://hf-mirror.com` (or an internal reverse-proxy URL). `huggingface_hub` treats it transparently.
-2. **ModelScope** — set `VLLM_USE_MODELSCOPE=True` plus `trust_remote_code=True`. Historical gap: LoRA adapter loading through ModelScope (vLLM issue #32841, closed 2026-01-23). Re-verify on your vLLM version before relying on LoRA-via-ModelScope; issue closure without a linked PR means status is unclear — test first.
+2. **ModelScope** — set `VLLM_USE_MODELSCOPE=True` plus `trust_remote_code=True`. LoRA adapters resolve through ModelScope from v0.15.0; on ≤ v0.14 the variable is ignored for adapters and they download from the HF Hub (#32841) — stage the adapter locally there.
 3. **Fully offline with pre-seeded cache** — `HF_HUB_OFFLINE=1` + `TRANSFORMERS_OFFLINE=1`, `HF_HOME` pointing at a pre-populated directory (NFS, PVC, or JuiceFS/S3).
 
 For benchmark datasets specifically: `random` and `prefix_repetition` are synthetic — never download. `sonnet` was removed in v0.32.0 (`--dataset-name sonnet` is rejected); use it only on the ≤v0.31 version that produced an old baseline. `sharegpt` must be pre-staged: `wget` the JSON on a connected host, `rsync` into the enclave, point `--dataset-path` at it.

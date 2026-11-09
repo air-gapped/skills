@@ -37,7 +37,7 @@ export VLLM_USE_MODELSCOPE=True
 # plus in the vLLM serve args: --trust-remote-code
 ```
 
-**Historical gap:** LoRA adapter loading through ModelScope was broken (vLLM issue #32841, closed 2026-01-23 without linked fix PR). Re-verify on your current vLLM version; if LoRA-via-ModelScope still fails, fall back to Pattern 1 or 3.
+**LoRA adapters:** `--lora-modules name=<repo>` resolves through ModelScope from v0.15.0. On ≤ v0.14 the variable is ignored for adapters and the download goes to the HF Hub (#32841) — use Pattern 1 or 3 for the adapter there.
 
 Use this when the China-based mirror is faster than an internal mirror, or when ModelScope has a model that hf-mirror.com doesn't.
 
