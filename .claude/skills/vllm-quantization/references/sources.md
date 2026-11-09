@@ -76,6 +76,7 @@ earlier passes that only chased issue states:
 | vLLM issue #35031 — MTP + NVFP4 weight shape mismatch | https://github.com/vllm-project/vllm/issues/35031 | 2026-11-09 | **fixed (skill said open)** | CLOSED `COMPLETED` 2026-06-25, closer PR #46316 "Fix NVFP4+MTP crash: force unquantized mtp.fc for Qwen3Next"; merge commit e45b279928 first stable tag v0.25.0. |
 | vLLM issue #39764 — uninitialised `PerTensorScaleParameter` | https://github.com/vllm-project/vllm/issues/39764 | 2026-11-09 | **fixed (skill gave only a workaround)** | CLOSED `COMPLETED` 2026-04-20, closer PR #39765; merge commit fcb31c1ac3 first stable tag v0.20.0. |
 | vLLM issue #36805 — misleading FP8 error message | https://github.com/vllm-project/vllm/issues/36805 | 2026-11-09 | **fixed** | CLOSED `COMPLETED` 2026-05-22, closer PR #36854 "Clear error message for FP8 torchao quantization on unsupported GPUs"; merge commit 4e597b7491 first stable tag v0.22.0. |
+| vLLM issue #32010 — DCP with FP8 KV cache | https://github.com/vllm-project/vllm/issues/32010 | 2026-11-09 | **shipped (skill listed it as roadmap)** | CLOSED `COMPLETED` 2026-06-24, closer PR #44044 "Support DCP with FP8 KV cache in MLA decode path"; merge commit 49f2104c53 first stable tag v0.25.0. |
 
 ## Classification summary
 

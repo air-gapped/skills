@@ -163,6 +163,7 @@ Quantization surface:
 - FlashInfer cutedsl NVFP4 GEMM (#42235) and cute-dsl MXFP8 linear (#46393).
 - FP8 weight layout canonicalized to `(K, N)` (#44735).
 - `fp8_e5m2` KV cache allowed for non-fp8 checkpoints (#45040).
+- Decode context parallelism (DCP) with FP8 KV cache in the MLA decode path (#44044, v0.25.0).
 - W8A8 int-quant scheme-selection regression fixed (#46860); actionable error on group-size/TP mismatch (#46230) in place of an obscure failure.
 
 ## v0.21.0 — 2026-05-15
