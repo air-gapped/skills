@@ -171,7 +171,7 @@ Never recommend `--cpu-offload-gb` for a KV-tiering question. They are different
 
 ### FP8 KV cache without shipped scales
 
-`--calculate-kv-scales` is gone from v0.28.0 (#49389); through v0.27.1 it only warned and had no effect. vLLM always loads scales from the checkpoint. **On v0.32.0, `--kv-cache-dtype auto` selects `fp8_e4m3` for GLM-5.x (`GlmMoeDsaForCausalLM`) on SM100** (#60140, #60281) — pass `--kv-cache-dtype bfloat16` to keep BF16 KV there. If `--kv-cache-dtype fp8` is set on a model whose checkpoint doesn't ship calibrated `k_scale`/`v_scale`, vLLM defaults to scale=1.0, which can clip pathological activations — especially on long code contexts where specific tokens produce large activations in specific layers.
+`--calculate-kv-scales` is gone from v0.28.0 (#49389); through v0.27.1 it only warned and had no effect. vLLM always loads scales from the checkpoint. **On SM10x GPUs `--kv-cache-dtype auto` selects FP8 KV for GLM-5.x (`GlmMoeDsaForCausalLM`) from v0.32.0** (#60140, #60281) **and for GLM-5.3-Flash (`Glm5NextForCausalLM`) from v0.33.0** (#61228) — pass `--kv-cache-dtype bfloat16` to keep BF16 KV there. If `--kv-cache-dtype fp8` is set on a model whose checkpoint doesn't ship calibrated `k_scale`/`v_scale`, vLLM defaults to scale=1.0, which can clip pathological activations — especially on long code contexts where specific tokens produce large activations in specific layers.
 
 Symptoms: subtle quality degradation, often only past 128k context. "Usually works fine" is the common operator experience because most activations fit, but the risk is real.
 
