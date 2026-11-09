@@ -108,6 +108,7 @@ Map symptom → likely cause:
 | Throughput dropped after v0.16 | Default changes to `parallel_drafting` or unified parallel drafting (#32887) | Re-benchmark with explicit `parallel_drafting: true/false` to find best |
 | Multimodal target + Llama 4 / Mistral Large 3 EAGLE drafter fails in the first draft prefill (startup profile run) | v0.28.0–v0.31.x regression (#50417), fixed v0.32.0 (#57633) | Upgrade to v0.32.0 |
 | ModelOpt NVFP4 DeepSeek-V4/V4.1 + DSpark/MTP: AL exactly 1.00, no error; only hint is `w1_weight_scale_2 must match w3_weight_scale_2` after draft load | Ignored MTP/DSpark experts not kept on MXFP4 — fixed v0.32.0 (#59655) | Upgrade to v0.32.0, or use the non-NVFP4 checkpoint |
+| n-gram drafting on a hybrid recurrent-state target (GDN / Mamba2 / KDA layers): some requests return wrong tokens at temperature 0, no error | Present through v0.31.x; fixed v0.32.0 (#56531) | Upgrade to ≥ v0.32.0 |
 | `draft_model` + `use_heterogeneous_vocab: true` dies with a device-side assert | v0.31.x put TLI on MRV2, which has no vocab mapping; fixed v0.32.0 (#59541) | Upgrade, or `VLLM_USE_V2_MODEL_RUNNER=0` |
 | `method: "medusa"` / `"mlp_speculator"`, or a Medusa / MLP-speculator draft checkpoint, rejected by config validation | v0.33.0 removed both methods (#61701) | Retrain as EAGLE-3, or pin ≤ v0.32.x |
 | Pipeline-parallel spec-dec broken | PP + spec-dec only on MRV2 (v0.17+ #33960). If on V1 engine runner, PP disables spec-dec | Switch to MRV2 or disable PP |
