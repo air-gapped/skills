@@ -24,7 +24,7 @@ Legend: ✅ supported / 🆕 Blackwell-only / 🧪 experimental / ❌ not suppor
 | **Chunked prefill** | ✅ | ✅ | Production, default V1 | Required to keep TPOT P99 sane with long prefills |
 | **Speculative decoding** | ✅ | ✅✅ | Production | Full method catalogue + config in the `vllm-speculative-decoding` skill. Bigger win on Blackwell: FP4 makes decode more BW-bound so spec-dec ROI is higher |
 | **Disaggregated prefill (NixlConnector)** | ✅ | ✅✅ | Beta/early-production | NVL72 collapses the cross-fabric cost; on Hopper needs XDR IB + GPUDirect-RDMA |
-| **Disaggregated prefill (MooncakeConnector)** | ✅ | ✅ | 🧪 Limited (no PP) | Used at Moonshot Kimi scale |
+| **Disaggregated prefill (MooncakeConnector)** | ✅ | ✅ | 🧪 Limited (PP since v0.24.0) | Used at Moonshot Kimi scale |
 | **CPU KV offload (native)** | ✅ | ✅ | Production | `--kv-offloading-size` / `--cpu-offload-gb` |
 | **LMCache (CPU + NVMe + GDS)** | ✅ | ✅ | Production | Heaviest deployed option; 3FS/hf3fs connector for distributed KV |
 | **FP8 KV cache** | ✅ | ✅ | Production | `--kv-cache-dtype fp8` |
