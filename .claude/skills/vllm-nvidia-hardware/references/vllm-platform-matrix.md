@@ -180,7 +180,9 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
   `transformers>=5.16.1,<5.21.0`; `lmcache>=0.5.6`; the NIXL connector requires
   NIXL ≥ 1.5 (#61032; `nixl==1.5.0` is the pin). Hopper: DeepSeek-V4/V4.1 MXFP4
   experts run as block FP8 through Humming (#61875). Rubin: low-latency BF16 GEMM on
-  SM107 (#62843). Unchanged from v0.32.0: Python ≥ 3.11, GCC ≥ 13, image
+  SM107 (#62843). **Fixes wrong output from the default TRTLLM NVFP4 MoE backend
+  under torch.compile on SM100/SM103** when the hidden size is padded (#61749, see
+  SKILL.md floors). Unchanged from v0.32.0: Python ≥ 3.11, GCC ≥ 13, image
   `CUDA_VERSION=13.0.3`, `vllm download-kernels` after every pip install. MRV1 is
   still present.
 - **v0.32.0** (2026-10-18) — **NVFP4 KV cache on SM8x/SM12x**
