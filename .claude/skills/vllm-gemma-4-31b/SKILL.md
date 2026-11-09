@@ -33,14 +33,18 @@ the upstream constraints that shape the answer.
 > and miss the 0.27.0+ ViT CUDA graph (#46837) and the 0.30.0+
 > multimodal-prefix Triton fix (#53147, fact #1).
 >
-> Known open issue on 0.26.0+, a headroom problem rather than a reason to
-> downgrade: [#50159](https://github.com/vllm-project/vllm/issues/50159).
-> Under saturating load, Model Runner V2 can run out of CUDA memory, and with
-> EAGLE it fails sooner. The cause is CUDA-graph capture headroom: MRv2
-> reserves ~0.12 GiB for capture where MRv1 reserves ~0.65 GiB. It is worst
-> on large models on small cards. Pick one mitigation:
-> - leave ≥0.5 GiB/GPU more margin than MRv1 needed (lower
->   `--gpu-memory-utilization` by ~0.01 on 80 GB cards);
+> MRv2 capture-headroom OOM on v0.26.0–v0.28.x
+> ([#50159](https://github.com/vllm-project/vllm/issues/50159)): Model
+> Runner V2 sized the KV cache without reserving CUDA-graph memory
+> (`profile_cudagraph_memory()` returned 0; ~0.12 GiB held back where MRv1
+> holds ~0.65 GiB), so it runs out of CUDA memory under saturating load,
+> sooner with EAGLE, worst on large models on small cards. v0.29.0 fixes the
+> reservation ([#53306](https://github.com/vllm-project/vllm/pull/53306)).
+> #50159 is still open with no re-test on a fixed release: after an engine
+> upgrade, run a saturating-load test at the chosen
+> `--gpu-memory-utilization`. If it OOMs, or on v0.26.0–v0.28.x, pick one:
+> - leave ≥0.5 GiB/GPU more margin (lower `--gpu-memory-utilization` by
+>   ~0.01 on 80 GB cards);
 > - `VLLM_USE_V2_MODEL_RUNNER=0` to force MRv1 (present through v0.33.0);
 > - `--enforce-eager` (removes the gap, costs decode speed).
 >
