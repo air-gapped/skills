@@ -26,6 +26,12 @@ Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/A
 - Two defaults changed in that window: FlashInfer all-reduce for the TP group (#52998) and Model Runner V2 for MoE (#53183)
 - **Bisect** with `VLLM_ALLREDUCE_USE_FLASHINFER=0` and `VLLM_USE_V2_MODEL_RUNNER=0`, one at a time, on the same benchmark; no fix has shipped through v0.33.0
 
+### v0.24.0+: structured-output decode ~2× slower ([#62442](https://github.com/vllm-project/vllm/issues/62442)) — open
+
+- Introduced by #45424 (first release v0.24.0); the reporter attributes it to a ~12 MB staging allocation in `apply_grammar_bitmask` on every structured decode step
+- Reporter's workload: 233 req/min on v0.21.0 → 120–121 on v0.24.0 and v0.28.0; reverting that staging change on v0.28.0 gives 242. `OMP_NUM_THREADS=4` and the worker thread fix (#49919) do not recover it
+- Fix PR #62485 is open; nothing has shipped through v0.33.0. Before upgrading a grammar- or JSON-schema-heavy service across v0.24.0, benchmark with a structured-output workload, not plain chat
+
 ### v0.14.0 → v0.15.1 MiniMax latency regression ([#35048](https://github.com/vllm-project/vllm/issues/35048))
 
 - Model: MiniMax-M2.1 / M2.5
