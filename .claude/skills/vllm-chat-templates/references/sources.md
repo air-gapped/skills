@@ -8,6 +8,15 @@ issue/PR/URL to the skill, probe it and add a row here.
 
 Probe pattern: `gh pr view <N> --repo vllm-project/vllm --json state,mergedAt,title,closedAt,stateReason`
 
+## 2026-11-09 — v0.33.0 freshen
+
+Probed against `v0.32.0..v0.33.0` and the `v0.33.0` tag tree of `vllm-project/vllm`. v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02, not yanked) and annotated tag `v0.33.0`; the GitHub Release titled "v0.33.0" is attached to tag `v0.33.0rc3` — both tags point at commit `4ba787ec99`.
+
+| Ref | URL | Status | Notes |
+|---|---|---|---|
+| GHSA-542m-9234-8gvf (CVE-2026-115911) | https://github.com/advisories/GHSA-542m-9234-8gvf | published 2026-10-28, medium (CVSS 6.5) | "DoS via unbounded chat_template Jinja2 rendering exhausts the renderer thread pool". Affected `>= 0.19.0, < 0.32.0`, patched 0.32.0 by PR #50300 (commit `cff08b461e`). Vectors: request-supplied template, or a hostile `tokenizer_config.json` template; render pool `max_workers` defaults to 1. Stated precondition for the request vector: `--chat-template` unset — `ChatParams.get_apply_chat_template_kwargs()` merges the server template over the request kwargs (read at v0.19.0 and v0.31.0). |
+| GHSA-x567-49g5-p4cf (CVE-2026-115918) | https://github.com/advisories/GHSA-x567-49g5-p4cf | published 2026-10-28, medium (CVSS 6.5) | "Responses API bypasses trust_request_chat_template for chat_template_kwargs". Affected `>= 0.16.0, < 0.32.0`, patched 0.32.0 by PR #50300. These two are the advisories PR #50300 fixes; the GHSA-4hhp-h66f-j5j7 id in the PR title is the unrelated MiMoV2Omni SSRF advisory (see the 2026-10-18 row). |
+
 ## 2026-10-18 — v0.31.0 / v0.32.0 freshen
 
 Probed against `v0.30.0..v0.32.0` and the `v0.32.0` tag tree (local clone, read via refs only).
