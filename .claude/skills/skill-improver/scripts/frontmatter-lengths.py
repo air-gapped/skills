@@ -16,7 +16,11 @@ normal verbosity. This script measured such files with regex and printed
 confident, healthy-looking numbers for fields the loader had already discarded
 (found on two skills, 2026-08-20). Regex cannot see the difference; a parser can.
 
-Usage: frontmatter-lengths.py <path-to-SKILL.md>
+Exit: 0 measured, no violation; 1 a SPEC VIOLATION line was printed (block does
+not parse, or `description` over the hard max) or there is no frontmatter; 2 the
+file could not be read.
+
+Usage: frontmatter-lengths.py <path-to-SKILL.md> | --selfcheck
 """
 
 import re
@@ -35,11 +39,47 @@ def field(fm: str, name: str) -> str | None:
     return m.group(1).strip() if m else None
 
 
+def selfcheck() -> int:
+    """Offline. Each planted file must exit the way its defect demands."""
+    import subprocess
+    import tempfile
+    from pathlib import Path
+
+    def run(body: str | None) -> tuple[int, str]:
+        path = Path(tempfile.mkdtemp(prefix="fm-lengths-")) / "SKILL.md"
+        if body is not None:
+            path.write_text(body, encoding="utf-8")
+        p = subprocess.run(
+            [sys.executable, __file__, str(path)], capture_output=True, text=True
+        )
+        return p.returncode, p.stdout + p.stderr
+
+    rc, out = run("---\nname: ok\ndescription: short\n---\n# ok\n")
+    assert rc == 0 and "description: 5 chars" in out, (rc, out)
+    # The plant: a description over the hard max is a violation, not a reading.
+    rc, out = run(f"---\nname: long\ndescription: {'x' * 1100}\n---\n# long\n")
+    assert rc == 1 and "SPEC VIOLATION: description 1100 > 1024" in out, (rc, out)
+    rc, out = run("---\nname: bad\ndescription: a: b: c\n---\n# bad\n")
+    assert rc == 1 and "not valid YAML" in out, (rc, out)
+    rc, out = run("# no frontmatter\n")
+    assert rc == 1 and "no YAML frontmatter" in out, (rc, out)
+    rc, out = run(None)
+    assert rc == 2 and "no such file" in out and "Traceback" not in out, (rc, out)
+    print("selfcheck: all assertions passed")
+    return 0
+
+
 def main() -> int:
     if len(sys.argv) != 2:
         print(__doc__.strip().splitlines()[-1], file=sys.stderr)
         return 2
-    text = open(sys.argv[1], encoding="utf-8").read()
+    if sys.argv[1] == "--selfcheck":
+        return selfcheck()
+    try:
+        text = open(sys.argv[1], encoding="utf-8").read()
+    except OSError as e:
+        print(f"no such file: {sys.argv[1]} ({e.strerror})", file=sys.stderr)
+        return 2
     parts = text.split("---")
     if len(parts) < 3:
         print("no YAML frontmatter found", file=sys.stderr)
@@ -116,7 +156,8 @@ def main() -> int:
             combined += len(value)
 
     desc = value_of("description")
-    if desc is not None and len(desc) > CAP_DESCRIPTION:
+    violation = desc is not None and len(desc) > CAP_DESCRIPTION
+    if violation:
         print(
             f"SPEC VIOLATION: description {len(desc)} > {CAP_DESCRIPTION} hard max "
             f"-> Dim 9 hard-fail cap at 3"
@@ -125,7 +166,7 @@ def main() -> int:
         f"description+when_to_use: {combined} chars "
         f"(listing cap {CAP_COMBINED}, overrun {max(0, combined - CAP_COMBINED)})"
     )
-    return 0
+    return 1 if violation else 0
 
 
 if __name__ == "__main__":

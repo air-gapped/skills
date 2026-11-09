@@ -25,7 +25,9 @@ Usage:
     python3 check-expiring-claims.py [root] [--days N] [--relative]
     python3 check-expiring-claims.py --selfcheck
 
-Exit: 0 always (advisory), 2 on usage error.
+Exit: 1 when a `[rel]` claim is listed — the relative phrase rots whatever the
+date does, so it is always a finding; 0 otherwise (dated claims alone are
+advisory); 2 on usage error.
 """
 
 from __future__ import annotations
@@ -129,8 +131,16 @@ def selfcheck() -> int:
         "backlogs must be skipped"
     )
     assert not any(r[0].year == 2020 for r in rows), "past dates must not appear"
+    # A relative phrase beside a future date is the finding; dates alone are not.
+    assert exit_code(rows) == 1
+    assert exit_code([r for r in rows if not r[5]]) == 0
+    assert exit_code([]) == 0
     print("selfcheck: all assertions passed")
     return 0
+
+
+def exit_code(rows) -> int:
+    return 1 if any(r[5] for r in rows) else 0
 
 
 def main() -> int:
@@ -170,7 +180,7 @@ def main() -> int:
             "\nRead the nearest ones and every [rel] line. A lifecycle table of EOL "
             "dates is\nsupposed to look like this — a [rel] phrase beside a date is not."
         )
-    return 0
+    return exit_code(rows)
 
 
 if __name__ == "__main__":

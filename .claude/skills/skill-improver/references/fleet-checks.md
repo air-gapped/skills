@@ -32,12 +32,8 @@ alongside a freshen pass.
 
 Future dates themselves (lifecycle tables) are fine. What rots is a *relative
 descriptor* beside a date ("2.11 goes EOL 2026-10-24 — roughly three months out"); `--relative`
-reports exactly those. Fix: delete the relative phrase and tell the reader to compute
-from the date. A replacement phrase rots identically.
-
-**Standing false positive:** this file's own quotation of a date beside a relative
-phrase is flagged by `--relative` every run. Leave it. A run whose only `[rel]`
-hit is this paragraph is clean.
+reports exactly those, and any `[rel]` line makes the exit 1. Fix: delete the relative
+phrase and tell the reader to compute from the date. A replacement phrase rots identically.
 
 ## Two Classes of Link Rot, and the Rest Is Noise
 
