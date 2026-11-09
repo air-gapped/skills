@@ -129,7 +129,7 @@ re-verified since. The 2026-05-28 pass re-probed the vLLM release line via
 
 - [CoreWeave GB200 NVL72 GA](https://www.coreweave.com/news/coreweave-first-cloud-provider-to-announce-general-availability-of-nvidia-gb200-nvl72-instances) [LV: 2026-09-15]
 - [Oracle OCI GB200 NVL72 (DCD)](https://www.datacenterdynamics.com/en/news/nvidia-gb200-nvl72-now-available-via-oracle-cloud/) [LV: 2026-09-15]
-- [Microsoft Azure GB300 NVL72](https://techcommunity.microsoft.com/blog/azureinfrastructureblog/reimagining-ai-at-scale-nvidia-gb300-nvl72-on-azure/4464556) [LV: 2026-09-15]
+- [Microsoft Azure GB300 NVL72](https://techcommunity.microsoft.com/blog/azureinfrastructureblog/reimagining-ai-at-scale-nvidia-gb300-nvl72-on-azure/4464556) — published **2025-10-28** (`datePublished` in the page JSON-LD). 403 to bare curl; readable through WebFetch and a browser.
 - [LMSYS / SGLang GB300 benchmarks](https://www.lmsys.org/blog/2026-02-20-gb300-inferencex/) [LV: 2026-09-15]
 - [TrendForce — GTC 2025 Blackwell/Rubin](https://www.trendforce.com/research/download/RP250319GB) [LV: 2026-09-15]
 

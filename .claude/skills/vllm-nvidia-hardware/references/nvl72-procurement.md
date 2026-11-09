@@ -65,7 +65,7 @@ publicly.
 ## 4. Public deployments
 
 - **CoreWeave:** first GB300 NVL72 (Dell IR7000), July 2025.
-- **Microsoft Azure:** GB300 NVL72 blog September 2025 (custom racks, not vanilla SKU).
+- **Microsoft Azure:** GB300 NVL72 blog 2025-10-28 (custom racks, not vanilla SKU).
 - **Oracle OCI:** GB200 NVL72 generally available.
 - **Crusoe, Lambda, Nebius:** NCP partners with GB200/GB300 capacity.
 
