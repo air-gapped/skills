@@ -49,9 +49,19 @@ toggle.
 | "DeepSeek-OCR recipe? dots-OCR? VLM document parsing?" | `references/ocr.md` |
 | "Is `--task embed` gone? What replaces `encode`?" | `references/runner-flags.md` |
 
-`scripts/probe-endpoint.sh` checks a running vLLM whether it exposes
-`/v1/embeddings`, `/rerank`, `/v1/audio/transcriptions`, etc., so an operator
-can confirm the right endpoints are live before pointing a client at it.
+`scripts/probe-endpoint.sh [URL]` reports which non-chat routes a running
+server registers. Run it before pointing a client at the server and act on
+the exit code:
+
+| Exit | Meaning | Next step |
+|---|---|---|
+| 0 | at least one pooling or speech-to-text route is live | use the routes marked ✓ |
+| 1 | `/health` failed | fix the server first |
+| 2 | every non-chat route answered 404 | wrong runner or model — `references/runner-flags.md` §8 |
+| 3 | 401/403, 5xx or no answer, nothing confirmed | set `VLLM_API_KEY` or probe the pod directly, then re-run |
+
+After editing the script run `scripts/selftest-probe-endpoint.py` (mock
+servers for each exit code).
 
 ## Operator cheat sheet — the common cases inline
 
