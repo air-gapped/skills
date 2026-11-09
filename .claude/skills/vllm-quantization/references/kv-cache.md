@@ -134,8 +134,8 @@ The FlashInfer `nvfp4` cell is SM100 only on ≤ v0.31.x; v0.32.0 extends it to 
 ## Roadmap items (feature requests)
 
 - INT8 KV — [#33480](https://github.com/vllm-project/vllm/issues/33480).
-- Per-head/per-channel FP8 KV generalized — [#32227](https://github.com/vllm-project/vllm/issues/32227).
-- Phase-aware KV quant for reasoning — [#39416](https://github.com/vllm-project/vllm/issues/39416) (58 % distortion reduction claim).
+- Per-head/per-channel FP8 KV generalized — [#32227](https://github.com/vllm-project/vllm/issues/32227), closed not-planned: do not wait for it.
+- Phase-aware KV quant for reasoning — [#39416](https://github.com/vllm-project/vllm/issues/39416), closed not-planned.
 
 ## External
 
