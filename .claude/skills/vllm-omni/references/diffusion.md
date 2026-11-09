@@ -6,7 +6,7 @@ Load when the operator is tuning a diffusion model — CFG weights, schedulers, 
 
 ## The shape of a diffusion request
 
-Unlike AR generation, DiT runs a **fixed number of denoising steps** against a latent. So the sampling-params analog is `OmniDiffusionSamplingParams`, defined in `vllm_omni/inputs/data.py:204-422` at v0.30.0 (last class in the module). `None` below means "use the pipeline default":
+Unlike AR generation, DiT runs a **fixed number of denoising steps** against a latent. So the sampling-params analog is `OmniDiffusionSamplingParams`, defined in `vllm_omni/inputs/data.py:211-460` at v0.32.0 (last class in the module). `None` below means "use the pipeline default":
 
 | Field | Default | Purpose |
 |---|---|---|
@@ -93,22 +93,20 @@ Also available via env vars:
 
 Selection is platform + model dependent. v0.14 defaults to **FA3** when the platform supports it (H100+); v0.14 added **ROCm AITER Flash Attention** (#941) for AMD; NPU uses **mindiesd** (shape issues on HunyuanVideo-1.5 #2880).
 
-The backend is set in stage config or model default — normally don't override. To override: `VLLM_ATTENTION_BACKEND=FLASH_ATTN|FLASHINFER|TRITON`.
+The backend comes from the model default — normally don't override. To override DiT attention: `--diffusion-attention-backend <NAME>` (e.g. `FLASH_ATTN`, `TORCH_SDPA`) or env `DIFFUSION_ATTENTION_BACKEND`; per-role settings via `--diffusion-attention-config`. This does not touch AR-stage attention, which uses vLLM's own selector. `VLLM_ATTENTION_BACKEND` is not read by the diffusion path.
 
 ## Quantization — unified framework (v0.18 #1764)
 
-Per-component quant via `ComponentQuantizationConfig`. The DiT and text encoder can use different methods:
+Pass the config as JSON on the CLI:
 
-```yaml
-engine_args:
-  quantization_config:
-    dit: "int8"          # DiT UNet weights INT8
-    text_encoder: "fp8"   # Text encoder FP8
-    vae: "none"           # VAE stays full precision
-    default: "int8"       # Anything else
+```bash
+vllm serve Qwen/Qwen-Image --omni \
+  --diffusion-quantization-config '{"method":"fp8","activation_scheme":"dynamic"}'
 ```
 
-Supported formats (entry point `build_quant_config()`, `vllm_omni/quantization/factory.py:389` at v0.30.0):
+Per-component routing (`ComponentQuantizationConfig`) is a dict keyed by **layer-name prefix** — longest prefix wins — not by role name: `{"transformer": {"method": "fp8"}, "vae": null}`. It is detected only when at least one value is `null` or a dict carrying `method`; a dict of bare strings (`{"transformer": "fp8"}`) raises `must have a 'method' or 'quant_method' key`.
+
+Supported formats (entry point `build_quant_config()`, `vllm_omni/quantization/factory.py:411` at v0.32.0):
 
 | Format | Targeted at | Source PR |
 |---|---|---|
@@ -124,38 +122,43 @@ Build via factory:
 
 ```python
 from vllm_omni.quantization.factory import build_quant_config
-cfg = build_quant_config({"dit": "int8", "text_encoder": "fp8"})
+cfg = build_quant_config({"transformer": {"method": "int8"}, "vae": None})
 ```
 
 **Multi-stage quant gotcha**: a pre-quantized multi-stage checkpoint (modelopt FP8) stores quant config in per-stage sub-configs. `OmniModelArchConfigConvertor` reads `stage_config_name` to route correctly. For hand-quantized checkpoints, set `hf_config_name` per stage or the wrong stage gets quantized.
 
 ## LoRA
 
-DiT LoRA (PEFT-compatible) landed v0.14 #758. Pass per-request:
+DiT LoRA (PEFT-compatible) landed v0.14 #758. Pass per-request (`/v1/images/generations` body, or `extra_body.lora` on chat):
 
 ```json
 {
   "model": "Qwen/Qwen-Image",
   "prompt": "...",
   "lora": {
-    "adapter": "my_style_lora.safetensors",
-    "weight": 0.8
+    "name": "my_style",
+    "local_path": "/models/lora/my_style_adapter",
+    "scale": 0.8
   }
 }
 ```
 
-Or load at server-start via `--enable-lora --lora-modules <name>=<path>`.
+`local_path` is a PEFT adapter **directory readable on the server**, not a client path or a bare `.safetensors` name; `name` defaults to the path stem, `scale` to 1.0.
+
+At server start: `--lora-path <adapter-or-file...>` with `--lora-backend peft` (default; `--lora-scale` applies) or `--lora-backend distill`, which fuses few-step LoRA `.safetensors` files into the base weights for the server's lifetime (Wan2.2 MoE: high-noise file first, low-noise second). `--enable-lora --lora-modules` are upstream LLM-adapter flags, not the diffusion path.
 
 Combined with ComfyUI bridge (v0.18 #1596), ComfyUI-saved LoRAs load directly.
 
 ## DiT LoRA + Offload
 
-v0.14 #858 added **layerwise CPU offloading** for DiT — transformer blocks swap to/from CPU between timesteps. Saves ~40% VRAM at ~15% throughput cost. Configured per-stage:
+v0.14 #858 added **layerwise CPU offloading** for DiT — transformer blocks swap to/from CPU between timesteps. Saves ~40% VRAM at ~15% throughput cost. Enable on the CLI:
 
-```yaml
-engine_args:
-  layerwise_cpu_offload: true
+```bash
+vllm serve Wan-AI/Wan2.2-T2V-A14B-Diffusers --omni \
+  --diffusion-offload-config '{"mode":"layer","components":["dit"]}'
 ```
+
+`components` takes `dit`, `text_encoder` or both; `"mode":"module"` is whole-model CPU offload. `--enable-layerwise-offload` and `--enable-cpu-offload` are compatibility aliases.
 
 ## Frame interpolation (video post-processing)
 
@@ -174,7 +177,7 @@ RIFE-based temporal upsampling, enabled per-request:
 
 ## verl RL / Flow-GRPO (v0.18)
 
-vllm-omni integrates with verl for E2E RL training on Qwen-Image via Flow-GRPO (#1646, #1593, #2005, #2217). Adds collective RPC support + async batching. Not a serving concern, but worth knowing: the same diffusion engine drives training feedback. For Flow-GRPO setups, cross-reference `docs/features/verl.md`.
+vllm-omni integrates with verl for E2E RL training on Qwen-Image via Flow-GRPO (#1646, #1593, #2005, #2217). Adds collective RPC support + async batching. Not a serving concern, but worth knowing: the same diffusion engine drives training feedback. For RL weight updates into a running server read `docs/user_guide/weight_transfer.md` (v0.32.0); the trainer side lives in the separate `verl-project/verl-omni` repo. There is no `docs/features/verl.md` at v0.30.0 or v0.32.0.
 
 ## ComfyUI bridge (v0.16 #1113)
 
@@ -186,7 +189,7 @@ If DiT latency looks wrong:
 
 1. Check `--ulysses-degree` matches GPU count.
 2. Confirm TeaCache or Cache-DiT is enabled (stage-config extras).
-3. Check quantization is engaging: `python -c "from vllm_omni.quantization.factory import ...; print(built_config)"`.
+3. Check quantization is engaging: grep the startup log for `Building quantization config` (logged for single-method configs).
 4. Wan2.2 specifically: `guidance_scale_2` + `boundary_ratio` must both be set or dual-CFG no-ops.
 5. Blackwell SM100/SM103 paths: some DiT kernels fall back to CUTLASS.
    **Do not pin `flashinfer<0.6.7`** — unsatisfiable on v0.32.0, which
