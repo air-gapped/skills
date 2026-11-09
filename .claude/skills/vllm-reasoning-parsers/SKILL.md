@@ -70,7 +70,7 @@ See `references/pitfalls.md` for each with repros and fixes. Quick index:
 
 4. **Truncated output = wrong field** — when the model hits `max_tokens` mid-reasoning, the parser's policy picks the field: `qwen3` with thinking on and `deepseek_r1` → all `reasoning`; `qwen3` with `enable_thinking=False` → all `content` (other parsers: `references/pitfalls.md` §4). Know the policy before shipping. Fix: cap reasoning with **`thinking_token_budget`** in the request body, so the run ends through the parser's normal path instead of truncation (Model Runner V2, v0.28.0+).
 
-5. **Nested `<think>` tags** — base parser's `partition` stops at the first `</think>`; if a CoT contains a literal `</think>` substring (sometimes seen in distillation artifacts), content gets split wrong. `count_reasoning_tokens` uses a depth counter so counts are right, but the split is not.
+5. **Nested `<think>` tags** — base parser's `partition` stops at the first `</think>`; if a CoT contains a literal `</think>` substring (sometimes seen in distillation artifacts), content gets split wrong. `count_reasoning_tokens` uses a depth counter so counts are right, but the split is not. Adapter-path parsers have the same exposure in non-streaming only: the split runs on decoded text, so a `</think>` the model spelled with ordinary tokens (quoting it) ends reasoning there, while streaming matches token ids and does not (open at v0.33.0) — if only `stream: false` misroutes, it is this.
 
 6. **Tool calls break with reasoning enabled** — tool parser only sees the `content` half of `extract_reasoning`'s return. If the reasoning parser returns `(everything, None)`, tool parser sees nothing. Kimi K2 handles this by treating `<|tool_calls_section_begin|>` as an implicit reasoning-end marker.
 

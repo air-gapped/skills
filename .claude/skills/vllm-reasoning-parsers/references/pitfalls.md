@@ -68,6 +68,8 @@ Every item has a repro condition, observed symptom, root cause, and fix.
 
 **Fix for split.** No general fix — at the split level, the first `</think>` is authoritative. Filter the content for stray end tokens if downstream tooling chokes.
 
+**Adapter path, non-streaming (open at v0.33.0).** `DelegatingParser.parse` receives `model_output_token_ids` and ignores them: it runs `extract_reasoning` and tool extraction on the decoded text. A marker the model wrote with ordinary tokens — quoting `</think>` or a `<tool_call>` block, or echoing one from the prompt — decodes to the same string as the special token and is parsed as structure. Affects every adapter-path name (`glm45`/`glm47`, `qwen3`, `deepseek_v4`, `kimi_k2`, `minimax_m2`, …). Streaming feeds token ids to the engine and gets the reasoning boundary right, so the same output splits differently by `stream`. No fixed release ([#64326](https://github.com/vllm-project/vllm/issues/64326)); use streaming where the split must be exact.
+
 **Upstream.** [Discussion #12708](https://github.com/vllm-project/vllm/discussions/12708).
 
 ## 6. Tool calls empty when reasoning parser is on
