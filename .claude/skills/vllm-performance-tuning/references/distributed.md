@@ -124,7 +124,7 @@ P and D register KV regions; P pushes directly via UCX; D polls readiness. Route
 
 ### Single node, same 8 GPUs: 4P+4D vs 1×TP8 vs 2×TP4 — what has been measured
 
-The one published head-to-head (verified 2026-09-16): [vLLM blog 2026-04-07, AMD MORI-IO connector](https://vllm.ai/blog/2026-04-07-moriio-kv-connector),
+The one published head-to-head: [vLLM blog 2026-04-07, AMD MORI-IO connector](https://vllm.ai/blog/2026-04-07-moriio-kv-connector),
 Qwen3-235B-A22B-FP8 on one 8× MI300X node, 2000 ISL / 1000 OSL at 8 req/s, SLO = TTFT + P99 ITL:
 
 | Layout | Requests meeting both SLOs |
@@ -150,7 +150,7 @@ before assuming NVLink/cuda_ipc is free. Still open at v0.33.0, and upgrading to
 the NIXL 1.5 SGL speed-up (`NIXL_UCX_SGL_ENABLE=1`) applies to WRITE, and `NixlConnector` pulls with READ. The same ~3.5–3.7 µs per-descriptor
 `cuda_ipc` post cost is reported for single-node H100/H200 pull transfers whenever decode-side block IDs are scattered, so it is not GLM-specific.
 
-No published single-node numbers exist (as of 2026-09-16) for GLM-5.x-Flash, DeepSeek, Llama-3.3-70B or SGLang.
+No published single-node numbers exist (as of 2026-11-09) for GLM-5.x-Flash, DeepSeek, Llama-3.3-70B or SGLang.
 Recipes (recipes.vllm.ai, NVIDIA Dynamo) document the 4+4 split without benchmarking it. Measure per model:
 `vllm bench serve --goodput ttft:… tpot:…` against the split vs 1× TP8 on the same node, cold prefix.
 

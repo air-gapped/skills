@@ -1,13 +1,13 @@
 # Known regressions + vendor quirks
 
-Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/Ascend/XPU, or suspects a vendor-specific bug. Issue states below were re-probed on 2026-10-18 (vLLM v0.32.0).
+Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/Ascend/XPU, or suspects a vendor-specific bug. Issue states below were re-probed on 2026-11-09 (vLLM v0.33.0).
 
 ## Contents
 
 - [Version regressions](#version-regressions)
 - [Vendor quirks](#vendor-quirks)
 - [Published benchmark discrepancies](#published-benchmark-discrepancies)
-- [Execution-path changes by minor, v0.22.0 → v0.32.0](#execution-path-changes-by-minor-v0220--v0320)
+- [Execution-path changes by minor, v0.22.0 → v0.33.0](#execution-path-changes-by-minor-v0220--v0330)
 - [Defensive upgrade checklist](#defensive-upgrade-checklist)
 
 ## Version regressions
@@ -156,7 +156,7 @@ PRs to know:
 
 For deployments mixing spec-dec + async-sched with post-upgrade perf drop, verify [#24799](https://github.com/vllm-project/vllm/pull/24799) and [#29821](https://github.com/vllm-project/vllm/pull/29821) fixes landed in the running version.
 
-## Execution-path changes by minor, v0.22.0 → v0.32.0
+## Execution-path changes by minor, v0.22.0 → v0.33.0
 
 Execution-path changes across these minors. These move the baseline a re-tune is
 measured against — re-benchmark across any of these boundaries rather than
@@ -245,7 +245,8 @@ Before bumping vLLM version:
    and grep your own serve args against it. v0.27.0 alone removed
    `--max-num-partial-prefills` / `--max-long-partial-prefills`; v0.32.0 removed
    `pass_config.enable_sp` / `fuse_gemm_comms` / `sp_min_token_num` and
-   `VLLM_ENGINE_ITERATION_TIMEOUT_S`. Also diff `vllm/envs.py` — removed env vars
+   `VLLM_ENGINE_ITERATION_TIMEOUT_S`; v0.33.0 removed the Ray compiled-DAG env vars
+   and `tools/install_deepgemm.sh`. Also diff `vllm/envs.py` — removed env vars
    are silently ignored, not rejected.
 1. `git log v<current>..v<target> -- benchmarks/` in the vLLM repo — any new benchmark_moe.py changes?
 2. Check release notes for the deployed model family — DeepSeek-V3.2 / Qwen3-MoE / Kimi-K2 / Llama-4 all have fresh-release recipes that may change.

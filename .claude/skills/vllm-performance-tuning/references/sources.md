@@ -1,10 +1,10 @@
 # Sources
 
-Freshened: 2026-10-18 (exceptions: 1 row, noted inline) — every row probed at v0.32.0 (60 non-GitHub URLs live, 58 return 200 to curl; all 87 issue/PR states batched; config/env/arg_utils diffed v0.30.0→v0.32.0). Moved: compile-pass SP+AsyncTP removed (#60517), DeepEP v2 hybrid default on (#57991), --max-num-active-seqs (#56758), VLLM_ENGINE_ITERATION_TIMEOUT_S removed (#59781). Stale since earlier tags: graph-capture cap is 1024 on SM100 since v0.28.0 (#49390); pplx/naive all2all removed in v0.17.0/v0.19.0; nixlRole and --disagg-split were never vLLM surface.
+Freshened: 2026-11-09 (exceptions: 1 row, noted inline) — every row probed at v0.33.0 (60 non-GitHub URLs: 58 return 200 to curl, 1 read in the browser, 1 exception; every cited issue/PR state batched via GraphQL; `vllm/config/`, `vllm/envs.py`, `vllm/engine/arg_utils.py` diffed v0.32.0→v0.33.0; issues opened since 2026-10-18 swept). Moved: the 2026-11-09 delta table below. Stale since earlier tags: shipped MoE configs cover Blackwell and MI325X; `SharedStorageConnector` / `LMCacheConnector` are not registered connector names; the DeepSeek-V3.2 recipe says TP=2 on Hopper; `NCCL_NET_GDR_C2C` is default-on since NCCL 2.27; Model Runner V2 has been the default for all models since v0.29.0.
 
 All citations backing the skill. Verify any claim via the linked source.
 
-## vLLM source code + benchmarks (read at tag v0.32.0)
+## vLLM source code + benchmarks (read at tag v0.33.0)
 
 Read at tag via `gh api "repos/vllm-project/vllm/contents/<path>?ref=v0.27.0" --header 'Accept: application/vnd.github.raw'`.
 This is the probe that answers "does this flag still exist", and it is what the
@@ -110,6 +110,8 @@ v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02) and git tag `v0.33.0`; the 
 - [Wide-EP H200 — 2025-12-17](https://vllm.ai/blog/large-scale-serving) — 2.2k tok/s/GPU DeepSeek-R1
 - [Wide-EP GB200 Part I — 2026-02-03](https://vllm.ai/blog/dsr1-gb200-part1) — 26.2K / 10.1K TPGS
 - [Speculators v0.3.0 — 2025-12-13](https://blog.vllm.ai/2025/12/13/speculators-v030.html)
+- [MORI-IO KV connector — 2026-04-07](https://vllm.ai/blog/2026-04-07-moriio-kv-connector) — single-node 8× MI300X P/D head-to-head, 26 / 30 / 70 / 73 of 100 requests meeting both SLOs
+- [vLLM blog index](https://vllm.ai/blog) — enumerated through 2026-11-06 for the single-node P/D absence claim in `distributed.md`: the P/D posts since 2026-09-16 (Qwen3.8 PD serving 2026-09-21, disaggregated serving guide 2026-09-29, NIXL push connector 2026-10-14, DeepSeek-V4.1-Flash P/D + Wide-EP 2026-10-23) are rack- or multi-node-scale
 
 ## Red Hat posts
 
@@ -123,11 +125,13 @@ v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02) and git tag `v0.33.0`; the 
 ## Cloud + partner posts
 
 - [LMSYS DeepSeek 96× H100 — 2025-05-05](https://www.lmsys.org/blog/2025-05-05-large-scale-ep/) — PD-disagg production numbers
-- [Microsoft Azure DeepEP — 2025](https://techcommunity.microsoft.com/blog/azurehighperformancecomputingblog/achieving-optimal-performance-for-deepseek-expert-parallelism-deepep-on-azure/4414699) — NVSHMEM tuning (403 to bare curl; title confirmed in the browser 2026-10-18)
+- [Microsoft Azure DeepEP — 2025](https://techcommunity.microsoft.com/blog/azurehighperformancecomputingblog/achieving-optimal-performance-for-deepseek-expert-parallelism-deepep-on-azure/4414699) — NVSHMEM tuning (403 to bare curl; article read in the browser 2026-11-09 — dated 2025-05-16, bandwidth figures and NVSHMEM settings confirmed)
 - [Google Cloud xPU tuning guide](https://cloud.google.com/blog/topics/developers-practitioners/vllm-performance-tuning-the-ultimate-guide-to-xpu-inference-configuration) — `auto_tune.sh`
 - [Anyscale Ray Serve LLM](https://www.anyscale.com/blog/ray-serve-llm-anyscale-apis-wide-ep-disaggregated-serving-vllm) — Wide-EP + PD as Pythonic builder
 - [LMCache NIXL — 2025-04-11](https://blog.lmcache.ai/en/2025/04/11/shaping-nixl-based-pd-disaggregation-in-vllm-v1) — PD-disagg in vLLM V1
 - [PyTorch + vLLM disagg](https://pytorch.org/blog/disaggregated-inference-at-scale-with-pytorch-vllm/)
+- [kraghavan.ca — 2026-04-21](https://kraghavan.ca/llm-infrastructure/inference/2026/04/21/llm-d-pd-disaggregation.html) — llm-d + NIXL P/D on one GH200, Qwen3-0.6B: E2E 6.5×, TTFT 3.7×, ITL 3.5× worse than aggregated
+- [deepseek-ai/DeepEP](https://github.com/deepseek-ai/DeepEP) — the all-to-all library
 - [AMD vLLM MoE Playbook](https://rocm.blogs.amd.com/software-tools-optimization/vllm-moe-guide/README.html) — activation density + concurrency crossover
 - [AMD MLPerf v5.1](https://rocm.blogs.amd.com/artificial-intelligence/mlperf-inference-v5.1/README.html)
 - [NVIDIA Blackwell Ultra MLPerf](https://developer.nvidia.com/blog/nvidia-blackwell-ultra-sets-new-inference-records-in-mlperf-debut/)
@@ -143,7 +147,7 @@ v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02) and git tag `v0.33.0`; the 
 ## MLCommons / MLPerf
 
 - [MLPerf v5.0 announcement](https://mlcommons.org/2025/04/llm-inference-v5/) — Llama 3.1 405B added
-- [MLPerf v5.1 results](https://www.hpcwire.com/2025/09/10/mlperf-inference-v5-1-results-land-with-new-benchmarks-and-record-participation/) — **exception:** 403 to bare curl; the browser loads the site but returned only the generic site title, article body not confirmed
+- [MLPerf v5.1 results](https://www.hpcwire.com/2025/09/10/mlperf-inference-v5-1-results-land-with-new-benchmarks-and-record-participation/) — **exception:** 403 (Cloudflare) to bare curl; in the browser the URL renders the HPCwire front page, not the article (2026-11-09). The MLPerf v5.1 figures the skill quotes rest on the NVIDIA and AMD rows, not on this one
 - Newer rounds exist, not yet used by the skill: MLPerf Inference v6.0 (2026-04-01) and v6.1 (2026-09-16, [MLCommons datacenter results](https://mlcommons.org/benchmarks/inference-datacenter/))
 
 ## Goodput / SLO / inference perf research
@@ -151,11 +155,11 @@ v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02) and git tag `v0.33.0`; the 
 - [DistServe paper / goodput blog](https://haoailab.com/blogs/distserve/)
 - [Revisiting SLO & Goodput arxiv 2410.14257](https://arxiv.org/html/2410.14257v1)
 - [SemiAnalysis InferenceMAX announcement](https://newsletter.semianalysis.com/p/inferencemax-open-source-inference)
-- [InferenceX dashboard](https://inferencex.semianalysis.com/)
+- [InferenceX dashboard](https://inferencex.semianalysis.com/) — live; the page title now reads "AcceleratorX by SemiAnalysis", the site name in its metadata is still InferenceX
 
 ## Key issues / PRs referenced
 
-### Version-specific regressions (states re-probed 2026-10-18)
+### Version-specific regressions (states re-probed 2026-11-09)
 
 **Closure-reason column matters more than state** — see the §3.0 note at the end of this section.
 
@@ -170,7 +174,7 @@ v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02) and git tag `v0.33.0`; the 
 - [#25538](https://github.com/vllm-project/vllm/issues/25538) — preempt/resume thrashing — **CLOSED `NOT_PLANNED` 2026-02-26 by the inactivity bot.** Not fixed; mitigations still apply.
 - [#19579](https://github.com/vllm-project/vllm/issues/19579) — ROCm V1 piecewise capture size — **bot-closed `NOT_PLANNED` 2025-10-17, no fix PR**
 
-### Async-scheduling status (states re-probed 2026-10-18)
+### Async-scheduling status (states re-probed 2026-11-09)
 - [#27679](https://github.com/vllm-project/vllm/issues/27679) — Async Scheduling Plan (umbrella tracker, PP/struct-out/spec-dec/MM) — **CLOSED 2025-12-29** (all sub-PRs merged)
 - [#27614](https://github.com/vllm-project/vllm/pull/27614) — PR "[Core] Enable async scheduling by default" — **MERGED 2025-12-29**
 - [#28250](https://github.com/vllm-project/vllm/pull/28250) — PR "[Core] Rework handling of async scheduling config" — **MERGED 2025-11-07**
@@ -257,7 +261,7 @@ v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02) and git tag `v0.33.0`; the 
 
 ## Refresh policy
 
-Compiled 2026-04-18 against vLLM v0.19.0. Freshened 2026-05-28 (v0.21.0), 2026-07-21 (v0.25.1), 2026-08-11 (v0.27.0), 2026-09-22 (v0.30.0), 2026-10-18 (v0.32.0 — flag surface and issue tracker both re-probed).
+Compiled 2026-04-18 against vLLM v0.19.0. Freshened 2026-05-28 (v0.21.0), 2026-07-21 (v0.25.1), 2026-08-11 (v0.27.0), 2026-09-22 (v0.30.0), 2026-10-18 (v0.32.0 — flag surface and issue tracker both re-probed), 2026-11-09 (v0.33.0).
 
 **Do not treat "issue closed" as "regression fixed".** Of the issues re-probed on 2026-07-21, more closed for inactivity than for a fix. Read the closing comment every time — the previous pass's refresh policy listed #31475 as "still-open" and it is now `CLOSED`, which would read as resolved and is not.
 
@@ -270,7 +274,10 @@ issue state. Every pass should diff `vllm/config/*.py` + `vllm/engine/arg_utils.
 between the old and new tags and grep this skill's flags against it.
 
 Refresh when:
-- v0.33.0 lands. Latest stable is **v0.32.0** (2026-10-18); v0.31.0 shipped 2026-10-05 with no v0.31.x patch release. Code claims were read at tag `v0.32.0` — do not restamp to a tag nobody read.
+- v0.34.0 lands. Latest stable is **v0.33.0** (PyPI 2026-11-02); no v0.32.x patch shipped (`v0.32.1rc0` is a tag only). Code claims were read at tag `v0.33.0` — do not restamp to a tag nobody read.
 - A referenced issue closes **against a named fix PR** — genuinely fixed so far: #29539 (2026-01-07), #34249 (2026-02-20), #27679 (2025-12-29), #31679 (2026-01-07), #34641 (2026-05-28), vllm-ascend #4649 (2026-03-13). Closed *without* a fix: **#28882** (moved here 2026-09-15 — bot-closed, two bot comments, no PR), #31475, #25538, and now [#35048](https://github.com/vllm-project/vllm/issues/35048) (autoclosed 2026-07-22).
-- Wide-EP GB200 Part II ships — currently Part I only.
+- Wide-EP GB200 Part II ships — currently Part I only (no such post on the vLLM blog index through 2026-11-06).
+- A release contains #65059 (pre-Hopper MoE top-k fix), or #63705 / #62442 / #55434 / #63549 / #65919 closes against a merged fix.
+- Model Runner V1 removal ships — merged on `main` as [PR #63373](https://github.com/vllm-project/vllm/pull/63373) on 2026-11-07, in no release; every "Model Runner V1 only" note then applies to ≤ v0.33.x.
+- dcgm-exporter 4.9.x gathers field reports — 4.9.0 was three days old when its metric renames were recorded here.
 - An MLPerf round is re-sourced: v6.0 and v6.1 are out; the skill still quotes v5.1.

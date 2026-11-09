@@ -124,7 +124,7 @@ The flag is **`--cudagraph-capture-sizes`** (plus `--max-cudagraph-capture-size`
 `v0.27.0`, and a repo-wide code search for the old symbol returns nothing. Older
 recipes and blog posts still use the old spelling; they will fail to parse.
 
-If `--cudagraph-capture-sizes` is unset, vLLM generates (`vllm/config/vllm.py` at v0.32.0):
+If `--cudagraph-capture-sizes` is unset, vLLM generates (`vllm/config/vllm.py` at v0.33.0):
 ```
 [1, 2, 4] + range(8, 256, 8) + range(256, max_cudagraph_capture_size+1, 16)
 max_cudagraph_capture_size = min(max_num_seqs * (1 + num_speculative_tokens) * 2,

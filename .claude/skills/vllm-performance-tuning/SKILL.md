@@ -8,7 +8,7 @@ when_to_use: |-
 
 # vLLM performance tuning
 
-Target: operators deploying models on new hardware, chasing throughput / latency / goodput SLOs, or diagnosing perf regressions. Verified against **v0.32.0** (2026-10-18), the latest stable.
+Target: operators deploying models on new hardware, chasing throughput / latency / goodput SLOs, or diagnosing perf regressions. Verified against **v0.33.0** (2026-11-02), the latest stable.
 
 Companion skills: `vllm-benchmarking` (measure), `vllm-caching` (KV), `vllm-nvidia-hardware` (GPU/GEMM), `vllm-configuration` (env vars), `vllm-observability` (metrics).
 
@@ -143,7 +143,7 @@ Concurrency crossover (8× MI300X benchmarks): ≤128 concurrent → TP wins, �
 | **`-O2`** | **default** — full compile + `FULL_AND_PIECEWISE` + fusions (AllReduce+RMSNorm +15%, Attention+Quant FP8 +7%; the compile-pass SP+Async-TP is gone in v0.32.0) |
 | `-O3` | reserved (currently = `-O2`) |
 
-### Upgrading across v0.22.0 → v0.32.0
+### Upgrading across v0.22.0 → v0.33.0
 
 Re-benchmark after crossing any minor in this range; do not compare against numbers taken before it. Per-minor execution-path changes and the config keys that now fail validation → `references/regressions.md` §"Execution-path changes by minor".
 
