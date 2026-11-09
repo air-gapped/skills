@@ -284,7 +284,7 @@ random, 50–72% on MT-Bench). A collapsed number has two known causes:
 | Engine | Status | Action |
 |---|---|---|
 | ≤ v0.28.x | affected — [#49955](https://github.com/vllm-project/vllm/issues/49955) | send `enable_thinking` explicitly on **every** request |
-| v0.29.0+ | root cause fixed by [#52430](https://github.com/vllm-project/vllm/pull/52430); #49955 still open, unconfirmed on a release | keep sending `enable_thinking` explicitly; run the test below |
+| v0.29.0+ | root cause fixed by merged PR [#52430](https://github.com/vllm-project/vllm/pull/52430); the issue has no reporter confirmation on a release | keep sending `enable_thinking` explicitly; run the test below |
 
 Mechanism: the template defaults `enable_thinking` to `false` while the
 pre-fix `Gemma4Parser` defaulted it to `True`. With no explicit value the
@@ -411,4 +411,4 @@ happy-path forced `tool_choice` re-checked on v0.25.1):
 - `references/chat-template-drift.md` — canonical vs bundled template: defect list, vetted pins, re-vet commands, hash chain
 - `references/open-questions.md` — unmeasured mechanisms (gemma-3 vs gemma-4 TP curve) and bench questions still open
 - `references/bench-numbers.md` — full benchmark table from the 2026-04-30 2× H100 audit, all 12+ data points
-- `references/sources.md` — dated index of upstream URLs (HF model + chat_template, vLLM source paths, GH issues / PRs) with `Last verified:` and `Pinned:` markers
+- `references/sources.md` — index of upstream URLs (HF model + chat_template, vLLM source paths, GH issues / PRs) with pins and one `Freshened:` date; provenance only, not needed mid-task
