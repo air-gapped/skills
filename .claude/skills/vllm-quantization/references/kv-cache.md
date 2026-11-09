@@ -43,7 +43,7 @@ scales in the model checkpoint. Source of truth:
 | `octave_k3v4` | 3-bit K (four rotated 64-dim blocks) + 4-bit V, 3.88 bits/value (v0.33.0, #59774) | ROCm RDNA3 / CDNA3, `ROCM_OCTAVE`; head size 256 with 64 rotary dims only | fp16 scales stored in the slot |
 | `octave_k3v3` | 3-bit block K + 3-bit V, 3.38 bits/value | same | same |
 | `octave_k3v3_compact` | 3-bit K rotated over all 256 dims + 3-bit V, 3.06 bits/value | same | same |
-| `nvfp4` | **Shipped — no longer roadmap** | FlashInfer: SM100 (TRTLLM); SM80 / SM90 / SM12x via the FA2 path from v0.32.0 (#46963, #60620; XQA decode on SM12x, #60452) — rejected at head size 64 and with attention sinks | [#32220](https://github.com/vllm-project/vllm/issues/32220) **CLOSED `COMPLETED` 2026-05-04** (maintainer closing on a contributor's work, not a bot). v0.25.0 added NVFP4 KV cache with skip-layers sliding window ([#42890](https://github.com/vllm-project/vllm/pull/42890)) |
+| `nvfp4` | **Shipped — no longer roadmap** | FlashInfer: SM100 (TRTLLM); SM80 / SM90 / SM12x via the FA2 path from v0.32.0 (#46963, #60620; XQA decode on SM12x, #60452) — rejected at head size 64 and with attention sinks | Shipped v0.21.0 ([#40177](https://github.com/vllm-project/vllm/pull/40177)); `kv_cache_dtype_skip_layers` sliding window from v0.25.0 ([#42890](https://github.com/vllm-project/vllm/pull/42890)) |
 | `nvfp4_4over6` | NVFP4 layout; picks max/6 or max/4 scale per 16 values by squared reconstruction error | FlashInfer SM100 (TRTLLM) only — the FA2 path accepts plain `nvfp4` only | Computed at write time |
 
 ## Base method

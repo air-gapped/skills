@@ -57,7 +57,7 @@ accuracy benchmarks against any OpenAI-compatible endpoint).
 | H100 / H200 (SM90) | `fp8` (compressed-tensors) or `modelopt` | `fp8_e4m3` | FP8 native Tensor Cores, CUTLASS/Marlin/DeepGEMM all mature |
 | H100 / H200, accuracy-critical | `awq_marlin` / `gptq_marlin` (W4A16) | `fp8_e4m3` | Weight-only INT4 with per-group scales — best accuracy at 4-bit |
 | H100 / H200, long-context MoE | `fp8` + DeepGEMM block | `fp8_e4m3` | Block FP8 MoE uses DeepGEMM path, lower activation-scale cost |
-| B200 / B300 (SM100 / SM103) | `modelopt_fp4` or compressed-tensors NVFP4 | `fp8_e4m3`, or `nvfp4` (shipped v0.25.0, #42890) | Blackwell has native FP4 Tensor Cores — NVFP4 wins on both memory AND compute |
+| B200 / B300 (SM100 / SM103) | `modelopt_fp4` or compressed-tensors NVFP4 | `fp8_e4m3`, or `nvfp4` (v0.21.0+, #40177) | Blackwell has native FP4 Tensor Cores — NVFP4 wins on both memory AND compute |
 | B200 / B300, GPT-OSS | `mxfp4` / `gpt_oss_mxfp4`; for MXFP8 activations add `--moe-backend flashinfer_trtllm --quantization-config.moe.activation mxfp8` | `fp8_e4m3` | Only vendor-supplied format GPT-OSS ships. `VLLM_USE_FLASHINFER_MOE_MXFP4_MXFP8` no longer exists (removed v0.24.0) — setting it does nothing |
 | B200 / B300, lower accuracy risk | `modelopt_mxfp8` or online `fp8_per_block` | `fp8_e4m3` | MXFP8 MoE has the newest kernel set (v0.19), better on shapes NVFP4 struggles with |
 | GB10 / DGX Spark (SM121) | `fp8` only (NVFP4/MXFP4 kernels brittle on SM121) | `fp8_e4m3` | See #39761 / #37030 / #34817 — desktop-Blackwell quant kernels are not production ready |
@@ -132,7 +132,7 @@ Single dispatch: [`vllm/config/cache.py`](https://github.com/vllm-project/vllm/b
 - `octave_k3v4`, `octave_k3v3`, `octave_k3v3_compact` — ROCm-only 3–4 bit KV (v0.33.0, `ROCM_OCTAVE` backend, selected by the dtype). RDNA3 / CDNA3 only, and only head size 256 with partial RoPE (Qwen3-Next / 3.5 / 3.6 / 3.8); any other model is rejected at startup.
 - `int4_per_token_head`, `int8_per_token_head`, `fp8_per_token_head` — dynamic per-(token,head) scales computed in-kernel. **No checkpoint scales needed.** Added in [PR #34281](https://github.com/vllm-project/vllm/pull/34281), v0.17.
 - `turboquant_k8v4`, `turboquant_4bit_nc`, `turboquant_k3v4_nc`, `turboquant_3bit_nc` — Hadamard-rotated 2-4 bit KV (v0.19, [PR #38479](https://github.com/vllm-project/vllm/pull/38479)).
-- `nvfp4` — **shipped, not roadmap.** [#32220](https://github.com/vllm-project/vllm/issues/32220) closed `COMPLETED` 2026-05-04; v0.25.0 landed NVFP4 KV with skip-layers sliding window ([#42890](https://github.com/vllm-project/vllm/pull/42890)). FlashInfer-only: SM100 through TRTLLM; **v0.32.0 added SM80/SM90/SM12x** through the FA2 path (not at head size 64, not with attention sinks). `nvfp4_4over6` (4-over-6 scale selection) stays SM100-only. See `references/kv-cache.md`.
+- `nvfp4` — **shipped in v0.21.0** ([#40177](https://github.com/vllm-project/vllm/pull/40177)), not roadmap; v0.25.0 added `kv_cache_dtype_skip_layers` sliding-window support ([#42890](https://github.com/vllm-project/vllm/pull/42890)). FlashInfer-only: SM100 through TRTLLM; **v0.32.0 added SM80/SM90/SM12x** through the FA2 path (not at head size 64, not with attention sinks). `nvfp4_4over6` (4-over-6 scale selection) stays SM100-only. See `references/kv-cache.md`.
 
 `--calculate-kv-scales` was **deprecated in v0.19** ([PR #37201](https://github.com/vllm-project/vllm/pull/37201)). Use pre-calibrated scales (LLM Compressor produces them) or let per-token-head scales be computed dynamically.
 
