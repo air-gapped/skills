@@ -16,7 +16,7 @@ variant of the runner or checking that isolation held.
 | `OPENCODE_LOG_LEVEL=DEBUG` + `--print-logs` | | Server logs on stderr |
 | unset `OPENCODE_DB`, `OPENCODE_CONFIG`, `OPENCODE_CONFIG_DIR`, `OPENCODE_PASSWORD`, `OPENCODE_SERVER_PASSWORD` | | Caller overrides that bypass the scratch home. `OPENCODE_DB` moves the database (sessions and credentials) out of `XDG_DATA_HOME` |
 | `cd "$WORKDIR"` | | `run` takes its project root from `$PWD` |
-| `</dev/null` when the prompt is an argument | | `run` appends any non-TTY stdin to the message |
+| `</dev/null` when the prompt is an argument | | `run` appends any non-TTY stdin to the message. Before v2.2.6 it also waits for stdin to close before creating the session: an open pipe (`ssh` without `-n`, a spawned child's default stdio) hangs the run with no output |
 
 ## Config (`OPENCODE_CONFIG_CONTENT`)
 
