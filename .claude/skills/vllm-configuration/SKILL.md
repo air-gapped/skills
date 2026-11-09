@@ -68,7 +68,7 @@ Full catalog in `references/env-vars.md`. The ones that matter most in productio
 - `HF_HUB_OFFLINE=1` — **required** in air-gapped mode. Without it, vLLM hits HF on every startup to check for newer revisions, even with a warm cache. (vLLM CI itself adopted `HF_HUB_OFFLINE=1` to avoid this — issue #23451, closed 2025-11-26.)
 - `TRANSFORMERS_OFFLINE=1` — set both; some transformers-layer code paths honour only this one.
 - `HF_ENDPOINT=https://hf-mirror.com` — redirect all HF traffic to a mirror. **No trailing slash** or it breaks.
-- `VLLM_USE_MODELSCOPE=true` — route base-model downloads to ModelScope. Known gap: LoRA adapters still try HuggingFace. PR #13220 attempted the fix but was closed unmerged (2025-06-20); no upstream fix has landed. Workaround: download LoRA adapters manually, pass `--lora-modules name=/local/path`.
+- `VLLM_USE_MODELSCOPE=true` — route model downloads to ModelScope. A LoRA adapter given as a repo id follows it from v0.15.0; below v0.15.0 it still fetches from HuggingFace — download the adapter and pass `--lora-modules name=/local/path`.
 - `HF_TOKEN` — **still required offline for gated repos** (meta-llama/*, google/gemma*). vLLM validates access through the hub config layer before weight loading even when weights are local (issue #9255).
 
 **Upgrades (v0.28.0 – v0.32.0):**
@@ -109,7 +109,7 @@ Stage on a connected host (`HF_HOME=/export/hf hf download <repo>`, or `snapshot
 |---|---|---|
 | **A — fully offline, local path** (default) | zero egress | `HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1`, `VLLM_NO_USAGE_STATS=1`; `vllm serve /mnt/models/<dir>` |
 | **B — internal HF mirror** | a reverse proxy or Artifactory HF repository exists | `HF_ENDPOINT=https://hf.internal.example.com` (no trailing slash), `HF_TOKEN` if the mirror gates; serve by repo id |
-| **C — ModelScope** | `modelscope.cn` reachable, `huggingface.co` not; Qwen / DeepSeek / Yi / GLM families | `VLLM_USE_MODELSCOPE=true`, usually `--trust-remote-code`; stage LoRA adapters locally |
+| **C — ModelScope** | `modelscope.cn` reachable, `huggingface.co` not; Qwen / DeepSeek / Yi / GLM families | `VLLM_USE_MODELSCOPE=true`, usually `--trust-remote-code`; below v0.15.0 stage LoRA adapters locally |
 
 Gated repos need `HF_TOKEN` in the runtime env in every pattern, even with local weights.
 

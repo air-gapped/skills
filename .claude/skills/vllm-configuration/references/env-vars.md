@@ -145,7 +145,7 @@ did not build yourself.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `VLLM_USE_MODELSCOPE` | `false` | Route base-model downloads to ModelScope (`modelscope.cn`) |
+| `VLLM_USE_MODELSCOPE` | `false` | Route model downloads to ModelScope (`modelscope.cn`); repo-id LoRA adapters too from v0.15.0 |
 | `VLLM_LORA_RESOLVER_CACHE_DIR` | `None` | Dir where resolved LoRA adapters are kept |
 | `VLLM_LORA_RESOLVER_HF_REPO_LIST` | `None` | Comma-separated whitelist of HF repos for LoRA; air-gap hardening |
 

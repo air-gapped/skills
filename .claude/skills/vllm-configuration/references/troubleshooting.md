@@ -119,7 +119,7 @@ Server args only, not engine args. Must be on the `vllm serve` CLI, not in engin
 
 ### LoRA adapter loads from HF despite `VLLM_USE_MODELSCOPE=true`
 
-Known gap — LoRA resolver historically didn't honour the flag. Workaround: download adapters manually, pass `--lora-modules name=/local/path`.
+Below v0.15.0 the LoRA path ignores the flag. Upgrade to v0.15.0+, or download the adapter and pass `--lora-modules name=/local/path`.
 
 ### `max-num-seqs` seems ignored
 

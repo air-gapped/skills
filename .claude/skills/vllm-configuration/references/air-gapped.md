@@ -70,7 +70,7 @@ vllm serve qwen/Qwen2-72B-Instruct --trust-remote-code --tensor-parallel-size 8
 **Caveats:**
 - Most Meta/Mistral/Google models are **not** mirrored on ModelScope. Stick to Qwen / DeepSeek / Yi / GLM families.
 - `trust_remote_code=True` is usually required — ModelScope-native models rely on custom `modeling_*.py`.
-- **LoRA adapters still fetch from HuggingFace** even with this flag set. PR #13220 attempted a fix but was closed without merge (2025-06-20); no upstream fix has landed. Workaround: download adapters manually and pass `--lora-modules name=/local/path`. Verify against the installed version with `grep -r VLLM_USE_MODELSCOPE vllm/lora/`.
+- **A LoRA adapter given as a repo id downloads from ModelScope from v0.15.0.** Below v0.15.0 it fetches from HuggingFace even with the flag set: download the adapter and pass `--lora-modules name=/local/path`. An adapter path that exists locally is never looked up remotely, on any version.
 
 ## Staging workflow — what files must be in the cache
 
@@ -217,5 +217,5 @@ from `requirements/common.txt` at the target tag — release-note "bumps" (#5166
 - Offline offline discussion: https://github.com/vllm-project/vllm/discussions/1405
 - Gated-model offline bug: https://github.com/vllm-project/vllm/issues/9255
 - Revision-check on startup: https://github.com/vllm-project/vllm/issues/23451
-- ModelScope LoRA gap: https://github.com/vllm-project/vllm/pull/13220
+- ModelScope LoRA download (v0.15.0+): https://github.com/vllm-project/vllm/pull/32844
 - `huggingface_hub` environment docs: https://huggingface.co/docs/huggingface_hub/package_reference/environment_variables
