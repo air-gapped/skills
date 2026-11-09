@@ -290,7 +290,7 @@ Do not add a `-A` flag. If curl also fails, retry through the operator's logged-
 scripts/read-x-post.py "https://x.com/<user>/status/<id>"
 ```
 
-Text to stdout, `[notes: N | expanded: N | unexpanded: N]` to stderr. The script splices the full text (`__typename:"NoteTweet",text:"..."` in a `<script>` payload) over X's silent 278-char truncation. `twitter.com` needs `-L` (the script passes it). Profile URLs (no `/status/`) work too and return the ~7 most recent posts. Escalate to the browser only when stderr reports non-zero `unexpanded`, or the timeline you need is older than the profile page carries.
+Text to stdout, `[notes: N | expanded: N | unexpanded: N]` to stderr. The script splices the full text (the `NoteTweet` text in a `<script>` payload) over X's silent 278-char truncation. `twitter.com` needs `-L` (the script passes it). Profile URLs (no `/status/`) work too and return the ~7 most recent posts. Exit 1 with `post unavailable` = the post or account is deleted, private or mistyped: classify the row `broken`, never `fresh`. Escalate to the browser only when stderr reports non-zero `unexpanded`, or the timeline you need is older than the profile page carries.
 
 ### 2.5 Concept / blog post search
 
