@@ -122,7 +122,9 @@ Every line: `{type, timestamp, sessionID, ...}`.
 | `reasoning` | `part.text` — emitted only with `run --thinking` (the runner passes it) |
 | `tool_use` | `part.tool`, `part.state.status` (`completed`\|`error`), `part.state.input`, `part.state.output` — one event per call, after it settles |
 | `step_finish` | `part.reason`, `part.tokens`, `part.cost` |
-| `error` | `error.message` |
+| `error` | `error.type`, `error.message` |
+| `retry` (v2.2.6+) | `attempt`, `nextRetryAt`, `error` — a failed model request is being retried; not a failure. A stream cut mid-answer leaves a partial `text` before it and a second `step_start` after it |
+| `background_wait` (v2.2.6+) | `jobs` — the run is waiting for background jobs its prompt started |
 
 Tool names: `shell` (not `bash`), `read`, `glob`, `grep`, `edit`. Turn count = `step_start` count.
 
@@ -137,7 +139,7 @@ Before v2.2.3 the last step usually loses its `step_finish` and often its `step_
 | `error` event with a parser traceback | Engine-side tool parser crashed | Grep engine log for `tool_parser|Traceback|ValueError` |
 | No events, process exits | HTTP failure to the engine | `grep -iE 'ECONNREFUSED|timeout|50[0-9]' t.stderr` |
 | Correct round 1, garbage round 2 | Template drops prior `tool_calls` / tool results in the message loop | Inspect the template's history loop |
-| `error` event but the run finished with a correct answer | A transient provider error was retried | Treat as pass if the final step completed; exit code is 1 regardless |
+| `error` event but the run finished with a correct answer (before v2.2.6) | A transient provider error was retried | Treat as pass if the final step completed; exit code is 1 regardless. From v2.2.6 a recovered error is a `retry` event with exit 0, so an `error` event there is a real failure |
 | Run hangs, zero events, `/v1/models` still answers | Wedged tunnel or proxy that serves short requests but stalls streams | Connect to the engine directly; restart the run |
 | Exit 124 after a `step_finish` with no errors | `--timeout` hit during final text | Raise `--timeout` |
 

@@ -7,7 +7,7 @@
 | Request/response bodies are not logged | Engine access log, or mitmproxy between opencode and the engine |
 | No assertion DSL or scenario-file format | `scripts/assert-tool-sequence.sh`; prompts in `scenario-bank.md` |
 | No `--max-turns` flag | `agent.build.steps` in config (runner `--max-turns`) |
-| Exit code is 1 after any `error` event, even when a retried step then succeeded | Decide pass/fail from events: last step completed + expected tools + final text |
+| Before v2.2.6: exit code is 1 after any `error` event, even when a retried step then succeeded, and a retry that fails before any output is invisible | Decide pass/fail from events: last step completed + expected tools + final text. From v2.2.6 the exit code follows the session's final outcome and retries appear as `retry` events |
 | Before v2.2.3: the last step's `step_finish` and often its `step_start` are missing from `--format json` | Upgrade; on older v2 require neither and read final-step tokens from `opencode session export` |
 | Auto-compaction summaries appear as ordinary `text` events | Keep scenarios below the compaction threshold, or match final text on content, not position |
 | A killed run leaves its session resumable; any opencode service sharing that data dir resumes it unattended | Never share `XDG_DATA_HOME`; delete the scratch home (runner default) |

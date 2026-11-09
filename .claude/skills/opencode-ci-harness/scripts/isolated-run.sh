@@ -37,8 +37,8 @@
 # (openai-compatible only), e.g. `chat_template_kwargs`.
 # --allow-shell permits the shell tool (tiers 3, 7); denied by default.
 # Transcript on stdout. Debug on stderr.
-# Exit status: opencode v2 exits 1 on error events, but still assert on
-# transcript content, not on $?.
+# Exit status: opencode's (1 on failure; before v2.2.6 also after a retried
+# error that recovered); 124 on --timeout. Assert on the transcript, not on $?.
 
 set -euo pipefail
 
