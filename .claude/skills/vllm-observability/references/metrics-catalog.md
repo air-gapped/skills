@@ -138,13 +138,7 @@ All latency values in **seconds**.
 | `vllm:inter_token_latency_seconds` | per-step decode | Token-to-token. Catches stalls that TPOT averages away |
 | `vllm:request_time_per_output_token_seconds` | per-request TPOT (excluding first) | Averaged decode per request |
 
-**Enabling the two detailed-trace-only histograms:**
-
-With `--collect-detailed-traces={model,worker,all}`:
-- `vllm:model_forward_time_milliseconds` — forward pass
-- `vllm:model_execute_time_milliseconds` — model execution incl. sampling
-
-Expensive; toggle per-incident.
+**`vllm:model_forward_time_milliseconds` and `vllm:model_execute_time_milliseconds` do not exist on V1** (v0.11.0–v0.33.0). The V0 engine emitted them under `--collect-detailed-traces`; nothing in V1 reads that flag. Use `request_prefill_time_seconds`, `request_decode_time_seconds` and `request_inference_time_seconds`.
 
 ## Per-request count histograms
 
@@ -489,8 +483,8 @@ KV block residency:
 | `vllm:num_requests_swapped` | Deprecated, always 0 — use `num_preemptions_total` |
 | `vllm:time_in_queue_requests` | Duplicate of `request_queue_time_seconds` — removed |
 | `vllm:time_per_output_token_seconds` | → `vllm:inter_token_latency_seconds` + `vllm:request_time_per_output_token_seconds` |
-| `vllm:model_forward_time_milliseconds` | Now gated behind `--collect-detailed-traces` |
-| `vllm:model_execute_time_milliseconds` | Now gated behind `--collect-detailed-traces` |
+| `vllm:model_forward_time_milliseconds` | Removed with the V0 engine (v0.11.0); `--collect-detailed-traces` does not restore it |
+| `vllm:model_execute_time_milliseconds` | Removed with the V0 engine (v0.11.0); `--collect-detailed-traces` does not restore it |
 
 V0 metrics are hidden by default on V1. Re-enable during migration with `--show-hidden-metrics-for-version=X.Y`.
 

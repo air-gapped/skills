@@ -7,12 +7,8 @@ Load when configuring OTLP export, choosing a tracing backend, or diagnosing why
 ## Enabling tracing
 
 ```bash
-vllm serve "$MODEL" \
-  --otlp-traces-endpoint=grpc://otel-collector:4317 \
-  --collect-detailed-traces=all     # or: model, or: worker
+vllm serve "$MODEL" --otlp-traces-endpoint=grpc://otel-collector:4317
 ```
-
-Combine modules space-separated: `--collect-detailed-traces model worker`. The comma form (`model,worker`) is rejected at startup since v0.31.0 — fix it in existing manifests before upgrading.
 
 Plus standard OTel environment:
 
@@ -25,20 +21,13 @@ Plus standard OTel environment:
 
 All OTel Python packages (`opentelemetry-sdk`, `opentelemetry-api`, `opentelemetry-exporter-otlp`, `opentelemetry-semantic-conventions-ai`) ship with vLLM. No extra `pip install` needed.
 
-## What `--collect-detailed-traces` unlocks
+## `--collect-detailed-traces` — leave unset
 
-The flag takes `model`, `worker`, `all`, or a comma-combined subset.
-
-Without it, spans are emitted at request granularity but **without** the two metrics that matter most for slow-request diagnosis:
-
-- `vllm:model_forward_time_milliseconds` — forward pass time
-- `vllm:model_execute_time_milliseconds` — model execute incl. sampling
-
-Docs explicitly warn: these "involve use of possibly costly and or blocking operations and hence might have a performance impact." Enable per incident, **not** as baseline — budget 5–10% throughput loss.
-
-- `model` — model forward pass, logits, per-layer execution
-- `worker` — worker GPU kernel launches, compilation, per-step scheduling
-- `all` — both
+| Fact (v0.33.0) | Consequence |
+|---|---|
+| Only the V0 engine read the flag; V1 (v0.11.0+) has no consumer | No extra span, attribute or `/metrics` series appears. `vllm:model_forward_time_milliseconds`, `vllm:model_execute_time_milliseconds`, `gen_ai.latency.time_in_model_forward` and `…_execute` are never emitted |
+| Config validation requires `--otlp-traces-endpoint` | Setting the flag alone fails startup |
+| Values `model`, `worker`, `all`, space-separated | The comma form (`model,worker`) fails startup since v0.31.0 — fix manifests before upgrading |
 
 ## Span structure
 
@@ -70,8 +59,7 @@ HTTP-layer spans are **not** automatic. Run under the auto-instrumenter:
 
 ```bash
 opentelemetry-instrument --traces_exporter otlp \
-  vllm serve "$MODEL" --otlp-traces-endpoint=grpc://otel-collector:4317 \
-  --collect-detailed-traces=all
+  vllm serve "$MODEL" --otlp-traces-endpoint=grpc://otel-collector:4317
 ```
 
 Or install `opentelemetry-instrumentation-fastapi` and enable in a custom entrypoint. Without this, traces start at the vLLM request span — useful for engine diagnosis, less useful for "is this a client-side timeout."

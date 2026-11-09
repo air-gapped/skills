@@ -139,6 +139,12 @@ Name sets extracted with `git grep -hoE '"vllm:[a-z0-9_]+'` over `*.py`/`*.rs` a
 
 Also checked, not applied: #57070 (MFU activation bytes from model dtype — changes only fp32 models, H100/H200 fleets run bf16/fp8); #54990 (log line drops 0.0% prefix hit rate before any query — log-only); #54960 (EC connector stats framework — no concrete Prometheus names in tree at v0.32.0); #58947 (scheduler `skipped_waiting` rework — no metric name or label change); KVCR `vllm:{name}` metrics in `tiering/kvcr/manager.py` (unchanged since v0.30.0).
 
+## 2026-11-09 freshen — v0.33.0
+
+| Ref | URL | Result | Notes |
+|---|---|---|---|
+| `--collect-detailed-traces` has no V1 consumer | https://github.com/vllm-project/vllm/blob/v0.33.0/vllm/config/observability.py | broken → corrected | Tree-wide grep at v0.33.0 for `collect_model_forward_time`, `collect_model_execute_time`, `model_forward_time`, `model_execute_time`, `TIME_IN_MODEL_FORWARD`, `TIME_IN_MODEL_EXECUTE`: definitions in `vllm/config/observability.py` and `vllm/tracing/utils.py` only, plus prose in `docs/design/metrics.md` L690-692 that still describes the two histograms as current. Last consumer removed by #25321 "[V0 Deprecation] Remove V0 core", first tag v0.11.0. `_validate_tracing_config` raises when the flag is set without `--otlp-traces-endpoint`. The 5–10% cost figure had no source and went with the claim. |
+
 ## Next freshen triggers
 
 Re-probe when any of the following change:

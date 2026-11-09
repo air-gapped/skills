@@ -271,7 +271,7 @@ If software metrics don't explain it:
 
 ### Step 6 — If all else looks fine
 
-Enable `--collect-detailed-traces=all` on one replica, reproduce, read trace. The two flags that appear only with detailed traces (`model_forward_time_milliseconds`, `model_execute_time_milliseconds`) tell whether the pain is model-side or scheduler-side.
+On a replica started with `--otlp-traces-endpoint`, reproduce and read the `llm_request` span: `gen_ai.latency.time_in_queue`, `…time_in_model_prefill` and `…time_in_model_decode` split the request into queue, prefill and decode. `--collect-detailed-traces` adds nothing on V1 (`tracing.md`).
 
 ## When metrics lie
 

@@ -60,16 +60,14 @@ Full DCGM pairing catalog and external-dashboard inventory in `references/dashbo
 ## Tracing
 
 ```bash
-vllm serve $MODEL \
-  --otlp-traces-endpoint=grpc://otel-collector:4317 \
-  --collect-detailed-traces=all   # or: model, or: worker
+vllm serve $MODEL --otlp-traces-endpoint=grpc://otel-collector:4317
 ```
 
-`--collect-detailed-traces`:
+`--collect-detailed-traces {model,worker,all}` — leave it unset:
 
-- **Unlocks** `model_forward_time_milliseconds` and `model_execute_time_milliseconds`; without it spans are emitted but these two per-step metrics are missing.
-- **Costs 5–10% throughput.** Enable on one replica during an incident; leave unset as baseline.
-- **Combine modules space-separated** (`--collect-detailed-traces model worker`); the comma form `model,worker` fails startup since v0.31.0.
+- **Adds nothing on V1 (v0.11.0–v0.33.0).** Only the V0 engine read it. `vllm:model_forward_time_milliseconds`, `vllm:model_execute_time_milliseconds` and the `gen_ai.latency.time_in_model_{forward,execute}` span attributes are not emitted. For queue vs prefill vs decode time read the `llm_request` span attributes (`references/tracing.md`).
+- **Fails startup without `--otlp-traces-endpoint`.**
+- In manifests that still carry it: space-separated only (`model worker`); the comma form `model,worker` fails startup since v0.31.0.
 
 Protocol defaults to gRPC; HTTP/protobuf via `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/protobuf`. All OTel packages bundled with vLLM. Full stack choices (Jaeger all-in-one, OTel Collector → Tempo → Grafana, Langfuse), span catalog, and sampling patterns in `references/tracing.md`.
 
