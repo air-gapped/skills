@@ -30,8 +30,9 @@ the upstream constraints that shape the answer.
 > Do not pin 0.25.1 or older: they carry the `<turn|>` / `enable_thinking`
 > bug ([#49955](https://github.com/vllm-project/vllm/issues/49955)) that
 > [#52430](https://github.com/vllm-project/vllm/pull/52430) fixed in v0.29.0,
-> and miss the 0.27.0+ ViT CUDA graph (#46837) and the 0.30.0+
-> multimodal-prefix Triton fix (#53147, fact #1).
+> and miss the 0.30.0+ multimodal-prefix Triton fix (#53147, fact #1). The
+> ViT CUDA graph (#46837, v0.27.0+) is usable only from v0.33.0 (pitfall
+> below).
 >
 > MRv2 capture-headroom OOM on v0.26.0–v0.28.x
 > ([#50159](https://github.com/vllm-project/vllm/issues/50159)): Model
@@ -358,6 +359,17 @@ util=0.94 on 16 GB Ada cards (RTX 4060 Ti) caused runtime CUDA OOM
 on the first multimodal request — image batch all_gather needed 394 MiB,
 only 337 MiB free. On 80 GB H100 with TP=2, util=0.94 is fine for text;
 for multimodal traffic specifically, drop to 0.92 or 0.90.
+
+### Encoder CUDA graph (`cudagraph_mm_encoder`) is broken for Gemma 4 before v0.33.0
+
+Opt-in, default off: `--compilation-config '{"cudagraph_mm_encoder": true}'`.
+Leave it off on v0.27.0–v0.32.0; enable it only on v0.33.0+.
+
+| Symptom on v0.27.0–v0.32.0 | Fixed in |
+|---|---|
+| Startup CUDA OOM during encoder graph capture — capture buffers far larger than the token budget can fill | v0.33.0 ([#61365](https://github.com/vllm-project/vllm/pull/61365)) |
+| Wrong embeddings (graph output ≠ eager) for video and for batches of 70- or 140-token images | v0.33.0 (#61365) |
+| Non-default `--mm-processor-kwargs.max_soft_tokens`: `RuntimeError` size mismatch in `pad_pixel_values` on the first image | v0.33.0 ([#60687](https://github.com/vllm-project/vllm/pull/60687)) |
 
 ## Stock parsers vs an out-of-tree Rust parser plugin
 
