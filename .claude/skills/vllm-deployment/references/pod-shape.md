@@ -369,7 +369,7 @@ Don't probe `/v1/models` — it is a router endpoint that requires the engine fu
 - No CUDA 12.9 image from v0.33.0 (#62575): `-cu129` and `-ubuntu2404` tags end at
   v0.32.0. A node whose driver predates CUDA 13 stays on `v0.32.0-cu129` until the
   driver is upgraded.
-- RHAIIS tags are independently versioned; `rhaiis/vllm-cuda-rhel9:3.3.0` corresponds to upstream `v0.13.0`.
+- Red Hat image tags are independently versioned and trail upstream: `rhaii/vllm-cuda-rhel9:3.4.1` is upstream `v0.18.0`, `rhaiis/vllm-cuda-rhel9:3.3.0` is `v0.13.0`.
 
 ## Gotchas not yet covered
 
