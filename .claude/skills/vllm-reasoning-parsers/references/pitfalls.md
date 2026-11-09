@@ -62,6 +62,8 @@ Every item has a repro condition, observed symptom, root cause, and fix.
 
 - `--reasoning-parser mistral` with `--tokenizer-mode mistral` on a `[THINK]`/`[/THINK]` model: the budget's start/end ids come from `tokenizer.encode("[THINK]")`, which the Mistral tokenizer encodes as literal text (several ids), not the control token the model emits. The budget never sees a reasoning start and never forces the end; the request is accepted without a warning ([#64309](https://github.com/vllm-project/vllm/issues/64309)). Bound these models with `max_tokens` instead.
 
+**Where the budget turns reasoning off (open at v0.33.0).** A system, user or tool message containing the literal text `<think>` (an instruction such as "think inside `<think>` tags", a pasted transcript) tokenizes to the reasoning-start id. The budget takes the *last* start marker anywhere in the prompt as still-open reasoning and charges every prompt token after it; once that count reaches `thinking_token_budget`, `</think>` is forced as the first generated token — `reasoning` comes back empty with no error ([#66055](https://github.com/vllm-project/vllm/issues/66055)). `/v1/messages` `thinking.budget_tokens` maps to the same field. Not affected: `enable_thinking=False`. Fix: keep the literal tag out of earlier messages (reword or escape it), or raise the budget above the token count that follows it.
+
 ## 5. Nested `<think>` in output splits wrong
 
 **Repro.** Some distilled DeepSeek-R1 variants occasionally emit `<think>outer <think>inner</think> outer</think>` in certain edge cases (prompt bleed-through).
