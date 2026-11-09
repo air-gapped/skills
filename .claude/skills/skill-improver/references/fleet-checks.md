@@ -4,6 +4,16 @@ Seven checkers under `scripts/`, each testing something a parser can decide. Run
 them over the whole tree, not just the skill being edited. Per section: the
 invocation and which hits are *expected* and must not be "fixed".
 
+## Table of Contents
+- [Shell and YAML fences](#a-fence-is-code-and-nothing-else-checks-it) — `check-shell-fences.py`, `check-yaml-fences.py`
+- [Expiring claims](#content-scheduled-to-become-false) — `check-expiring-claims.py`
+- [Links](#two-classes-of-link-rot-and-the-rest-is-noise) — `check-links.py`
+- [Advisory floors](#a-remediation-floor-is-the-number-an-operator-acts-on) — `check-advisory-floors.py`
+- [Issue states](#a-cited-issues-state-drifts-and-the-skill-keeps-its-old-verdict) — `check-issue-states.py`
+- [Dependency floors in release notes](#a-release-note-saying-bumped-x-to-n-may-be-a-ci-pin) — by hand
+- [Tables](#a-ragged-table-loses-its-last-column-silently) — `check-tables.py`
+- [Which sweeps pay](#which-fleet-sweeps-pay-and-four-that-do-not)
+
 ---
 
 ## A Fence Is Code, and Nothing Else Checks It
