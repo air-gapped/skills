@@ -236,7 +236,7 @@ Source URL: <https://developers.redhat.com/articles/2026/03/06/private-transcrip
 ## 10. Metrics
 
 STT shares the generate-runner Prometheus metrics:
-- `vllm:request_latency_seconds` (request duration)
+- `vllm:e2e_request_latency_seconds` (request duration)
 - `vllm:num_preemptions_total`
 - `vllm:generation_tokens_total`
 - `vllm:prompt_tokens_total`
