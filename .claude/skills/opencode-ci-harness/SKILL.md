@@ -119,7 +119,7 @@ Every line: `{type, timestamp, sessionID, ...}`.
 |---|---|
 | `step_start` | `part` |
 | `text` | `part.text` |
-| `reasoning` | `part.text` |
+| `reasoning` | `part.text` — emitted only with `run --thinking` (the runner passes it) |
 | `tool_use` | `part.tool`, `part.state.status` (`completed`\|`error`), `part.state.input`, `part.state.output` — one event per call, after it settles |
 | `step_finish` | `part.reason`, `part.tokens`, `part.cost` — the final one is often missing; do not require it |
 | `error` | `error.message` |

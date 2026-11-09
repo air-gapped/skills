@@ -170,7 +170,8 @@ if [[ -n "$CREDENTIAL" ]]; then
       "$SOURCE_DB" "$CREDENTIAL" "$(( TIMEOUT + 600 ))" |
     opencode auth import --standalone >&2
 fi
-args=(run --standalone --format json --print-logs --model "$MODEL")
+# --thinking: without it `run` emits no `reasoning` events at all.
+args=(run --standalone --format json --print-logs --thinking --model "$MODEL")
 if [[ -n "$PROMPT" ]]; then
   # opencode appends any non-TTY stdin to the message; close it.
   timeout "$TIMEOUT" opencode "${args[@]}" "$PROMPT" </dev/null
