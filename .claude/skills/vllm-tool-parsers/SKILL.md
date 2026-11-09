@@ -160,7 +160,7 @@ ls vllm/tool_parsers/*_tool_parser.py              # lists source files
 - Optional: `adjust_request(request)` — set `skip_special_tokens=False`, inject grammar, etc. `supports_required_and_named: bool = True` — flip False if the output shape breaks guided JSON; required/named then get no JSON-schema injection and the parser must extract calls from its native format.
 - Return-value contract for streaming: `None` = "consumed, nothing to emit"; `DeltaMessage(content=...)` = pass-through; `DeltaMessage(tool_calls=[DeltaToolCall(...)])` = tool progress.
 
-Align new parsers with the `parse_delta` shape (RFC #11522 and its merged follow-on PRs #39446, #39728, #38755) rather than copying older HACKs.
+New in-tree parser (v0.32.0+): write a unified `Parser` in `vllm/parser/` — subclass `ParserEngine` with a declarative config, or subclass `Parser` and implement `parse` / `parse_delta` — and expose it through a thin adapter in `vllm/tool_parsers/`. Subclass `ToolParser` only for a plugin. Never copy the older HACKs.
 
 ## Reasoning-parser pairing
 
@@ -237,7 +237,7 @@ grep -rn "TODO" vllm/tool_parsers/
 grep -rn "prev_tool_call_arr = \[{\"arguments\": {}}\]" vllm/tool_parsers/
 ```
 
-The `prev_tool_call_arr = [{"arguments": {}}]` plant is the old "force finish_reason=tool_calls" workaround; `finish_reason` no longer reads that field, and where it once forced `tool_calls` it produced a call with empty arguments — hiding the failed parse instead of fixing it. Do not copy it into a new parser. At v0.33.0 exactly five parsers carry it: `pythonic`, `llama4_pythonic`, `olmo3`, `lfm2`, `minicpm5xml` — the pythonic family plus the two that reuse its flush shape. (`mistral` does **not**; it populates `prev_tool_call_arr` properly.) Write a new parser to the `parse_delta` shape (RFC #11522) instead.
+The `prev_tool_call_arr = [{"arguments": {}}]` plant is the old "force finish_reason=tool_calls" workaround; `finish_reason` no longer reads that field, and where it once forced `tool_calls` it produced a call with empty arguments — hiding the failed parse instead of fixing it. Do not copy it into a new parser. At v0.33.0 exactly five parsers carry it: `pythonic`, `llama4_pythonic`, `olmo3`, `lfm2`, `minicpm5xml` — the pythonic family plus the two that reuse its flush shape. (`mistral` does **not**; it populates `prev_tool_call_arr` properly.) Emit a real `DeltaToolCall` instead.
 
 ## Writing a custom parser
 

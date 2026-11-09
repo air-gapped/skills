@@ -77,7 +77,7 @@ vllm serve <model> --enable-auto-tool-choice \
 - [ ] `supports_required_and_named = False` if the output shape breaks guided JSON.
 - [ ] Test file added at `tests/tool_parsers/test_<name>_tool_parser.py` using `common_tests.py` harness.
 - [ ] Reference Jinja at `examples/tool_chat_template_<name>.jinja` if upstreaming.
-- [ ] Aligned with `parse_delta` refactor (RFC #11522) if working against recent main.
+- [ ] If upstreaming (v0.32.0+): rewritten as a unified `Parser` in `vllm/parser/` plus a thin adapter — `ToolParser` is legacy upstream, not the base for new in-tree parsers.
 
 ## Before upstreaming
 
