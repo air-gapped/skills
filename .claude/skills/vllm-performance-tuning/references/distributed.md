@@ -95,6 +95,8 @@ Source: [disagg prefill docs](https://docs.vllm.ai/en/latest/features/disagg_pre
 | `MoRIIOConnector` | AMD MORI-IO | P/D on AMD nodes |
 | `MultiConnector` | compose | tiered or fallback chains |
 
+**v0.33.0: the NIXL connectors require NIXL ≥ 1.5.0** — the worker refuses to start on older NIXL (#61032). Upgrade NIXL in the image before the vLLM bump.
+
 ### NIXL flow (from [LMCache blog 2025-04-11](https://blog.lmcache.ai/en/2025/04/11/shaping-nixl-based-pd-disaggregation-in-vllm-v1))
 
 P and D register KV regions; P pushes directly via UCX; D polls readiness. Router decides P-node or D-node. vLLM sets the role in `--kv-transfer-config` via `kv_role` ∈ `kv_producer` | `kv_consumer` | `kv_both` (e.g. `'{"kv_connector":"NixlConnector","kv_role":"kv_both"}'`). `nixl_role: sender|receiver` is an LMCache YAML key, not a vLLM field.
