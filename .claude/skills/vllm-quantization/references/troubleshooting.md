@@ -135,8 +135,8 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 # Check effective kernel dispatch
 VLLM_LOGGING_LEVEL=DEBUG vllm serve ... 2>&1 | grep -E "(kernel|dispatch|capability)"
 
-# Force specific MoE backend
-VLLM_FUSED_MOE_CHUNK_SIZE=...  # tune
+# Pin a kernel family to A/B a dispatch change (values: kernels.md)
+--moe-backend <value> --linear-backend <value>
 --moe-backend flashinfer_trtllm --quantization-config.moe.activation mxfp8  # GPT-OSS on Blackwell, MXFP8 activations (v0.24.0+; the old env var is gone)
 
 # Disable CUDA graphs to isolate
