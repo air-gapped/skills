@@ -458,6 +458,8 @@ A disk-backend "stored" block is not fsync-durable.
 
 Mooncake pushes, so the three transfer histograms populate **only on the prefill instance** — empty on a decode instance is expected. Alert on the failure and expiry counters.
 
+**UMBP connector** (v0.33.0+): counters `vllm:umbp_transfer_{submitted,completed,failed,bytes}_total`, each with an extra `operation` label.
+
 Other backends (`vllm:hf3fs_*`, LMCache) remain connector-version-dependent — grep
 `/metrics` on a running deployment to see what the installed connector actually emits.
 
