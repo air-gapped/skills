@@ -15,10 +15,11 @@ Citation anchors backing every claim in this skill. Use to verify — or to feed
 | Serving endpoint docs | <https://github.com/vllm-project/vllm-omni/tree/main/docs/serving> | 2026-10-18 |
 | Contact / community | <https://github.com/vllm-project/vllm-omni/blob/main/docs/community/contact_us.md> | 2026-10-18 |
 | Feature docs (ComfyUI, Sleep mode, verl) | <https://github.com/vllm-project/vllm-omni/tree/main/docs/features> | 2026-10-18 |
-| PyPI (`info.version` = **0.30.0**, uploaded 2026-09-25; `requires_python <3.14,>=3.10`; 0.31.0rc1 present as pre-release; 0.24.1 never uploaded) | <https://pypi.org/project/vllm-omni/> | 2026-10-18 |
-| Docker Hub (newest stable **v0.30.0** + `-x86_64`/`-aarch64`; `latest` manifest + per-arch digests = **v0.31.0rc1**; rolling `nightly*` and model tags `mosimage`, `flux-3-image-klein`, `qwen-image21`, `minimax-h3`) | <https://hub.docker.com/r/vllm/vllm-omni/tags> | 2026-10-18 |
-| Docker Hub ROCm (newest stable **v0.28.0**; no v0.29/v0.30 tag; no `latest`) | <https://hub.docker.com/r/vllm/vllm-omni-rocm/tags> | 2026-10-18 |
-| vLLM ROCm wheel index for 0.30.0 (200; `vllm-0.30.0+rocm723-cp312-cp312-manylinux_2_39_x86_64.whl` only) | <https://wheels.vllm.ai/rocm/0.30.0/rocm723/> | 2026-10-18 |
+| PyPI (`info.version` = **0.32.0**, uploaded 2026-10-28; `requires_python <3.14,>=3.11`; 0.32.0rc1 uploaded 2026-10-22 and 0.33.0rc1 2026-11-04 as pre-releases; 0.24.1 never uploaded) | <https://pypi.org/project/vllm-omni/> | 2026-11-09 |
+| Docker Hub (newest stable **v0.32.0** + `-x86_64`/`-aarch64`; `latest` manifest + per-arch digests = **v0.32.0**; no v0.33.0rc1 tag; rolling `nightly*` and model tags `mosimage`, `flux-3-image-klein`, `qwen-image21`, `minimax-h3`, `cosmos3`) | <https://hub.docker.com/r/vllm/vllm-omni/tags> | 2026-11-09 |
+| Docker Hub ROCm (newest stable **v0.30.0**, pushed 2026-10-21 with v0.29.0rc1, v0.30.0rc1 and v0.31.0rc1; no v0.32.0 tag; no `latest`) | <https://hub.docker.com/r/vllm/vllm-omni-rocm/tags> | 2026-11-09 |
+| vLLM ROCm wheel index for 0.30.0 (200; `vllm-0.30.0+rocm723-cp312-cp312-manylinux_2_39_x86_64.whl` only) | <https://wheels.vllm.ai/rocm/0.30.0/rocm723/> | 2026-11-09 |
+| vLLM ROCm wheel index for 0.32.0 (200; `vllm-0.32.0+rocm723-cp312-cp312-manylinux_2_39_x86_64.whl` only). vllm-omni v0.32.0 `docs/getting_started/installation/gpu/rocm.inc.md`: prebuilt ROCm instructions still install the 0.30.0 pair; the `0.32.0+rocm723` wheel "has not been verified as the exact source pin" | <https://wheels.vllm.ai/rocm/0.32.0/rocm723/> | 2026-11-09 |
 
 ## Paper
 
@@ -56,21 +57,26 @@ Citation anchors backing every claim in this skill. Use to verify — or to feed
 | v0.28.0 | 2026-08-31 | Stable. Removed `--stage-configs-path` + legacy `stage_args` loader (use `--deploy-config` + `--async-chunk`), `qwen3_omni_moe_async_chunk.yaml`, and DreamID-Omni / MagiHuman / SoulX-Singer / AudioX support. Newest ROCm image | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.28.0> | 2026-10-18 |
 | v0.29.0rc1 | 2026-09-10 | **rc only — no v0.29.0 stable was ever cut**; rebase to vLLM 0.29.0 (#7230) landed in v0.30.0 | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.29.0rc1> | 2026-10-18 |
 | v0.30.0rc1 | 2026-09-22 | — | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.30.0rc1> | 2026-10-18 |
-| **v0.30.0** | 2026-09-25 | **Current stable** (GitHub Latest, PyPI, CUDA image; no ROCm image). Rebased on vLLM **0.30.0** (#7820, #8027). 504 changes / 183 contributors. Breaking: `diffusion_batch_size` removed → `max_num_seqs` (#6484); unknown diffusion config fields raise (#5172); duplex contract — `/v1/duplex` alias of `/v1/realtime?duplex=1`, `native_duplex` and `full_duplex` removed, use `auto_response` (#7413, #7647, #8024); realtime events renamed to non-beta OpenAI names (#7339, #7426); Dynin-Omni + dots.tts removed (#7655). Also: NIXL connectors (#6093, #6264), native Mooncake AR→DiT KV (#7166, opt-in), Qwen3-TTS default MRv2 + event-driven orchestration (#7930, #7088), `--api-server-count` (#6923, opt-in) | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.30.0> | 2026-10-18 |
-| v0.31.0rc1 | 2026-10-06 | **Pre-release — not current.** Aligned to vLLM **0.31.0** (#8459, #8500). Own notes: reused nightly #16714 was 54 passed / 3 failed / 4 broken; MiniCPM-o long-form async_chunk test failing. Canonical output-type names enforced (#7843). Docker `latest` points here | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.31.0rc1> | 2026-10-18 |
+| **v0.30.0** | 2026-09-25 | Former stable; newest ROCm image. Rebased on vLLM **0.30.0** (#7820, #8027). 504 changes / 183 contributors. Breaking: `diffusion_batch_size` removed → `max_num_seqs` (#6484); unknown diffusion config fields raise (#5172); duplex contract — `/v1/duplex` alias of `/v1/realtime?duplex=1`, `native_duplex` and `full_duplex` removed, use `auto_response` (#7413, #7647, #8024); realtime events renamed to non-beta OpenAI names (#7339, #7426); Dynin-Omni + dots.tts removed (#7655). Also: NIXL connectors (#6093, #6264), native Mooncake AR→DiT KV (#7166, opt-in), Qwen3-TTS default MRv2 + event-driven orchestration (#7930, #7088), `--api-server-count` (#6923, opt-in) | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.30.0> | 2026-10-18 |
+| v0.31.0rc1 | 2026-10-06 | **rc only — no v0.31.0 stable was ever cut.** Aligned to vLLM **0.31.0** (#8459, #8500). Own notes: reused nightly #16714 was 54 passed / 3 failed / 4 broken. Ray executor for multi-node inference (#7938), `token_ids` output type + canonical output-type names enforced (#7843), async chunk disabled with a warning on pipelines that do not support it (#5099), OpenAI-compliant `/v1/realtime` for Qwen3-Omni (#7285), opt-in single-stage Qwen3-TTS (#8259) | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.31.0rc1> | 2026-11-09 |
+| v0.32.0rc1 | 2026-10-19 | Pre-release; carries the full changelog (297 changes since v0.31.0rc1) that the v0.32.0 notes summarize. Generalized turn-based `/v1/realtime` (#8339), server VAD on it (#8600), voice registry shared across API processes (#8424), event-driven orchestration default for all pipelines (#8675), Pi0.5 / HiDream-I1 / LTX-2-19b-distilled removal (#9065) | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.32.0rc1> | 2026-11-09 |
+| **v0.32.0** | 2026-10-28 | **Current stable** (GitHub Latest, PyPI, CUDA image + `latest`; no ROCm image). Aligned to vLLM **0.32.0** (#9066); source commit `5917730a4b02`. Requires Python `>=3.11,<3.14`. Notes are a summary of changes since v0.30.0 plus `release/v0.32.0` fixes (#9515 HunyuanImage-3 idle MoE LoRA context); install line `uv pip install "vllm==0.32.0" "vllm-omni==0.32.0" --torch-backend=cu130`. New models: YuE2-3B, Qwen-Image-2.1 / 2.1-Turbo, Kandinsky6, MOSS-Image, TaoMate-H3, LTX 2.5 text-to-audio | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.32.0> | 2026-11-09 |
+| v0.33.0rc1 | 2026-11-04 | **Pre-release — not current.** Aligned to vLLM 0.33.0 (#9648); wheel on PyPI, notes say Docker images were still building (no Docker Hub tag on 2026-11-09) | <https://github.com/vllm-project/vllm-omni/releases/tag/v0.33.0rc1> | 2026-11-09 |
 
-### Distribution channels — re-verified 2026-10-18
+### Distribution channels — re-verified 2026-11-09
 
 | Channel | Newest | Evidence |
 |---|---|---|
-| GitHub releases | **v0.30.0** (2026-09-25) `isLatest`; newest tag v0.31.0rc1 (2026-10-06, prerelease) | `gh release list -R vllm-project/vllm-omni --json tagName,isLatest` |
-| PyPI | **0.30.0** default (uploaded 2026-09-25); 0.31.0rc1 present | `pypi.org/pypi/vllm-omni/json` |
-| Docker `vllm/vllm-omni` | **v0.30.0** (2026-09-27, manifest `fc77cfaac7b1…`); **`latest` = v0.31.0rc1** — manifest `ea84abca067d…` and per-arch digests (amd64 `a3654da076b6`, arm64 `85124b352e03`) identical | Docker Hub v2 tags API |
-| Docker `vllm/vllm-omni-rocm` | **v0.28.0** (2026-09-14); no v0.29/v0.30 tag, no `latest` | Docker Hub v2 tags API |
+| GitHub releases | **v0.32.0** (2026-10-28) `isLatest`; newest tag v0.33.0rc1 (2026-11-04, prerelease) | `gh release list -R vllm-project/vllm-omni --json tagName,isLatest` |
+| PyPI | **0.32.0** default (uploaded 2026-10-28); 0.33.0rc1 present | `pypi.org/pypi/vllm-omni/json` |
+| Docker `vllm/vllm-omni` | **v0.32.0** (2026-10-28, manifest `f713b909f16c…`); **`latest` = v0.32.0** — manifest and per-arch digests (amd64 `6b44ee504a0d`, arm64 `6da195b87ca6`) identical; no v0.33.0rc1 tag | Docker Hub v2 tags API |
+| Docker `vllm/vllm-omni-rocm` | **v0.30.0** (2026-10-21); v0.31.0rc1 present; no v0.32.0 tag, no `latest` | Docker Hub v2 tags API |
 
-`latest` history: tracked `vtest-nightly` (2026-08-18), then v0.29.0rc1 (2026-09-22), now v0.31.0rc1 — it follows the newest tag, rc or not.
+`latest` history: tracked `vtest-nightly` (2026-08-18), then v0.29.0rc1 (2026-09-22), v0.31.0rc1 (seen 2026-10-18), now v0.32.0 — it has followed rc images, so pin an exact tag.
 
-**vLLM v0.32.0 compatibility (checked 2026-10-18):** no omni release targets it. omni v0.30.0 and v0.31.0rc1 `requirements/common.txt`: `transformers >= 5.13.0, < 5.15`. vLLM `requirements/common.txt`: v0.30.0 `>= 5.10.4`; v0.31.0 `>= 5.10.4, < 5.18.0`; v0.32.0 `>= 5.16.1, < 5.20.0` — disjoint with omni. `vllm_omni/version.py` `warn_if_misaligned_vllm_version()` warns on any major.minor mismatch. No omni PR titled for a 0.32 rebase (`gh pr list --search "0.32 in:title"` empty); omni `main` `common.txt` still references vLLM 0.31.0. vLLM v0.30.0 `requirements/cuda.txt`: `torch==2.13.0`, `flashinfer-python==0.6.18.post1`, `torchvision==0.28.0`; v0.31.0 and v0.32.0: `flashinfer-python==0.7.0.post1`.
+Release tags not given a row above: v0.14.0rc1 (2026-01-22), v0.15.0rc1 (2026-02-03), v0.16.0rc1 (2026-02-13); `v0.21.0rc2` is a git tag with no GitHub Release.
+
+**vLLM alignment (checked 2026-11-09):** omni v0.32.0 `requirements/common.txt`: `transformers >= 5.16.1, < 5.20.0`, the same range as vLLM v0.32.0 `requirements/common.txt`; omni v0.30.0 and v0.31.0rc1: `>= 5.13.0, < 5.15`. vLLM v0.30.0 `>= 5.10.4`; v0.31.0 `>= 5.10.4, < 5.18.0`. `vllm_omni/version.py` `warn_if_misaligned_vllm_version()` warns on any major.minor mismatch. vLLM `requirements/cuda.txt`: v0.30.0 `torch==2.13.0`, `flashinfer-python==0.6.18.post1`, `torchvision==0.28.0`; v0.31.0 and v0.32.0 `flashinfer-python==0.7.0.post1` (v0.32.0 also `torch==2.13.0`, `torchvision==0.28.0`). The v0.32.0 tag's `docs/getting_started/installation/gpu/cuda.inc.md` still prints the 0.30.0 prebuilt-wheel commands; the 0.32.0 pair is in the v0.32.0 release notes and on PyPI.
 
 The v0.24.1 Qwen-Image fix reaches v0.26.0 **as a separate backport, not by descent** — PR #5017's merge commit is `diverged` from v0.26.0 (it *is* the v0.24.1 tag), while the re-landed PR #5009, whose title marks it "Same As #5017", is contained. Verified with `compare <tag>...<sha>` on both. Checking #5017's ancestry alone would say the fix never shipped, which is false. So the
 `git+…@v0.24.1` install form is no longer needed.
@@ -196,10 +202,10 @@ sources —
   only, fixed in-tree by #38730 on 2026-04-01) and is now unsatisfiable
   against vLLM 0.26.0's `flashinfer-python==0.6.14`.
 
-Runtime pins for the current line (checked 2026-10-18): vllm-omni v0.30.0 rides
-vLLM 0.30.0 — **PyTorch 2.13.0 / FlashInfer 0.6.18.post1 / torchvision 0.28.0**
-(vLLM v0.30.0 `requirements/cuda.txt`) plus `transformers >= 5.13.0, < 5.15`
-and `diffusers==0.40.0` (vllm-omni v0.30.0 `requirements/common.txt`).
+Runtime pins for the current line (checked 2026-11-09): vllm-omni v0.32.0 rides
+vLLM 0.32.0 — **PyTorch 2.13.0 / FlashInfer 0.7.0.post1 / torchvision 0.28.0**
+(vLLM v0.32.0 `requirements/cuda.txt`) plus `transformers >= 5.16.1, < 5.20.0`
+and `diffusers==0.40.0` (vllm-omni v0.32.0 `requirements/common.txt`).
 
 `references/models.md` tables were regenerated row-for-row (93 rows, platform
 columns included) from `docs/models/supported_models.md` at tag v0.30.0 on

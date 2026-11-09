@@ -189,16 +189,10 @@ If DiT latency looks wrong:
 3. Check quantization is engaging: `python -c "from vllm_omni.quantization.factory import ...; print(built_config)"`.
 4. Wan2.2 specifically: `guidance_scale_2` + `boundary_ratio` must both be set or dual-CFG no-ops.
 5. Blackwell SM100/SM103 paths: some DiT kernels fall back to CUTLASS.
-   **Do not pin `flashinfer<0.6.7`** — that advice is obsolete *and*
-   unsatisfiable on v0.30.0, which inherits vLLM 0.30.0's hard
-   `flashinfer-python==0.6.18.post1`. Provenance, since the pin looked load-bearing:
-   upstream vLLM issue #38729 reported all models hanging on **GB300 (SM103)
-   only** with FlashInfer 0.6.7 — 99% SM utilisation, 0% memory bandwidth, at
-   large batch — because TRTLLM attention kernels stopped being
-   forward-compatible with SM103. **GB200 / SM100 was never affected**, so the
-   old "SM100/SM103" wording overstated the blast radius. vLLM fixed it in
-   tree on 2026-04-01 (PR #38730) by restricting `supports_trtllm_attention()`
-   to exact SM100 so SM103 falls back to the default FlashInfer backend, and
-   the FlashInfer-side issue (flashinfer-ai/flashinfer#2939) was closed as
-   fixed on 2026-04-07. If TRTLLM attention still hangs on SM103, that is a
-   new bug — capture it rather than downgrading FlashInfer.
+   **Do not pin `flashinfer<0.6.7`** — unsatisfiable on v0.32.0, which
+   inherits vLLM 0.32.0's hard `flashinfer-python==0.7.0.post1` (v0.30.0:
+   `0.6.18.post1`). The hang that pin worked around hit **GB300 (SM103) only**
+   (GB200 / SM100 never) and vLLM fixed it in tree (PR #38730: SM103 falls
+   back from TRTLLM attention to the default FlashInfer backend). A TRTLLM
+   attention hang on SM103 today is a new bug — capture it, do not downgrade
+   FlashInfer.

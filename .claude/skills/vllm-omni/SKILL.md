@@ -20,15 +20,16 @@ vllm-omni layers on upstream vLLM: `vllm serve <model> --omni` routes the server
 
 | Rule | Action |
 |---|---|
-| omni major.minor must equal vLLM major.minor (`vllm_omni/version.py` warns on mismatch) | Install omni **v0.30.0** (current stable) with vLLM **0.30.0** |
-| v0.31.0rc1 is the newest tag but a pre-release with a not-fully-passing nightly | Do not deploy it as current |
-| **No omni release, not even an rc, matches vLLM 0.32**: omni v0.30.0 pins `transformers >= 5.13.0, < 5.15`, vLLM v0.32.0 needs `>= 5.16.1, < 5.20.0` | Never install omni into a vLLM 0.32.0 env. Run omni in its own venv/image on vLLM 0.30.0 |
-| Odd minors (v0.21, v0.23, v0.25, v0.27, v0.29) exist only as `rc1` | Check `prerelease` before pinning a minor; a missing stable is not a withdrawn one |
-| Docker `vllm/vllm-omni:latest` tracks the newest tag, rc included (today v0.31.0rc1) | Pin `vllm/vllm-omni:v0.30.0` (`-x86_64` / `-aarch64` variants) in every manifest |
-| ROCm images live in `vllm/vllm-omni-rocm`, newest stable **v0.28.0** | For ROCm on v0.30.0 use the wheel path (Install below) |
+| omni major.minor must equal vLLM major.minor (`vllm_omni/version.py` warns on mismatch) | Install omni **v0.32.0** (current stable) with vLLM **0.32.0** |
+| v0.33.0rc1 is the newest tag and a pre-release | Do not deploy it as current |
+| transformers ranges are disjoint across omni minors: v0.30.0 pins `>= 5.13.0, < 5.15`, v0.32.0 pins `>= 5.16.1, < 5.20.0` (same as vLLM 0.32.0) | Upgrade omni and vLLM together, in a fresh venv/image. Never put omni v0.30.0 in a vLLM 0.32.0 env or the reverse |
+| v0.32.0 requires Python `>=3.11,<3.14` (v0.30.0 accepted 3.10) | Use 3.12; rebuild 3.10 envs before upgrading |
+| Odd minors (v0.21 … v0.31) exist only as `rc1`; v0.33 so far too | Check `prerelease` before pinning a minor; a missing stable is not a withdrawn one |
+| Docker `vllm/vllm-omni:latest` follows the newest image, and has pointed at rc builds (v0.29.0rc1, v0.31.0rc1; today v0.32.0) | Pin `vllm/vllm-omni:v0.32.0` (`-x86_64` / `-aarch64` variants) in every manifest |
+| ROCm images live in `vllm/vllm-omni-rocm`, newest stable **v0.30.0** (no v0.32.0 tag, no `latest`) | On ROCm deploy the v0.30.0 pair; the 0.32.0 ROCm wheel is unvalidated (Install below) |
 | A tag is not a wheel and not an image | Check GitHub releases, PyPI and both Docker repos before quoting a version |
 
-Release-by-release history, channel evidence and the vLLM 0.32.0 compatibility probe: `references/sources.md` §Releases.
+Release-by-release history and channel evidence: `references/sources.md` §Releases.
 
 ## Quick-answer router
 
@@ -100,19 +101,17 @@ Release-by-release history, channel evidence and the vLLM 0.32.0 compatibility p
 uv venv --python 3.12 --seed
 source .venv/bin/activate
 
-# CUDA — pin upstream vLLM to the matching minor:
-uv pip install vllm==0.30.0 --torch-backend=auto
+# CUDA 13.0 — vLLM and omni on the same minor (needs a CUDA 13 driver):
+uv pip install "vllm==0.32.0" "vllm-omni==0.32.0" --torch-backend=cu130
+# OR editable: git clone -b v0.32.0 https://github.com/vllm-project/vllm-omni && cd vllm-omni && uv pip install -e .
 
-# ROCm (vLLM wheel is cp312-only):
+# ROCm — validated prebuilt pair is still 0.30.0 (vLLM wheel is cp312-only):
 uv pip install vllm==0.30.0+rocm723 \
   --extra-index-url https://wheels.vllm.ai/rocm/0.30.0/rocm723
-
-# Then the omni package (prebuilt wheel OR editable clone):
 uv pip install vllm-omni==0.30.0
-# OR: git clone -b v0.30.0 https://github.com/vllm-project/vllm-omni && cd vllm-omni && uv pip install -e .
 ```
 
-Resulting stack (vLLM v0.30.0 `requirements/cuda.txt` + omni `requirements/common.txt`): PyTorch 2.13.0, FlashInfer 0.6.18.post1, torchvision 0.28.0, `transformers >= 5.13.0, < 5.15`, `diffusers==0.40.0`. Do not upgrade transformers to 5.15+ by hand (reported model-construction regression). Python 3.10–3.13 is declared; use 3.12 (quickstart default, and the ROCm wheel is cp312-only). Docker model tags (`minimax-h3`, `qwen-image21`, …) and `nightly*` tags are not releases.
+Resulting CUDA stack (vLLM v0.32.0 `requirements/cuda.txt` + omni `requirements/common.txt`): PyTorch 2.13.0, FlashInfer 0.7.0.post1, torchvision 0.28.0, `transformers >= 5.16.1, < 5.20.0`, `diffusers==0.40.0`. Keep transformers inside the range of the omni version installed. Python 3.11–3.13 is declared; use 3.12 (quickstart default, and the ROCm wheel is cp312-only). A `vllm==0.32.0+rocm723` wheel exists at `https://wheels.vllm.ai/rocm/0.32.0/rocm723`, but upstream's install guide marks it unverified against the v0.32.0 source pin and there is no v0.32.0 ROCm image — treat ROCm on v0.32.0 as a test build. Docker model tags (`minimax-h3`, `qwen-image21`, `cosmos3`, …) and `nightly*` tags are not releases.
 
 ### Serving canonical forms
 

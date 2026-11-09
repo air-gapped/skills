@@ -50,7 +50,7 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `QwenImageEditPlusPipeline` | Qwen-Image-Edit-2509 | `Qwen/Qwen-Image-Edit-2509` | Y | Y | Y | Y |  |
 | `QwenImageLayeredPipeline` | Qwen-Image-Layered | `Qwen/Qwen-Image-Layered` | Y | Y | Y | Y | `layers` param 2–10. |
 | `QwenImageEditPlusPipeline` | Qwen-Image-Edit-2511 | `Qwen/Qwen-Image-Edit-2511` | Y | Y | Y | Y |  |
-| `GlmImagePipeline` | GLM-Image | `zai-org/GLM-Image` | Y | Y |  |  | Current pins cover its transformers needs; do not hand-upgrade transformers past 5.14.x. |
+| `GlmImagePipeline` | GLM-Image | `zai-org/GLM-Image` | Y | Y |  |  | Current pins cover its transformers needs; no extra pin. |
 | `ZImagePipeline` | Z-Image | `Tongyi-MAI/Z-Image-Turbo` | Y | Y | Y | Y | Quickstart default; smallest footprint. INT8 supported. |
 | `Krea2Pipeline` | Krea 2 (Raw + Turbo) | `krea/Krea-2-Raw`, `krea/Krea-2-Turbo` | Y |  |  | Y |  |
 | `OvisImagePipeline` | Ovis-Image | `OvisAI/Ovis-Image` | Y | Y |  | Y |  |
@@ -148,7 +148,7 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 ## Platform legend
 
 - **CUDA** — NVIDIA H100/A100/H200/Blackwell.
-- **ROCm** — AMD MI300 family. Wheel index is version-specific and moves: v0.30.0 uses `vllm==0.30.0+rocm723` from `https://wheels.vllm.ai/rocm/0.30.0/rocm723` (cp312 only; v0.24.0 used `rocm700`). Images live in the separate `vllm/vllm-omni-rocm` repo, which tops out at v0.28.0.
+- **ROCm** — AMD MI300 family. Wheel index is version-specific and moves: v0.30.0 uses `vllm==0.30.0+rocm723` from `https://wheels.vllm.ai/rocm/0.30.0/rocm723` (cp312 only; v0.24.0 used `rocm700`). Images live in the separate `vllm/vllm-omni-rocm` repo, which tops out at v0.30.0. For v0.32.0 only an unvalidated `0.32.0+rocm723` wheel exists — deploy the v0.30.0 pair.
 - **NPU** — Huawei Ascend 910B. Set `--dtype`, `--max-model-len`, `--served-model-name` in the stage YAML, not on the CLI: multi-stage deploys do not pass them through (#2898).
 - **XPU** — Intel Arc / Ponte Vecchio. Backend: XCCL / oneccl_bindings_for_pytorch.
 - **MUSA** — detected by `torchada.is_musa_platform()` (`vllm_omni/platforms/__init__.py`); upstream's list has no MUSA column, so no row claims it.
