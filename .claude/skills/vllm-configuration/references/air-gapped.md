@@ -27,8 +27,9 @@ Best for: regulated environments, physically isolated networks, zero-egress clus
    # OR, for a model-as-directory layout:
    python -c "from huggingface_hub import snapshot_download; \
      snapshot_download('meta-llama/Llama-3.1-70B-Instruct', \
-                       local_dir='/export/models/llama-70b', \
-                       local_dir_use_symlinks=False)"
+                       local_dir='/export/models/llama-70b')"
+   # do not pass local_dir_use_symlinks: huggingface_hub 1.x removed it (TypeError);
+   # local_dir already holds real files
    ```
 
 2. **Transfer** `/export/hf-cache` or `/export/models/llama-70b` into the enclave (rsync, physical media, MinIO replication, etc.).
