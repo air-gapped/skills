@@ -112,7 +112,7 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 | Online FP8 doesn't split MoE across TP/EP | [#34129](https://github.com/vllm-project/vllm/issues/34129) | Use pre-quantized checkpoint |
 | fp8_e5m2 KV gate fires on any quantized load (below v0.24.0) | [#39137](https://github.com/vllm-project/vllm/issues/39137) | Upgrade to v0.24.0+ ([PR #45040](https://github.com/vllm-project/vllm/pull/45040)) |
 | MLA casts activations to int32 with Marlin FP8 sm<89 | [#38658](https://github.com/vllm-project/vllm/issues/38658) | Upgrade or switch kernel |
-| `runai_safetensors_weights_iterator` non-deterministic → FP8 broken | [#38991](https://github.com/vllm-project/vllm/issues/38991) | Use regular safetensors loader |
+| Run:ai streamer drops every weight after an empty safetensors shard → FP8 checkpoint loads broken | [#38991](https://github.com/vllm-project/vllm/issues/38991) | Install `runai-model-streamer` ≥ 0.16.1 in the image (v0.33.0 and earlier do not require it), or use the regular safetensors loader |
 | MTP speculative decoding with NVFP4 weight shape mismatch (Qwen3-Next, below v0.25.0) | [#35031](https://github.com/vllm-project/vllm/issues/35031) | Upgrade to v0.25.0+ — [PR #46316](https://github.com/vllm-project/vllm/pull/46316) keeps `mtp.fc` unquantized |
 
 ## Concurrent / multi-request

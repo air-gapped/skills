@@ -78,6 +78,7 @@ earlier passes that only chased issue states:
 | vLLM issue #36805 — misleading FP8 error message | https://github.com/vllm-project/vllm/issues/36805 | 2026-11-09 | **fixed** | CLOSED `COMPLETED` 2026-05-22, closer PR #36854 "Clear error message for FP8 torchao quantization on unsupported GPUs"; merge commit 4e597b7491 first stable tag v0.22.0. |
 | vLLM issue #32010 — DCP with FP8 KV cache | https://github.com/vllm-project/vllm/issues/32010 | 2026-11-09 | **shipped (skill listed it as roadmap)** | CLOSED `COMPLETED` 2026-06-24, closer PR #44044 "Support DCP with FP8 KV cache in MLA decode path"; merge commit 49f2104c53 first stable tag v0.25.0. |
 | vLLM issues #32227 / #39416 / #33480 — KV feature requests | https://github.com/vllm-project/vllm/issues/32227 | 2026-11-09 | drift (state) | #32227 CLOSED `NOT_PLANNED` 2026-05-14; #39416 CLOSED `NOT_PLANNED` 2026-08-10; #33480 (INT8 KV) still OPEN. |
+| vLLM issue #38991 — Run:ai streamer and FP8 checkpoints | https://github.com/vllm-project/vllm/issues/38991 | 2026-11-09 | **root cause found** | CLOSED `COMPLETED` 2026-11-04; closing comment: the streamer silently terminated on an empty safetensors shard, fixed in model-streamer 0.16.1 (dsx-ai-factory/model-streamer#158). `requirements/rocm.txt` pins `runai-model-streamer==0.15.7` at v0.32.0 and v0.33.0, `0.17.1` on `main` @1bbbb4cb (2026-11-09). |
 
 ## Classification summary
 
