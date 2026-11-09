@@ -281,8 +281,3 @@ token) but scoring is cheap once indexed.
   the old keys.
 - **#36818** — ColPali (v0.18.0).
 - **#33686** — ColBERT (v0.18.0).
-
-Last verified: 2026-10-18 against vLLM v0.32.0 source (routes, anchors,
-template paths). Since v0.27.0: #57666 `max_tokens_per_doc` scoring fix and
-#57347 jina-reranker-m0 load fix (v0.31.0); zerank-2 template (#60415) and
-flash-maxsim kernel (#40337) in v0.32.0. Earlier, two behaviour changes since v0.21.0: **#46119 (v0.24.0) rejects negative `top_n`**, previously silently treated as `top_n=0` (= return all); and **#48901 (v0.26.0) fixed wrong scores from LAST-pooling models under chunked prefill + `torch.compile`** — see §2, the one item on this page that invalidates *past* results rather than changing future ones. The endpoint surface (`/rerank`, `/score` and their aliases) is unchanged since v0.20.0; #41163 AllPool +51% remains a perf-only win for late-interaction.

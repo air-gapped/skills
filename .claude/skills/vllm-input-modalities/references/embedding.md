@@ -258,19 +258,3 @@ r = requests.post("http://localhost:8000/v2/embed", json={
 - `vllm/model_executor/models/bert.py`, `jina.py` — embedding model
   definitions
 - Docs: `docs/models/pooling_models/embed.md` in the repo
-
-Last verified: 2026-10-18 against vLLM v0.32.0 source (anchors, pooling
-enums, matryoshka bound, roster). Since v0.27.0: #57498 (v0.31.0) chunked
-long-text normalization (§7); EmbeddingGemma 2 (#60254, v0.32.0, §4).
-Changes v0.21.0 → v0.27.0:
-**#46313** (v0.24.0) rejects matryoshka `dimensions` above `hidden_size`
-(previously a silent wrong-width result — see §3); **#45173** (v0.24.0) makes
-`/v1/embeddings` accept message-shaped input plus `chat_template_kwargs`
-(see §1); **#48901** (v0.26.0) fixes wrong vectors/scores from LAST-pooling
-models under chunked prefill + `torch.compile` (see §7). Roster gained
-`jina-embeddings-v5-text-nano` (#50688, v0.27.0), `BertForMaskedLM` (#48463),
-`RobertaForTokenClassification` / `XLMRobertaForTokenClassification` (#47991)
-and LongCat-Flash-Lite n-gram embedding (#47857) — all four confirmed present
-in `vllm/model_executor/models/registry.py` at v0.27.0. Jina v5 PR #39575
-landed v0.20.0; pooling perf wins #41163/#41433 landed v0.21.0. HuggingFace
-model cards for the families in §4 were not re-fetched this pass.

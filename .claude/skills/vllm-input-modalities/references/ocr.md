@@ -217,17 +217,6 @@ feed text to a general LLM for reasoning. Two approaches:
 Pick based on throughput vs latency requirements. OCR-then-LLM is cheaper
 per page; single-VLM is lower-latency for interactive use.
 
-Last verified: 2026-10-18 against vLLM v0.32.0 source and the recipes page
-(all three recipe flags plus `ngram_size=30` / `window_size=90` /
-whitelist `128821` present). GUNDAM constants re-read: `BASE_SIZE=1024`,
-`IMAGE_SIZE=640`, `CROP_MODE=True` in
-`vllm/transformers_utils/processors/deepseek_ocr.py`, still not switchable.
-Class names in §2 corrected from `registry.py`. As of v0.27.0: `NGramPerReqLogitsProcessor` in
-`vllm/model_executor/models/deepseek_ocr.py`, and `mm_processor_cache_gb` in
-`vllm/config/model.py` — so all three recipe flags remain valid. Roster gained
-`baidu/Unlimited-OCR` (#46564, v0.25.0) on top of Qianfan-OCR (#40136,
-v0.21.0); DeepSeek-OCR-2 got a TTFT optimisation in v0.27.0 (#49531).
-
 ## 8. Source anchors (line numbers at v0.33.0)
 
 - `vllm/model_executor/models/deepseek_ocr.py:362-` — `DeepseekOCRForCausalLM`;

@@ -216,12 +216,3 @@ On MRV2 (`vllm/v1/worker/gpu/pool/pooling_runner.py`):
 - An unsupported selection fails at startup with `Model Runner V2 supports
   pooling tasks [...], but this model selects '<task>' from [...]`, and the
   error names the escape hatch: **`VLLM_USE_V2_MODEL_RUNNER=0`**.
-
-Last verified: 2026-10-18 against vLLM v0.32.0 source (anchors, `--task`
-absence, MRV2 task set and fallback list, MRV1 still present). As of v0.27.0,
-two real changes since v0.25.1: `--task` is **gone from the CLI** (and the `score` / `encode` task
-names raise `VLLMValidationError`), and MRV2 gained an opt-in pooling path.
-The `--runner` / `--convert` / `--pooler-config` surface itself is still
-unchanged since v0.20.0. Flag stability is not surface stability — v0.24.0
-tightened request validation (#46313, #46119) and v0.26.0 fixed a pooling
-*correctness* bug (#48901) without touching a single flag.
