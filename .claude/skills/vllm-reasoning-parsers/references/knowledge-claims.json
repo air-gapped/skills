@@ -30,13 +30,13 @@
     },
     {
       "id": 4,
-      "question": "How many built-in reasoning parsers are registered in vLLM v0.30.0?",
-      "skill_answer": "34"
+      "question": "How many built-in reasoning parsers are registered in vLLM v0.33.0?",
+      "skill_answer": "42"
     },
     {
       "id": 5,
-      "question": "How many built-in reasoning parsers were registered in vLLM v0.29.0?",
-      "skill_answer": "32"
+      "question": "How many built-in reasoning parsers were registered in vLLM v0.32.0?",
+      "skill_answer": "38"
     },
     {
       "id": 6,
@@ -45,8 +45,8 @@
     },
     {
       "id": 7,
-      "question": "In vLLM v0.29.0+, which files validate `--reasoning-parser` names at startup?",
-      "skill_answer": "vllm/entrypoints/launchers/api_server/entry.py and vllm/entrypoints/launchers/launcher.py"
+      "question": "At vLLM server startup, which function validates the `--reasoning-parser` name, and which function calls it?",
+      "skill_answer": "`validate_api_server_args`, called by `setup_server` in vllm/entrypoints/launchers/launcher.py after the plugin import; an unregistered name raises `KeyError: invalid reasoning parser`."
     },
     {
       "id": 8,
@@ -100,8 +100,8 @@
     },
     {
       "id": 18,
-      "question": "From which vLLM version can reasoning-parser plugins be discovered via site-packages entry points?",
-      "skill_answer": "v0.30.0 (PR #45241)."
+      "question": "From which vLLM version does `--reasoning-parser-plugin` accept an importable site-packages module name as well as a file path?",
+      "skill_answer": "v0.30.0 (PR #45241); there is no entry-point discovery."
     },
     {
       "id": 19,
