@@ -130,7 +130,7 @@ Consult this list for any "broken chat template" symptom. Most reports reduce to
 
 15. **API field name mismatch.** The **response** field on current vLLM is `reasoning`, *not* `reasoning_content` — at v0.32.0: `ChatMessage.reasoning` (`chat_completion/protocol.py`), `DeltaMessage.reasoning` (`generate/base/protocol.py`). The **request** side still accepts `reasoning_content` and normalizes it (RFC #27755). A client reading `reasoning_content` off a response sees `null` every time even when the parser ran perfectly — this looks exactly like a parser failure. Check with `jq '.choices[0].message | keys'` before debugging parsers.
 
-16. **Content-format auto-detection misses macro-only templates.** `_detect_content_format()` (`vllm/renderers/hf.py`) looks for a `for item in message['content']` loop; before v0.30.0 (#53824) a template that reaches `message.content` only through a macro parameter was detected as `string`, silently flattening multimodal content. Fix: v0.30.0+, or pass `--chat-template-content-format openai`.
+16. **Content-format auto-detection misses indirect access to `message.content`.** `_detect_content_format()` (`vllm/renderers/hf.py`) looks for a `for item in message['content']` loop. Detected as `string`, silently flattening multimodal content: a template that reaches the content only through a macro parameter (before v0.30.0, #53824), or that iterates a `namespace()` alias of `messages` — `{% set ns = namespace(rest=messages) %}` or `{% set ns.rest = messages %}` (before v0.33.0, #62622). Fix: upgrade past the listed version, or pass `--chat-template-content-format openai`.
 
 
 ## What `chat_template_kwargs` accepts

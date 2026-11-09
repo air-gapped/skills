@@ -23,6 +23,7 @@ Probed against `v0.32.0..v0.33.0` and the `v0.33.0` tag tree of `vllm-project/vl
 | vLLM PR #61983 | https://github.com/vllm-project/vllm/pull/61983 | commit `53172fa72e`, first in v0.33.0 | `requirements/common.txt` at v0.33.0: `transformers >= 5.16.1, < 5.21.0` (v0.32.0 `< 5.20.0`), `tokenizers >= 0.23.2` and `oss-harmony >= 0.0.11` unchanged. huggingface/transformers advisories re-read 2026-11-09: none published after 2026-09-01, none patched above 5.15.0; latest transformers release v5.22.2 (2026-11-06) is above the v0.33.0 cap. |
 | Fallback registry | `vllm/transformers_utils/chat_templates/registry.py` | v0.33.0 | 15 model types; `minicpm_ocr` added by #63095 (commit `18343393b4`, MiniCPM-OCR 1.0), mapped to the MiniCPM-V fallback function; 7 `.jinja` files unchanged. |
 | Counts at v0.33.0 | `examples/`, `vllm/reasoning/__init__.py` | v0.33.0 | `git ls-tree` gives 27 `tool_chat_template_*.jinja` at v0.28.0, v0.29.0, v0.30.0, v0.31.0, v0.32.0 and v0.33.0; `git diff v0.28.0 v0.33.0` over those files is empty. Reasoning-parser registry: 42 names (38 at v0.32.0) — `beam`, `muse`, `musespark1x` and `step5` added. |
+| vLLM PR #62622 | https://github.com/vllm-project/vllm/pull/62622 | commit `6ab6bff1b6` 2026-10-22, first in v0.33.0 | A Muse Spark Open PR that also extends `_iter_nodes_assign_var_or_elems()` (`vllm/renderers/hf.py:424`) to follow `namespace(rest=messages)` and `ns.rest = messages` aliases; `tests/renderers/test_hf.py` gains both shapes expecting `openai`. |
 
 ## 2026-10-18 — v0.31.0 / v0.32.0 freshen
 
