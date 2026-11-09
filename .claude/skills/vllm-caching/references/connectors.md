@@ -376,10 +376,10 @@ Separates prefill and decode into distinct vLLM instances; the connector handles
 
 ```bash
 vllm serve <model> ... \
-  --kv-transfer-config '{"kv_connector":"NixlConnector","kv_role":"kv_both","kv_buffer_device":"cuda","kv_connector_extra_config":{"backends":["UCX","GDS"]}}'
+  --kv-transfer-config '{"kv_connector":"NixlConnector","kv_role":"kv_producer","kv_buffer_device":"cuda","kv_connector_extra_config":{"backends":["UCX","GDS"]}}'
 ```
 
-- `kv_role`: `kv_producer` (prefill instance), `kv_consumer` (decode instance), or `kv_both` (symmetric)
+- `kv_role`: `kv_producer` on prefill instances, `kv_consumer` on decode instances. Do not use `kv_both` with NixlConnector: deprecated from v0.23.0 (#43874), it logs a warning and is slated for removal
 - `backends`: `UCX` (default transport, works over Ethernet/IB/RoCE), `GDS` (direct storage). Combine as needed.
 - Reference example: `tests/v1/kv_connector/nixl_integration/run_accuracy_test.sh`
 - Model/feature compatibility: `docs/features/nixl_connector_compatibility.md`
