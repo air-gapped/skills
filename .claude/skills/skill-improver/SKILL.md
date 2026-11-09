@@ -93,11 +93,15 @@ eval cases.
 
 ## Improve
 
-Score, apply ONE change, re-score cold, keep +3 or more; keep +1/+2 only when a
-second cold score confirms it or the change also simplifies; keep Δ0 only when
-it fixes a verifiable defect or simplifies; revert the rest. Stop at 90+ with no dimension
-below 7, when the ceiling is mapped (`improve-loop.md` Phase 5), or after 10
-iterations.
+Read `references/quality-rubric.md`, score all 10 dimensions against it, apply
+ONE change, re-score cold, print both score tables and the decision: keep +3 or
+more; +1/+2 only when a second cold score confirms it or the change also
+simplifies; Δ0 only when it fixes a verifiable defect or simplifies; revert the
+rest. A total given without reading the rubric is an estimate: never decide on
+one. The score needs only the rubric and the text — a skill pasted inline is
+scored the same way, and the blind scorer and comparator, which run once per
+pass, never hold a decision open. Stop at 90+ with no dimension below 7, when
+the ceiling is mapped (`improve-loop.md` Phase 5), or after 10 iterations.
 Re-scoring an unchanged skill moves the total 2–3 points (up to 6), so +2 is
 noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
 
@@ -116,10 +120,10 @@ noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
   end.** Each kept change gets an attribution verdict in the landing commit
   (`improve-loop.md` Phase 7).
 - **A pass ends with work, not a report.** Done = every keep applied, blind
-  score at baseline (on a snapshot, with the baseline commit recorded) and at stop,
-  the A/B comparator verdict, an
-  `outcome` run when the skill has eval cases, committed with the backlog in the
-  same commit, resolved items deleted from Open. Zero discards = stopped early.
+  score at baseline (on a snapshot, with the baseline commit recorded) and at
+  stop, the A/B comparator verdict, an `outcome` run when the skill has eval
+  cases, committed with the backlog in the same commit, resolved items deleted
+  from Open. Zero discards = stopped early.
 
 ## Rules for every mode
 
