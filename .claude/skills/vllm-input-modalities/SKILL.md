@@ -224,7 +224,7 @@ Three non-obvious flags:
 
 DeepSeek reports ~2500 tok/s per A100-40 GB, ~200 k pages/day per GPU. Mode
 is hard-coded to GUNDAM (base=1024, image=640, crop=True); Tiny/Small/Base/
-Large are not selectable (still hard-coded at v0.32.0).
+Large are not selectable (still hard-coded at v0.33.0).
 
 Invocation is still plain `/v1/chat/completions` with image URLs — there is
 no dedicated `/ocr` endpoint.
@@ -232,7 +232,7 @@ no dedicated `/ocr` endpoint.
 ## Top pitfalls
 
 1. **`--task embed` is dead, not deprecated.** No `--task` in
-   `vllm/engine/arg_utils.py` and no `task` field in `ModelConfig` at v0.32.0 —
+   `vllm/engine/arg_utils.py` and no `task` field in `ModelConfig` at v0.33.0 —
    passing it is an unrecognized-argument error. Use `--runner pooling`. The `score`
    and `encode` *pooling task names* are removed too and raise
    `VLLMValidationError` (`vllm/tasks.py`): use `--convert classify` on a

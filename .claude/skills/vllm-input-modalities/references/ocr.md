@@ -171,7 +171,7 @@ Class names in §2 corrected from `registry.py`. As of v0.27.0: `NGramPerReqLogi
 `baidu/Unlimited-OCR` (#46564, v0.25.0) on top of Qianfan-OCR (#40136,
 v0.21.0); DeepSeek-OCR-2 got a TTFT optimisation in v0.27.0 (#49531).
 
-## 8. Source anchors
+## 8. Source anchors (line numbers at v0.33.0)
 
 - `vllm/model_executor/models/deepseek_ocr.py:362-` — `DeepseekOCRForCausalLM`;
   `:140-195` — `NGramPerReqLogitsProcessor`

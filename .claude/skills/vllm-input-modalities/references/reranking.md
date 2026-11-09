@@ -22,7 +22,7 @@ Code: `vllm/entrypoints/pooling/scoring/api_router.py:37-111`.
 - `embed` → bi-encoder (cosine)
 - `token_embed` → late-interaction (MaxSim)
 
-Gate logic: `vllm/entrypoints/pooling/utils.py:232-250`. There is no flag
+Gate logic: `vllm/entrypoints/pooling/utils.py:220-238`. There is no flag
 to enable or disable this.
 
 ## 2. Three score types — pick the model, the engine picks the mode
@@ -219,7 +219,7 @@ token) but scoring is cheap once indexed.
    probabilities, some raw logits). Use Platt scaling to normalise, or
    wrap the client to rescale per model.
 
-## 7. Source anchors
+## 7. Source anchors (line numbers at v0.33.0)
 
 - `vllm/entrypoints/pooling/scoring/api_router.py` — routes
 - `vllm/entrypoints/pooling/scoring/serving.py` — dispatch + flash
@@ -227,7 +227,7 @@ token) but scoring is cheap once indexed.
 - `vllm/entrypoints/pooling/scoring/io_processor.py` — per-score-type IO
   processors (`BiEncoder…`, `LateInteraction…`, `FlashLateInteraction…`,
   `CrossEncoder…`, `JinaRanking…IOProcessor`)
-- `vllm/entrypoints/pooling/utils.py:232-250` — scoring API auto-enable
+- `vllm/entrypoints/pooling/utils.py:220-238` — scoring API auto-enable
 - `vllm/tasks.py:33` — `ScoreType` enum
 - `vllm/model_executor/models/colbert.py`, `colpali.py`, `colqwen3*.py` —
   late-interaction models

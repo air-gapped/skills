@@ -235,7 +235,7 @@ Audio-specific metrics (seconds of audio processed, real-time factor) are
 not currently surfaced as counters in vLLM itself. For production, wrap
 the request client with your own timing instrumentation.
 
-## 11. Source anchors
+## 11. Source anchors (line numbers at v0.33.0)
 
 - `vllm/entrypoints/speech_to_text/transcription/api_router.py` — routes
 - `vllm/entrypoints/speech_to_text/base/serving.py` — dispatch + chunking

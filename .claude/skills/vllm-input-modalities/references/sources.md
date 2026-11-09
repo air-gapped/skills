@@ -4,7 +4,7 @@ Freshened: 2026-10-18 — every row, URL, PR/issue state and source anchor probe
 
 2026-09-22 pass: **two placements were wrong**, both the same way: the release published *after* the PR merged while not containing it, because its branch was already cut. That is exactly what makes "merged before X, so it is in X" feel safe. One of the two had reached operator-facing guidance in `stt.md` as a version floor one release too low.
 
-Latest vLLM is **v0.32.0** (published 2026-10-18); see the 2026-10-18 section.
+Latest vLLM is **v0.33.0** (published 2026-11-02); see the 2026-11-09 section.
 Rows further down that name an earlier tag are point-in-time and remain
 correct for what they assert unless a note says superseded.
 
@@ -19,6 +19,17 @@ records when the reference was last verified and its classification:
 - **broken** — 404 / moved / unreachable; skill updated with replacement
   or "unverifiable" note.
 - **unverifiable** — reachable but couldn't confirm the claim.
+
+## 2026-11-09 freshen (v0.32.0 → v0.33.0)
+
+Source anchors read from `vllm-project/vllm` at the `v0.33.0` tag and diffed
+against `v0.32.0`. Release notes walked: v0.33.0. Issue tracker swept for
+issues opened since 2026-10-18.
+
+| Ref | URL | Classification | Notes |
+|---|---|---|---|
+| vLLM v0.33.0 (latest) | <https://github.com/vllm-project/vllm/releases/tag/v0.33.0rc3> | version-drift | Published 2026-11-02. The GitHub Release object is titled `v0.33.0` but attached to the tag `v0.33.0rc3`; the annotated tag `v0.33.0` points at the same commit (`4ba787ec99`), PyPI has `0.33.0` (uploaded 2026-11-02), the release assets are `vllm-0.33.0-*.whl`, and `docs.vllm.ai/en/stable` renders v0.33.0. `releases/tags/v0.33.0` returns 404 — list releases, do not look one up by tag. No v0.32.1 release (only a `v0.32.1rc0` tag). |
+| Source anchors at v0.33.0 | `vllm-project/vllm` at `v0.33.0` | version-drift | Moved since v0.32.0: `vllm/config/model.py` `_RUNNER_CONVERTS` 123→124, `_get_runner_type`…`_get_convert_type` 1294-1369→1307-1382, runner validation 690-725→704-738, `is_matryoshka` 2066-2073→2084-2091; `vllm/entrypoints/pooling/utils.py` `enable_scoring_api` 232→220; `vllm/pooling_params.py` matryoshka bound 164-193→235 onward; `vllm/entrypoints/launchers/cli_args.py` moved to `vllm/entrypoints/common/cli_args.py` (`trust_request_mm_kwargs` still `:99`, `enable_flash_late_interaction` `:382`); `vllm/entrypoints/pooling/scoring/io_processor.py` 974→1056 lines. Unchanged: `vllm/tasks.py`, `vllm/config/scheduler.py:20`, `vllm/config/pooler.py`, pooling `api_router.py` files, `factories.py:38-109`, `jina.py:44-96`, `deepseek_ocr.py`, `deepseek_ocr2.py`, `dots_ocr.py` (770 lines), `vllm/multimodal/parse.py:603`, the whole `vllm/entrypoints/speech_to_text/` tree and `vllm/config/speech_to_text.py`. Still absent: `--task` in `arg_utils.py`, `task` in `ModelConfig`. GUNDAM constants unchanged in `vllm/transformers_utils/processors/deepseek_ocr.py:21-23`. Applied to runner-flags.md, reranking.md, embedding.md, SKILL.md. |
 
 ## 2026-10-18 freshen (v0.30.0 → v0.32.0)
 

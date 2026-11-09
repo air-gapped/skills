@@ -11,10 +11,10 @@ Load when the question is about `--task` vs `--runner`, what replaces
 | `--runner {auto|generate|pooling|draft}` | **current, preferred** | — |
 | `--convert {auto|none|embed|classify}` | **current** | — |
 | `--pooler-config '{...}'` | **current** | — |
-| `--task {generate|embed|score|classify|reward|encode|...}` | **removed** — not a CLI arg at v0.32.0 | `--runner` + `--convert` |
+| `--task {generate|embed|score|classify|reward|encode|...}` | **removed** — not a CLI arg at v0.33.0 | `--runner` + `--convert` |
 | `--enable-scoring-api` | **never existed** | auto per-model |
 
-`--task` is gone, not merely warned about: at v0.32.0 there is no `task`
+`--task` is gone, not merely warned about: at v0.33.0 there is no `task`
 field in `ModelConfig` (`vllm/config/model.py`), no `--task` in
 `vllm/engine/arg_utils.py`, and `docs/models/pooling_models/README.md`
 documents only `--runner`/`--convert`. Passing it fails argument parsing.
@@ -50,7 +50,7 @@ From the v0.20.0 release notes and the pooling-models docs
 
 1. **`--task` flag** — replaced entirely by `--runner` + `--convert`. It was
    accepted with a deprecation warning in the v0.20 era; by v0.22.0 it was
-   already absent from `arg_utils.py`, and it is still absent at v0.32.0.
+   already absent from `arg_utils.py`, and it is still absent at v0.33.0.
 2. **`score` pooling task** — replaced by `classify` + `num_labels==1`.
    Now hard-removed: `vllm/tasks.py:check_removed_pooling_task` raises
    `VLLMValidationError` for `score` and `encode` with the replacement named
@@ -71,7 +71,7 @@ From the v0.20.0 release notes and the pooling-models docs
 ## 4. How the runner + convert combination resolves
 
 Resolution order (`ModelConfig._get_runner_type` / `_get_convert_type`,
-`vllm/config/model.py:1294-1369`; validation at `:690-725`):
+`vllm/config/model.py:1307-1382`; validation at `:704-738`):
 
 1. Read `--runner`. If `auto`, check the registry:
    - If the architecture is in the pooling-model registry
@@ -83,7 +83,7 @@ Resolution order (`ModelConfig._get_runner_type` / `_get_convert_type`,
    - Otherwise no conversion.
 3. Read `--pooler-config` and merge into the resolved `PoolerConfig`.
 
-Converters (`_RUNNER_CONVERTS` in `vllm/config/model.py:123-127`):
+Converters (`_RUNNER_CONVERTS` in `vllm/config/model.py:124-128`):
 
 - `embed` — attaches a pool head (default LAST for causal LMs, configurable).
 - `classify` — attaches a classification head (requires labels info).
@@ -102,7 +102,7 @@ Converters (`_RUNNER_CONVERTS` in `vllm/config/model.py:123-127`):
 
 ## 6. When the scoring API auto-enables
 
-`vllm/entrypoints/pooling/utils.py:232-250` — `enable_scoring_api()` gates
+`vllm/entrypoints/pooling/utils.py:220-238` — `enable_scoring_api()` gates
 `/score` + `/rerank` endpoint registration. Active if the model's pooler
 reports any of:
 
@@ -143,14 +143,14 @@ Symptoms and fixes:
 | Pool outputs garbled | loaded as `generate` + `--convert embed` auto-failed | explicit `--runner pooling --convert embed` |
 | `dimensions=N` returns 400 | model doesn't declare Matryoshka | `--hf-overrides '{"is_matryoshka": true}'` or accept the model doesn't support MRL |
 
-## 9. Source anchors
+## 9. Source anchors (line numbers at v0.33.0)
 
 - `vllm/config/scheduler.py:20` — `RunnerType`
-- `vllm/config/model.py:86-127` — `RunnerOption`/`ConvertOption`, `_RUNNER_CONVERTS`
-- `vllm/config/model.py:1294-1369` — runner/convert resolution
+- `vllm/config/model.py:86-128` — `RunnerOption`/`ConvertOption`, `_RUNNER_CONVERTS`
+- `vllm/config/model.py:1307-1382` — runner/convert resolution
 - `vllm/config/pooler.py` — `PoolerConfig` schema
 - `vllm/entrypoints/pooling/factories.py:38-109` — IO processor registry
-- `vllm/entrypoints/pooling/utils.py:232-250` — scoring API auto-enable
+- `vllm/entrypoints/pooling/utils.py:220-238` — scoring API auto-enable
 - `vllm/tasks.py:7-33` — `GenerationTask`, `PoolingTask`, `ScoreType` enums
 - Docs: `docs/models/pooling_models/README.md`
 

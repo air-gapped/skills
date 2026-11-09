@@ -62,7 +62,7 @@ vllm serve <model> --runner pooling \
 ## 3. Matryoshka / MRL
 
 Native: model config must have `is_matryoshka: true` **or**
-`matryoshka_dimensions: [256, 512, 768]`. `vllm/config/model.py:2066-2073`.
+`matryoshka_dimensions: [256, 512, 768]`. `vllm/config/model.py:2084-2091`.
 
 Forcing on for a model that supports MRL but lacks config:
 
@@ -228,13 +228,13 @@ r = requests.post("http://localhost:8000/v2/embed", json={
 - **HF gated models** — set `HF_TOKEN` even in offline mode (known quirk,
   issue #9255).
 
-## 9. Source anchors
+## 9. Source anchors (line numbers at v0.33.0)
 
 - `vllm/entrypoints/pooling/embed/api_router.py` — route definitions
 - `vllm/entrypoints/pooling/factories.py:38-109` — IO processor registration
 - `vllm/config/pooler.py:30-201` — `PoolerConfig` schema (pool type,
   dimensions, chunked processing, Platt scaling)
-- `vllm/config/model.py:2066-2073` — `is_matryoshka` detection
+- `vllm/config/model.py:2084-2091` — `is_matryoshka` detection
 - `vllm/model_executor/models/bert.py`, `jina.py` — embedding model
   definitions
 - Docs: `docs/models/pooling_models/embed.md` in the repo
