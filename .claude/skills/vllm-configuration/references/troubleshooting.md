@@ -155,7 +155,8 @@ Make sure the PVC has enough space — per-model-shape compile artifacts can add
 ### `/dev/shm` too small
 
 Not NCCL — vLLM's own `MessageQueue` allocates a POSIX shared-memory ring buffer
-in `/dev/shm` whenever TP ≥ 2 (default ≈ 240 MiB: 24 MiB × 10 chunks). tmpfs
+in `/dev/shm` whenever TP ≥ 2 (≈ 160 MiB under `vllm serve`: `VLLM_MQ_MAX_CHUNK_BYTES_MB`,
+default 16, × 10 chunks). tmpfs
 allocation is **lazy**, so `SharedMemory(create=True, ...)` succeeds on a 64 MB
 `/dev/shm` and the pages only fault in later, under load — at which point the
 worker takes an uncatchable `SIGBUS` and the operator sees an opaque
@@ -163,8 +164,8 @@ worker takes an uncatchable `SIGBUS` and the operator sees an opaque
 server that starts fine and serves text, then dies once multimodal requests
 start broadcasting image payloads to the TP workers.
 
-**From v0.27.0 this fails fast** with a clear `RuntimeError` at buffer-creation
-time instead of a later `SIGBUS` ([PR #48879](https://github.com/vllm-project/vllm/pull/48879),
+**From v0.27.0 this fails fast** with `RuntimeError: Insufficient space in /dev/shm …`
+(required and free MiB follow) at buffer-creation time instead of a later `SIGBUS` ([PR #48879](https://github.com/vllm-project/vllm/pull/48879),
 merged 2026-07-27). On older images the `EngineDeadError` is the only symptom, so
 size `/dev/shm` before believing the error message.
 
