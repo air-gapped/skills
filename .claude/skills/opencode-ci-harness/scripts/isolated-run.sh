@@ -10,6 +10,7 @@
 #     [--api-key "sk-dummy"] \
 #     [--workdir /tmp/scratch] \
 #     [--max-turns 15] \
+#     [--context 32768] \
 #     [--npm "@ai-sdk/openai-compatible"] \
 #     [--prompt "..."] \          # or pass on stdin
 #     [--provider-options-json '{"chat_template_kwargs":{"enable_thinking":true}}']
@@ -33,6 +34,9 @@
 # endpoint path).
 # --max-turns N caps agent steps (config `agent.build.steps`); request N is
 # sent with tool_choice "none" and a trailing assistant "max steps" message.
+# --context N declares the served context length (model `limit`), so opencode
+# fits max_completion_tokens to the room left in N. Without it every request
+# asks for 32000 output tokens. --base-url runs only.
 # --provider-options-json fields are sent verbatim in every request body
 # (openai-compatible only), e.g. `chat_template_kwargs`.
 # --allow-shell permits the shell tool (tiers 3, 7); denied by default.
@@ -53,9 +57,11 @@ PROVIDER_OPTIONS_JSON=""
 NPM_PKG="@ai-sdk/openai-compatible"
 CREDENTIAL=""
 ALLOW_SHELL=0
+CONTEXT=0
 
 usage() {
-  sed -n '2,40p' "$0"
+  # The header comment, up to the first non-comment line.
+  awk 'NR > 1 { if (/^#/) print; else exit }' "$0"
   exit 1
 }
 
@@ -66,6 +72,7 @@ while [[ $# -gt 0 ]]; do
     --api-key)   API_KEY="$2"; shift 2 ;;
     --workdir)   WORKDIR="$2"; shift 2 ;;
     --max-turns) MAX_TURNS="$2"; shift 2 ;;
+    --context)   CONTEXT="$2"; shift 2 ;;
     --prompt)    PROMPT="$2"; shift 2 ;;
     --timeout)   TIMEOUT="$2"; shift 2 ;;
     --npm)       NPM_PKG="$2"; shift 2 ;;
@@ -81,6 +88,8 @@ done
 [[ -z "$BASE_URL" && -z "$CREDENTIAL" ]] && { echo "--base-url or --credential required" >&2; exit 1; }
 [[ "$MODEL" == */* ]] || { echo "--model must be provider-alias/model-id" >&2; exit 1; }
 [[ -n "$CREDENTIAL" && -n "$PROVIDER_OPTIONS_JSON" ]] && { echo "--provider-options-json needs --base-url" >&2; exit 1; }
+[[ "$CONTEXT" =~ ^[0-9]+$ ]] || { echo "--context must be a token count" >&2; exit 1; }
+[[ -n "$CREDENTIAL" && "$CONTEXT" != 0 ]] && { echo "--context needs --base-url" >&2; exit 1; }
 # Resolve the operator store BEFORE HOME/XDG are redirected.
 SOURCE_DB="${OPENCODE_SOURCE_DB:-${XDG_DATA_HOME:-$HOME/.local/share}/opencode/opencode.db}"
 if [[ -n "$PROVIDER_OPTIONS_JSON" ]]; then
@@ -138,13 +147,16 @@ MODEL_OPTIONS="${PROVIDER_OPTIONS_JSON:-{\}}"
 OPENCODE_CONFIG_CONTENT="$(jq -n \
   --arg alias "$PROVIDER_ALIAS" --arg id "$MODEL_ID" --arg model "$MODEL" \
   --arg npm "$NPM_PKG" --arg url "$BASE_URL" --arg key "$API_KEY" \
-  --argjson steps "$MAX_TURNS" --argjson mopts "$MODEL_OPTIONS" \
+  --argjson steps "$MAX_TURNS" --argjson mopts "$MODEL_OPTIONS" --argjson ctx "$CONTEXT" \
   --arg sub "$CREDENTIAL" --arg shell "$([[ $ALLOW_SHELL == 1 ]] && echo allow || echo deny)" '{
   "$schema": "https://opencode.ai/config.json",
   provider: (if $sub != "" then {} else { ($alias): {
     npm: $npm,
     options: { baseURL: $url, apiKey: $key },
-    models: { ($id): ({ name: $id } + (if $mopts == {} then {} else { options: $mopts } end)) }
+    # limit: always both keys; before v2.2.6 a partial limit drops the provider.
+    models: { ($id): ({ name: $id }
+      + (if $mopts == {} then {} else { options: $mopts } end)
+      + (if $ctx > 0 then { limit: { context: $ctx, output: ([$ctx, 32000] | min) } } else {} end)) }
   } } end),
   model: $model,
   agent: { build: { steps: $steps } },

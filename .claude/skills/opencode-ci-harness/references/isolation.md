@@ -42,6 +42,7 @@ v1-shaped keys are accepted and migrated by v2. The runner writes:
 - Rules that resolve to `ask` are auto-rejected in `run`; never pass `--auto` in CI.
 - `apiKey` must be non-empty even when the engine ignores it.
 - Extra request-body fields (openai-compatible only): put them in the model's `options`; v2 sends unknown model options in the body. Do not wrap them in `providerOptions`.
+- Served context length (`--context N`): `"limit": {"context": N, "output": min(N, 32000)}` on the model. Set both keys — before v2.2.6 a model with only one of them drops the whole provider without an error.
 - The default agent is `build`; `steps` caps its loop.
 - `--credential` runs: omit `provider` entirely.
 

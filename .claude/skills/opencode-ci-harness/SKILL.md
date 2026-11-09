@@ -47,6 +47,7 @@ bash ${CLAUDE_SKILL_DIR}/scripts/isolated-run.sh \
 ```
 
 - `--model` is `<provider-alias>/<served-model-id>`; the alias is arbitrary.
+- `--context N` declares the served context length — see Context budget.
 - `--base-url` is any reachable endpoint, local or remote. `--api-key` defaults to `sk-dummy` for endpoints without auth.
 - `--max-turns N` sets `agent.build.steps`. Request N is the cap request: `tool_choice: "none"`, tools still listed, and a trailing assistant-role "maximum steps reached" message. Keep N above the tier's expected turns.
 - Shell is denied unless `--allow-shell`. Pass it only for tiers 3 and 7; the shell is not sandboxed.
@@ -83,16 +84,11 @@ bash ${CLAUDE_SKILL_DIR}/scripts/isolated-run.sh \
 
 ## Context budget
 
-Baseline input ≈ 9K tokens per turn before the user prompt (system prompt + tool schemas). Read it with
-`jq 'select(.type=="step_finish") | .part.tokens.input' t.ndjson`.
-
-| Served `max_model_len` | Usable |
-|---|---|
-| 8192 | No |
-| 16384 | 1–2 turns, short tool outputs |
-| 32768+ | Yes |
-
-Read the served context length from the engine (`GET /v1/models` `max_model_len`, or its startup log); auto-fit settings can land far below the model maximum.
+- Without a declared window every request asks for `max_completion_tokens: 32000`. An engine that checks that against its window answers each request with HTTP 400 naming max tokens or context length.
+- Pass `--context N` (N = served context length) whenever N is below 32000 plus the scenario's input — always under 40K. opencode then fits the output cap to the room left in N (floor 1024).
+- Read N from the engine (`GET /v1/models` `max_model_len`, or its startup log); auto-fit settings can land far below the model maximum.
+- Baseline request before the scenario prompt ≈ 5 KB, roughly 1.5K tokens (system prompt + schemas of the allowed tools; ≈ 7 KB with `--allow-shell`). Measured input per step: `jq 'select(.type=="step_finish") | .part.tokens.input' t.ndjson`.
+- The served model id picks the system prompt: an id containing `gpt`, `claude`, `kimi`, `trinity` or `muse` gets that family's prompt (baseline up to ≈ 13 KB). Compare runs only between ids in the same family.
 
 ## Scenario tiers
 
