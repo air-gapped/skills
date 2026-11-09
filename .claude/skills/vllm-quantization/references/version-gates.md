@@ -49,6 +49,8 @@ KV cache:
 - [PR #59774](https://github.com/vllm-project/vllm/pull/59774) — `octave_k3v4` / `octave_k3v3` / `octave_k3v3_compact` KV dtypes (ROCm `ROCM_OCTAVE`).
 - [PR #52670](https://github.com/vllm-project/vllm/pull/52670) — pluggable KV dtypes: platform backends register extra `--kv-cache-dtype` values.
 
+Kernel config: `--moe-backend aiter_triton_mxfp4_mxfp4` added (AITER MXFP4 W4A4, ROCm gfx1250).
+
 ## v0.32.0 — 2026-10-18
 
 Quantization:

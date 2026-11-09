@@ -58,8 +58,8 @@ vLLM versions.
 
 Both are first-class CLI flags; the authoritative value lists are the
 `LinearBackend` and `MoEBackend` `Literal`s in
-[`vllm/config/kernel.py`](https://github.com/vllm-project/vllm/blob/v0.32.0/vllm/config/kernel.py)
-(21 linear / 23 MoE values at v0.32.0).
+[`vllm/config/kernel.py`](https://github.com/vllm-project/vllm/blob/v0.33.0/vllm/config/kernel.py)
+(21 linear / 24 MoE values at v0.33.0).
 
 - `--linear-backend`: `auto` (default), `cutlass`, `flashinfer_cutlass`,
   `flashinfer_cutedsl`, `flashinfer_trtllm`, `flashinfer_cudnn`, `flashinfer_b12x`,
@@ -69,8 +69,9 @@ Both are first-class CLI flags; the authoritative value lists are the
   `deep_gemm_mega_moe`, `cutlass`, `flashinfer_trtllm`, `flashinfer_cutlass`,
   `flashinfer_cutedsl`, `flashinfer_moe_ep_cutedsl`, `flashinfer_b12x`, `b12x`,
   `flashinfer_moe_ep_mega_deep_gemm`, `marlin`, `humming`, `triton_unfused`,
-  `aiter`, `aiter_mega_moe`, `aiter_triton_mxfp4_bf16`, `flydsl`, `hpc`,
-  `emulation`, `rdna3`. v0.32.0 renamed `flashinfer_moe_ep_mega_cutedsl` to
+  `aiter`, `aiter_mega_moe`, `aiter_triton_mxfp4_bf16`,
+  `aiter_triton_mxfp4_mxfp4` (v0.33.0: AITER MXFP4 W4A4, ROCm gfx1250), `flydsl`,
+  `hpc`, `emulation`, `rdna3`. v0.32.0 renamed `flashinfer_moe_ep_mega_cutedsl` to
   `flashinfer_moe_ep_cutedsl` (the old value no longer parses) and added
   `aiter_mega_moe` (ROCm DeepSeek-V4 MegaMoE).
 
