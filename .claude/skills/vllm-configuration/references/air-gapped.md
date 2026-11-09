@@ -159,6 +159,14 @@ Fix:
 - Verify both `HF_HUB_OFFLINE=1` and `TRANSFORMERS_OFFLINE=1` are exported
 - Confirm env made it into the pod: `kubectl exec <pod> -- env | grep -E 'HF_|TRANSFORMERS_'`
 
+### `ERROR … Error retrieving safetensors: … offline mode is enabled` at startup
+
+Harmless through v0.33.0 — do not unset `HF_HUB_OFFLINE` to chase it. With
+`HF_HUB_OFFLINE=1` and a Hub repo id as the `--speculative-config` draft model,
+every worker logs the line twice, sleeps 2 s, then loads the draft from the local
+cache and starts normally. Exclude the line from log alerting; releases after
+v0.33.0 skip the lookup in offline mode.
+
 ### "Connection error: stats.vllm.ai" in logs
 
 Usage stats opt-out wasn't applied. Set `VLLM_NO_USAGE_STATS=1` or the alternatives above.
