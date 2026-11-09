@@ -186,7 +186,7 @@ GPU pods bind the GPU exclusively. A `RollingUpdate` tries to stand up the new r
 
 ### Telemetry opt-out
 
-By default vLLM POSTs anonymous usage stats to `https://stats.vllm.ai` on first start. In regulated / air-gapped clusters this fails visibly (confuses operators) or leaks metadata. Both `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1` are honoured. Source: ``vllm` repo: vllm/envs.py:38-39`.
+By default vLLM POSTs anonymous usage stats to `https://stats.vllm.ai` on first start. In regulated / air-gapped clusters this fails visibly (confuses operators) or leaks metadata. Both `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1` are honoured — only as the string `1` (`value: "true"` leaves telemetry on with no warning). Source: ``vllm` repo: vllm/envs.py:38-39`.
 
 ### Compile-cache survival across restarts (`/root/.cache` mount)
 

@@ -88,7 +88,7 @@ For "review / audit this manifest", "cross-check flags", "caches saved?": mark e
 | Parallelism | TP × PP × DP equals the pod's `nvidia.com/gpu` limit; MoE EP flags agree with it | `references/pod-shape.md` §Serve-args review |
 | serve_args | no `--enforce-eager` in production; every flag exists at the pinned tag (`references/upgrading.md`) | `references/pod-shape.md` §Serve-args review |
 | Network | `VLLM_HOST_IP` from `status.podIP`; `NCCL_SOCKET_IFNAME` pinned on multi-NIC hosts | pitfall 7, `references/multi-node.md` |
-| Telemetry | `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1` | pitfall 9 |
+| Telemetry | `VLLM_NO_USAGE_STATS` and `VLLM_DO_NOT_TRACK` both set to exactly `"1"` | pitfall 9 |
 | Platform | OpenShift: non-root image and Route timeout annotation; KEDA: threshold 5–10, `cooldownPeriod: 360` | pitfalls 4–6 |
 
 ## Sibling skill boundaries
@@ -156,7 +156,7 @@ The script validates pod health, `/health`, `/v1/models`, `/dev/shm` sizing, `/m
 6. **OCP Route 60 s idle timeout.** Kills long SSE streams. Annotate `haproxy.router.openshift.io/timeout: 10m`.
 7. **Missing `NCCL_SOCKET_IFNAME` on multi-NIC hosts.** NCCL picks the wrong interface and hangs on bootstrap. Pin explicitly.
 8. **Using the in-tree `chart-helm` (`chart-vllm` 0.0.2) in production.** It is an example under `examples/`, not a supported release artifact. For production, use vllm-production-stack Helm or llm-d Helm.
-9. **Telemetry to `stats.vllm.ai`.** Opt out with `VLLM_NO_USAGE_STATS=1 VLLM_DO_NOT_TRACK=1` — especially in regulated/air-gapped environments.
+9. **Telemetry to `stats.vllm.ai`.** Opt out with `VLLM_NO_USAGE_STATS=1 VLLM_DO_NOT_TRACK=1` — especially in regulated/air-gapped environments. The value must be `1`: `true` is silently ignored and telemetry stays on.
 10. **Assuming Gateway API is GA on every OCP.** It is GA on OCP 4.19+, dev-preview on 4.17. Check the cluster version.
 11. **Liveness that runs inference, or `failureThreshold: 1`.** Refuse it and give the `/health` probe set — not the requested YAML with caveats. A generation probe (`/v1/completions`, `/v1/chat/completions`) queues behind real traffic and times out on a busy pod, so kubelet restarts healthy pods under load, each a full cold boot. Keep liveness on `/health`: it returns 503 once the engine core is dead (`EngineDeadError`); the API server exits ~5 s after engine death unless `VLLM_KEEP_ALIVE_ON_ENGINE_DEATH=1`. Dead engine still Ready → that env is set, readiness is not on `/health`, or the engine is hung, not dead. Keep readiness (drops the pod from Service endpoints) and liveness (restarts it) separate. Catch hung-but-alive with a `/metrics` alert (requests running > 0, generation-token rate flat), not a probe; from v0.33.0 add `--watchdog-config '{"dump_dir": "<mounted-dir>"}'` to get stack dumps from an engine or worker stuck > 300 s (off by default).
 12. **Short `terminationGracePeriodSeconds`, or a long one alone.** On SIGTERM vLLM aborts every in-flight request unless `--shutdown-timeout N` is set (default `0` = abort; `N>0` drains up to N s and rejects new requests). Set N to the longest generation served (60–120 s) and the pod grace to N + ~30 s for teardown. Never cut the pod grace to speed eviction: a terminating pod leaves Service endpoints at once, and the grace applies to every rollout, drain and scale-down. For a fast kill on liveness failure only, set `livenessProbe.terminationGracePeriodSeconds`.
