@@ -59,7 +59,7 @@
       "expected_output": "A complete, applyable manifest set (Deployment + Service + ConfigMap, with the Secret referenced) that runs the model with TP 8 and expert parallelism enabled, and that persists the compile/inductor/Triton caches on durable storage so the ~4 min of compile work is not repeated on restart. Probes must tolerate a 13-minute load, the HF token must come from a Secret rather than a literal, the image must be a pinned version tag, and the pod must have a memory-backed /dev/shm for the multi-GPU collectives. The parser plugin is supplied via a mounted ConfigMap and wired into the serve args.",
       "files": [],
       "assertions": [
-        "The compile/Inductor/Triton cache directories are redirected via environment variables onto the persistent volume (not the container filesystem or an emptyDir), so autotune results survive pod restarts",
+        "The compile/Inductor/Triton caches are placed on the persistent volume (not the container filesystem or an emptyDir) so autotune results survive pod restarts - either by pointing VLLM_CACHE_ROOT at a PVC-backed path, or by mounting the PVC over vLLM's default cache location (/root/.cache or ~/.cache/vllm)",
         "The Hugging Face token is injected from a Kubernetes Secret reference rather than written as a plaintext value in the manifest",
         "Probe configuration allows at least ~13 minutes of startup before the container can be restarted for failing liveness (via startupProbe or a correspondingly large initial delay), while readiness still gates traffic",
         "The container image is pinned to a specific version tag rather than :latest or a floating tag",
