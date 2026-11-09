@@ -39,7 +39,7 @@ docker run --rm -it \
 
 **Both `--shm-size` and `--ipc=host` are required for TP>1.** `--ipc=host` alone works on most hosts; pair with `--shm-size` for safety. Missing one → silent NCCL segfault on first all-reduce.
 
-Canonical in-repo citation: ``vllm` repo: docs/getting_started/installation/gpu.cuda.inc.md:207,212,251,263,271-272` — *"You can either use the `ipc=host` flag or `--shm-size` flag to allow the container to access the host's shared memory. vLLM uses PyTorch, which uses shared memory to share data between processes."*
+Canonical in-repo citation: ``vllm` repo: docs/getting_started/installation/gpu.cuda.inc.md:242,247,292,304,312` — *"You can either use the `ipc=host` flag or `--shm-size` flag to allow the container to access the host's shared memory. vLLM uses PyTorch, which uses shared memory to share data between processes."*
 
 Also: ``vllm` repo: docs/deployment/docker.md` · `docs/deployment/nginx.md:95,105` · `docs/serving/parallelism_scaling.md:175,181-182` · `examples/ray_serving/run_cluster.sh:120,127`.
 

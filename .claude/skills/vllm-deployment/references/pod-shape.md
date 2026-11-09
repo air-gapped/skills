@@ -128,8 +128,8 @@ spec:
 
 Kubernetes has no equivalent of Docker's `--ipc=host`. The in-cluster default `/dev/shm` is a tmpfs of 64 MiB (OpenShift's SCC enforces even smaller on some profiles). `torch.distributed` uses shared memory for the bootstrap + IPC; any TP>1 pod without a real-sized `/dev/shm` will segfault on the first all-reduce. The vLLM docs call this out directly at:
 
-- ``vllm` repo: docs/deployment/k8s.md:210,290`
-- ``vllm` repo: docs/getting_started/installation/gpu.cuda.inc.md:242,247,286,298,306`
+- ``vllm` repo: docs/deployment/k8s.md:211,291`
+- ``vllm` repo: docs/getting_started/installation/gpu.cuda.inc.md:242,247,292,304,312`
 - ``vllm` repo: docs/deployment/nginx.md:95,105`
 
 Size at 2–10 GiB. Backed by host memory (`medium: Memory`), capped at `sizeLimit` so a runaway process can't OOM the node.
@@ -184,15 +184,15 @@ GPU pods bind the GPU exclusively. A `RollingUpdate` tries to stand up the new r
 
 ### Telemetry opt-out
 
-By default vLLM POSTs anonymous usage stats to `https://stats.vllm.ai` on first start. In regulated / air-gapped clusters this fails visibly (confuses operators) or leaks metadata. Both `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1` are honoured. Source: ``vllm` repo: vllm/envs.py:37-38`.
+By default vLLM POSTs anonymous usage stats to `https://stats.vllm.ai` on first start. In regulated / air-gapped clusters this fails visibly (confuses operators) or leaks metadata. Both `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1` are honoured. Source: ``vllm` repo: vllm/envs.py:38-39`.
 
 ### Compile-cache survival across restarts (`/root/.cache` mount)
 
 "Do we have caches saved?" — the `cache` emptyDir at `/root/.cache` is what makes
 restarts skip the 1–3 min JIT recompile. Mechanism: vLLM sets
 `TORCHINDUCTOR_CACHE_DIR` and `TRITON_CACHE_DIR` itself, redirecting both under
-`VLLM_CACHE_ROOT` (default `~/.cache/vllm` — `vllm/compilation/compiler_interface.py:464-475`,
-`vllm/envs.py:34`). On the root-UID upstream image that resolves to `/root/.cache/vllm`,
+`VLLM_CACHE_ROOT` (default `~/.cache/vllm` — `vllm/compilation/compiler_interface.py:29-42`,
+`vllm/envs.py:35`). On the root-UID upstream image that resolves to `/root/.cache/vllm`,
 so mounting `/root/.cache` captures everything. Do NOT set `TORCHINDUCTOR_CACHE_DIR` —
 vLLM overrides it per model hash. An explicit `TRITON_CACHE_DIR` is honoured from
 v0.31.0 (#58474) and shared across models (intended reuse); before v0.31.0 vLLM
@@ -281,7 +281,7 @@ The flags an operator most often asks about when cross-checking a manifest's `ar
 ## Custom tool/reasoning parser via ConfigMap
 
 Custom parser plugins ship as a single `.py` the server loads at boot — the pod-layer
-wiring is a ConfigMap mount plus one flag (`--tool-parser-plugin`, `vllm/entrypoints/launchers/cli_args.py:127`,
+wiring is a ConfigMap mount plus one flag (`--tool-parser-plugin`, `vllm/entrypoints/common/cli_args.py:134`,
 `docs/features/tool_calling.md`):
 
 ```yaml
@@ -347,7 +347,7 @@ Cleaner than `initialDelaySeconds: 600`. Available since k8s 1.20, stable since 
 
 | Endpoint | Returns | Source |
 |---|---|---|
-| `/health` | 200 healthy, 503 `EngineDeadError` | `vllm/entrypoints/serve/instrumentator/health.py:22-34` |
+| `/health` | 200 healthy, 503 `EngineDeadError` | `vllm/entrypoints/serve/instrumentator/health.py:22-33` |
 | `/v1/models` | Lists served model names | OpenAI-compatible router |
 | `/metrics` | Prometheus text (see `vllm-observability` skill) | ditto |
 | `/ping` | Alias for `/health` |   |
