@@ -85,6 +85,7 @@ Run with `--allow-shell`. Prompt: ``Use bash to run `cat data/config.json | jq '
 
 - Pass: one `shell` call whose `command` contains `jq '.db.retries'` verbatim; final text contains `[1,2,5]` or 1, 2, 5.
 - Break: unbalanced quotes → `repr()` instead of `tojson`; empty `command` → parser dropped the argument; `\\\"` → double serialization.
+- Tool named `bash` instead of `shell` (tiers 3 and 7): from v2.2.5 it runs and counts as the shell call, with `part.tool` `"bash"`; before v2.2.5 it fails with `No tool named "bash"` → the model used the v1 tool name, not a parser bug.
 
 ### 4 — Irrelevance
 
