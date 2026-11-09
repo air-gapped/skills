@@ -55,6 +55,7 @@ Quantization:
 KV cache:
 - [PR #59774](https://github.com/vllm-project/vllm/pull/59774) — `octave_k3v4` / `octave_k3v3` / `octave_k3v3_compact` KV dtypes (ROCm `ROCM_OCTAVE`).
 - [PR #52670](https://github.com/vllm-project/vllm/pull/52670) — pluggable KV dtypes: platform backends register extra `--kv-cache-dtype` values.
+- [PR #61228](https://github.com/vllm-project/vllm/pull/61228) — **default change:** GLM-5.3-Flash (`Glm5Next*`) resolves `--kv-cache-dtype auto` to `fp8` on SM100.
 
 Kernel config: `--moe-backend aiter_triton_mxfp4_mxfp4` added (AITER MXFP4 W4A4, ROCm gfx1250). Online activation name `int8_per_group_32` added (RDNA3 MXFP4 W4A8 decode).
 

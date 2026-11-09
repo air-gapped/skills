@@ -24,7 +24,7 @@ scales in the model checkpoint. Source of truth:
 
 | Dtype | Semantics | Hardware | Scales |
 |---|---|---|---|
-| `auto` | Match weight dtype; DeepSeek-V3.2 and (v0.32.0+, SM100) GLM-5.x `GlmMoeDsaForCausalLM` resolve it to FP8 — set `bfloat16` to opt out | All | — |
+| `auto` | Match weight dtype; DeepSeek-V3.2, (v0.32.0+, SM100) GLM-5.x `GlmMoeDsaForCausalLM` and (v0.33.0+, SM100) GLM-5.3-Flash `Glm5NextForCausalLM` / `Glm5NextForConditionalGeneration` resolve it to FP8 — set `bfloat16` to opt out. A non-MTP draft model keeps `auto` rather than inheriting the FP8 default | All | — |
 | `float16` / `bfloat16` | No quant | All | — |
 | `fp8` | Alias for `fp8_e4m3` | SM89+ | Loaded from checkpoint (`k_scale`, `v_scale`) |
 | `fp8_e4m3` | Standard E4M3 | SM89+ | Loaded |

@@ -125,7 +125,7 @@ longer accepted.
 
 Single dispatch: [`vllm/config/cache.py`](https://github.com/vllm-project/vllm/blob/v0.33.0/vllm/config/cache.py) — grep the `CacheDType = Literal[...]` block, not a line range; it has grown every minor. From v0.33.0 a platform backend can register further values (`register_kv_cache_dtype`), so on an out-of-tree platform the accepted set is whatever the `Invalid kv_cache_dtype ... Valid values are:` startup error lists, not the `Literal`.
 
-- `auto` — match model weight dtype, except where the model overrides it: DeepSeek-V3.2 and (v0.32.0+, SM100 only) GLM-5.x `GlmMoeDsaForCausalLM` resolve `auto` to FP8. `float16` / `bfloat16` — pin an explicit unquantized KV dtype; set `bfloat16` to opt out of those defaults.
+- `auto` — match model weight dtype, except where the model overrides it: DeepSeek-V3.2, (v0.32.0+, SM100 only) GLM-5.x `GlmMoeDsaForCausalLM` and (v0.33.0+, SM100 only) GLM-5.3-Flash `Glm5Next*` resolve `auto` to FP8. `float16` / `bfloat16` — pin an explicit unquantized KV dtype; set `bfloat16` to opt out of those defaults.
 - `fp8`, `fp8_e4m3`, `fp8_e5m2` — the production path. **E4M3 is default**; E5M2 only for ROCm-specific setups.
 - `fp8_inc` (Intel), `fp8_ds_mla` (DeepSeek MLA variant), `nvfp4_ds_mla` (sparse-MLA NVFP4 NoPE + FP8 RoPE, SM100 only).
 - `ultraquant_4bit` — ROCm-only 4-bit KV (FP4 E2M1 + UE8M0 per-32 scales, Hadamard-rotated K), ~2× FP8 density (v0.32.0).
