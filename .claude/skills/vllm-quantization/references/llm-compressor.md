@@ -2,17 +2,16 @@
 
 [vllm-project/llm-compressor](https://github.com/vllm-project/llm-compressor). Outputs compressed-tensors format vLLM loads with `--quantization compressed-tensors`.
 
-Docs: [llm-compressor docs](https://docs.vllm.ai/projects/llm-compressor/en/latest/). Current release: **v0.14.0** (2026-09-22).
+Docs: [llm-compressor docs](https://docs.vllm.ai/projects/llm-compressor/en/latest/). Current release: **v0.15.0** (2026-10-29).
 
-**Read the release list by rank, not by date — this project runs parallel
-maintenance lines.** As of 2026-10-18 the newest releases *by publish date* are
-backports — **0.10.0.4 and 0.9.0.5 (2026-10-10)**, 0.12.0.2 (2026-10-09) — while
-the newest *by version* is **0.14.0 (2026-09-22)**, which GitHub flags
-`isLatest`. Active lines: 0.9.0.x, 0.10.0.x, 0.12.0.x, 0.13.0, 0.14.0. Sorting by
-date picks the wrong one; read `isLatest`.
+**Read `isLatest`, never the newest date — this project runs parallel
+maintenance lines.** The newest release by date is routinely a backport
+(0.10.0.5 on 2026-11-09, after 0.15.0). Lines still receiving releases: 0.7.1.x,
+0.10.0.x, 0.12.0.x, 0.14.0.x, 0.15.0.
 
 | Version | Date | What landed |
 |---|---|---|
+| **0.15.0** | 2026-10-29 | **Python 3.11 minimum**; legacy sparsity modifiers removed (`SparseGPTModifier`, `WandaPruningModifier`, `ConstantPruningModifier`, `MagnitudePruningModifier`, the OBCQ shim) — a recipe importing them fails; `preprocessing_func` deprecated; `sequential_prefetch` always on (drop the argument). New: HIGGS mixed-precision autoquantization (`get_higgs_config`), block-wise QAD (`QADModifier`), REAP / MoNe expert pruning (vLLM v0.33.0 loads MoNe checkpoints), MXFP6A16/A8, layerwise compression in the sequential pipeline; compressed-tensors 0.20.1 |
 | **0.14.0** | 2026-09-22 | Triton GPTQ kernel (~15× faster) with same-shape layer batching; **Hessian offloading removed**; GPTQ group/dynamic activation ordering removed (#3038 — matches vLLM v0.30.0 dropping `g_idx`); expanded MSE/iMatrix observers for NVFP4; model-free PTQ unified under `ModelFreePtqConverter` with mixed-precision and KV-cache quantization |
 | 0.13.0 | 2026-08-11 | GPTQ sparsity-preserving logic removed (#2860); modifier hooks `calibration_epoch_start/end` renamed `calibration_start/end` |
 | 0.12.0 | 2026-06-15 | **Transformers v5** upgrade with refactored MoE linearization; simplified dataset-split API (legacy multi-stage logic removed); multi-GPU distribution for model-free PTQ |
