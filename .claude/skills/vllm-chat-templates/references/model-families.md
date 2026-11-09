@@ -207,6 +207,7 @@ JSON variant (`llama4_json.jinja`) exists; pythonic is generally better.
 | [HF Scout #78](https://huggingface.co/meta-llama/Llama-4-Scout-17B-16E-Instruct/discussions/78) | `fix_tool_call` template edits. |
 | [vLLM forum](https://discuss.vllm.ai/t/help-llama4-maverick-failure-in-langgraph-swarm-handoff-tools/1755) | LangGraph Swarm handoff tools fail on Maverick; single tool calls work, multi-agent orchestration breaks. |
 | [PR #16463](https://github.com/vllm-project/vllm/pull/16463) | Added Llama-4 pythonic templates (earlier defaults inadequate). |
+| [vLLM #66302](https://github.com/vllm-project/vllm/issues/66302) | `llama4_pythonic.jinja` stringifies every argument in tool-call history — [Defects in shipped tool templates](#defects-in-shipped-tool-templates). |
 
 ### Gotchas
 
@@ -357,6 +358,7 @@ Open upstream, present in every release v0.28.0–v0.33.0 (the template files ar
 | Template | Defect | Effect |
 |---|---|---|
 | `gemma3_pythonic` ([#66298](https://github.com/vllm-project/vllm/issues/66298)) | History call renders with no separator between arguments: `[get_weather(city="Paris"metric=truelimit=3unit=null)]`. | From turn 2 the model reads its own earlier calls as invalid Python. Patch: emit `, ` between arguments. |
+| `llama4_pythonic` ([#66302](https://github.com/vllm-project/vllm/issues/66302)) | History call wraps every argument in double quotes, unescaped: `metric="True", limit="3", unit="None"`; a string holding `"` renders `note="say "hi""`. | Booleans, numbers and nulls replay as strings; one embedded quote makes the whole call invalid Python. Patch: render each argument as a Python literal by type, strings escaped. |
 
 ---
 
