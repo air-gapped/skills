@@ -332,15 +332,17 @@ an AWQ-4bit target measured **0% acceptance at every position**
 0.26–0.39× of EAGLE3, worse than no spec-decode at all. Gemma-4 MTP
 ships in stable releases since **v0.21.0** (#41745; MRv2 since v0.23.0,
 #43241). On builds before v0.29.0, MTP amplifies the trailing `<turn|>`
-leak above. The community DSpark speculator
-(`RedHatAI/gemma-4-31B-it-speculator.dspark`) still fails to load at all
-([#49475](https://github.com/vllm-project/vllm/issues/49475), re-checked
-2026-10-18 — still OPEN). Note what *did* ship: v0.26.0 added a
-**Gemma4-12B** DSpark draft model (#47216, for
-`deepseek-ai/dspark_gemma4_12b_block7`) — a different model size and a
-different checkpoint, so it does not unblock the 31B path.
+leak above.
 **On quantized targets use EAGLE3; revisit MTP on BF16 hardware or if
 Google ships a quant-matched assistant.**
+
+DSpark (`RedHatAI/gemma-4-31B-it-speculator.dspark`) is unmeasured against
+a quantized target — bench acceptance before adopting it. Use revision
+`63e28773` or later: the checkpoint was replaced on 2026-10-21 (full
+262144-token draft vocab) and its model card serves it on vLLM 0.31.0, BF16
+target, H100, `num_speculative_tokens: 7`.
+[#49475](https://github.com/vllm-project/vllm/issues/49475) (open) is a
+startup CUDA OOM on v0.25.1 with the earlier checkpoint.
 
 ### DFlash speculator unsupported on sm_89 (RTX 4060 Ti / Ada)
 
