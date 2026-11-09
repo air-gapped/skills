@@ -403,7 +403,7 @@ The band is asymmetric because calling a skill harmful is the expensive error; c
 
 **Several measurements: the worst governs.** Per-model and per-case-subset runs are not replicates; do not average them.
 
-**How to measure it.** Do NOT build a harness — the official `skill-creator` plugin runs each eval case with and without the skill:
+**How to measure it.** Do NOT build a harness. Run `outcome` mode (`SKILL.md` §Outcome): `scripts/outcome-eval.py <skill-dir> --write-benchmark` runs each eval case with and without the skill and writes the two arms `eval-evidence.py` reads. For `delta_tokens` and `delta_time` as well, aggregate `skill-creator` plugin runs:
 
 ```bash
 # after skill-creator has produced with_skill/ and without_skill/ runs
