@@ -50,7 +50,7 @@ Other deploy-level keys: `pipeline` (pick a registered pipeline variant), `sessi
 | `model_stage` | `thinker`/`talker`/`code2wav`/`ar`/`dit` | Logical role, used by input processors |
 | `model_arch` | class name | Registered model class in `vllm_omni/model_executor/models/` |
 | `worker_type` | `ar` / `generation` | AR uses LLMEngine; generation uses DiffusionEngine |
-| `engine_output_type` | `latent`/`audio`/`image`/`text` | What the stage emits; routes to output processors |
+| `engine_output_type` | LLM stages: `text` / `image` / `audio` / `latent` / `token_ids`, combinable with `+` or `,` | What the stage emits; routes to output processors. On v0.32.0 an LLM stage accepts only these exact lowercase names (#7843): legacy aliases, case variants and padded values raise `Unknown modality` at output-processor init. `token_ids` (discrete image tokens, e.g. GLM-Image AR) is new in v0.32.0 |
 | `hf_config_name` | string \| null | Sub-key in multi-stage HF config for per-stage quant settings |
 | `async_chunk` | bool (deploy-level default `true` at v0.30.0) | Chunk-level pipeline overlap. Blocked `/v1/realtime` only on v0.20.x and older |
 | `task_type` | `CustomVoice`/`VoiceDesign`/`Base` | Qwen3-TTS mode |

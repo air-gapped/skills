@@ -87,6 +87,8 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
 
 - **v0.30.0 config removals that fail at load.** `diffusion_batch_size` is gone — use `max_num_seqs` (#6484). Unknown diffusion config fields now raise with the field name and stage id instead of being silently dropped (#5172) — a stale or misspelled key that used to be ignored now stops the server. First-party Dynin-Omni and dots.tts support was removed (#7655).
 
+- **v0.32.0 changes that fail at startup.** An LLM stage's `engine_output_type` must be exactly `text`, `image`, `audio`, `latent` or `token_ids`, joined by `+` or `,` (#7843); a legacy alias, case variant or padded value raises `Unknown modality` when the output processor initialises. Python 3.10 is no longer accepted.
+
 - **PCM format on `/v1/realtime`**. Send headerless **16-bit PCM mono** at the rate the server version expects (24 kHz on v0.32.0, 16 kHz through v0.30.0); output is 24 kHz PCM16. Stereo, the wrong rate, 24-bit, or WAV-with-header inputs produce garbage or silence. Client templates: v0.32.0 `examples/online_serving/realtime_web` (`--profile qwen3-turn`); through v0.30.0 `examples/online_serving/qwen3_omni/openai_realtime_client.py` (removed at v0.32.0).
 
 - **`guidance_scale=0` silently enabled CFG below v0.26.0**. `0.0` was the "unset" sentinel in `OmniDiffusionSamplingParams`, so an explicit `0` was replaced by the pipeline default (HunyuanImage-3.0: `5.0`, CFG on) — every pipeline, not one model. Fixed in v0.26.0 (#4999). On older builds omit the field instead of sending `0`. CFG still gates on `guidance_scale > 1.0`, so `0.5` disables it on every version.
