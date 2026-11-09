@@ -24,6 +24,16 @@ rendered through its chat template (instruction-prefixed embedders), this is
 the supported path; on an older engine the request fails validation outright
 rather than silently embedding the raw text.
 
+**Token vectors and late chunking — v0.33.0 and later** (#61772). On a server
+started with `--pooler-config.task token_embed`, `/v1/embeddings` returns a
+token-vector matrix per input; add `"late_chunking_params": {"chunk_size": N}`
+for one vector per N-token chunk, with each chunk's `token_range` /
+`char_range` under `late_chunking.chunks`. vLLM extension, not the OpenAI
+shape: `encoding_format="float"` only, plain-text input, no `dimensions`,
+truncation, padding or chat messages; not available on `/v2/embed`. Below
+v0.33.0, token vectors come only from `/pooling` with `"task": "token_embed"`
+(no late chunking).
+
 **Truncating long inputs.** `/v1/embeddings`, `/score` and `/rerank` take
 `truncate_prompt_tokens` (N) plus `truncation_side`: `"right"` keeps the first
 N tokens, `"left"` keeps the last N (`PoolingBasicRequestMixin` in
