@@ -118,7 +118,9 @@ question low acceptance raises. From **v0.29.0**
 carries its own stats in the top-level `metrics` object under
 `speculative_decoding`, including `mean_acceptance_length` — on the OpenAI
 endpoints, and from v0.31.0 also on `/inference/v1/generate` (#43310; streaming:
-final usage chunk only, with `stream_options.include_usage`). **Off by default and
+final usage chunk only, with `stream_options.include_usage`). On v0.29.0–v0.31.x
+streaming responses intermittently omit it (#55708) — attribute per request
+only on ≥ v0.32.0. **Off by default and
 the response is byte-identical when off**, so turning it on is safe to trial and
 has to be turned on deliberately — it is a server-start flag, not per-request.
 Use it to attribute acceptance before tuning anything global.
