@@ -116,7 +116,7 @@ Repo: [github.com/deepseek-ai/DeepEP](https://github.com/deepseek-ai/DeepEP). vL
 
 **v0.32.0: DeepEP v2 auto-selects hybrid NVLink+RDMA mode by default** (`VLLM_DEEPEP_V2_ALLOW_HYBRID_MODE=1`, was `0`; #57991). Set `=0` to force NVLink-only when a multi-node regression appears after the upgrade.
 
-**NVSHMEM + IB tuning** (Azure H100 400 Gb/s IB baseline, from [Microsoft blog](https://techcommunity.microsoft.com/blog/azurehighperformancecomputingblog/achieving-optimal-performance-for-deepseek-expert-parallelism-deepep-on-azure/4414699)):
+**NVSHMEM + IB tuning** (two Azure `Standard_ND96isr_H100_v5` VMs, 8 processes each, from [Microsoft blog](https://techcommunity.microsoft.com/blog/azurehighperformancecomputingblog/achieving-optimal-performance-for-deepseek-expert-parallelism-deepep-on-azure/4414699)):
 
 ```bash
 export NVSHMEM_IB_ENABLE_IBGDA=1
@@ -126,7 +126,7 @@ export NVSHMEM_ENABLE_NIC_PE_MAPPING=1
 export NVSHMEM_HCA_LIST=mlx5_ib0:1,mlx5_ib1:1,mlx5_ib2:1,mlx5_ib3:1,mlx5_ib4:1,mlx5_ib5:1,mlx5_ib6:1,mlx5_ib7:1
 ```
 
-Bind 12 cores per process to the matching NUMA node of the HCA. Requires IB with 32/64/128-bit atomics (verify with `ibstat`).
+Bind 12 cores per process to the matching NUMA node of the HCA. DeepEP needs NICs with atomic operations: `lspci -s <bdf> -vvv | grep AtomicOpsCap` must show `32bit+ 64bit+ 128bitCAS+`. A NIC showing `-` (Azure's accelerated-networking Ethernet VF does) fails QP creation — keep it out of `NVSHMEM_HCA_LIST`.
 
 Measured Azure: dispatch FP8 45.9 GB/s RDMA / 149.82 GB/s NVLink; combine 61.34 / 200.22 GB/s.
 

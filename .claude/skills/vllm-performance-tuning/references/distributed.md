@@ -60,7 +60,7 @@ Debug: `NCCL_DEBUG=INFO vllm serve ... 2>&1 | grep -i "IB\|InfiniBand"`. Missing
 
 ### AWS EFA / cloud-specific
 
-EFA installer bundles NCCL-OFI-plugin; works transparently with NCCL ≥2.18. IB / RoCE for on-prem — verify `ibstat` atomic capabilities (32/64/128-bit) before deploying DeepEP.
+EFA installer bundles NCCL-OFI-plugin; works transparently with NCCL ≥2.18. IB / RoCE for on-prem — verify atomic-operation support with `lspci -s <bdf> -vvv | grep AtomicOpsCap` (`32bit+ 64bit+ 128bitCAS+`) before deploying DeepEP.
 
 ## DCGM — what to watch
 
