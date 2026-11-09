@@ -23,7 +23,7 @@ Verified at v0.32.0.
 | `granite-20b-fc` | `granite_20b_fc_tool_parser.py` | Back-to-back `<function_call>` tags with no closer. |
 | `granite4` | `granite4_tool_parser.py` | `regex` library with `partial=True` — not `re`. |
 | `jamba` | `jamba_tool_parser.py` | Hard-fails at init if `<tool_calls>` / `</tool_calls>` not in vocab. |
-| `deepseek_v3` / `_v31` | `deepseekv3_tool_parser.py`, `deepseekv31_tool_parser.py` | Sentinels contain U+FF5C `｜` + U+2581 `▁`. NOT ASCII `\|` or `_`. V3 has \`\`\`json fence, V3.1 doesn't. |
+| `deepseek_v3` / `_v31` | `deepseekv3_tool_parser.py`, `deepseekv31_tool_parser.py` | Sentinels contain U+FF5C `｜` + U+2581 `▁`. NOT ASCII `\|` or `_`. V3 has \`\`\`json fence, V3.1 doesn't. **Before v0.33.0** arguments pretty-printed over several lines are lost: non-streaming returns no tool calls, streaming returns the call with arguments `{` ([#60362](https://github.com/vllm-project/vllm/pull/60362)) — upgrade. |
 | `deepseek_v32` | `deepseekv32_engine_tool_parser.py` → `vllm/parser/deepseek_v32.py` | Uses DSML tokens. Engine path — the `tool_parsers/` file is a stub. |
 | `glm45` / `glm47` | `glm47_moe_tool_parser.py` → `vllm/parser/glm47_moe.py` | **Both names are one class** (`Glm47MoeModelToolParser`, an 11-line `Glm47MoeParserToolAdapter` subclass; `structural_tag_model = "glm_4_7"`, `supports_required_and_named = False`). `glm4_moe_tool_parser.py` no longer exists. XML inside `tool_call`, not JSON; needs `tools` for type coercion. |
 | `ling3` | `ling3_tool_parser.py` → `vllm/parser/ling3.py` | v0.29.0+. `Ling3Parser` subclasses `Glm47MoeParser` — GLM-4.7 XML tool format, thinking on by default. Stub imports `Ling3ParserToolAdapter` from `vllm.parser.ling3`, not `registered_adapters`. `structural_tag_model = "glm_4_7"`. |
