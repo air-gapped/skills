@@ -148,6 +148,16 @@ instructions; offline, prefix them with `<image>\n`.
 - **Multi-page documents** — split client-side into one image per page.
   vLLM handles one image per message cleanly; some VLMs accept multiple
   images per message (see per-model docs for limit).
+- **Per-request media budget from v0.33.0** (#61226). Every image, audio
+  clip and video frame in one chat request draws on one decoded-size budget,
+  `VLLM_MAX_MEDIA_REQUEST_DECODE_BYTES` (default 715,827,880; an image costs
+  width × height × 4 bytes, so ~179 MP in total — about 21 letter pages at
+  300 DPI), and all URL downloads on `VLLM_MAX_MEDIA_REQUEST_DOWNLOAD_SIZE_MB`
+  (default 256). Over either, the request fails with `Request decoded media
+  exceeds VLLM_MAX_MEDIA_REQUEST_DECODE_BYTES` / `Request media downloads
+  exceed …`. Send one page per request, or raise the variables (`0` disables
+  a budget). The per-item limits (`VLLM_MAX_IMAGE_PIXELS`, 256 MB per
+  download) still apply.
 - **Image resolution** — server does resizing per model's
   `MultiModalConfig`. For DeepSeek-OCR, the GUNDAM mode crops + tiles
   up to 1024 px base, 640 px per crop. A 300 DPI letter-size page
