@@ -4,7 +4,7 @@ Single-node TP is covered by the base pod-shape manifest. This reference is for 
 
 ## Table of Contents
 
-- [The canonical recipe (April 2026)](#the-canonical-recipe-april-2026)
+- [The canonical recipe](#the-canonical-recipe)
 - [Ray symmetric-run (November 2025 change)](#ray-symmetric-run-november-2025-change)
 - [LWS minimum viable manifest](#lws-minimum-viable-manifest)
 - [NCCL on Kubernetes — the short list of load-bearing gotchas](#nccl-on-kubernetes--the-short-list-of-load-bearing-gotchas)
@@ -17,16 +17,16 @@ Single-node TP is covered by the base pod-shape manifest. This reference is for 
 
 ---
 
-## The canonical recipe (April 2026)
+## The canonical recipe
 
-**LeaderWorkerSet (LWS) + Ray, driven by vLLM's `multi-node-serving.sh`.**
+**LeaderWorkerSet (LWS), every pod running `vllm serve` with `--nnodes` / `--node-rank` / `--master-addr`** (multiprocessing — upstream's default from v0.24.0, #39400).
 
-The "pure headless Service + `parallel-config` + manual rank enumeration" path exists but is not the vLLM-endorsed recipe. LWS is the K8s-native gang-scheduling primitive; Ray is the transport vLLM uses across nodes.
+Ray on LWS is the alternative, for when `--distributed-executor-backend ray` is wanted. A hand-built headless Service + StatefulSet with manual rank enumeration is not the vLLM-endorsed recipe. LWS injects `LWS_GROUP_SIZE`, `LWS_WORKER_INDEX` and `LWS_LEADER_ADDRESS` into every pod — do not define them.
 
 - **LWS project**: https://github.com/kubernetes-sigs/lws — https://lws.sigs.k8s.io/docs/
 - **LWS vLLM example (upstream LWS)**: https://github.com/kubernetes-sigs/lws/tree/main/docs/examples
 - **vLLM doc**: https://docs.vllm.ai/en/latest/deployment/frameworks/lws/
-- **In-repo bootstrap script**: ``vllm` repo: examples/ray_serving/multi-node-serving.sh`
+- **In-repo Ray bootstrap script**: ``vllm` repo: examples/ray_serving/multi-node-serving.sh`
   — **moved from `examples/online_serving/` at some point before v0.25.1.** The
   old path 404s. Because this path is embedded in the container `command:` of
   LWS manifests, a stale copy does not fail at apply time — it fails when the
@@ -63,11 +63,14 @@ spec:
         containers:
         - name: vllm
           image: vllm/vllm-openai:<pinned-tag>
-          command: ["bash", "/vllm-workspace/examples/ray_serving/multi-node-serving.sh"]
-          args: ["leader"]
+          command: ["sh", "-c"]
+          args:
+            - >-
+              vllm serve <model> --port 8000 --tensor-parallel-size 8
+              --pipeline-parallel-size $(LWS_GROUP_SIZE) --nnodes $(LWS_GROUP_SIZE)
+              --node-rank $(LWS_WORKER_INDEX) --master-addr $(LWS_LEADER_ADDRESS)
           env:
-            - {name: LWS_LEADER_ADDRESS, valueFrom: {fieldRef: {fieldPath: "metadata.annotations['leaderworkerset.sigs.k8s.io/leader-address']"}}}
-            - {name: VLLM_HOST_IP,       valueFrom: {fieldRef: {fieldPath: status.podIP}}}
+            - {name: VLLM_HOST_IP, valueFrom: {fieldRef: {fieldPath: status.podIP}}}
             # + all the usual pod-shape envs from references/pod-shape.md
           ports: [{containerPort: 8000, name: http}]
           resources: {limits: {nvidia.com/gpu: "8"}}
@@ -80,11 +83,14 @@ spec:
         containers:
         - name: vllm
           image: vllm/vllm-openai:<pinned-tag>
-          command: ["bash", "/vllm-workspace/examples/ray_serving/multi-node-serving.sh"]
-          args: ["worker"]
+          command: ["sh", "-c"]
+          args:
+            - >-
+              vllm serve <model> --tensor-parallel-size 8
+              --pipeline-parallel-size $(LWS_GROUP_SIZE) --nnodes $(LWS_GROUP_SIZE)
+              --node-rank $(LWS_WORKER_INDEX) --master-addr $(LWS_LEADER_ADDRESS) --headless
           env:
-            - {name: LWS_LEADER_ADDRESS, valueFrom: {fieldRef: {fieldPath: "metadata.annotations['leaderworkerset.sigs.k8s.io/leader-address']"}}}
-            - {name: VLLM_HOST_IP,       valueFrom: {fieldRef: {fieldPath: status.podIP}}}
+            - {name: VLLM_HOST_IP, valueFrom: {fieldRef: {fieldPath: status.podIP}}}
           resources: {limits: {nvidia.com/gpu: "8"}}
           volumeMounts: [{name: dshm, mountPath: /dev/shm}, {name: models, mountPath: /models}]
         volumes:
@@ -92,7 +98,14 @@ spec:
           - {name: models, persistentVolumeClaim: {claimName: vllm-model-cache}}
 ```
 
-The leader pod runs `vllm serve` after Ray bootstrap. Workers run Ray only. Expose the leader's port 8000 via a Service (`leaderworkerset.sigs.k8s.io/role: leader` selector).
+Every pod runs `vllm serve`; only the leader serves HTTP (workers are `--headless`). Expose the leader's port 8000 via a Service (`leaderworkerset.sigs.k8s.io/role: leader` selector).
+
+**Ray alternative** — swap the two shell commands:
+
+- leader: `bash /vllm-workspace/examples/ray_serving/multi-node-serving.sh leader --ray_cluster_size=$(LWS_GROUP_SIZE); vllm serve <model> --port 8000 --tensor-parallel-size 8 --pipeline-parallel-size 2 --distributed-executor-backend ray`
+- worker: `bash /vllm-workspace/examples/ray_serving/multi-node-serving.sh worker --ray_address=$(LWS_LEADER_ADDRESS)`
+
+The script exits 1 without `--ray_cluster_size` (leader) or `--ray_address` (worker), and it only forms the Ray cluster — the leader command must start `vllm serve` itself.
 
 ## NCCL on Kubernetes — the short list of load-bearing gotchas
 
@@ -161,9 +174,12 @@ Exception: NVLink Switch System (NVL72) nodes provide a single NVLink domain acr
 ## Smoke test — did multi-node come up?
 
 ```bash
-# Leader pod: Ray sees all workers
+# Multiprocessing: every pod loaded its stage
+kubectl logs <leader> | grep -i "Model loading"
+kubectl logs <worker> | grep -i "Model loading"
+
+# Ray path only: leader sees all workers (num_nodes = group size)
 kubectl exec -it <leader> -- ray status
-# expect num_cpus, num_gpus, num_nodes matching the group size
 
 # NCCL env resolved on every pod
 kubectl exec -it <pod> -- env | grep -E '^(NCCL_|VLLM_HOST_IP|GLOO_)'

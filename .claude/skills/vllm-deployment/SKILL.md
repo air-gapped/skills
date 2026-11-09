@@ -20,7 +20,7 @@ This skill is a **pointer map**. It points to the canonical sources — in the v
 | Single node, 1 container, TP ≤ 8 | `references/docker-lab.md` |
 | Single host, 2 containers for PD disagg lab | `references/docker-lab.md` (compose template) + `references/disagg.md` |
 | k8s, single model fits 1 pod | `references/pod-shape.md` + in-tree helm chart |
-| k8s, model needs multi-node TP/PP | `references/multi-node.md` (LWS + `multi-node-serving.sh`) |
+| k8s, model needs multi-node TP/PP | `references/multi-node.md` (LWS; multiprocessing default, Ray alternative) |
 | k8s fleet, router + LMCache + observability bundled | `vllm-production-stack` (Helm) — see `references/ecosystem.md` |
 | k8s fleet, disagg P/D + KV-aware + GAIE + SLA scheduler | `llm-d` — see `references/ecosystem.md` |
 | k8s fleet, ByteDance-scale multi-tenant LoRA + heterogenous GPU | `AIBrix` — see `references/ecosystem.md` |
@@ -32,7 +32,7 @@ This skill is a **pointer map**. It points to the canonical sources — in the v
 ## The three load-bearing facts
 
 1. **`/dev/shm` is the single most common cause of silent multi-GPU failure on k8s.** On vanilla k8s there is no `--ipc=host`. Without a shared-memory volume, `torch.distributed` segfaults on the first all-reduce of a TP>1 pod. Mount an `emptyDir` with `medium: Memory` and `sizeLimit: 10Gi` at `/dev/shm`. Documented in vLLM's own k8s guide — see ``vllm` repo: docs/deployment/k8s.md:211,291`. Since **v0.27.0 (#48879)** a pre-flight free-space check turns the *undersized* case into an actionable startup `RuntimeError` instead of a later crash — but the trap it replaces is worth knowing, because a 64 MiB `/dev/shm` is big enough to boot (see `references/pod-shape.md`).
-2. **Multi-node vLLM on k8s is Ray-on-LWS, not headless Service.** The `parallel-config` + pure headless-Service path exists but is not the vLLM-endorsed recipe. Use LeaderWorkerSet (`kubernetes-sigs/lws`) as the gang-scheduling primitive and `examples/ray_serving/multi-node-serving.sh` (which bootstraps Ray head/worker) as the entrypoint. Since Nov 2025 the `ray symmetric-run` pattern replaces the old head/worker split — see `https://blog.vllm.ai/2025/11/22/ray-symmetric-run.html`.
+2. **Multi-node vLLM on k8s is LeaderWorkerSet, not a hand-built headless Service + StatefulSet.** Use LWS (`kubernetes-sigs/lws`) as the group primitive. From v0.24.0 the upstream recipe is multiprocessing: every pod runs `vllm serve … --nnodes $(LWS_GROUP_SIZE) --node-rank $(LWS_WORKER_INDEX) --master-addr $(LWS_LEADER_ADDRESS)`, workers add `--headless`. Ray is the alternative: `examples/ray_serving/multi-node-serving.sh` forms the cluster, then the leader runs `vllm serve --distributed-executor-backend ray`. Manifest: `references/multi-node.md`.
 3. **The upstream `vllm/vllm-openai` image runs as root by default.** On OpenShift (and any k8s cluster with a `restricted` PSA), that is a deploy-time failure. Fixed non-root UID on v0.22.0+: run the stock image as its built-in `vllm` user (`runAsUser: 2000`, `runAsGroup: 0`) and mount caches under `/home/vllm`, not `/root`. OpenShift arbitrary UID: use the Red Hat RHAIIS images (`registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.3.0`), UID-agnostic by construction, or build upstream's `vllm-openai-nonroot` target. Tags older than v0.22.0: rebuild with `chgrp -R 0 /root /tmp && chmod -R g=u /root /tmp`.
 
 ## Minimum viable pod shape
