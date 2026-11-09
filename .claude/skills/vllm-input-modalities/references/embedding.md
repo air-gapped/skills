@@ -160,6 +160,7 @@ Pinning `matryoshka_dimensions` explicitly avoids the whole ambiguity.
 
 - `google/embeddinggemma-2` (`EmbeddingGemma2Model`, #60254): text/image/audio/video into one 768-dim normalized space. `vllm serve google/embeddinggemma-2 --runner pooling --max-model-len 8192`.
 - Text-only deployment: add `--limit-mm-per-prompt '{"image":0,"audio":0,"video":0}'` — unused modality encoders are not loaded (#60289).
+- MRL (the model card lists 128/256/512/768): on v0.32.0–v0.33.0 every request carrying `dimensions` fails with `does not support Matryoshka embeddings`. Add `--hf-overrides '{"matryoshka_dimensions":[128,256,512]}'`; for 768 omit `dimensions` (768 is the default width, but an explicit 768 is rejected as outside `[1, 512]`). Fixed upstream after v0.33.0 (#64885, #60978).
 
 ## 5. Generative-model adaptation (`--convert embed`)
 
