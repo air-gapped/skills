@@ -121,10 +121,12 @@ Every line: `{type, timestamp, sessionID, ...}`.
 | `text` | `part.text` |
 | `reasoning` | `part.text` — emitted only with `run --thinking` (the runner passes it) |
 | `tool_use` | `part.tool`, `part.state.status` (`completed`\|`error`), `part.state.input`, `part.state.output` — one event per call, after it settles |
-| `step_finish` | `part.reason`, `part.tokens`, `part.cost` — the final one is often missing; do not require it |
+| `step_finish` | `part.reason`, `part.tokens`, `part.cost` |
 | `error` | `error.message` |
 
 Tool names: `shell` (not `bash`), `read`, `glob`, `grep`, `edit`. Turn count = `step_start` count.
+
+Before v2.2.3 the last step usually loses its `step_finish` and often its `step_start` (a text-only run emits just `text`): require neither, expect the turn count one low, and read the last step's tokens from `opencode session export` (`messages[].tokens`).
 
 ## Diagnose
 

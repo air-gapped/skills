@@ -19,7 +19,7 @@ Freshen mode probes these rows first.
 | OAuth provider refresh stores the returned (rotated) refresh token | https://github.com/anomalyco/opencode/blob/v2.0.28/packages/core/src/plugin/provider/chatgpt.ts | 2026-10-14 | v2.0.28 |
 | Legacy `auth.json` not imported into a schema-bootstrapped DB; `auth import` reads an export array | local run (credential table empty after bootstrap) + https://github.com/anomalyco/opencode/blob/v2.0.28/packages/cli/src/commands/handlers/auth/import.ts | 2026-10-14 | v2.0.28 |
 | Killed standalone session resumed by background service sharing the data dir (open) | https://github.com/anomalyco/opencode/issues/55076 | 2026-10-14 | — |
-| Final `step_finish` dropped in `--format json` (open; reproduced locally) | https://github.com/anomalyco/opencode/issues/53207 | 2026-10-14 | — |
+| Final `step_finish` dropped in `--format json`: closed 2026-10-30 by PR #60475 (reconcile emits the step boundaries the live stream missed), merge commit `dbd7202f52`, first tag v2.2.3. With a mock endpoint: v2.1.4 ends a tool run on `text` with neither `step_start` nor `step_finish` for the last step and emits only `text` for a text-only run; v2.2.6 emits both | https://github.com/anomalyco/opencode/issues/53207, https://github.com/anomalyco/opencode/pull/60475 | 2026-10-14 | fixed in v2.2.3 |
 | Exit 1 after a retried transient provider error (open) | https://github.com/anomalyco/opencode/issues/50062 | 2026-10-14 | — |
 | Compaction internals emitted as `text` events (open) | https://github.com/anomalyco/opencode/issues/42238 | 2026-10-14 | — |
 | `run --agent` does not fail closed on unknown names (open) | https://github.com/anomalyco/opencode/issues/47038 | 2026-10-14 | — |

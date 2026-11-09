@@ -8,7 +8,7 @@
 | No assertion DSL or scenario-file format | `scripts/assert-tool-sequence.sh`; prompts in `scenario-bank.md` |
 | No `--max-turns` flag | `agent.build.steps` in config (runner `--max-turns`) |
 | Exit code is 1 after any `error` event, even when a retried step then succeeded | Decide pass/fail from events: last step completed + expected tools + final text |
-| Final `step_finish` often missing from `--format json` | Never require it; read final-step tokens from `opencode session export` |
+| Before v2.2.3: the last step's `step_finish` and often its `step_start` are missing from `--format json` | Upgrade; on older v2 require neither and read final-step tokens from `opencode session export` |
 | Auto-compaction summaries appear as ordinary `text` events | Keep scenarios below the compaction threshold, or match final text on content, not position |
 | A killed run leaves its session resumable; any opencode service sharing that data dir resumes it unattended | Never share `XDG_DATA_HOME`; delete the scratch home (runner default) |
 | Wedged tunnel: zero events while `/v1/models` still answers | Connect to the engine directly instead of through the tunnel; restart the run |
