@@ -91,7 +91,8 @@ scheduling-policy: fcfs             # fcfs | priority
 **Unset does not mean a fixed number.** `max-num-batched-tokens` / `max-num-seqs`
 are filled in by `EngineArgs` from the *usage context* and the device. For
 `vllm serve`: ≥160 GiB (B200/B300) → **16384 / 1024** (v0.28.0+); ≥70 GiB and
-not an A100 → **8192 / 1024**; anything else → **2048 / 256**. The `SchedulerConfig` class defaults
+not an A100 → **8192 / 1024**; anything else → **2048 / 256**. From v0.33.0 a
+GB10 (DGX Spark) also takes the low tier despite its memory. The `SchedulerConfig` class defaults
 (2048 / 128) are test conveniences and are not what a server runs with.
 
 ### LoRAConfig
