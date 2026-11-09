@@ -341,13 +341,12 @@ The metapackage pulls in `libcufile0`, `gds-tools`, and `nvidia-fs`.
 
 ### Additional requirements
 
-- **Open NVIDIA kernel modules.** Required from nvidia-fs 2.17.5+. On bare metal, install the `-open` driver variant. On Kubernetes, GPU Operator handles it:
+- **Open NVIDIA kernel modules.** The `nvidia-fs` module requires the open GPU kernel module driver. On bare metal, install the `-open` driver variant. On Kubernetes the GPU Operator installs the open driver by default and loads `nvidia-fs` itself:
   ```bash
   helm install ... nvidia/gpu-operator \
-    --set gds.enabled=true \
-    --set driver.kernelModuleType=open
+    --set gds.enabled=true
   ```
-  (NVIDIA renamed the Helm value — older `driver.useOpenKernelModules=true` is no longer current. Verified 2026-04-24 against `docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-rdma.html`.)
+  `driver.kernelModuleType` defaults to `auto`; `driver.useOpenKernelModules` is a deprecated no-op — remove it from values files.
 - **Secure Boot DISABLED.** Check with `mokutil --sb-state`. Dell PowerEdge ships with Secure Boot on by default — toggle in BMC/UEFI.
 - **cuFile-compatible filesystem.** Ext4 or xfs, no dm-crypt / LUKS / LVM in the DMA path. Hardware RAID also blocks it — plain block devices or JBOD only.
 - **MLNX_OFED / DOCA-OFED is NOT needed** for local U.2 / E3.S NVMe. Only required for GDS-over-RDMA (remote NVMe).
