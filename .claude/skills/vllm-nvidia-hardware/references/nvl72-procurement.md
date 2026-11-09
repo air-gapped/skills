@@ -80,13 +80,14 @@ publicly.
 
 ## 6. Buy-or-wait
 
-- **Buy GB300 in H1 2026 if:** you need capacity in 2026; your site can already deliver
+- **Buy GB300 if:** you need on-prem capacity before an OEM will commit a Rubin delivery
+  date; your site can already deliver
   135–155 kW + 25 °C DLC; you accept ~24-month useful life before Rubin-era $/token
   catches up (analysts cite ~10× lower for Rubin).
 - **Wait for Rubin if:** the DC is greenfield anyway — spec for **800 VDC, 220 kW,
   45 °C water, HVDC busbars** now. Retrofitting is expensive.
-- **Hybrid (common view):** commit to a GB300 pod in H1 2026 for revenue; concurrently
-  spec greenfield rows for Rubin NVL144 (H2 2026–2027). See `rubin-roadmap.md`.
+- **Hybrid (common view):** commit to a GB300 pod now for revenue; concurrently
+  spec greenfield rows for Rubin NVL144. See `rubin-roadmap.md`.
 
 ## Sources
 

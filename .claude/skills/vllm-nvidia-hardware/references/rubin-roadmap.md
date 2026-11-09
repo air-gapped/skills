@@ -1,6 +1,6 @@
 # Vera Rubin roadmap — buy-or-wait inputs
 
-**Contents:** [Shipping status](#shipping-status--checked-2026-10-18) · [Per-GPU specs](#per-gpu-specs) · [Rack products](#rack-products) · [Infrastructure delta vs GB300](#infrastructure-delta-vs-gb300--facilities-have-to-be-different) · [Pricing signals](#pricing-signals) · [Buy-or-wait](#buy-or-wait-rubin)
+**Contents:** [Shipping status](#shipping-status--checked-2026-11-09) · [Per-GPU specs](#per-gpu-specs) · [Rack products](#rack-products) · [Infrastructure delta vs GB300](#infrastructure-delta-vs-gb300--facilities-have-to-be-different) · [Pricing signals](#pricing-signals) · [Buy-or-wait](#buy-or-wait-rubin)
 
 NVIDIA's successor to Blackwell. First HBM4 silicon; first 800 VDC HVDC racks.
 Relevant to any 2026+ purchasing decision: facilities built now should be sized for
@@ -14,22 +14,23 @@ reference. When quoting NVIDIA marketing verbatim, use "Vera Rubin NVL72". When
 discussing die-count (144 dies = 72 packages) in engineering context, VR200 NVL144
 is still the accurate description.
 
-## Shipping status — checked 2026-10-18
+## Shipping status — checked 2026-11-09
 
-**First racks are delivered and in production use (CoreWeave, 2026-09-30); NVIDIA
-still states no general-delivery date.** Keep those apart — one cloud's early
-allocation is not supply you can order against, and "in production" is a fab
-statement, not a delivery statement.
+**Rubin is generally available on one hyperscaler (Oracle OCI, 2026-10-27) and in
+customer production at CoreWeave (2026-09-30); no vendor has published an on-prem
+delivery lead time.** Keep those apart — a cloud's allocation is not supply you can
+order against, and "in production" is a fab statement, not a delivery statement.
 
 | Evidence | Date | What it actually establishes |
 |---|---|---|
 | CoreWeave validated a Vera Rubin NVL72 for production use — rack supplied by **Dell**, passed NVIDIA **L11 diagnostics** and a **147-hour** test suite | arrived **2026-05-31** | Real racks exist and pass qualification. First such validation publicly claimed. |
 | Jensen Huang, Tokyo developer event: *"Vera Rubin is already in production. Giant amounts of production incoming."* | **2026-07-15** | NVIDIA denying press reports of a manufacturing delay. No public transcript; no fiscal-quarter or revenue-timing statement accompanied it. |
-| NVIDIA guidance | — | Still only "partner products in the second half of 2026". **No customer-delivery date has been given.** |
 | ~~First-cohort clouds named in coverage~~ **— does not survive a source check** | H2 2026 | The list (AWS, Azure, Google Cloud, Oracle, CoreWeave, Lambda, Nebius, Nscale; OEMs Dell, HPE, Lenovo, Supermicro) came from search-result summaries. The one article cited for it was fetched in full on 2026-09-15 and **contains none of those vendor names** — see `sources.md`. **Establishes nothing**; do not cite it as evidence of a customer roster. Broad availability reported as 2027 is likewise uncorroborated here. |
 | NVIDIA Q2 FY27 results: Rubin "ramping into full production with racks running at partners including CoreWeave, Google Cloud, Microsoft Azure, Oracle Cloud Infrastructure and Nebius" | **2026-08-26** | Vendor statement of racks at partners. No delivery date, GA date or volume. |
 | Supermicro IR release: "now shipping NVIDIA Vera Rubin NVL72 racks" | **2026-09-23** | First OEM shipping statement. No customers or volumes named. |
 | CoreWeave: Vera Rubin NVL72 "available", Cognition "the first customer anywhere running production workloads"; cluster stood up "in early September" | **2026-09-30** | **First customer delivery in production use.** Does not establish broad supply or hyperscaler GA. |
+| NVIDIA + Oracle: "general availability of NVIDIA Vera Rubin NVL72 and NVIDIA Vera CPUs on OCI" | **2026-10-27** | **Hyperscaler GA** (earliest found). Rentable capacity on one cloud; no rack volumes, no on-prem lead time. |
+| NVIDIA Vera Rubin NVL72 product page status: "Available Now" ("Notify Me" on 2026-08-12) | read **2026-11-09** | Orderable through NVIDIA sales. No delivery date or lead time published. |
 | Reported risk | 2026-07 | A KeyBanc analyst flagged a possible **heat-lid qualification issue with SK hynix memory**. Unconfirmed; treat as rumour, not schedule. |
 
 **Reading it for a buy-or-wait call:** "in production" does not mean partners
@@ -77,7 +78,7 @@ Blackwell. See `references/vllm-platform-matrix.md`.
 
 | Product | HBM | BW | FP4 | FP8 | Rack product | Rack power | Status |
 |---|---:|---:|---:|---:|---|---:|---|
-| **R100 (Rubin)** | 288 GB HBM4 (8 stacks) | **19.2 TB/s** | 50 PFLOPS sparse / 35 dense (NVFP4) | 17.5 PFLOPS dense | **Vera Rubin NVL72** (aka VR200 NVL144, 144 dies / 72 packages) | **180–220 kW** | **In full production** (NVIDIA, Apr 2026); shipping H2 2026 |
+| **R100 (Rubin)** | 288 GB HBM4 (8 stacks) | **19.2 TB/s** | 50 PFLOPS sparse / 35 dense (NVFP4) | 17.5 PFLOPS dense | **Vera Rubin NVL72** (aka VR200 NVL144, 144 dies / 72 packages) | **180–220 kW** | Shipping; cloud GA on OCI 2026-10-27 |
 | **R300 (Rubin Ultra)** | **1 TB HBM4E** (16 stacks) | TBD | 100 PFLOPS | TBD | **NVL576 Kyber** | **~600 kW** | H2 2027 |
 
 R100 values are NVIDIA's published per-GPU spec table (FP16/BF16 dense: 4 PFLOPS;
@@ -114,14 +115,14 @@ A facility sized for 135 kW GB300 **will not** host NVL144 without power/cooling
 
 ## Buy-or-wait (Rubin)
 
-- **Buy GB300 NVL72 in H1–Q2 2026 if:** you need capacity in 2026 (Rubin partner
-  availability is H2 2026; real volume Q4 2026 / H1 2027); your site can already
+- **Buy GB300 NVL72 if:** you need on-prem capacity before an OEM will commit a Rubin
+  delivery date; your site can already
   deliver 135–155 kW + 25 °C DLC; you accept a ~24-month useful life before Rubin-era
   $/token catches up (analysts cite ~10× lower for Rubin).
 - **Wait for Rubin if:** DC is greenfield anyway — spec for **800 VDC, 220 kW racks,
   45 °C water, HVDC busbars** now. Retrofitting later is expensive.
-- **Hybrid play (common SemiAnalysis view):** commit to a GB300 pod in H1 2026 for
-  revenue; concurrently spec greenfield rows for Rubin NVL144 (H2 2026–2027).
+- **Hybrid play (common SemiAnalysis view):** commit to a GB300 pod now for
+  revenue; concurrently spec greenfield rows for Rubin NVL144.
 
 Sources:
 [NVIDIA Vera Rubin Pod](https://developer.nvidia.com/blog/nvidia-vera-rubin-pod-seven-chips-five-rack-scale-systems-one-ai-supercomputer/),

@@ -78,8 +78,9 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
 ### Buying NVIDIA hardware in 2026
 - **GB300 NVL72 is safe for 2026 capacity:** size the row for 135–155 kW, DLC @ 25 °C, 3φ 480 V. Vendors: NVIDIA DGX B300, Dell IR7000 + XE9780L / XE8712 sleds, Supermicro SRS-GB300-NVL72, Lenovo 7DJVCTO2WW, HPE.
 - **Greenfield rows should be spec'd for Rubin NVL144:** 180–220 kW, 45 °C W45 warm water, 800 VDC HVDC, new MGX rack. Retrofitting later is expensive.
-- **Rubin timing (2026-10-18):** first customer in production (CoreWeave, 2026-09-30);
-  NVIDIA states no GA or delivery date — plan purchases against an OEM quoting firm
+- **Rubin timing (2026-11-09):** cloud GA on Oracle OCI (2026-10-27), in production at
+  CoreWeave (2026-09-30), NVIDIA's product page reads "Available Now". None of these is
+  a delivery date for an on-prem order — plan purchases against an OEM quoting firm
   order dates. vLLM `sm_107` is preview-only: CUDA ≥ 13.4, `cu134-nightly` images,
   tracking issue #49735 open. Dated evidence and the build recipe: `references/rubin-roadmap.md`.
 - **Expect HBM allocation and PSU rectifier shelf lead times to dominate schedule risk.** SK hynix / Micron / Samsung HBM sold out through CY26.
