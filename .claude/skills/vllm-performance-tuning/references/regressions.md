@@ -43,6 +43,8 @@ Between commits `d83f3f7` and `5a84b76`, the DeepGEMM MoE M<128 restriction was 
 
 Building DeepGEMM from source (`tools/install_deepgemm.sh`, `cmake/external_projects/deepgemm.cmake`) now clones **`github.com/vllm-project/DeepGEMM.git`** at a pinned commit, not `deepseek-ai/DeepGEMM.git`. The fork carries upstream 2.8.0 plus vLLM's SM120 and SM90 paged-MQA ports, and the same PR changed the Mega MoE call convention. Vendoring upstream `deepseek-ai/DeepGEMM` directly (or an old `DEEPGEMM_SRC_DIR` checkout) after upgrading to v0.30.0 can build against the wrong ABI — rebuild from the vLLM fork.
 
+**v0.33.0 removes `tools/install_deepgemm.sh`** (#61265). DeepGEMM is built and bundled by the wheel's CMake step (`vllm/third_party/deep_gemm`); a build script or recipe that still calls the installer fails on a v0.33.0 checkout — drop the call and install the vLLM wheel instead.
+
 ### v0.30.0: DCP now needs opt-in attention-backend support ([#55780](https://github.com/vllm-project/vllm/pull/55780))
 
 `AttentionImplBase.supports_dcp` default flipped `True` → `False` (`vllm/v1/attention/backend.py`). Only FlashAttention, FlashInfer, and the MLA backends (Cutlass/FlashAttn/FlashInfer/FlashMLA/FlashMLA-Sparse/ROCm-AITER/Tokenspeed/Triton-MLA) explicitly re-declare `supports_dcp = True`. **ROCm standard attention, plain Triton attention, FlexAttention and TurboQuant now fail at backend selection** under `--decode-context-parallel-size > 1` instead of silently running unsupported. Fix: switch to a declared-DCP backend, or drop DCP on those backends.
