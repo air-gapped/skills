@@ -1,7 +1,7 @@
 {
   "metadata": {
     "tool": "claude plugin eval via outcome-eval.py",
-    "date": "2026-10-18",
+    "date": "2026-11-09",
     "model": "sonnet",
     "judge_model": "sonnet",
     "runs_per_case": 3,
@@ -11,12 +11,12 @@
   "run_summary": {
     "with_skill": {
       "pass_rate": {
-        "mean": 0.8125
+        "mean": 0.8847
       }
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.4528
+        "mean": 0.4806
       }
     }
   }
