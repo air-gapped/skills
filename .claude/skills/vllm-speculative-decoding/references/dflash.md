@@ -114,8 +114,8 @@ batch sizes; watch the per-position acceptance histogram.
 ## Training your own DFlash head
 
 If you need a DFlash head not yet on HuggingFace — recipe families
-(Open-PerfectBlend dominates, also UltraChat-only and the Nemotron
-code-split for coding-heavy targets), sample sizes, regeneration step,
+(Magpie + UltraChat, Open-PerfectBlend, Nemotron-v2 prompts with a code
+split for coding-heavy targets), sample sizes, regeneration step,
 and target-family guidance — see
 `references/training-data-recipes.md`.
 

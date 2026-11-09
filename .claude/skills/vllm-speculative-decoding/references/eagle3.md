@@ -48,7 +48,8 @@ Stock checkpoints are chat-tuned. Domain mismatch matters.
   other `SupportsEagle3` families
 
 For **training your own** EAGLE-3 head — recipe families (Magpie+UltraChat,
-Open-PerfectBlend, ShareGPT/UC/PB mix, UltraChat-only, Nemotron, EagleChat),
+ShareGPT+UltraChat, Open-PerfectBlend, ShareGPT/UC/PB mix, UltraChat-only,
+Nemotron, EagleChat, Infinity-Instruct),
 sample sizes, and target-family guidance — see
 `references/training-data-recipes.md`.
 

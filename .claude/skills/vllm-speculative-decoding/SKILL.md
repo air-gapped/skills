@@ -41,8 +41,8 @@ Pick once by target-model family and workload shape. Full per-method detail in
 P-EAGLE in `references/eagle3.md`; DFlash in `references/dflash.md`; Arctic
 plugin and suffix in `references/arctic-inference.md`. **To train a custom
 EAGLE-3 / DFlash drafter (vs. picking a published one), see
-`references/training-data-recipes.md` for the five recipe families surveyed
-across 466 published checkpoints.**
+`references/training-data-recipes.md` for the recipe families published
+drafters use, by target family.**
 
 | Situation | Pick | Why |
 |---|---|---|
