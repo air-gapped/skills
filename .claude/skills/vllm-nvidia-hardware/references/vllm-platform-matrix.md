@@ -81,6 +81,12 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
 
 - **CUDA 13 support** landed in v0.11 (#24599); v0.12 on PyTorch 2.9.0 / CUDA 12.9;
   v0.19 ships `cu130` wheels.
+- **Older host drivers, v0.33.0+:** no CUDA 12 image or wheel exists (#62575). R580+
+  runs the CUDA 13 image natively; on R535/R570 set
+  `VLLM_ENABLE_CUDA_COMPATIBILITY=1` on the container (datacenter and professional
+  GPUs only). The last `-cu129` image is v0.32.0, and it dies at import with
+  `OSError: libnvrtc.so.13` (#63121) until `torchcodec==0.16.0+cu129` is reinstalled
+  in a derived image.
 - **For B300/GB300: CUDA 13 recommended**, `torch_cuda_arch_list='9.0 10.0+PTX'`
   (`docs/getting_started/installation/gpu.cuda.inc.md:410-424`; still the documented
   arch list at v0.32.0 — `10.0` covers SM103 via the `10.0f` family target).

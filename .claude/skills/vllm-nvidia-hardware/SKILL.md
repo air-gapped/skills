@@ -54,6 +54,8 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
 - Use FlashMLA for DeepSeek models; FlashAttention-3 elsewhere.
 - Disagg prefill across nodes needs XDR IB + GPUDirect-RDMA — use CPU/NVMe offload (LMCache) first.
 - **No FP4 compute (NVFP4 KV cache only, v0.32.0+ with FA2). No NVL72. No 270+ GB single-GPU.**
+- v0.33.0+ images are CUDA 13.0 only: R580+ drivers run them natively, R535/R570 need
+  `VLLM_ENABLE_CUDA_COMPATIBILITY=1`. `references/vllm-platform-matrix.md` §5.
 
 ### Running vLLM on Blackwell (B200/B300)
 - Switch to FP4 (NVFP4 via ModelOpt checkpoints) — 1.8–2× decode throughput on the same HBM budget.
