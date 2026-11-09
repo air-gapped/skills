@@ -80,7 +80,7 @@ Ask these in order:
 4. **Disaggregated prefill across nodes (separate prefill and decode pods)?** → NixlConnector via `--kv-transfer-config`. Tunes TTFT and ITL independently.
 5. **RDMA-backed KV transfer between nodes, high-throughput datacenter fabric?** → MooncakeConnector.
 6. **NIXL between prefill/decode pods AND local CPU overflow on each?** → MultiConnector, composing NixlConnector + OffloadingConnector.
-7. **Sparse-MLA decode model (e.g. DeepSeek-style), want a host-resident tier for cold KV pages?** → **`HiSparseConnector`, v0.30.0+, experimental.** See `references/connectors.md` § HiSparseConnector.
+7. **Sparse-MLA decode model (e.g. DeepSeek-style), want a host-resident tier for cold KV pages?** → **`HiSparseConnector`, experimental; run v0.33.0+.** See `references/connectors.md` § HiSparseConnector.
 
 Do not reach for LMCache or NIXL or Mooncake just because they exist. Native offload handles the 80% case with zero operational surface area. LMCache MP adds an extra pod and another image — only justified by the multi-pod-shared-cache or GIL-isolation cases above.
 

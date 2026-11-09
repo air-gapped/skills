@@ -524,6 +524,7 @@ Local KV connector for sparse-MLA decode models (DeepSeek-style). Spills cold KV
 - It's a local connector: compose with NixlConnector/MooncakeConnector via `MultiConnector` for P/D on top of it, same pattern as OffloadingConnector.
 - `HiSparseConnector` declares `SupportsHMA` (`vllm/distributed/kv_transfer/kv_connector/v1/hisparse/connector.py:221` at v0.33.0) and **requires** HMA — passing `--disable-hybrid-kv-cache-manager` is a startup error.
 - Startup rejects (v0.33.0, `vllm/config/vllm.py`): non-CUDA platforms, `VLLM_USE_V2_MODEL_RUNNER=0`, pipeline or decode context parallelism, `--no-scheduler-reserve-full-isl`, models without `index_topk`, and `cudagraph_mode=FULL` (#59688) — keep the default `FULL_AND_PIECEWISE`.
+- Run it on v0.33.0+: v0.30.0–v0.32.0 can OOM on long prompts and prefill 1M-token prompts 3.3× slower (fixed by #60417).
 - Narrow applicability: sparse-MLA attention only, not a general-purpose CPU offload replacement. For dense/MHA/GQA models keep using native `OffloadingConnector`.
 
 ## MooncakeConnector — RDMA-backed disaggregated prefill
