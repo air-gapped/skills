@@ -111,7 +111,6 @@ Strongly recommended for smaller models (< 14B) where stock NVFP4 loses 3–5 % 
 - [vLLM #38912](https://github.com/vllm-project/vllm/issues/38912) — Gemma 4 MoE NVFP4 `expert_params_mapping` misses scale suffixes.
 - [vLLM #31628](https://github.com/vllm-project/vllm/issues/31628) — ModelOpt Llama-4 DP/EP FlashInfer Cutlass broken.
 - [vLLM #31624](https://github.com/vllm-project/vllm/issues/31624) — ModelOpt Llama-4 loads > 5 min.
-- [vLLM #40291](https://github.com/vllm-project/vllm/issues/40291) — Gemma 4 NVFP4 OOM on RTX 5090.
 
 Active RFC: [vLLM #40182](https://github.com/vllm-project/vllm/issues/40182) — unified ModelOpt quantization.
 
