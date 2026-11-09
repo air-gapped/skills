@@ -10,7 +10,8 @@
 #   tag:  any tag on docker.io/vllm/vllm-openai, e.g. v0.19.0-cu130, glm51-cu130
 #   arch: amd64 (default) or arm64
 #
-# Exits 0 on success, prints a human-readable report.
+# Exits 0 on success, prints a human-readable report. Exits 1 with a message on
+# stderr when the tag, the architecture or the registry cannot be read.
 
 set -euo pipefail
 
@@ -18,13 +19,19 @@ TAG="${1:?tag is required, e.g. v0.19.0-cu130}"
 ARCH="${2:-amd64}"
 REPO="vllm/vllm-openai"
 
-TOKEN=$(curl -sf "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${REPO}:pull" \
-  | python3 -c "import json,sys;print(json.load(sys.stdin)['token'])")
+if ! TOKEN=$(curl -sf "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${REPO}:pull" \
+  | python3 -c "import json,sys;print(json.load(sys.stdin)['token'])"); then
+  echo "error: no pull token from auth.docker.io (registry unreachable?)" >&2
+  exit 1
+fi
 
-MANIFEST_LIST=$(curl -sf -H "Authorization: Bearer $TOKEN" \
+if ! MANIFEST_LIST=$(curl -sf -H "Authorization: Bearer $TOKEN" \
   -H "Accept: application/vnd.docker.distribution.manifest.list.v2+json" \
   -H "Accept: application/vnd.oci.image.index.v1+json" \
-  "https://registry-1.docker.io/v2/${REPO}/manifests/${TAG}")
+  "https://registry-1.docker.io/v2/${REPO}/manifests/${TAG}"); then
+  echo "error: no manifest for ${REPO}:${TAG} (tag does not exist, or registry unreachable)" >&2
+  exit 1
+fi
 
 DIGEST=$(echo "$MANIFEST_LIST" \
   | ARCH="$ARCH" python3 -c "import json,sys,os
