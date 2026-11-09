@@ -13,7 +13,7 @@ are the hard parts; vendor selection is secondary.
 | **NVIDIA** | DGX GB300 (reference design) | H2 2025 hyperscaler; broader 2026 | MGX rack; 21 TB HBM3E; 130 TB/s NVLink |
 | **Dell** | PowerEdge XE9712 in **IR7000**; XE9780L for NVL72-equivalent | Shipping — first GB300 rack to CoreWeave July 2025 | IR7000 DLC up to ~480 kW; 54 VDC busbar |
 | **Supermicro** | SRS-GB300-NVL72 (48U) | Shipping; "first-to-market" claim | Hybrid-cooled; DLC-2 captures ~98% of heat to liquid |
-| **HPE** | "NVIDIA GB300 NVL72 by HPE" (HPE Store 1014890105); Cray variant positioned separately | Quotable 2026 | HPE Store page access-gated |
+| **HPE** | "NVIDIA GB300 NVL72 by HPE" (HPE Store 1014890105); Cray variant positioned separately | Quotable 2026 | HPE Store page returns 403 to non-browser fetchers; open it in a browser |
 | **Lenovo** | ThinkSystem GB300 NVL72 — rack **7DJVCTO2WW** (feature C5RK=6-shelf, C5RJ=8-shelf); compute tray **7DLZCTO2WW**; switch tray **7DJYCTO3WW** | Orderable; product guide Mar 2026 | Primary datapoint for facility numbers — Lenovo publishes detailed specs |
 | **Supermicro / QCT / Wiwynn / Foxconn (Ingrasys) / Pegatron / Inventec / Aivres** | Branded GB300 NVL72 assemblies | Varies, mostly 2026 | ODM/hyperscaler channel; few public list-price SKUs |
 
@@ -96,7 +96,7 @@ publicly.
 [NVIDIA GB300 NVL72 product page](https://www.nvidia.com/en-us/data-center/gb300-nvl72/) ·
 [NVIDIA DGX B300 datasheet](https://resources.nvidia.com/en-us-dgx-systems/dgx-b200-datasheet) ·
 [NVIDIA DGX SuperPOD B300 RA](https://docs.nvidia.com/pdf/dgx-spod-gb300-ra.pdf) ·
-[Supermicro SRS-GB300-NVL72](https://www.supermicro.com/en/products/system/gpu/48u/srs-gb300-nvl72) ·
+[Supermicro SRS-GB300-NVL72](https://www.supermicro.com/en/products/rack/srs-gb300-nvl72) ·
 [Dell + CoreWeave first GB300 NVL72 (STH)](https://www.servethehome.com/dell-and-coreweave-show-off-first-nvidia-gb300-nvl72-rack/) ·
 [TweakTown — IR7000 480 kW](https://www.tweaktown.com/news/101839/) ·
 [Sunbird DCIM — GB300 power](https://www.sunbirddcim.com/blog/how-much-power-does-nvidia-gb300-nvl72-need) ·

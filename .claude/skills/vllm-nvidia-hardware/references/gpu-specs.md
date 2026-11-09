@@ -101,5 +101,5 @@ Primary sources:
 [Blackwell Ultra datasheet](https://resources.nvidia.com/en-us-blackwell-architecture/blackwell-ultra-datasheet),
 [Inside Blackwell Ultra (dev blog)](https://developer.nvidia.com/blog/inside-nvidia-blackwell-ultra-the-chip-powering-the-ai-factory-era/),
 [NVFP4 blog](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/),
-[SemiAnalysis — Blackwell Perf/TCO](https://semianalysis.com/2024/04/10/nvidia-blackwell-perf-tco-analysis/),
+[SemiAnalysis — Blackwell Perf/TCO](https://newsletter.semianalysis.com/p/nvidia-blackwell-perf-tco-analysis),
 [Tom's — B300 announcement](https://www.tomshardware.com/pc-components/gpus/nvidia-announces-blackwell-ultra-b300-1-5x-faster-than-b200-with-288gb-hbm3e-and-15-pflops-dense-fp4).

@@ -130,7 +130,7 @@ Sources:
 [NVIDIA Vera Rubin Pod](https://developer.nvidia.com/blog/nvidia-vera-rubin-pod-seven-chips-five-rack-scale-systems-one-ai-supercomputer/),
 [SemiAnalysis — Rubin Extreme Co-Design](https://newsletter.semianalysis.com/p/vera-rubin-extreme-co-design-an-evolution),
 [SemiAnalysis — GTC 2025 Rubin/Kyber](https://newsletter.semianalysis.com/p/nvidia-gtc-2025-built-for-reasoning-vera-rubin-kyber-cpo-dynamo-inference-jensen-math-feynman),
-[The Register — 600 kW racks, 800 VDC](https://www.theregister.com/2025/03/19/nvidia_charts_course_for_600kw/),
+[The Register — 600 kW racks, 800 VDC](https://www.theregister.com/special-features/2025/03/19/nvidias-vera-rubin-cpu-gpus-chart-course-for-600kw-racks/1125168),
 [Tom's — Rubin $8.8M](https://www.tomshardware.com/tech-industry/artificial-intelligence/price-of-nvidias-vera-rubin-nvl72-racks-skyrockets-to-as-much-as-usd8-8-million-apiece-but-server-makers-margins-will-be-tight-nvidia-is-moving-closer-to-shipping-entire-full-scale-systems),
-[Glenn Lockwood — Kyber architecture](https://www.glennklockwood.com/garden/Kyber),
+[Glenn Lockwood — Kyber architecture](https://www.glennklockwood.com/garden/kyber),
 [DCD — 1 MW racks / 800 VDC](https://www.datacenterdynamics.com/en/news/nvidia-prepares-data-center-industry-for-1mw-racks-and-800-volt-dc-power-architectures/).

@@ -57,7 +57,7 @@ on the 2.4× bandwidth step, not on the FLOPS headline.
 
 Sources:
 [SemiAnalysis — NVIDIA Tensor Core Evolution](https://newsletter.semianalysis.com/p/nvidia-tensor-core-evolution-from-volta-to-blackwell),
-[SemiAnalysis — The Memory Wall (foundational)](https://semianalysis.com/2024/09/03/the-memory-wall/).
+[SemiAnalysis — The Memory Wall (foundational)](https://newsletter.semianalysis.com/p/the-memory-wall).
 
 ## 3. HBM generations and roadmap
 
