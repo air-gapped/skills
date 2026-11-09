@@ -122,7 +122,7 @@ Every line: `{type, timestamp, sessionID, ...}`.
 | `retry` (v2.2.6+) | `attempt`, `nextRetryAt`, `error` — a failed model request is being retried; not a failure. A stream cut mid-answer leaves a partial `text` before it and a second `step_start` after it |
 | `background_wait` (v2.2.6+) | `jobs` — the run is waiting for background jobs its prompt started |
 
-Tool names: `shell`, `read`, `glob`, `grep`, `edit`. A call to `bash` fails before v2.2.5 (`No tool named "bash"`) and from v2.2.5 runs as `shell` while the event keeps `part.tool` `"bash"` — accept both names in shell assertions. Turn count = `step_start` count.
+Tool names: `shell`, `read`, `glob`, `grep`, `edit`. A call to `bash` fails before v2.2.5 (`No tool named "bash"`) and from v2.2.5 runs as `shell` while the event keeps `part.tool` `"bash"` — the assertion helpers count it as `shell`; a raw jq filter must accept both names. Turn count = `step_start` count.
 
 Before v2.2.3 the last step usually loses its `step_finish` and often its `step_start` (a text-only run emits just `text`): require neither, expect the turn count one low, and read the last step's tokens from `opencode session export` (`messages[].tokens`).
 
