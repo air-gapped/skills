@@ -27,6 +27,10 @@ If the server loaded a local path but the benchmark used the HF id (or vice vers
 
 Not a regression. Before v0.30.0, a streaming request that never received a valid chunk was counted as **success with `ttft=0`** (silently skewing TTFT/E2EL percentiles down); v0.30.0 correctly marks it failed with `error: "Never received a valid chunk to calculate TTFT."` (#55508). Rising `failed` counts post-upgrade with unchanged traffic likely mean those requests were always failing and the old numbers were wrong, not that v0.30.0 introduced a regression.
 
+### TTFT much higher on a reasoning model, v0.33.0 client, `--backend openai-chat`
+
+The v0.33.0 chat client counts `delta.reasoning` but not `delta.reasoning_content`. Against a server that streams reasoning as `reasoning_content` (SGLang and other non-vLLM servers; current vLLM servers send `reasoning`), TTFT runs to the first *answer* token and a reasoning-only response fails with `Never received a valid chunk to calculate TTFT.` Fixed on `main` after v0.33.0 (#64937), in no release yet. Bench such a server with `aiperf` or a ≤v0.32 client, and never set its v0.33.0-client TTFT beside a vLLM number.
+
 ### Results look suspiciously fast
 
 **Cold-cache contamination with `--num-prompts` too small.** `vllm bench serve` does not auto-warm (v0.11–v0.33; `--num-warmups` defaults to `0`). A 100-prompt run on a freshly-started server reports numbers dominated by the first cold 30 s, which can look *better* than steady state if the burst fits in KV before saturation.
