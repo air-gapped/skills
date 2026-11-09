@@ -22,7 +22,7 @@ inherits the target's domain coverage.
 ## Models in vLLM main today
 
 Grep the `MTPModelTypes = Literal[...]` block in `vllm/config/speculative.py`
-(line numbers drift). **27 entries at v0.32.0** (26 model types + `mtp`):
+(line numbers drift). **28 entries at v0.33.0** (27 model types + `mtp`):
 
 | Family | Model types | vLLM model file |
 |---|---|---|
@@ -37,6 +37,7 @@ Grep the `MTPModelTypes = Literal[...]` block in `vllm/config/speculative.py`
 | LongCat-Flash | `longcat_flash_mtp` | (single layer only) |
 | Pangu-Ultra-MoE | `pangu_ultra_moe_mtp` | `openpangu_mtp.py` |
 | Step-3.5 | `step3p5_mtp` | `step3p5_mtp.py` |
+| Step-5 (v0.33.0+) | `step5_mtp` | `models/step5/*/mtp.py` (arch `Step5MTP`) |
 | Gemma 4 | `gemma4_mtp` | `gemma4_mtp.py` |
 | Hunyuan v3 | `hy_v3_mtp` | `hy_v3_mtp.py` |
 | Bailing hybrid | `bailing_hybrid_mtp` | `bailing_moe_mtp.py` |
@@ -52,6 +53,14 @@ Grep the `MTPModelTypes = Literal[...]` block in `vllm/config/speculative.py`
 **All of these are deprecated aliases.** Users should set `method: "mtp"`;
 vLLM detects the target type and dispatches (PR #25232, v0.11.1).
 
+Two v0.33.0 paths have no entry in the list:
+
+- **Transformers modeling backend** (#61270): a target served through it whose
+  config sets `num_mtp_layers` accepts `method: "mtp"`. Multimodal targets
+  raise `NotImplementedError`.
+- **Nemotron Parse 3.5** (#61651): MRV2 only, and `num_speculative_tokens`
+  must be 1 — `ValueError("Parse 3.5 has only one trained MTP step")`.
+
 ## `num_speculative_tokens` rules
 
 The target's MTP head has a fixed width: `n_predict` (or
@@ -63,7 +72,7 @@ Rule from `config/speculative.py:1489-1501` (v0.32.0): unset defaults to
 `n_predict`; a value above `n_predict` must be divisible by it, else
 `ValueError: num_speculative_tokens:N must be divisible by n_predict=M`. Above
 `n_predict`, vLLM re-runs the MTP layer sequentially. Any value > 1 also logs
-(L1377-1385, skipped for `step3p5_mtp` / `inkling_mtp`):
+(L1377-1385, skipped for `step3p5_mtp` / `step5_mtp` / `inkling_mtp`):
 
 > Enabling num_speculative_tokens > 1 will run multiple times of forward on
 > same MTP layer,which may result in lower acceptance rate
@@ -143,6 +152,6 @@ Note: `model` field is not set — target model is the drafter.
 ## What about Kimi K2?
 
 Kimi K2 / K2.5 have no MTP type (no `kimi_k2_mtp` in `MTPModelTypes` at
-v0.32.0); **Kimi K3** does (`kimi_k3_mtp`). For K2/K2.5 use EAGLE-3 if a
+v0.33.0); **Kimi K3** does (`kimi_k3_mtp`). For K2/K2.5 use EAGLE-3 if a
 checkpoint exists and the model class implements `SupportsEagle3`. Verify
 before assuming either capability.
