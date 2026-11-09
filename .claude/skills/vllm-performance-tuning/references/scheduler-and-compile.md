@@ -181,11 +181,14 @@ Default dir: `$VLLM_CACHE_ROOT/torch_compile_cache` (= `~/.cache/vllm/torch_comp
 **Both AOT vars are opt-*out* on any current image, and one of them is coupled to
 the cache flag.** Their defaults are computed, not constant: AOT compile is on
 when torch ≥ 2.10 **and** the compile cache is enabled; the mega-artifact is on
-when torch ≥ 2.12 **and** AOT compile is on. `requirements/cuda.txt` at v0.27.0
-pins **`torch==2.13.0`** / **`torchvision==0.28.0`**
-([PR #48155](https://github.com/vllm-project/vllm/pull/48155), which pulled Triton
-to 3.7.1 transitively — no direct `triton` pin exists — and was flagged upstream
-as a breaking environment change), so both gates are satisfied out of the box.
+when torch ≥ 2.12 **and** AOT compile is on. `requirements/cuda.txt` pins
+**`torch==2.13.0`** / `torchvision==0.28.0` from v0.27.0
+([PR #48155](https://github.com/vllm-project/vllm/pull/48155)) and
+**`torch==2.14.0`** / `torchvision==0.29.0` from v0.33.0 (#52183; Triton 3.8.0
+arrives transitively — no direct `triton` pin exists), so both gates are satisfied
+out of the box. A torch bump invalidates every pre-baked compile cache: rebuild it
+on the new image. v0.33.0 wheels and images are CUDA 13.0 only — the CUDA 12.9
+wheels and `-cu129` image tags are no longer published.
 
 The consequence worth internalising: setting `VLLM_DISABLE_COMPILE_CACHE=1` — the
 documented Llama-4 workaround one row above — **also silently turns off AOT
