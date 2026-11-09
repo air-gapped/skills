@@ -17,8 +17,8 @@
     },
     {
       "id": 2,
-      "question": "How many tool_chat_template_*.jinja files ship in vLLM's examples/ directory at v0.25.1 and v0.27.0?",
-      "skill_answer": "26 files"
+      "question": "How many tool_chat_template_*.jinja files ship in vLLM's examples/ directory at v0.33.0?",
+      "skill_answer": "27 files, unchanged v0.28.0–v0.33.0"
     },
     {
       "id": 3,
@@ -32,8 +32,8 @@
     },
     {
       "id": 5,
-      "question": "How many model types are in vLLM v0.27.0's _MODEL_TYPE_TO_CHAT_TEMPLATE_FALLBACK, and onto how many .jinja files?",
-      "skill_answer": "13 model types mapping onto 7 bundled .jinja files"
+      "question": "How many model types are in vLLM v0.33.0's _MODEL_TYPE_TO_CHAT_TEMPLATE_FALLBACK, and onto how many .jinja files?",
+      "skill_answer": "15 model types mapping onto 7 bundled .jinja files"
     },
     {
       "id": 6,
@@ -52,7 +52,7 @@
     },
     {
       "id": 9,
-      "question": "What is vLLM's internal multimodal placeholder token format in chat_utils.py?",
+      "question": "What is vLLM's internal multimodal placeholder token format in vllm/renderers/chat_utils/content_parser.py?",
       "skill_answer": "`<##IMAGE##>`, `<##AUDIO##>`, `<##VIDEO##>`"
     }
   ]
