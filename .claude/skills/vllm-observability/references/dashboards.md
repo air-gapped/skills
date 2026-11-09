@@ -154,13 +154,16 @@ dcgm-exporter:
 
 ### Ebpfchirp incident reference
 
-The canonical "dashboard lied" case study: 11-second TTFT on a vLLM server where:
-- `nvidia-smi GPU_UTIL` = 100% (looked healthy)
-- `SM_OCCUPANCY` = 18% (actual sign of starvation)
-- Root cause: engine-core CPU descheduling during prefix-cache head-of-line blocking
-- Detection required: eBPF tracing of scheduler thread
+Mixed heavy/light batch with prefix caching on vLLM 0.17.1, 4 vCPUs: the light requests' TTFT ran 14× over threshold on a cold prefix cache.
 
-Dashboard takeaway: **include SM_OCCUPANCY on the same row as `num_requests_running`**. When running stays high while SM occupancy drops, that's starvation in real time. URL: https://ebpfchirp.substack.com/p/11-second-time-to-first-token-on.
+| Tool | What it showed |
+|---|---|
+| `nvidia-smi` GPU utilization | 95%+ — busy on the heavy requests' prefills |
+| `/health`, `num_requests_running` | healthy |
+| vLLM TTFT histograms | the regression, no cause |
+| eBPF kernel tracing | cause: `EngineCore` process descheduled, max stall 2.5 s |
+
+No GPU-side metric separates "busy on my request" from "busy on someone else's". Put P99 TTFT on the same row as GPU utilization; when TTFT climbs while utilization stays high, check CPU starvation of the engine-core process (CPU limit, throttling, vCPU count) before the GPU. URL: https://ebpfchirp.substack.com/p/11-second-time-to-first-token-on.
 
 ## Common dashboard structural mistakes
 

@@ -89,7 +89,7 @@ Protocol defaults to gRPC; HTTP/protobuf via `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL
 
 7. **KEDA threshold too low on `num_requests_waiting`.** Thresholds of 1–2 per replica cause scale thrashing. Production Stack default is 5; OpenShift example is 2. Pair with `cooldownPeriod: 360` — GPU pods take ~10 min to reach ready, reactive scaling fails.
 
-8. **`GPU_UTIL` is not a saturation signal.** It reads 100% while the GPU starves — in the ebpfchirp 11-second-TTFT incident util was pinned, SM occupancy was 18%, and the scheduler was stalled on prefix-cache head-of-line blocking. Use `DCGM_FI_PROF_SM_OCCUPANCY`.
+8. **`GPU_UTIL` is not a saturation or request-health signal.** It stays at 95%+ while requests starve. For saturation use `DCGM_FI_PROF_SM_OCCUPANCY`. When the CPU-side engine-core loop is descheduled (prefix-cache head-of-line blocking, too few vCPUs), no GPU-side metric shows it: the only signal is the TTFT histogram, so page on P99 TTFT and then check CPU throttling of the engine-core process. Incident detail in `references/dashboards.md`.
 
 9. **Ray Serve deployments don't auto-expose `/metrics`.** `RayPrometheusStatLogger` must be wired explicitly, or Ray 2.51+ ingests vLLM metrics through Ray's own endpoint (disable with `log_engine_metrics: False` to avoid double-scraping).
 
