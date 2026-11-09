@@ -537,6 +537,8 @@ High-performance RDMA KV transfer between prefill and decode pods using `mooncak
 Example: `examples/disaggregated/mooncake_connector/run_mooncake_connector.sh`
 Docs: `docs/features/mooncake_connector_usage.md`
 
+From v0.33.0 the connector exports `vllm:mooncake_xfer_time_seconds`, `_bytes_transferred`, `_num_descriptors` (histograms, prefill side only — Mooncake pushes), `_num_failed_transfers`, `_num_failed_recvs` and `_num_kv_expired_reqs` (counters). A rising `vllm:mooncake_num_kv_expired_reqs` on the prefiller means decoders read too late: raise `VLLM_MOONCAKE_ABORT_REQUEST_TIMEOUT` (default 480 s). For AWS EFA use the `vllm/vllm-openai:v0.33.0-efa` image, which carries the EFA build of the transfer engine.
+
 Bundled in v0.14.0+ images; the pin is `mooncake-transfer-engine >= 0.3.12` from v0.29.0 (`>= 0.3.8` before).
 
 **Mooncake Store Connector heterogeneous TP sharing (v0.30.0+)** ([#53129](https://github.com/vllm-project/vllm/pull/53129), `docs/features/mooncake_store_connector_usage.md`). Before this, prefill and decode instances could only share a Mooncake Store KV cache if they ran the same TP size. Set a fixed `store_tp_size` (`store_tp_size >= local_tp_size` and `store_tp_size % local_tp_size == 0`) so a TP4 prefiller and a TP2 decoder can read/write the same Store keys:
