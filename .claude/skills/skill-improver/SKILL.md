@@ -144,8 +144,11 @@ noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
 - **Write for the agent; history goes to `sources.md`.** `SKILL.md` and task
   references state the current rule and the action. Where a fact came from, why
   it changed and when it was checked go in `references/sources.md`; `SKILL.md`
-  carries one pointer to it. Keep a version or issue number in agent text only
-  where the agent acts on it ("on 0.7.0 every command fails — upgrade").
+  carries one pointer to it. Keep a version in agent text only where the agent
+  compares against it ("on 0.7.0 every command fails — upgrade"), and an issue
+  number only where the text tells the agent to do something with the issue
+  (check that it is still open); a number that only says where a failure was
+  reported is a citation and moves.
   **A known failure is agent text, never history:** the symptom, the affected
   versions and the fix stay in `SKILL.md`/references even when the citation
   lives in `sources.md` — an agent never loads `sources.md` mid-task.
