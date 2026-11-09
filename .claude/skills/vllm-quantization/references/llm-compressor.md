@@ -226,7 +226,7 @@ recipe = QuantizationModifier(
 - **Calibration**: 512 samples
 - **Time on H100, 70B**: ~35 min
 - vLLM flag: `--kv-cache-dtype fp8`
-- **Caveat**: per-head KV is experimental; stick to `strategy: tensor` for MLA
+- **Caveat**: per-head KV is experimental; stick to `strategy: tensor` for MLA. vLLM ≤ v0.33.0 serves MLA layers at scale 1.0 whatever the checkpoint stores (`kv-cache.md` landmine 12)
 - **Example**: `examples/quantization_kv_cache/llama3_fp8_kv_example.py`
 
 ## Output directory layout
