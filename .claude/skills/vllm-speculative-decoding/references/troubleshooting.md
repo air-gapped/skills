@@ -96,6 +96,11 @@ passed.
 4. **Plugin missing.** `method: "suffix"` without `pip install
    arctic-inference` fails clearly at engine start. Check base-image build.
 
+Drafts counted but acceptance ≈ 0 with a DFlash-family draft on v0.32.0–v0.33.0:
+the draft reads a stale kernel block table under FULL CUDA graphs when the KV
+block is split into smaller kernel blocks (hybrid attention + recurrent
+targets). Set `cudagraph_mode` to `PIECEWISE` (#64059; fix merged, unreleased).
+
 ## Silent regressions after upgrade
 
 Map symptom → likely cause:
