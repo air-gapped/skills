@@ -212,10 +212,18 @@ vLLM 0.32.0 — **PyTorch 2.13.0 / FlashInfer 0.7.0.post1 / torchvision 0.28.0**
 (vLLM v0.32.0 `requirements/cuda.txt`) plus `transformers >= 5.16.1, < 5.20.0`
 and `diffusers==0.40.0` (vllm-omni v0.32.0 `requirements/common.txt`).
 
-`references/models.md` tables were regenerated row-for-row (93 rows, platform
-columns included) from `docs/models/supported_models.md` at tag v0.30.0 on
-2026-10-18; LTX DMD2 rows from `vllm_omni/diffusion/registry.py:117-125` at
-v0.30.0; MUSA detection from `vllm_omni/platforms/__init__.py:107-120`; Qwen3-TTS
-Base size from `examples/online_serving/text_to_speech/README.md` (1.7B-Base;
-the 0.6B-Base checkpoint exists on HF but is not listed); #2562 title is
-"gaps during audio generation via Qwen TTS".
+`references/models.md` tables were regenerated row-for-row (105 rows, platform
+columns included) from `docs/models/supported_models.md` at tag v0.32.0 on
+2026-11-09 (93 rows at v0.30.0: 13 added, `HiDreamImagePipeline` removed, 26
+rows with changed cells — 24 gained only an Intel GPU mark, the two LTX
+distilled rows also lost the LTX-2-19b checkpoint); LTX DMD2 rows from
+`vllm_omni/diffusion/registry.py:134-143` at v0.32.0; MUSA detection from
+`vllm_omni/platforms/__init__.py:107-131`; Qwen3-TTS Base size from
+`examples/online_serving/text_to_speech/README.md` (1.7B-Base; the 0.6B-Base
+checkpoint exists on HF but is not listed); #2562 title is
+"gaps during audio generation via Qwen TTS". PR #9065 ("[Model] Remove Pi0.5,
+HiDream-I1, and LTX-2-19b distilled", merged 2026-10-19) is in the v0.32.0rc1
+changelog, but the v0.32.0 tag still registers and lists `Pi05Pipeline`
+(`registry.py:264`, supported_models row) — only the HiDream-I1 and
+LTX-2-19b removals hold at the tag. Open model requests #2593, #2462, #2319,
+#2664, #2727 and #2612 all read OPEN on 2026-11-09.

@@ -42,7 +42,7 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
 
 **Picking a model** → `references/models.md`
   - Full supported-architecture → HuggingFace-ID table
-  - Per-model platform matrix (CUDA / ROCm / NPU / XPU), synced with upstream at v0.30.0
+  - Per-model platform matrix (CUDA / ROCm / NPU / XPU), synced with upstream at v0.32.0
   - Known-issue flags per family, including the pre-v0.20 FLUX / GLM-Image / Qwen3-TTS `--enforce-eager` pitfalls (all fixed on v0.20.0+)
 
 **Writing / debugging stage configs** → `references/stage-config.md`
@@ -87,7 +87,7 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
 
 - **v0.30.0 config removals that fail at load.** `diffusion_batch_size` is gone — use `max_num_seqs` (#6484). Unknown diffusion config fields now raise with the field name and stage id instead of being silently dropped (#5172) — a stale or misspelled key that used to be ignored now stops the server. First-party Dynin-Omni and dots.tts support was removed (#7655).
 
-- **v0.32.0 changes that fail at startup.** An LLM stage's `engine_output_type` must be exactly `text`, `image`, `audio`, `latent` or `token_ids`, joined by `+` or `,` (#7843); a legacy alias, case variant or padded value raises `Unknown modality` when the output processor initialises. Python 3.10 is no longer accepted.
+- **v0.32.0 changes that fail at startup.** An LLM stage's `engine_output_type` must be exactly `text`, `image`, `audio`, `latent` or `token_ids`, joined by `+` or `,` (#7843); a legacy alias, case variant or padded value raises `Unknown modality` when the output processor initialises. First-party HiDream-I1-Full (`HiDreamImagePipeline`) is gone from the registry (#9065). Python 3.10 is no longer accepted.
 
 - **PCM format on `/v1/realtime`**. Send headerless **16-bit PCM mono** at the rate the server version expects (24 kHz on v0.32.0, 16 kHz through v0.30.0); output is 24 kHz PCM16. Stereo, the wrong rate, 24-bit, or WAV-with-header inputs produce garbage or silence. Client templates: v0.32.0 `examples/online_serving/realtime_web` (`--profile qwen3-turn`); through v0.30.0 `examples/online_serving/qwen3_omni/openai_realtime_client.py` (removed at v0.32.0).
 
@@ -99,7 +99,7 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
 
 - **Orphan processes after a Wan2.2 crash** (#2768). Killing one worker leaves sibling stage processes alive. Launch in a process group and `kill -- -<PGID>` on failure, or run under `systemd` with `KillMode=control-group`. Keep this on current builds: the issue closed without a fix PR, after a fresh reproduction.
 
-- **Two v0.26.0 breaking changes that rename or remove things you may be using.** (1) **LTX pipeline registry names changed** (#5148): `LTX2Pipeline` is now the single one-stage entry for LTX-2 *and* LTX-2.3, T2V *and* I2V — checkpoint metadata picks the version, `image=` picks I2V. `LTX2ImageToVideoPipeline`, `LTX23Pipeline` and `LTX23ImageToVideoPipeline` were removed. On v0.30.0 the supported list names `LTX2TwoStagePipeline`, `LTX2DistilledOneStagePipeline` and `LTX2DistilledTwoStagePipeline` (`LTX2DistilledPipeline` is still registered). Expect higher compute too: the official guidance recipe runs up to four transformer passes per denoise step (cond / uncond / STG perturbation / cross-modality). (2) **GGUF diffusion support moved out of tree** (#4769) to `vllm-project/vllm-gguf-plugin` — a GGUF DiT deployment now needs that plugin installed, and the in-core path is gone.
+- **Two v0.26.0 breaking changes that rename or remove things you may be using.** (1) **LTX pipeline registry names changed** (#5148): `LTX2Pipeline` is now the single one-stage entry for LTX-2 *and* LTX-2.3, T2V *and* I2V — checkpoint metadata picks the version, `image=` picks I2V. `LTX2ImageToVideoPipeline`, `LTX23Pipeline` and `LTX23ImageToVideoPipeline` were removed. On v0.32.0 the supported list names `LTX2TwoStagePipeline`, `LTX2DistilledOneStagePipeline`, `LTX2DistilledTwoStagePipeline` and `LTX2TextToAudioPipeline` (`LTX2DistilledPipeline` is still registered); the distilled rows cover LTX-2.3 and LTX-2.5 only, since `rootonchair/LTX-2-19b-distilled` was removed (#9065). Expect higher compute too: the official guidance recipe runs up to four transformer passes per denoise step (cond / uncond / STG perturbation / cross-modality). (2) **GGUF diffusion support moved out of tree** (#4769) to `vllm-project/vllm-gguf-plugin` — a GGUF DiT deployment now needs that plugin installed, and the in-core path is gone.
 
 - **Assuming vllm-omni serves text-only models**. If the model has no multimodal output, use stock vLLM — vllm-omni adds overhead for features a text-only model won't exercise, and the community skill explicitly recommends against it. The decision rule: output modality is non-text OR the model name ends `-Omni`/`-Image`/`-TTS`/`-Video` → vllm-omni; otherwise stock vLLM.
 
@@ -192,4 +192,4 @@ vllm serve Wan-AI/Wan2.2-T2V-A14B-Diffusers --omni \
 
 All claims are cited with file:line, release-note PR refs, or issue IDs. Full anchor list, version history, community channels and third-party plugin catalog in `references/sources.md`.
 
-`references/models.md` mirrors upstream's list at v0.30.0 only — on any other tag, read `docs/models/supported_models.md` at that tag before calling a model unsupported.
+`references/models.md` mirrors upstream's list at v0.32.0 only — on any other tag, read `docs/models/supported_models.md` at that tag before calling a model unsupported.
