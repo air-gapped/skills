@@ -61,13 +61,15 @@ cubins. Read this as: a team with Rubin silicon in hand can now build a
 working image themselves; a team waiting on the default wheel/image still
 waits.
 
-**v0.31.0–v0.32.0: prebuilt nightlies, release images unchanged.** Rubin images
+**v0.31.0–v0.33.0: prebuilt nightlies, release images unchanged.** Rubin images
 are published as `vllm/vllm-openai:cu134-nightly` (plus `-x86_64`/`-aarch64` and
 per-commit tags; #55953) — nightly only, no release-tagged cu134 image. At
 v0.32.0 the self-build recipe changed: `FINAL_BASE_IMAGE=nvidia/cuda:13.4.1-base-ubuntu24.04`,
 `NCCL_VERSION` ≥ **2.32.3** (first NCCL with SM107), Triton built from source via
 `TRITON_INSTALL_FROM_SOURCE_REPO`/`_REVISION`, `BUILD_NIXL=true` for the NIXL EP
-extension, torch `2.15.0.dev` nightlies in `requirements/rubin-prerelease.txt`.
+extension, torch nightlies from `requirements/rubin-prerelease.txt`
+(`2.16.0.dev20261009+cu134` at v0.33.0). The release image is still CUDA 13.0.3 at
+v0.33.0.
 Keep the default `torch_cuda_arch_list` — R100/VR200 report CC 10.7 and use the
 `10.0` family kernels. #49735 is still open.
 

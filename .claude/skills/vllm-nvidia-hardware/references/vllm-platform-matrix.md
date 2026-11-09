@@ -12,9 +12,9 @@ Backends gate on `DeviceCapability` in `vllm/v1/attention/backends/`:
 | Backend | Hopper (sm_90) | Blackwell (sm_100/103) | Notes |
 |---|---|---|---|
 | `FLASH_ATTN` (FA2/FA3) | ✅ | ✅ | CC ≥ 8.0; FA3 for ViT added v0.11 |
-| `FLASH_ATTN_MLA` | ✅ | ❌ | `capability.major == 9` (`flashattn_mla.py:70-71` at v0.32.0) |
-| `FLASHINFER` | ✅ | ✅ | CC 8.0–12.1 — SM75 (T4) temporarily excluded from auto-selection (`flashinfer.py:571-579` at v0.32.0); FlashInfer 0.3.1+ default v0.11 |
-| `FLASHINFER_MLA` (dense) | ❌ | ✅ | Blackwell-only: `capability.major == 10` (`flashinfer_mla.py:220-221` at v0.32.0). The gate is on the *major* only, so Rubin (10.7) passes it — that admits the backend, it does not prove the kernels exist there |
+| `FLASH_ATTN_MLA` | ✅ | ❌ | `capability.major == 9` (`flashattn_mla.py:69-70` at v0.33.0) |
+| `FLASHINFER` | ✅ | ✅ | CC 8.0–12.1 — SM75 (T4) temporarily excluded from auto-selection (`flashinfer.py:696-704` at v0.33.0); FlashInfer 0.3.1+ default v0.11 |
+| `FLASHINFER_MLA` (dense) | ❌ | ✅ | Blackwell-only: `capability.major == 10` (`flashinfer_mla.py:220-221` at v0.33.0). The gate is on the *major* only, so Rubin (10.7) passes it — that admits the backend, it does not prove the kernels exist there |
 | `FLASHINFER_MLA_SPARSE` (DeepSeek V3.2) | via `_SM90` key | ✅ | TRTLLM kernel, `major == 10`; default for FP8 KV cache v0.19 (#37252). Hopper and SM12x use the separate `FLASHINFER_MLA_SPARSE_SM90` / `FLASHINFER_MLA_SPARSE_SM120` registry keys |
 | `FLASH_ATTN_MLA_SPARSE_FA4` | ❌ | ✅ | v0.33.0 (#55866): FA4 sparse MLA decode, `major == 10`. **BF16 KV cache only**, `index_topk` a multiple of 128. Auto-selected first at ≤ 16 query heads with a BF16 KV cache (then `FLASHINFER_MLA_SPARSE`, then `FLASHMLA_SPARSE`); above 16 heads it is opt-in, and a quantized KV cache still selects `FLASHINFER_MLA_SPARSE` first. An unchanged DeepSeek-V3.2-class config can land on a different decode kernel after the upgrade |
 | `FLASHMLA` (dense & sparse) | ✅ | ✅ | `capability.major in [9, 10]`; disabled on Blackwell in v0.10.2 (#24521), restored |
@@ -78,7 +78,7 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
 - **Target-model gating moved.** The flat EAGLE-3/DFlash allow-list is gone as of
   v0.27.0; supported draft methods and per-family MTP types are now `Literal`
   unions near the top of `config/speculative.py` (`MTPModelTypes`,
-  `EagleModelTypes`, `SpeculativeMethod`, ~lines 38-83 at v0.32.0) plus per-`model_type`
+  `EagleModelTypes`, `SpeculativeMethod`, ~lines 38-83 at v0.33.0) plus per-`model_type`
   coercion further down. Read the file, don't trust a cached list; the
   `vllm-speculative-decoding` skill owns the catalogue.
 - **BS ≥ 32 regime**: target becomes compute-bound, spec-dec hurts. On
@@ -96,8 +96,8 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
   `OSError: libnvrtc.so.13` (#63121) until `torchcodec==0.16.0+cu129` is reinstalled
   in a derived image.
 - **For B300/GB300: CUDA 13 recommended**, `torch_cuda_arch_list='9.0 10.0+PTX'`
-  (`docs/getting_started/installation/gpu.cuda.inc.md:410-424`; still the documented
-  arch list at v0.32.0 — `10.0` covers SM103 via the `10.0f` family target).
+  (`docs/getting_started/installation/gpu.cuda.inc.md:416-431`; still the documented
+  arch list at v0.33.0 — `10.0` covers SM103 via the `10.0f` family target).
 - **SM100 (B200)** broadly supported; **SM103 (GB300)** was recognized with known hang
   in TRTLLM/FlashInfer 0.6.7 — **fixed 2026-04-07** via flashinfer-ai/flashinfer#2956,
   which *reverts* the Blackwell-Ultra optimization that introduced the deadlock
@@ -123,7 +123,7 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
   torch up to 2.11. **Fixed in v0.27.0 (#49904)**: vLLM now reads `code=sm_*` and
   hard-errors when no supported arch matches instead of shipping a kernel-less
   build. Pre-v0.27.0 workaround: set `TORCH_CUDA_ARCH_LIST` explicitly.
-- **Non-CDMM Grace-Blackwell NUMA handling:** `platforms/cuda.py:837-872` (v0.32.0)
+- **Non-CDMM Grace-Blackwell NUMA handling:** `platforms/cuda.py:845-882` (v0.33.0)
   (`get_device_numa_node`) — each GPU's HBM is a separate NUMA node with no CPUs;
   vLLM falls back to CPU-affinity-based detection to find the nearest CPU node.
 
@@ -241,7 +241,7 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
   FlashInfer **0.6.18** (#54313); **NIXL 1.3.2** (#51777) — the latter confirmed by
   running the published image. AMD: CPU offload on ROCm 7.13+ (#43018), fused KDA
   decode on MI325X (#52293). **Model Runner V2 is now the default for all models**
-  (#53183) and MRV1 was deprecated for removal in v0.32 — it is still present at v0.32.0, and vLLM still falls back to
+  (#53183) and MRV1 was deprecated for removal in v0.32 — it is still present at v0.33.0, and vLLM still falls back to
   MRV1 for a few ROCm models and for features MRV2 lacks, so a ROCm deployment can be
   silently on the deprecated runner. **PyAV video decoder removed** — use OpenCV or
   Torchcodec (#54231); ROCm's `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` removed (#53141).
@@ -305,11 +305,11 @@ symmetric-memory multimem, FlashInfer allreduce+RMSNorm fusion — reusing the s
 thresholds validated for SM103 (#49647). This reverses the v0.25.1 finding that
 vLLM had no Rubin code path. Three caveats decide whether it means anything yet:
 
-- **`sm_107` exists only under CUDA ≥ 13.4** (`CMakeLists.txt:117-121`). Under
+- **`sm_107` exists only under CUDA ≥ 13.4** (`CMakeLists.txt:119-123` at v0.33.0). Under
   CUDA 13.0–13.3 the list is `7.5;8.0;8.6;8.7;8.9;9.0;10.0;11.0;12.0`.
 - **The shipped image does not carry it.** `docker/Dockerfile` defaults to
   `CUDA_VERSION=13.0.3` with `torch_cuda_arch_list='7.5 8.0 8.6 8.9 9.0 10.0 11.0 12.0'`
-  (lines 25, 273 at v0.32.0) — no native SM107 cubins. vLLM's own comment says "Rubin (10.7)
+  (lines 25, 274 at v0.33.0) — no native SM107 cubins. vLLM's own comment says "Rubin (10.7)
   can run SM100 family code", so a Rubin falls back to the `10.0f` family target.
 - **Tracking issue #49735 is still open** (updated 2026-08-23) with the CUDA 13.4
   dev-preview build and the FlashInfer sm_107 bump unchecked; FlashInfer's own
@@ -347,7 +347,7 @@ toolkit's own ptxas. Documented in `docs/usage/troubleshooting.md`.
 ## 7. NVL72 handling in vLLM
 
 - No hardcoded 72-GPU logic; NVLink detected generically via NVML p2p
-  (`platforms/cuda.py:807-827` at v0.32.0, `is_fully_connected`).
+  (`platforms/cuda.py:816-838` at v0.33.0, `is_fully_connected`).
 - Communicator layer has FlashInfer NVLink one-/two-sided all-reduce
   (`fused_moe/prepare_finalize/flashinfer_nvlink_*.py`) and NCCL symmetric memory
   default TP (v0.11 #24532, #25070, +3–4% throughput).
