@@ -193,6 +193,8 @@ Models with **single KV head** (DeepSeek-V2/V3/V3.2/R1, Kimi-K2) can't shard KV 
 
 **Avoid TP=8 on H100/H200/B200/B300.** Only 16 heads per rank, padded to 64 → overhead. **Recipe: DP/EP mode with TP=2 on Hopper (64 heads per rank), TP=1 on Blackwell** — `vllm serve deepseek-ai/DeepSeek-V3.2 -dp 8 --enable-expert-parallel` is the TP=1 form ([DeepSeek-V3.2 recipe](https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-V3_2.html), [vllm.ai/blog/deepseek-v3-2](https://vllm.ai/blog/deepseek-v3-2)).
 
+The padding is a FlashMLA-Sparse property, not a TP property. On Blackwell with a BF16 KV cache and ≤ 16 heads per rank, auto-selection ranks other sparse backends first: FlashInfer sparse on ≤ v0.32.0, FA4 sparse (`FLASH_ATTN_MLA_SPARSE_FA4`) then FlashInfer on v0.33.0 (#55866). An FP8 KV cache ranks FlashInfer sparse first at any head count. Read the selected attention backend in the startup log before attributing a TP=8 slowdown to padding, and re-benchmark TP=8 on Blackwell after moving to v0.33.0.
+
 ### Supported combinations
 
 | Combination | Supported | Notes |
