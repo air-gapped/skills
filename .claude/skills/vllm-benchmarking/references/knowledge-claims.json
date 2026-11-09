@@ -22,7 +22,7 @@
     },
     {
       "id": 3,
-      "question": "Does `vllm bench serve` perform automatic warmup in v0.11\u2013v0.27?",
+      "question": "Does `vllm bench serve` perform automatic warmup in v0.11\u2013v0.33?",
       "skill_answer": "No; `--num-warmups` defaults to 0."
     },
     {
