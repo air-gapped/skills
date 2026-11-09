@@ -150,7 +150,7 @@ Two production paths exist:
 - **W4A16 INT4 (AWQ or GPTQ) with best accuracy** → llm-compressor, `AWQModifier` or `GPTQModifier` with 256–512 ultrachat samples.
 - **NVFP4 on Blackwell** → ModelOpt `NVFP4_DEFAULT_CFG` or llm-compressor `NVFP4A16` / `NVFP4` scheme (v0.10+; current release **0.15.0**, which needs Python 3.11+; the project ships parallel maintenance lines — see `references/llm-compressor.md`).
 - **MXFP4 MoE for GPT-OSS-style models** → use the vendor checkpoint as-is, or ModelOpt MXFP4.
-- **KV cache FP8 scales for MLA** → llm-compressor `kv_cache_scheme` block with `strategy: tensor` (per-tensor is stable; per-head is still the experimental path).
+- **KV cache FP8 scales for MLA** → llm-compressor `kv_cache_scheme` block with `strategy: tensor` (per-tensor is stable; per-head is still the experimental path). vLLM ≤ v0.33.0 does not apply stored KV scales to MLA layers and serves them at scale 1.0 — `references/kv-cache.md` landmine 12.
 
 Both tools output a HF directory vLLM serves with `--quantization compressed-tensors` (llm-compressor) or `--quantization modelopt` / `--quantization modelopt_fp4` (ModelOpt).
 

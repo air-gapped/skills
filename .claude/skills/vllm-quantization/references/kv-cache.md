@@ -58,7 +58,7 @@ Validation: `CacheConfig._validate_cache_dtype` (`vllm/config/cache.py`) rejects
 
 ## Calibrating scales (pre-compute)
 
-llm-compressor recipe (tensor-level, stable for MLA):
+llm-compressor recipe (tensor-level; on MLA layers vLLM ≤ v0.33.0 ignores the result — landmine 12):
 
 ```python
 recipe = QuantizationModifier(
@@ -130,6 +130,15 @@ The FlashInfer `nvfp4` cell is SM100 only on ≤ v0.31.x; v0.32.0 extends it to 
 9. **Per-head FP8 KV experimental for checkpointed scales** — use per-token-head dynamic path instead on MLA.
 10. **Qwen3.5 FP8 on B200 degraded-accuracy KV** v0.18 ([#37618](https://github.com/vllm-project/vllm/issues/37618)) — fixed v0.19 ([PR #38083](https://github.com/vllm-project/vllm/pull/38083)).
 11. **`sleep(level=2)` zeroed compressed-tensors KV-FP8 scales** → NaN logprobs and a wrong first token on the first request after a weights-only reload (the RL weight-sync shape) — fixed v0.32.0 ([PR #57163](https://github.com/vllm-project/vllm/pull/57163)). Other KV quant methods were unaffected. On older releases use `sleep(level=1)` for compressed-tensors FP8 KV checkpoints.
+12. **Checkpoint FP8 KV scales never reach these layers — the cache silently runs with `k_scale = v_scale = 1.0`.** Unfixed at v0.33.0 and on `main`; upstream reports without maintainer confirmation on 2026-11-09. Calibrating KV scales buys nothing here until the fix PR is in a release.
+
+    | Attention layer | Checkpoint format | Versions | Issue · fix PR |
+    |---|---|---|---|
+    | `MLAAttention` — DeepSeek-V2 / V3, Kimi-K2, GLM-4.7-Flash, A.X-K1 | ModelOpt (`kv_cache_quant_algo: FP8`): the scale is renamed to a path MLA does not have. compressed-tensors (`kv_cache_scheme`): MLA gets no KV-cache method | ModelOpt v0.25.0 – v0.33.0 (v0.24.0 loads them); compressed-tensors v0.32.0 – v0.33.0 | [#65944](https://github.com/vllm-project/vllm/issues/65944) · [#65948](https://github.com/vllm-project/vllm/pull/65948) |
+
+    - Not affected: a checkpoint whose stored scales are all 1.0; `Attention` layers of that same model.
+    - Detect: load log `Found k_scale in the checkpoint (e.g. …self_attn.attn.k_scale), but not found the expected name in the model (e.g. …self_attn.attn.attn.k_scale). k_scale is not loaded.`
+    - No flag restores the scales. Where the stored scales differ from 1.0, A/B FP8 KV against `--kv-cache-dtype bfloat16` on the long-context eval before shipping it.
 
 ## Roadmap items (feature requests)
 

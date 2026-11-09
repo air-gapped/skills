@@ -127,7 +127,7 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 
 1. **First** — check vLLM version. Most production bugs fix within 2-3 minor releases. If < v0.19, upgrade.
 2. **Second** — is the checkpoint from ModelOpt or llm-compressor? If ModelOpt NVFP4, cross-check `quantization_config.ignore` covers all non-linear layers and `_double_scale` keys are present.
-3. **Third** — is it MLA + FP8 KV? [#38652](https://github.com/vllm-project/vllm/issues/38652) is **resolved** (PR #37054, v0.19), so on a current release this is no longer the likely cause. If you see it on ≥v0.19, treat it as a new bug and check the attention backend and checkpoint scales rather than assuming the known issue.
+3. **Third** — is it MLA + FP8 KV? [#38652](https://github.com/vllm-project/vllm/issues/38652) is **resolved** (PR #37054, v0.19), so on a current release this is no longer the likely cause. If you see it on ≥v0.19, treat it as a new bug and check the attention backend and checkpoint scales rather than assuming the known issue — start with the unfixed items at the end of `kv-cache.md` §Known landmines.
 4. **Fourth** — is it Gemma 4? If yes, avoid FP8 entirely.
 5. **Fifth** — is the GPU SM120/SM121? If yes, expect kernel gaps; try `fp8` only.
 6. **Sixth** — if on B300/GB300 and v0.18 or older, upgrade to v0.19+ immediately.
