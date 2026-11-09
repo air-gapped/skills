@@ -215,7 +215,7 @@ VLLM_SERVER_DEV_MODE=1 vllm serve ...
 curl -s 'http://localhost:8000/server_info?config_format=json' | jq '.vllm_config, .vllm_env'
 ```
 
-For a more principled diff-against-config check, use `scripts/check-config.sh`.
+`scripts/check-config.sh [BASE_URL]` runs signals 1–2 and flags env footguns; exit 0 clean, 1 a check failed, 2 warnings only.
 
 ## What to include in a bug report
 

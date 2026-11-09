@@ -158,7 +158,7 @@ curl -s http://localhost:8000/metrics | grep -E '^vllm:cache_config_info|^vllm:p
 curl -s http://localhost:8000/v1/models | jq '.data[].id'
 ```
 
-`${CLAUDE_SKILL_DIR}/scripts/check-config.sh` bundles these checks — run it against a staged server to verify the config landed as intended.
+`${CLAUDE_SKILL_DIR}/scripts/check-config.sh [BASE_URL]` bundles the HTTP checks and flags env footguns (a URI in `VLLM_PORT`, boolean words, a trailing-slash `HF_ENDPOINT`). It sends `$VLLM_API_KEY` as the bearer token when set. Exit 0 clean, 1 a check failed, 2 warnings only. Run it inside the pod to judge the server's own env.
 
 ## External references
 
