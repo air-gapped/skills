@@ -24,13 +24,13 @@ Companion skills: `vllm-benchmarking` (measure), `vllm-caching` (KV), `vllm-nvid
 **Throughput / batching:**
 - **`auto_tune.sh`** (`benchmarks/auto_tune/`) sweeps `max_num_seqs × max_num_batched_tokens`.
 - **`--gpu-memory-utilization`** — raise from 0.90 toward 0.95 until steady OOM margin, then back off. MoE: cap at 0.85 (all-to-all buffers not in accounting).
-- **Chunked prefill (on by default where supported)** — raise `--max-num-batched-tokens` if TTFT > SLO; lower if ITL > SLO. The default is gated on **both** device memory and entrypoint (`vllm/engine/arg_utils.py`, v0.32.0):
+- **Chunked prefill (on by default where supported)** — raise `--max-num-batched-tokens` if TTFT > SLO; lower if ITL > SLO. The default is gated on **both** device memory and entrypoint (`vllm/engine/arg_utils.py`, v0.33.0):
 
   | Device | `vllm serve` (OpenAI API) | Offline `LLM(...)` |
   |---|---|---|
   | ≥160 GiB (B200/B300) | 16384 / seqs 1024 | 16384 / seqs 1024 |
-  | ≥70 GiB non-A100 (H100/H200) | **8192** / seqs 1024 | 16384 / seqs 1024 |
-  | everything else, incl. A100 | 2048 / seqs 256 | 8192 / seqs 256 |
+  | ≥70 GiB, not A100, not GB10 (H100/H200) | **8192** / seqs 1024 | 16384 / seqs 1024 |
+  | everything else, incl. A100 and DGX Spark (GB10, 121.7 GiB) | 2048 / seqs 256 | 8192 / seqs 256 |
 
   **On H100/H200 the `vllm serve` default is still 8192.** v0.28.0's "raised from 8192 to 16384" note (#51726) applies only to the offline path and the new ≥160 GiB tier. TPU chips have their own smaller table (V6E 1024, V5E 512, V5P lower still, on the serving path).
 - **`--performance-mode {balanced,interactivity,throughput}`** — one flag for the whole posture; try it before hand-tuning the batching pair.

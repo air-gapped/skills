@@ -22,13 +22,15 @@ Chunked prefill is on by default wherever the model supports it. `--num-schedule
 
 **Neither batching default is a constant — both are device-gated, and this is the
 single most common source of "my numbers don't match the docs".** `EngineArgs`
-picks from the usage context and the device. **v0.28.0 added a third tier — read all three, the branch is `if / elif / else`** (`arg_utils.py`, verified at v0.32.0):
+picks from the usage context and the device. **v0.28.0 added a third tier — read all three, the branch is `if / elif / else`** (`arg_utils.py`, verified at v0.33.0):
 
 | Device memory | `vllm serve` (OPENAI_API_SERVER) | `LLM`-class (offline) |
 |---|---|---|
 | **≥160 GiB** (B200/B300) — **new in v0.28.0** | **16384** / seqs 1024 | 16384 / 1024 |
-| ≥70 GiB and not A100 (H100/H200) | **8192** / seqs 1024 | 16384 / 1024 |
-| below 70 GiB, or any A100 | 2048 / seqs 256 | 8192 / 256 |
+| ≥70 GiB, not A100, not GB10 (H100/H200) | **8192** / seqs 1024 | 16384 / 1024 |
+| below 70 GiB, any A100, or GB10 (DGX Spark) | 2048 / seqs 256 | 8192 / 256 |
+
+GB10 reports 121.7 GiB but stays on the small tier on every version: ≤ v0.32.0 because the NVML memory query fails and the default falls back silently, v0.33.0 by an explicit compute-capability 12.1 check. Raise both values by hand there only after measuring.
 
 **The H100/H200 server default did NOT change in v0.28.0 — it is still 8192.** The release note phrased this as raising `max_num_batched_tokens` from 8192 to 16384, which reads as a fleet-wide bump; in the code it is a new ≥160 GiB branch inserted above the existing one. On B200/B300 your server default doubled without you touching anything; on H200 nothing moved. Checked 2026-09-15 by reading the branch at v0.27.0, v0.28.0 and v0.29.0 rather than the changelog. (`vllm bench throughput` and other `LLM`-class entry points
 get 16384 / 1024 and 8192 / 256 respectively.) The flat "2048 / 256" figure from
