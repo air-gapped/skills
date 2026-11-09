@@ -31,27 +31,25 @@ All OTel Python packages (`opentelemetry-sdk`, `opentelemetry-api`, `opentelemet
 
 ## Span structure
 
-Per-request trace typically includes:
+vLLM emits **one span per finished request**: `llm_request`, kind SERVER, start time = request arrival. There are no queue, prefill, decode or per-step child spans — the phase timings are attributes on that one span (v0.33.0, `OutputProcessor.do_tracing`).
 
-1. **FastAPI span** (requires `opentelemetry-instrumentation-fastapi`) — HTTP entry, route, status code
-2. **vLLM request span** — `vllm.request.serve` (or similar) — request lifetime from enqueue to response
-3. **Queue span** — `vllm.request.queue` — WAITING state
-4. **Prefill span** — `vllm.request.prefill` — scheduled → first token
-5. **Decode span** — `vllm.request.decode` — first token → last token
-6. **Per-step worker spans** (`--collect-detailed-traces=worker`) — per TP rank, per iteration
-7. **Per-step model spans** (`--collect-detailed-traces=model`) — forward pass detail
-
-Auto-attached attributes (vLLM + OTel semantic conventions):
-
-| Attribute | Value |
+| Attribute | Meaning (latencies in seconds) |
 |---|---|
-| `code.function`, `code.namespace`, `code.filepath`, `code.lineno` | Emission site |
-| `vllm.process_id`, `vllm.process_kind` | `worker` / `gpu` |
-| `vllm.process_name` | Engine/worker identifier |
-| `vllm.request_id` | Per-request correlation |
-| `vllm.is_prefill` | Phase flag |
+| `gen_ai.request.id` | External request ID — the join key to logs |
+| `gen_ai.latency.time_in_queue` | Queued → scheduled |
+| `gen_ai.latency.time_to_first_token` | Arrival → first token |
+| `gen_ai.latency.time_in_model_prefill` | Scheduled → first token |
+| `gen_ai.latency.time_in_model_decode` | First token → last token |
+| `gen_ai.latency.time_in_model_inference` | Scheduled → last token |
+| `gen_ai.latency.e2e` | Arrival → finish |
+| `gen_ai.usage.prompt_tokens`, `gen_ai.usage.completion_tokens` | Token counts |
+| `gen_ai.request.max_tokens`, `…temperature`, `…top_p`, `…n` | Sampling parameters, only when set |
 
-Request-span attributes typically include token counts, `finished_reason`, and `model_name` — join to metrics via those.
+- The span carries no prompt or completion text, no finish reason and no model name. Identify the deployment with `OTEL_SERVICE_NAME`.
+- An incoming W3C `traceparent` header is honoured: the span joins the caller's trace.
+- Resource attributes: `vllm.process_id`; spans from worker processes add `vllm.process_kind` and `vllm.process_name`.
+- Startup emits loading spans once per boot (`EngineCoreProc init`, `Prepare model`, …) with `code.function`, `code.namespace`, `code.filepath`, `code.lineno`. They are not per-request data.
+- HTTP-layer spans exist only under FastAPI auto-instrumentation (next section).
 
 ## FastAPI auto-instrumentation
 
@@ -99,7 +97,7 @@ processors:
       - name: errors
         type: status_code
         status_code: { status_codes: [ERROR] }
-      - name: slow-ttft
+      - name: slow-request
         type: latency
         latency: { threshold_ms: 3000 }
       - name: probabilistic-baseline
@@ -121,7 +119,7 @@ service:
 
 Tail sampling policy above:
 - Keep 100% of traces with errors
-- Keep 100% of traces with TTFT > 3s
+- Keep 100% of traces longer than 3s — trace duration is end-to-end, not TTFT; filter on `gen_ai.latency.time_to_first_token` at query time
 - 1% baseline sampling of healthy traces
 
 At H200 scale without sampling, traces run into gigabytes/hour. The combination of tail sampling (for debugging tails) + low baseline (for fleet-wide patterns) is the operator default.
@@ -158,7 +156,7 @@ Metrics are cheap (TSDB), traces are expensive (object storage). Typical retenti
 
 ### FastAPI spans missing
 
-Without `opentelemetry-instrument` wrapper or explicit instrumentation init, HTTP-layer spans are absent. First sign: traces start at a `vllm.*` span with no parent.
+Without `opentelemetry-instrument` wrapper or explicit instrumentation init, HTTP-layer spans are absent. First sign: traces start at an `llm_request` span with no parent.
 
 ### Collector down = traces dropped silently
 
@@ -180,22 +178,15 @@ export OTEL_EXPORTER_OTLP_CERTIFICATE=/etc/pki/ca-trust/source/anchors/internal-
 
 Don't put prompt text or `request_id` in `OTEL_RESOURCE_ATTRIBUTES` — those become resource labels and cross with every span, blowing storage.
 
-### Useful Jaeger/Tempo queries
+### Useful Tempo (TraceQL) queries
 
-Find slow TTFT requests:
 ```
-{service.name="vllm-llama-70b"} | duration > 3s
-```
-
-Correlate with a request ID:
-```
-{service.name="vllm-llama-70b"} | vllm.request_id="req_abc123"
+{ resource.service.name = "vllm-llama-70b" && span.gen_ai.latency.time_to_first_token > 3 }
+{ resource.service.name = "vllm-llama-70b" && span.gen_ai.latency.time_in_queue > 1 }
+{ span.gen_ai.request.id = "<request-id>" }
 ```
 
-Find preemptions:
-```
-{service.name="vllm-llama-70b"} | vllm.preempted="true"
-```
+Preemption is not on the span — use `vllm:request_num_preemptions` (v0.30.0+).
 
 ## Code anchors
 
