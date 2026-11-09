@@ -230,6 +230,7 @@ tool-call-parser: llama3_json
 
 - **Shared base + per-model overlay:** not natively supported (no `include` mechanism). Use `yq merge` or Helm templating upstream of vLLM.
 - **Kustomize / Helm charts** often generate the YAML into a ConfigMap, mount it read-only, and pass `--config /etc/vllm/config.yaml`.
+- **Start from an upstream recipe** (source tree, v0.28.0+): `python3 tools/recipes/recipe_json_to_vllm_config.py --model <repo-id> --hardware <key>` writes `config.yml` + `env.sh` from recipes.vllm.ai; then `source env.sh && vllm serve --config config.yml`. Needs only PyYAML. Air-gapped: download `https://recipes.vllm.ai/<repo-id>/hw/<key>.json` on a connected host and pass the file path as the argument.
 - **Precedence escape:** to override one YAML value at runtime, pass the corresponding CLI flag after `--config`: `vllm serve --config prod.yaml --max-num-seqs 1024`.
 
 ## Keys that no longer exist (as of v0.33.0)
@@ -273,4 +274,3 @@ Still accepted at v0.33.0 but dead — delete on sight:
 
 - Parser: `vllm/utils/argparse_utils.py`, `FlexibleArgumentParser.load_config_file`
 - Docs: https://docs.vllm.ai/en/latest/configuration/serve_args/
-- Upstream example: `examples/online_serving/openai_api_server.yaml` (if present in the checkout)
