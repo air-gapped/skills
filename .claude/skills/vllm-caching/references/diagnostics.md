@@ -157,6 +157,8 @@ A missing line plus `external_prefix_cache_queries_total > 0` and `external_pref
 
 The engine startup logs report the actual allocation. Cross-check against `vllm:cache_config_info` — if the value is 1/TP of what was configured, the flag was probably interpreted as per-rank (the SGLang habit). Recheck the configuration.
 
+On v0.33.0+ read the resolved CPU-tier size from the `vllm:kv_offload_config_info` gauge instead of the launch flags: labels `cpu_kv_cache_size_bytes`, `cpu_kv_cache_size_tokens`, `cpu_num_chunks`, `cpu_blocks_per_chunk`, plus `tier` (`0:primary`, `1:fs`, …) under `TieringOffloadingSpec`. The series appears only after the first scheduler step, and each engine reports its own configuration.
+
 ## Pre-flight checklist for a new offload deploy
 
 Before recommending a config, confirm in this order:
