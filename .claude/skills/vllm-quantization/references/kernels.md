@@ -43,8 +43,8 @@ vLLM versions.
 | INT4 GPTQ | Exllamav2 | 60 | gptq.py |
 | INT4 GPTQ-Marlin | Marlin | 75 | gptq_marlin.py |
 | INT4 W4A8 | `CutlassW4A8LinearKernel` | 89 | — **dim alignment bug** ([#33783](https://github.com/vllm-project/vllm/issues/33783)) |
-| NVFP4 | CUTLASS (Qutlass) | 75 (emulated) / 100 | modelopt.py:1091 |
-| NVFP4 | TRTLLM GEN | 100 | modelopt.py:1799-1924 |
+| NVFP4 | CUTLASS (Qutlass) | 75 (emulated) / 100 | modelopt.py |
+| NVFP4 | TRTLLM GEN | 100 | modelopt.py |
 | NVFP4 | FlashInfer CuteDSL | 100 | [PR #38251](https://github.com/vllm-project/vllm/pull/38251) |
 | NVFP4 | `NvFp4LinearKernel` (refactored) | — | [PR #39129](https://github.com/vllm-project/vllm/pull/39129) |
 | NVFP4 | Machete | 100 | experimental |
@@ -129,7 +129,7 @@ with BF16 activations.` Grep for it before benchmarking W4A4.
 
 ## AMD / ROCm
 
-- **FNUZ format** — MI300 requires FP8 FNUZ. `normalize_e4m3fn_to_e4m3fnuz()` in w8a8_utils.py (line 72). Scale adjustment `*= 2` in `kv_cache.py:84`. `current_platform.is_fp8_fnuz()` guard.
+- **FNUZ format** — MI300 requires FP8 FNUZ. `normalize_e4m3fn_to_e4m3fnuz()` in w8a8_utils.py. Scale adjustment `*= 2` in `kv_cache.py`. `current_platform.is_fp8_fnuz()` guard.
 - **AWQ Marlin on ROCm** — landed v0.19 ([PR #36505](https://github.com/vllm-project/vllm/pull/36505)).
 - **wvSplitK skinny GEMM** for RDNA4/gfx1x AWQ ([PR #34709](https://github.com/vllm-project/vllm/pull/34709)).
 - **NVFP4 via emulation on MI300/MI355X** — [PR #35733](https://github.com/vllm-project/vllm/pull/35733) (v0.19).
@@ -144,19 +144,19 @@ with BF16 activations.` Grep for it before benchmarking W4A4.
 ## Marlin input dtype selection
 
 `get_marlin_input_dtype()`:
-- `modelopt.py:68` — selects marlin input for ModelOpt NVFP4 / MXFP8.
-- `fp8.py:57` — selects for FP8.
-- `fp8.py:384-391` — `use_marlin` gate for dispatch.
+- `modelopt.py` — selects marlin input for ModelOpt NVFP4 / MXFP8.
+- `fp8.py` — selects for FP8.
+- `fp8.py` — `use_marlin` gate for dispatch.
 
 ## Sanity checks at load time
 
 ```python
 # kv_cache.py
-kv_cache_uses_per_token_head_scales()    # line 60 — dynamic per-(token, head)
+kv_cache_uses_per_token_head_scales()    # dynamic per-(token, head)
 # fp8.py
-Fp8Config.get_min_capability()           # line 144 — SM75
+Fp8Config.get_min_capability()           # SM75
 # modelopt.py
-ModelOptNvFp4Config.get_min_capability() # line 1028 — SM75 emulated
+ModelOptNvFp4Config.get_min_capability() # SM75 emulated
 ```
 
-Validation lives in `ModelConfig.override_quantization_method()` per config class (model.py:968-987).
+Validation: `ModelConfig._verify_quantization()` (`vllm/config/model.py`) calls each config class's `override_quantization_method()`.

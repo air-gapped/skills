@@ -48,13 +48,13 @@ scales in the model checkpoint. Source of truth:
 
 ## Base method
 
-`BaseKVCacheMethod` (`kv_cache.py:18`) — parameters: `k_scale`, `v_scale`, `q_scale`, `prob_scale`. Loaded from checkpoint or computed.
+`BaseKVCacheMethod` (`kv_cache.py`) — parameters: `k_scale`, `v_scale`, `q_scale`, `prob_scale`. Loaded from checkpoint or computed.
 
 Extensions:
-- `Fp8KVCacheMethod` (`fp8.py:203`) — standard FP8 path.
-- `ModelOptFp8KVCacheMethod` (`modelopt.py:120`) — ModelOpt calibrated scales.
+- `Fp8KVCacheMethod` (`fp8.py`) — standard FP8 path.
+- `ModelOptFp8KVCacheMethod` (`modelopt.py`) — ModelOpt calibrated scales.
 
-Validation: `cache.py:236-254` — ensures backend supports the chosen dtype.
+Validation: `CacheConfig._validate_cache_dtype` (`vllm/config/cache.py`) rejects unknown dtypes; each attention backend's `supports_kv_cache_dtype()` decides the rest.
 
 ## Calibrating scales (pre-compute)
 
@@ -80,7 +80,7 @@ Serve: `vllm serve <model> --kv-cache-dtype fp8`.
 
 New in v0.17 ([PR #34281](https://github.com/vllm-project/vllm/pull/34281)). No checkpoint scales; attention kernel computes per-(token, head) scale at write time.
 
-Rules (`kv_cache.py:57-69`):
+Rules (`kv_cache.py`):
 - `k_scale` / `v_scale` forced to 1.0.
 - Requires FlashInfer or TRTLLM attention backend.
 - Not all models supported — check `kv_cache_uses_per_token_head_scales()`.
@@ -94,7 +94,7 @@ Removed by [PR #37201](https://github.com/vllm-project/vllm/pull/37201). Use pre
 
 ## FNUZ adjustment (AMD)
 
-`kv_cache.py:83-84`:
+`kv_cache.py`:
 
 ```python
 if current_platform.is_fp8_fnuz():

@@ -40,10 +40,10 @@ current docs before assuming it still parses.
 
 | Modifier | File | Use |
 |---|---|---|
-| `QuantizationModifier` | `src/llmcompressor/modifiers/quantization/quantization/base.py:16-50` | Simple PTQ, data-free (FP8_DYNAMIC, FP8_BLOCK, W8A16, NVFP4A16) |
-| `GPTQModifier` | `src/llmcompressor/modifiers/gptq/base.py:42-116` | Hessian-based PTQ (W4A16, W8A8, W4A4 with calibration) |
-| `AWQModifier` | `src/llmcompressor/modifiers/awq/base.py:57-82` | Activation-aware INT4 (fewer calibration samples than GPTQ) |
-| `SmoothQuantModifier` | `src/llmcompressor/modifiers/transform/smoothquant/base.py:60-100` | Activation smoothing before W8A8 GPTQ |
+| `QuantizationModifier` | `src/llmcompressor/modifiers/quantization/quantization/base.py` | Simple PTQ, data-free (FP8_DYNAMIC, FP8_BLOCK, W8A16, NVFP4A16) |
+| `GPTQModifier` | `src/llmcompressor/modifiers/gptq/base.py` | Hessian-based PTQ (W4A16, W8A8, W4A4 with calibration) |
+| `AWQModifier` | `src/llmcompressor/modifiers/awq/base.py` | Activation-aware INT4 (fewer calibration samples than GPTQ) |
+| `SmoothQuantModifier` | `src/llmcompressor/modifiers/transform/smoothquant/base.py` | Activation smoothing before W8A8 GPTQ |
 
 ## Standard oneshot template
 

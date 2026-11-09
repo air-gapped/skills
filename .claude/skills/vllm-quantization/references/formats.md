@@ -1,6 +1,6 @@
 # Quantization formats — per-file deep dive
 
-Every entry: CLI flag, vLLM source file, config class + line, min SM capability,
+Every entry: CLI flag, vLLM source file, config class, min SM capability,
 kernels dispatched to, status, key caveats. Source of truth is
 [`vllm/model_executor/layers/quantization/`](https://github.com/vllm-project/vllm/tree/main/vllm/model_executor/layers/quantization).
 
@@ -36,7 +36,7 @@ kernels dispatched to, status, key caveats. Source of truth is
 
 ## Dispatcher
 
-[`vllm/model_executor/layers/quantization/__init__.py`](https://github.com/vllm-project/vllm/blob/v0.32.0/vllm/model_executor/layers/quantization/__init__.py) — grep `QuantizationMethods = Literal` for the flag list and `def get_quantization_config` for the dispatch table (line ranges drift every minor). Detection flow in [`vllm/config/model.py`](https://github.com/vllm-project/vllm/blob/v0.32.0/vllm/config/model.py), `override_quantization_method()`.
+[`vllm/model_executor/layers/quantization/__init__.py`](https://github.com/vllm-project/vllm/blob/v0.32.0/vllm/model_executor/layers/quantization/__init__.py) — grep `QuantizationMethods = Literal` for the flag list and `def get_quantization_config` for the dispatch table (line ranges drift every minor). Detection flow: `ModelConfig._verify_quantization()` in [`vllm/config/model.py`](https://github.com/vllm-project/vllm/blob/v0.33.0/vllm/config/model.py), which calls each config class's `override_quantization_method()`.
 
 Full 30-flag catalog **verified against v0.32.0** (unchanged since v0.28.0 dropped `bitsandbytes`): `awq, auto_awq, fp8, fbgemm_fp8, fp_quant, modelopt, modelopt_fp4, modelopt_mxfp8, modelopt_mixed, auto_gptq, gptq, gptq_marlin, awq_marlin, humming, compressed-tensors, experts_int8, quark, moe_wna16, torchao, inc, mxfp4, gpt_oss_mxfp4, deepseek_v4_fp8, online, fp8_per_tensor, fp8_per_block, fp8_per_channel, int8_per_channel_weight_only, nvfp4_per_token, mxfp8`.
 
@@ -45,12 +45,12 @@ Full 30-flag catalog **verified against v0.32.0** (unchanged since v0.28.0 dropp
 ## FP8 — `--quantization fp8`
 
 - **File**: `vllm/model_executor/layers/quantization/fp8.py`
-- **Config class**: `Fp8Config` (line 92 at v0.32.0)
+- **Config class**: `Fp8Config`
 - **Min SM**: 75
 - **Activation schemes**: `static`, `dynamic`
 - **Kernels**: Marlin (`MarlinFP8ScaledMMLinearKernel`), CUTLASS (`cutlass_fp8_supported`), DeepGEMM (`use_deep_gemm`)
-- **KV support**: `Fp8KVCacheMethod` (class line 850)
-- **MoE**: `Fp8MoEMethod` (class line 464)
+- **KV support**: `Fp8KVCacheMethod`
+- **MoE**: `Fp8MoEMethod`
 - **Pre-quantized checkpoints only from v0.31.0** ([PR #53585](https://github.com/vllm-project/vllm/pull/53585)): `Fp8Config(is_checkpoint_fp8_serialized=False)` raises *"The `fp8` quantization method no longer supports online quantization"*; with no quant config in the checkpoint, `--quantization fp8` logs a deprecation warning and loads through the `fp8_per_tensor` online shorthand.
 
 Key config fields: `is_checkpoint_fp8_serialized`, `activation_scheme`, `ignored_layers`, `weight_block_size`.
@@ -58,25 +58,25 @@ Key config fields: `is_checkpoint_fp8_serialized`, `activation_scheme`, `ignored
 ## ModelOpt FP8 — `--quantization modelopt`
 
 - **File**: `vllm/model_executor/layers/quantization/modelopt.py`
-- **Config class**: `ModelOptFp8Config` (line 362)
+- **Config class**: `ModelOptFp8Config`
 - **Min SM**: 89
-- **Quant algo**: `FP8` from checkpoint (line 105)
-- **Kernels**: Marlin, CUTLASS FP8, FlashInfer (lines 1799-1924)
-- **Base class**: `ModelOptQuantConfigBase` (line 129), wildcard `exclude_modules` (fnmatch line 174), auto-skip `vision_tower` (line 197)
+- **Quant algo**: `FP8` from checkpoint
+- **Kernels**: Marlin, CUTLASS FP8, FlashInfer
+- **Base class**: `ModelOptQuantConfigBase`, wildcard `exclude_modules`, auto-skip `vision_tower`
 
 ## ModelOpt NVFP4 — `--quantization modelopt_fp4`
 
-- **Config class**: `ModelOptNvFp4Config` (line 1000)
+- **Config class**: `ModelOptNvFp4Config`
 - **Min SM**: 75 (emulated), 100 native
-- **Kernels**: CUTLASS (Qutlass, line 1091), TRTLLM, FlashInfer CuteDSL, Machete
-- **KV support**: `ModelOptFp8KVCacheMethod` (line 120) — FP8 KV, not NVFP4 KV yet
+- **Kernels**: CUTLASS (Qutlass), TRTLLM, FlashInfer CuteDSL, Machete
+- **KV support**: `ModelOptFp8KVCacheMethod` — FP8 KV, not NVFP4 KV yet
 - **Backend selection**: `select_nvfp4_moe_backend` in [`vllm/model_executor/layers/fused_moe/oracle/nvfp4.py`](https://github.com/vllm-project/vllm/tree/main/vllm/model_executor/layers/fused_moe/oracle)
 
 Recent landmarks: [PR #35733](https://github.com/vllm-project/vllm/pull/35733) (NVFP4 on AMD MI300 / Hopper via emulation, v0.19), [PR #37725](https://github.com/vllm-project/vllm/pull/37725) (SM12x arch-suffix fix), [PR #39510](https://github.com/vllm-project/vllm/pull/39510) (TRTLLM NVFP4 MoE for non-512-aligned hidden dims).
 
 ## ModelOpt MXFP8 — `--quantization modelopt_mxfp8`
 
-- **Config class**: `ModelOptMxFp8Config` (line 1492)
+- **Config class**: `ModelOptMxFp8Config`
 - **Min SM**: 89
 - **Quant algo**: `MXFP8`
 - **Kernels**: Marlin (via `get_marlin_input_dtype`), FlashInfer
@@ -84,14 +84,14 @@ Recent landmarks: [PR #35733](https://github.com/vllm-project/vllm/pull/35733) (
 
 ## ModelOpt mixed — `--quantization modelopt_mixed`
 
-- **Config class**: `ModelOptMixedPrecisionConfig` (line 2021)
+- **Config class**: `ModelOptMixedPrecisionConfig`
 - **Min SM**: 89
 - Mixed FP8 / FP16 per layer. Added [PR #35047](https://github.com/vllm-project/vllm/pull/35047), v0.17.
 
 ## compressed-tensors — `--quantization compressed-tensors`
 
 - **File**: `vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors.py`
-- **Config class**: `CompressedTensorsConfig` (line 80)
+- **Config class**: `CompressedTensorsConfig`
 - **Schemes** in `compressed_tensors/schemes/`:
 
 | Scheme file | SM | Kernels |
@@ -133,7 +133,7 @@ Preset schemes: `UNQUANTIZED`, `W8A16`, `W4A16`, `W4A16_ASYM`, `W8A8`, `INT8`, `
 
 ## AWQ — `--quantization awq` / `awq_marlin` / `auto_awq`
 
-- **File**: `vllm/model_executor/layers/quantization/auto_awq.py` — all three values map to `AutoAWQConfig` (line 174 at v0.32.0); the old `awq.py` / `awq_marlin.py` split is gone.
+- **File**: `vllm/model_executor/layers/quantization/auto_awq.py` — all three values map to `AutoAWQConfig`; the old `awq.py` / `awq_marlin.py` split is gone.
 - **Min SM**: 75
 - **Kernels**: Marlin on CUDA when `check_marlin_supported()` passes (not under `VLLM_BATCH_INVARIANT`), Triton otherwise; CPU/XPU take the Marlin method's mixed-precision kernel picker. The flag value does not select the kernel.
 - 4-bit only through this config (8-bit AWQ errors with a pointer to the Marlin backend).
@@ -142,7 +142,7 @@ ROCm AWQ Marlin: [PR #36505](https://github.com/vllm-project/vllm/pull/36505), v
 
 ## GPTQ — `--quantization gptq` / `gptq_marlin` / `auto_gptq`
 
-- **File**: `vllm/model_executor/layers/quantization/auto_gptq.py` — all three values map to `AutoGPTQConfig` (line 95 at v0.32.0).
+- **File**: `vllm/model_executor/layers/quantization/auto_gptq.py` — all three values map to `AutoGPTQConfig`.
 - **Min SM**: 60
 - **Kernels**: Marlin (linear and MoE).
 - Consolidated in [PR #37768](https://github.com/vllm-project/vllm/pull/37768); slow-GEMM removed ([PR #36900](https://github.com/vllm-project/vllm/pull/36900)); group/dynamic activation ordering (`g_idx`) removed in v0.30.0 ([PR #54809](https://github.com/vllm-project/vllm/pull/54809)).
@@ -150,10 +150,10 @@ ROCm AWQ Marlin: [PR #36505](https://github.com/vllm-project/vllm/pull/36505), v
 ## MXFP4 — `--quantization mxfp4` / `gpt_oss_mxfp4`
 
 - **File**: `vllm/model_executor/layers/quantization/mxfp4.py`
-- **Config class**: `Mxfp4Config` (line 40), `GptOssMxfp4Config` (line 104)
+- **Config class**: `Mxfp4Config`, `GptOssMxfp4Config`
 - **Min SM**: 80 (linear fallback), MoE kernel on SM100+
-- **Linear NOT implemented** — falls back to unquantized (line 83-88). MoE only via `GptOssMxfp4MoEMethod`.
-- **Bfloat16 only** for activations (line 64).
+- **Linear NOT implemented** — falls back to unquantized. MoE only via `GptOssMxfp4MoEMethod`.
+- **Bfloat16 only** for activations.
 
 Landmarks: [PR #31926](https://github.com/vllm-project/vllm/pull/31926) (dense W4A16 v0.14), [PR #32285](https://github.com/vllm-project/vllm/pull/32285) (MoE W4A16 v0.15), [PR #37463](https://github.com/vllm-project/vllm/pull/37463) (W4A4 CUTLASS MoE SM100, v0.19).
 
@@ -169,16 +169,16 @@ Landmarks: [PR #35448](https://github.com/vllm-project/vllm/pull/35448) (online 
 ## FBGEMM FP8 — `--quantization fbgemm_fp8` (DEPRECATED)
 
 - **File**: `vllm/model_executor/layers/quantization/fbgemm_fp8.py`
-- **Config class**: `FBGEMMFp8Config` (line 31)
+- **Config class**: `FBGEMMFp8Config`
 - **Min SM**: 80
-- Deprecated in `__init__.py:49`. Use `fp8` instead.
+- In `DEPRECATED_QUANTIZATION_METHODS`. Use `fp8` instead.
 
 ## FP_Quant — `--quantization fp_quant` (DEPRECATED)
 
 - **File**: `vllm/model_executor/layers/quantization/fp_quant.py`
-- **Config class**: `FPQuantConfig` (line 21)
+- **Config class**: `FPQuantConfig`
 - **Min SM**: 100
-- Deprecated in `__init__.py:50`.
+- In `DEPRECATED_QUANTIZATION_METHODS`.
 
 ## Quark — `--quantization quark`
 
@@ -191,15 +191,15 @@ Landmarks: [PR #35448](https://github.com/vllm-project/vllm/pull/35448) (online 
 ## experts_int8 / `int8_per_channel_weight_only` (online)
 
 - **File**: `vllm/model_executor/layers/quantization/experts_int8.py`
-- **Config class**: `ExpertsInt8Config` (line 20)
+- **Config class**: `ExpertsInt8Config`
 - **Min SM**: 80
-- **Online MoE method**: `Int8OnlineMoEMethod` (line 57)
+- **Online MoE method**: `Int8OnlineMoEMethod`
 - Consolidated with online FP8 in [PR #38463](https://github.com/vllm-project/vllm/pull/38463). Use `--quantization int8_per_channel_weight_only` for new deployments.
 
 ## moe_wna16 — `--quantization moe_wna16`
 
 - **File**: `vllm/model_executor/layers/quantization/moe_wna16.py`
-- **Config class**: `MoeWNA16Config` (line 37)
+- **Config class**: `MoeWNA16Config`
 - **Min SM**: 70
 - **Linear method values**: `gptq`, `awq`, `awq_marlin`
 - Marlin dispatch conditional on `is_gptq_marlin_compatible` / `is_awq_marlin_compatible`.
@@ -209,7 +209,7 @@ Fields: `linear_quant_method`, `weight_bits`, `group_size`, `has_zp`, `lm_head_q
 ## torchao — `--quantization torchao`
 
 - **File**: `vllm/model_executor/layers/quantization/torchao.py`
-- **Config class**: `TorchAOConfig` (line 30)
+- **Config class**: `TorchAOConfig`
 - **Min SM**: 75
 - Accepts PyTorch composable configs: `Float8WeightOnlyConfig`, `Int8WeightOnlyConfig`, etc.
 
@@ -262,7 +262,7 @@ on CPU.
 ## online — `--quantization online` (and shortcuts)
 
 - **File**: `vllm/model_executor/layers/quantization/online/base.py`
-- **Config class**: `OnlineQuantizationConfig` (line 44)
+- **Config class**: `OnlineQuantizationConfig`
 - **Min SM**: 75
 - **Shortcuts** (`_ONLINE_SHORTHANDS`, `vllm/config/quantization.py`): `fp8_per_tensor`, `fp8_per_block`, `fp8_per_channel`, `int8_per_channel_weight_only`, `nvfp4_per_token`, `mxfp8`
 - **Config args**: `QuantizationConfigArgs` in `vllm/config/quantization.py` — fields are `linear`, `moe` (each a `QuantSpec` with `weight` / `activation`), `ignore`, and (v0.30.0+) `targets` (`{pattern: shorthand}`, mutually exclusive with `linear`/`moe`). Weight/activation names come from `QUANT_KEY_NAMES` in the same file (`fp8_per_tensor_static`, `fp8_per_tensor_dynamic`, `fp8_per_token`, `fp8_per_channel_static`, `fp8_per_block_static`, `fp8_per_block_dynamic`, `mxfp8`, `mxfp4`, `nvfp4_per_token`, `int8_per_channel_static`, `int8_per_group_32`, `int4_per_group_32`). `int4_per_group_32` is the gfx942 load-time MXFP4-to-int4 path; `int8_per_group_32` (v0.33.0) is an activation name for MXFP4 linear layers on RDNA3 / RDNA3.5 — `--quantization-config.linear.activation int8_per_group_32` selects the W4A8 int8-dot GEMV for decode batches of up to 8 tokens.
@@ -386,4 +386,4 @@ Landed v0.19 ([PR #38479](https://github.com/vllm-project/vllm/pull/38479)). KV-
 | fp8 | — (detected from checkpoint + `quant_method`) |
 | mxfp4 | — |
 
-Override registration: `@classmethod get_config_filenames()` in `base_config.py:100-102`.
+Override registration: `@classmethod get_config_filenames()` in `base_config.py`.

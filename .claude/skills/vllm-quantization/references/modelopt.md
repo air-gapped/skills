@@ -73,10 +73,10 @@ Source: `modelopt/torch/quantization/config.py` (Python API; the CLI names are t
 
 | ModelOpt export | vLLM flag | Min SM | Loader file |
 |---|---|---|---|
-| FP8 (any flavor) | `--quantization modelopt` | 89 | `modelopt.py:362` (`ModelOptFp8Config`) |
-| NVFP4 | `--quantization modelopt_fp4` | 75 emulated / 100 native | `modelopt.py:1000` (`ModelOptNvFp4Config`) |
-| MXFP8 | `--quantization modelopt_mxfp8` | 89 | `modelopt.py:1492` (`ModelOptMxFp8Config`) |
-| Mixed precision | `--quantization modelopt_mixed` | 89 | `modelopt.py:2021` (`ModelOptMixedPrecisionConfig`) |
+| FP8 (any flavor) | `--quantization modelopt` | 89 | `modelopt.py` (`ModelOptFp8Config`) |
+| NVFP4 | `--quantization modelopt_fp4` | 75 emulated / 100 native | `modelopt.py` (`ModelOptNvFp4Config`) |
+| MXFP8 | `--quantization modelopt_mxfp8` | 89 | `modelopt.py` (`ModelOptMxFp8Config`) |
+| Mixed precision | `--quantization modelopt_mixed` | 89 | `modelopt.py` (`ModelOptMixedPrecisionConfig`) |
 
 ### Export path
 
@@ -117,7 +117,7 @@ Active RFC: [vLLM #40182](https://github.com/vllm-project/vllm/issues/40182) —
 
 `modelopt/torch/speculative/{eagle,dflash,medusa,plugins}/`. Examples: `examples/speculative_decoding/`. Recipes: `modelopt_recipes/general/speculative_decoding/{eagle3,dflash}.yaml`.
 
-**Critical constraint**: ModelOpt recipes assume **BF16 target model**. Recipes not validated with quantized target — base model is wrapped in `torch.no_grad()` (`modelopt/torch/speculative/plugins/transformers.py:139`), so forward is inference and a quantized target is theoretically workable, but the shipped training path is BF16-only. Order:
+**Critical constraint**: ModelOpt recipes assume **BF16 target model**. Recipes not validated with quantized target — base model is wrapped in `torch.no_grad()` (`modelopt/torch/speculative/plugins/transformers.py`), so forward is inference and a quantized target is theoretically workable, but the shipped training path is BF16-only. Order:
 
 ```
 1. Train drafter on BF16 target       (this section)
@@ -194,7 +194,7 @@ Extracts layers `[2, N/2, N-3]` concatenated. Output: 5–10 TB per 200K samples
 
 #### Aux-hidden-state layer IDs
 
-ModelOpt auto-sets `eagle_aux_hidden_state_layer_ids` in exported `config.json` — vLLM requires these. Formula in `modelopt/torch/speculative/plugins/transformers.py:529-536`:
+ModelOpt auto-sets `eagle_aux_hidden_state_layer_ids` in exported `config.json` — vLLM requires these. Formula in `modelopt/torch/speculative/plugins/transformers.py`:
 
 ```python
 num_layers = self._base_llm_config.num_hidden_layers
@@ -203,7 +203,7 @@ self.eagle_config.eagle_aux_hidden_state_layer_ids = list(set([
 ]))
 ```
 
-vLLM supported target families for EAGLE-3 aux-hidden-state path (from `vllm/config/speculative.py:818-833`): `llama, qwen, minicpm, gpt_oss, hunyuan_vl, hunyuan_v1_dense, afmoe, nemotron_h, deepseek_v2, deepseek_v3, kimi_k2, kimi_k25, minimax_m2, gemma4`.
+vLLM supported target families for EAGLE-3 aux-hidden-state path (from `vllm/config/speculative.py`): `llama, qwen, minicpm, gpt_oss, hunyuan_vl, hunyuan_v1_dense, afmoe, nemotron_h, deepseek_v2, deepseek_v3, kimi_k2, kimi_k25, minimax_m2, gemma4`.
 
 #### Training times (indicative)
 
