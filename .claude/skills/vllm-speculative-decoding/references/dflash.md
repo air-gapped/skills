@@ -33,6 +33,12 @@ vLLM plumbing: `vllm/v1/spec_decode/dflash.py:23-320` (V1) and
 (`LiLiCorrDraftModel`) served with `method: "dflash"` on MRV2. Set
 `num_speculative_tokens` to the checkpoint's `block_size - 1`; larger is unsupported.
 
+**XPress (v0.33.0+, #54448)** is a causal refiner on a DFlash drafter, also
+served with `method: "dflash"` (checkpoint architecture `Qwen3XPressModel`), MRV2
+only. Optional `"xpress_topc": <C>` in `--speculative-config` narrows each
+refinement pass to the drafter's top-C candidates (`0` = full vocabulary; unset
+= the checkpoint's value); on a non-XPress checkpoint the key is a `ValueError`.
+
 ## Constraints to know before turning it on
 
 1. **`--attention-backend flash_attn` is required.** The non-causal

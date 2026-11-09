@@ -181,8 +181,8 @@ Cross-attends non-causally over target hidden states with a mask + next-token
 embedding query.
 
 - Proposer: `DFlashProposer`, `v1/spec_decode/dflash.py:23-320` (V1); MRV2
-  `v1/worker/gpu/spec_decode/dflash/`, plus `dflash2/` and `lilicorr/` selected
-  by checkpoint architecture
+  `v1/worker/gpu/spec_decode/dflash/`, plus `dflash2/`, `lilicorr/` and
+  (v0.33.0+) `xpress/` selected by checkpoint architecture
 - Model: `model_executor/models/qwen3_dflash.py`
 - Method-enum detection: `"dflash"` substring in model name, or
   `MuseGlimmerAssistantModel` architecture (`config/speculative.py:1338-1343`)
