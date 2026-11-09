@@ -157,25 +157,11 @@ Verified 2026-04-25: `LMCACHE_MAX_LOCAL_CPU_SIZE=6` on an 8-prefix × 6000-token
 
 Sizing rule: `LMCACHE_MAX_LOCAL_CPU_SIZE ≥ 2 × (num_prefixes × prefix_len × kv_bytes_per_token)`. Apply the 2× margin for concurrent-store headroom during burst prefill.
 
-### Running LMCache 0.4.4+ on a CUDA 13 image
+### lmcache build on a CUDA 13 image
 
-As of 2026-04-25 the bundled `lmcache 0.4.3` inside `vllm/vllm-openai:cu130-nightly` is built against CUDA 12 and fails `import lmcache.c_ops` with `libcudart.so.12: cannot open shared object file` on CUDA-13 hosts (LMCache #2843). Workaround at container-start is to `pip install --force-reinstall` the CUDA-13 wheel:
+PyPI `lmcache` 0.5.x wheels are CUDA 13 builds; CUDA 12.9 builds are separate `-cu129` release assets. `ImportError: libcudart.so.12` from `import lmcache.c_ops` means a CUDA 12 lmcache (0.4.x) on a CUDA 13 image (LMCache #2843). Fix with `pip install lmcache==0.5.6` — never the old `v0.4.4-cu13` wheel, which is below the 0.5.6 security floor.
 
-```yaml
-command:
-  - bash
-  - -c
-  - |
-    set -euo pipefail
-    pip install --quiet --upgrade --force-reinstall --no-deps \
-      https://github.com/LMCache/LMCache/releases/download/v0.4.4-cu13/lmcache-0.4.4-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
-    python3 -c "import lmcache.c_ops; print('lmcache c_ops OK')"
-    exec vllm serve "$@"
-  - bash
-args: [--model, ..., --kv-offloading-backend, lmcache, ...]
-```
-
-Match the `cpXYZ` in the wheel to the image's Python (`python3 --version`); current vllm-openai images are `cp312`. Set `PYTHONHASHSEED=0` too — LMCache warns and falls back to a non-stable hash if unset.
+Set `PYTHONHASHSEED=0` — LMCache warns and falls back to a non-stable hash if unset.
 
 ### DRAM + local disk tier
 

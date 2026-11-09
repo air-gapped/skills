@@ -270,7 +270,7 @@ Compare two runs on identical traffic with and without `--kv-offloading-size` se
 **Other built-in workloads relevant to cache:**
 - `--dataset-name random` with `--random-prefix-len N` — simpler baseline
 - LMCache repo `benchmarks/multi_round_qa/multi-round-qa.py` — stateful multi-turn chat, closer to agentic pattern
-- LMCache CLI `lmcache bench engine --workload long-doc-permutator` — 5-axis stress (blended context boundaries, eviction, vocab, prefix domination, concurrency). Requires `lmcache` CLI on PATH (bundled in v0.14.0+ images but check — on CUDA 13 images the CLI may fail to import c_ops if built against CUDA 12, see LMCache #2843).
+- LMCache CLI `lmcache bench engine --workload long-doc-permutator` — 5-axis stress (blended context boundaries, eviction, vocab, prefix domination, concurrency). Requires the `lmcache` CLI on PATH (`/usr/local/bin/lmcache` in the `v0.32.0` and `v0.33.0` images).
 
 ## Done when — authoring or auditing a KV-cache config
 
