@@ -33,12 +33,6 @@ reference file it concerns and delete the entry here. An entry whose cue fired a
 - **evidence:** ubuntu-netplan and ubuntu-cloud-init, 2026-10-20 freshen — both mapped 24.04 to an upstream version that updates had moved (netplan 1.1.x, cloud-init 26.1), and the 24.04 cloud-init build reverts five upstream changes; each fix verified against Launchpad and the packaging branch (`helped`)
 - **confidence:** high — two independent skills, same mechanism
 
-### Universal capability claims break per item (2026-10-20)
-- **cue:** a skill states that every member of a set supports something ("all modules accept the token", "the flag replaces the list"), or relies on a tool's `--help` for semantics
-- **lesson:** verify the claim per member in the source at the pinned tag; list the exceptions in the reference table the agent reads
-- **evidence:** ansible-idrac-9-10 (four module families reject `x_auth_token`; two examples would have failed) and jira-cli (`--component` appends although `--help` says replace; confirmed in code and live), both 2026-10-20 (`helped`)
-- **confidence:** high — two skills, source-confirmed
-
 ### An assertion that fails in both arms is the eval, not the skill (2026-11-09)
 - **cue:** an outcome run lists a weak case whose failed assertion also fails every run of the without arm, or the skill's `evals.json` names another harness in `provenance.harness`
 - **lesson:** before editing SKILL.md, test the assertion against the runner — the tools `outcome-eval.py` grants, the empty workspace, the prompt's own constraints. When no correct answer can pass, correct the eval case in its own commit and re-run it with `--case`

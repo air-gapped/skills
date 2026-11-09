@@ -106,6 +106,8 @@ Only drift, deprecation, new-feature and broken produce mutation hypotheses.
 
 **An absence claim that licensed an inference is the expensive kind.** When a row says a source does not exist (e.g. "upstream publishes no support matrix"), check the source before trusting anything derived from it. Treat "we infer X because upstream publishes nothing" as a defect report, not a method; 404-pattern inference of version windows does not hold up.
 
+**Verify a universal claim per member.** "Every module accepts the token", "each script exits non-zero on a finding", or semantics taken from a tool's `--help`: check each member in the source at the pinned tag, or run each one, and list the exceptions in the table the agent reads.
+
 **Read a published lifecycle date; never compute one.** Take support-window dates from the vendor's lifecycle page or endoflife.date, not from release-tag arithmetic (the vendor clock usually starts from a docs release date that trails the tag). When a date falls inside the next 60 days, say so in days.
 
 **Re-test an inherited `unverifiable` flag; never carry it forward.** A row annotated "blocked — read manually" or "verify in browser" stops being probed. Re-run the escalation each pass: curl, then bare curl, then the browser. Delete the flag the moment one works, and say which did. Vendor bot-blocks and `429` to curl are common false positives that load fine in a browser.
