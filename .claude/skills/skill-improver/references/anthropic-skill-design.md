@@ -215,7 +215,7 @@ Hooks can also be embedded in skill frontmatter via `hooks`.
 2. **Plugin marketplace** — scales; teams choose what to install
 3. **Managed settings** — organization-wide
 
-Every checked-in skill adds to model context; at scale use a marketplace. Skills from `--add-dir` directories load automatically with live change detection. Nested `.claude/skills/` directories are auto-discovered (monorepos); nested dirs give directory-qualified names (`apps/web:deploy`). Plugins in `.claude/skills` load without a marketplace; `claude plugin init <name>` scaffolds one. Custom commands are merged into skills (`.claude/commands/deploy.md` ≡ `.claude/skills/deploy/SKILL.md`).
+Every checked-in skill adds to model context; at scale use a marketplace. Skills from `--add-dir` directories load automatically with live change detection. A nested `.claude/skills/` directory (monorepos) loads when Claude first reads or edits a file below it, not at startup — until then its skills cannot trigger; `/add-dir <subdir>` loads it sooner. With the Bash sandbox on (v2.1.319+) it loads only when the session starts or `/cd`s there. A nested skill whose name clashes with another gets a directory-qualified name (`apps/web:deploy`). Plugins in `.claude/skills` load without a marketplace; `claude plugin init <name>` scaffolds one. Custom commands are merged into skills (`.claude/commands/deploy.md` ≡ `.claude/skills/deploy/SKILL.md`).
 
 ## Composing Skills
 
