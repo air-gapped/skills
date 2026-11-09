@@ -130,9 +130,9 @@ Subclasses at v0.33.0: `DeepSeekR1ReasoningParser` (and `K2HorizonReasoningParse
 
 ## Non-obvious fields the serving layer reads
 
-From `OpenAIServingChat` (`vllm/entrypoints/openai/chat_completion/serving.py`) and the `Parser` wrapper it builds (`vllm/parser/abstract_parser.py`), at v0.32.0:
+From `OpenAIServingChat` (`vllm/entrypoints/openai/chat_completion/serving.py`) and the `Parser` wrapper it builds (`vllm/parser/abstract_parser.py`), at v0.33.0:
 
-- `reasoning_ended = request.resolve_reasoning_ended(parser, prompt_token_ids)` — computed once per request and passed to `engine_client.generate(..., reasoning_ended=...)`; `StructuredOutputManager._get_constraint_bounds` (`_get_constraint_start` through v0.31.x) reads it to decide where grammar enforcement starts. `True` when `include_reasoning=false` or when the parser supplied the grammar (Mistral), `parser.is_reasoning_end(prompt_token_ids)` otherwise, `None` with no reasoning parser (the engine then checks the prompt with its own reasoner). If True at prompt time (e.g. Qwen3 chat template with `enable_thinking=False` injected `<think>\n\n</think>\n\n`), streaming routes all deltas to content.
+- `reasoning_ended = request.resolve_reasoning_ended(parser, prompt_token_ids)` — computed once per request and passed to `engine_client.generate(..., reasoning_ended=...)`; `StructuredOutputManager._get_constraint_bounds` (`_get_constraint_start` through v0.31.x) reads it to decide where grammar enforcement starts. `True` when `include_reasoning=false` or when the parser supplied a grammar that already covers the reasoning (Mistral; `beam` at message start), `parser.is_reasoning_end(prompt_token_ids)` otherwise, `None` with no reasoning parser (the engine then checks the prompt with its own reasoner). If True at prompt time (e.g. Qwen3 chat template with `enable_thinking=False` injected `<think>\n\n</think>\n\n`), streaming routes all deltas to content.
 
 - `StreamState.reasoning_ended` — per-stream latch in `Parser.parse_delta`: checked against the prompt once (`prompt_reasoning_checked`), then set by `is_reasoning_end_streaming(current_ids, delta_ids)`; once True, `extract_reasoning_streaming` is never called again for that stream. When the prompt leaves reasoning open, `adjust_initial_state_from_prompt(prompt_token_ids)` (optional hook, default no-op) runs instead.
 
