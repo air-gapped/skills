@@ -52,7 +52,7 @@ Other deploy-level keys: `pipeline` (pick a registered pipeline variant), `sessi
 | `worker_type` | `ar` / `generation` | AR uses LLMEngine; generation uses DiffusionEngine |
 | `engine_output_type` | LLM stages: `text` / `image` / `audio` / `latent` / `token_ids`, combinable with `+` or `,` | What the stage emits; routes to output processors. On v0.32.0 an LLM stage accepts only these exact lowercase names (#7843): legacy aliases, case variants and padded values raise `Unknown modality` at output-processor init. `token_ids` (discrete image tokens, e.g. GLM-Image AR) is new in v0.32.0 |
 | `hf_config_name` | string \| null | Sub-key in multi-stage HF config for per-stage quant settings |
-| `async_chunk` | bool (deploy-level default `true` at v0.30.0) | Chunk-level pipeline overlap. Blocked `/v1/realtime` only on v0.20.x and older |
+| `async_chunk` | bool or unset, deploy-level; a stage may set its own `false` | Chunk-level pipeline overlap. Unset: `true` on v0.30.0; on v0.32.0 `true` only for a multi-stage pipeline that defines async-chunk processors, else `false`. v0.32.0 turns an explicit `true` off with a warning on a single-stage or unsupported pipeline and when a stage has `kv_transfer_config` (native AR→DiT KV needs it off) — grep the startup log for `async chunk` before assuming it is on. Blocked `/v1/realtime` only on v0.20.x and older |
 | `task_type` | `CustomVoice`/`VoiceDesign`/`Base` | Qwen3-TTS mode |
 | `codec_frame_rate_hz` | float | Audio codec sample rate |
 | `stage_connector_config` | dict | Connector choice + extras |
