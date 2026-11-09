@@ -194,17 +194,13 @@ Belt-and-braces: set **both** `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1`,
 | `VLLM_USE_DEEP_GEMM_E8M0` | `0` | Pack FP8 scales as E8M0 (Hopper FP8 E4M3 only — faster, tiny accuracy cost) |
 | `DG_JIT_CACHE_DIR` | `~/.cache/deep_gemm` | DeepGEMM JIT kernel cache. **Mount as PVC** — avoids per-pod warm-up tax (200-800 ms/shape) |
 
-**The two AOT vars are opt-*out*, not opt-in, on any current image.** Their
-defaults are computed, not constant: `VLLM_USE_AOT_COMPILE` resolves to on when
-torch ≥ 2.10 **and** the compile cache is enabled, and `VLLM_USE_MEGA_AOT_ARTIFACT`
-resolves to on when torch ≥ 2.12 **and** AOT compile is on. `requirements/cuda.txt`
-at v0.27.0 pins **`torch==2.13.0`** and **`torchvision==0.28.0`**
-([PR #48155](https://github.com/vllm-project/vllm/pull/48155), which raised Triton
-to 3.7.1 as a transitive torch dependency — there is no direct `triton` pin to
-grep for — and was flagged upstream as a breaking environment change), so both
-conditions hold out of the box and the practical action is setting them to `0` to
-*disable*. Note the coupling: `VLLM_DISABLE_COMPILE_CACHE=1` also turns AOT
-compile off, and that turns the mega-artifact off with it.
+**The two AOT vars are opt-*out* on any current image.** Their defaults are
+computed: `VLLM_USE_AOT_COMPILE` is on when torch ≥ 2.10 **and** the compile cache
+is enabled; `VLLM_USE_MEGA_AOT_ARTIFACT` is on when torch ≥ 2.12 **and** AOT compile
+is on. vLLM pins `torch==2.13.0` from v0.27.0 and `torch==2.14.0` at v0.33.0, so
+both hold out of the box — set them to `0` to disable. `VLLM_DISABLE_COMPILE_CACHE=1`
+also turns AOT compile off, and the mega-artifact with it. Triton has no direct pin
+to grep for; it arrives through torch.
 
 ## Experimental / safety overrides (footguns)
 
