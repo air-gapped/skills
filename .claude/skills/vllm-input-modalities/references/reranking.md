@@ -119,6 +119,13 @@ multimodal preprocessor. If `jinaai/jina-reranker-m0` fails to load its
 checkpoint weights, upgrade to ≥v0.31.0 (#57347, JinaVL text-config
 `num_labels` fix).
 
+**`jinaai/jina-reranker-m0` scores are wrong under truncation below v0.33.0**
+(#62783). Whenever `truncate_prompt_tokens` binds — or `-1` is used on a pair
+longer than `--max-model-len` — truncation cut off the model's score token and
+the classifier read an ordinary prompt token: irrelevant documents score as
+high as relevant ones, with no error. Upgrade, then re-score every pair that
+was truncated.
+
 ### Bi-encoder (cosine)
 
 Any embedding model auto-exposes `/score`. No separate config. The engine
