@@ -383,8 +383,9 @@ note these are a *different* pair from the connector-level lookup delays above:
 | `vllm:kv_offload_tiering_primary_read_usage_perc` / `_primary_write_usage_perc` | Occupancy of the primary tier's read and write paths |
 | `vllm:kv_offload_tiering_active_promotion_jobs` / `_active_cascade_jobs` | In-flight promotion and cascade jobs |
 | `vllm:kv_offload_tiering_promotion_job_failures` / `_cascade_job_failures` / `_promotion_allocation_failures` | Failure counters — watch these first when tiering silently stops helping |
+| `vllm:kv_offload_tiering_promotion_latency_seconds` | **v0.33.0+**. Histogram per promotion job, creation → completion, labelled by tier and result (`success`/`failure`). Includes tier queueing and failed attempts — the one to put a promotion-latency SLO on |
 
-**The 13 names above ship from v0.28.0 and do not exist before it.** Counted in `vllm/v1/kv_offload/tiering/base.py`: 2 names at v0.27.0, 15 at v0.28.0. On v0.27.x only the two `lookup_*_delay_seconds` metrics exist, so a dashboard built from this table will render empty panels there.
+**Apart from the two `lookup_*` histograms and names marked with a later release, the names above ship from v0.28.0 and do not exist before it.** Counted in `vllm/v1/kv_offload/tiering/base.py`: 2 names at v0.27.0, 15 at v0.28.0. On v0.27.x only the two `lookup_*_delay_seconds` metrics exist, so a dashboard built from this table will render empty panels there.
 
 **Three legacy names are deprecated, and the two this catalog previously
 published were misspelled.** Actual deprecated names are
