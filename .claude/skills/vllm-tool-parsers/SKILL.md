@@ -34,19 +34,21 @@ Assume a local [vllm-project/vllm](https://github.com/vllm-project/vllm) checkou
 
 **If the operator's question is "what does parser X do" — read `vllm/tool_parsers/X_tool_parser.py`.**
 
-**Except for the 19 names on the unified-parser path** (v0.32.0): there the
+**Except for the names on the unified-parser path** (19 at v0.32.0; 20 at v0.33.0
+with `step5`): there the
 `tool_parsers/` file is a stub of a few lines and the logic lives in
 `vllm/parser/<model>.py`. The CLI name → real file map, with the version each name
 moved, is in `references/parser-index.md` (rows written `a.py → vllm/parser/b.py`).
 
-**Recent names NOT on this path** — `dots` (`DotsToolParser`), `hy_v4` (`HYV4ToolParser`), `muse_glimmer` (`MuseGlimmerToolParser`) and `k2_horizon` (`K2HorizonToolParser`). None imports a `*ParserToolAdapter`, so each is an ordinary standalone tool parser with no paired reasoning adapter. Also off-path at v0.32.0: `qwen3_json` (an alias of `hermes`'s `Hermes2ProToolParser`) and `hf` (`ResponseTemplateToolParser`, see the CLI contract). Registry total: **54 names at v0.32.0** (51 at v0.30.0 and v0.31.0).
+**Recent names NOT on this path** — `dots` (`DotsToolParser`), `hy_v4` (`HYV4ToolParser`), `k2_horizon` (`K2HorizonToolParser`) and, v0.33.0+, `muse` / `musespark1x` (`MuseToolParser`; `muse_glimmer` is a thin subclass of it from v0.33.0 — read `muse_tool_parser.py`). None imports a `*ParserToolAdapter`, so each is an ordinary standalone tool parser with no paired reasoning adapter. Also off-path: `qwen3_json` (an alias of `hermes`'s `Hermes2ProToolParser`), `hf` (`ResponseTemplateToolParser`, see the CLI contract) and, v0.33.0+, `beam` (`BeamToolParser`, a `ResponseTemplateToolParser` subclass in `vllm/parser/beam.py`). Registry total: **58 names at v0.33.0** (54 at v0.32.0).
 
 **`_engine_` in the filename is not the marker.** `glm47_moe_tool_parser.py`,
 `kimi_k2_tool_parser.py`, `minimax_m2_tool_parser.py` and `mistral_tool_parser.py`
 have ordinary names and are still stubs. The test is whether the file imports
-an adapter: `grep -l "ParserToolAdapter" vllm/tool_parsers/*.py` (17 files at v0.32.0, 12 at v0.30.0;
+an adapter: `grep -l "ParserToolAdapter" vllm/tool_parsers/*.py` (17 files at v0.32.0 and v0.33.0;
 `ling3_tool_parser.py` imports its adapter from `vllm.parser.ling3`, so grepping
-`registered_adapters` misses it).
+`registered_adapters` misses it). The grep also misses `step5_tool_parser.py`
+(v0.33.0+): it subclasses `Qwen3EngineToolParser`, so its logic is `vllm/parser/qwen3.py`.
 **Exception**: `cohere_command_tool_parser.py` (`cohere_command3`/`cohere_command4`)
 is a stub too but imports no adapter — it's composed by
 name-check in `vllm/parser/parser_manager.py` instead, so this grep won't find
@@ -113,13 +115,16 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `inkling` | Inkling (v0.27.0+); typed `<\|content_text\|>`/`<\|content_thinking\|>`/`<\|content_invoke_tool_json\|>` blocks | (HF default) |
 | `minimax_m2` / `minimax_m3` | MiniMax-M2 / M3 | **the bare `minimax` name was removed at v0.25.1** — `--tool-call-parser minimax` no longer resolves |
 | `step3` / `step3p5` | Step-3 VL / Step-3.5-Flash, Step-3.7-Flash | (HF default) |
+| `step5` | Step-5 Preview (v0.33.0+; Qwen3-Coder XML grammar); pair `--reasoning-parser step5` | (HF default) |
 | `mimo` | MiMo-V2.6-Pro/Flash-RL (own class v0.32.0+); pair `--reasoning-parser mimo` | (HF default) |
 | `plamo3` | PLaMo 3 (v0.32.0+); `<\|plamo:begin_tool_requests:plamo\|>` markers | (HF default) |
 | `hf` | Any checkpoint shipping a `response_template` (v0.32.0+); pair `--reasoning-parser hf` or none | (checkpoint) |
+| `beam` | Beam-1.0 (v0.33.0+); reads `response_template` like `hf` and also grammar-constrains the output; pair `--reasoning-parser beam` or none | (checkpoint) |
 | `dots` | Dots (v0.29.0+); XML `<dots_function_call>` blocks | (HF default) |
 | `k2_horizon` | K2 Horizon (v0.30.0+) — `<ifm\|tool_calls>` / `<ifm\|tool_call>` wrappers, JSON or XML (`<ifm\|arg_key>`) bodies; `supports_required_and_named = False` | (HF default) |
 | `hy_v4` | Hunyuan V4 / Hy4-preview (v0.29.0+); XML `<arg_key>` / `<arg_value>` pairs | (HF default — no bundled template; the `hunyuan_a13b` one is a different parser) |
 | `muse_glimmer` | Muse Glimmer (v0.29.0+); `<\|eom\|>` / `<\|eot\|>` special tokens | `tool_chat_template_muse_glimmer.jinja` |
+| `muse` / `musespark1x` | Muse Spark Open (v0.33.0+; same ATEM `<atem:function_calls>` format as `muse_glimmer`); pair `--reasoning-parser muse` | (HF default) |
 | `seed_oss` | Seed-OSS | (HF default) |
 | `hunyuan_a13b` | Hunyuan-A13B | (HF default per vLLM docs; `tool_chat_template_hunyuan_a13b.jinja` also ships) |
 | `ernie45` | ERNIE-4.5 thinking | (HF default) |
@@ -131,7 +136,7 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 The table is not authoritative — verify against the deployed tree:
 
 ```bash
-grep -oE '^\s+"[a-z0-9_-]+": \(' vllm/tool_parsers/__init__.py | tr -d ' ":('   # CLI names only (54 at v0.32.0)
+grep -oE '^\s+"[a-z0-9_-]+": \(' vllm/tool_parsers/__init__.py | tr -d ' ":('   # CLI names only (58 at v0.33.0)
 ls examples/tool_chat_template_*.jinja            # lists shipped templates
 ls vllm/tool_parsers/*_tool_parser.py              # lists source files
 ```
