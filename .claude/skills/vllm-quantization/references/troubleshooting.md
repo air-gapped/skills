@@ -64,7 +64,7 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 | GPU OOM processing AWQ Marlin with UVA offload | — | [#21864](https://github.com/vllm-project/vllm/issues/21864) | Disable UVA or load less aggressively |
 | Gemma-4-31B-IT-NVFP4 OOM RTX 5090 | — | [#40291](https://github.com/vllm-project/vllm/issues/40291) | Not a vLLM bug: the published checkpoint is 32.7 GB on disk (BF16 and FP8 tensors beside the FP4 ones). Size a checkpoint from its files, not its name |
 | Qwen3.5 INT4 memory > FP8 (unexpected) | — | [#37080](https://github.com/vllm-project/vllm/issues/37080) | Open |
-| Gemma 4 31B INT4 KV only 25K tokens at 131K ctx | — | [#39133](https://github.com/vllm-project/vllm/issues/39133) | Use FP8 KV to fit more |
+| Gemma 4 31B INT4 on 2×24 GB: log reports a 25K-token KV cache at 131K ctx | — | [#39133](https://github.com/vllm-project/vllm/issues/39133) | The figure was a logging artifact, since corrected. On SM86 `fp8_e4m3` KV is a hardware limit (needs SM89+) — use `fp8_e5m2`, accepted for INT4 checkpoints from v0.24.0 ([PR #45040](https://github.com/vllm-project/vllm/pull/45040)) |
 | Online FP8 drops bias → memory surprises | below v0.21.0 only | [#39663](https://github.com/vllm-project/vllm/issues/39663) | Fixed in v0.21.0 (PR #41424); below that, use a pre-quantized checkpoint |
 | Online FP8 + MoE + TP/EP: single-GPU OOM | Qwen3-Next | [#34129](https://github.com/vllm-project/vllm/issues/34129) | Use pre-quantized checkpoint |
 
