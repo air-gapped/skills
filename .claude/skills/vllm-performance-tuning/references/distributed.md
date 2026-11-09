@@ -47,9 +47,7 @@ Debug: `NCCL_DEBUG=INFO vllm serve ... 2>&1 | grep -i "IB\|InfiniBand"`. Missing
 |---|---|---|
 | `VLLM_NCCL_SO_PATH` | None | Explicit path to custom NCCL `.so`; else vLLM searches system paths |
 | `VLLM_NCCL_INCLUDE_PATH` | None | Headers for compilation |
-| `VLLM_USE_RAY_COMPILED_DAG_CHANNEL_TYPE` | `auto` | `auto` / `nccl` / `shm`. Set `nccl` for IB / GPU-Direct-RDMA |
-| `VLLM_USE_RAY_COMPILED_DAG_OVERLAP_COMM` | `false` | Overlap comm with compute in Ray DAG |
-| `VLLM_USE_RAY_WRAPPED_PP_COMM` | `true` | Ray wrapper for PP all-reduce |
+| `VLLM_USE_RAY_COMPILED_DAG_CHANNEL_TYPE`, `VLLM_USE_RAY_COMPILED_DAG_OVERLAP_COMM`, `VLLM_USE_RAY_WRAPPED_PP_COMM` | — | **Removed in v0.33.0** with the Ray compiled-graph executor (#61712) — silently ignored; delete them from manifests |
 
 ### Distributed executor backend
 

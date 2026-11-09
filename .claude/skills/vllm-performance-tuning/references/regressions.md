@@ -139,6 +139,10 @@ Execution-path changes across these minors. These move the baseline a re-tune is
 measured against — re-benchmark across any of these boundaries rather than
 comparing to numbers taken before them.
 
+**v0.32.0 → v0.33.0:**
+
+- **Ray compiled-graph executor removed** (#61712, #62228). `--distributed-executor-backend ray` now always runs the MQ-based `RayExecutorV2`; `VLLM_USE_RAY_V2_EXECUTOR_BACKEND` and the three `VLLM_USE_RAY_COMPILED_DAG_*` / `VLLM_USE_RAY_WRAPPED_PP_COMM` env vars are gone and silently ignored.
+
 **v0.30.0 → v0.32.0:**
 
 - **Compile-pass sequence parallelism + AsyncTP removed** (#60517, v0.32.0). They were on by default at `-O2` for dense models with TP>1 (above a hidden-size threshold), so dense TP throughput can move across this upgrade with nothing changed. `pass_config` keys `enable_sp`, `fuse_gemm_comms`, `sp_min_token_num` now fail config validation — delete them. Model-level MoE SP is unaffected.

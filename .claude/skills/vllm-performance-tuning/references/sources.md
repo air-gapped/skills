@@ -11,6 +11,14 @@ This is the probe that answers "does this flag still exist", and it is what the
 2026-08-11 pass used. `requirements/cuda.txt` is the authority on runtime pins —
 the release note's Dependencies section mixes runtime and CI pins.
 
+### Flag-surface deltas found 2026-11-09 (v0.32.0 → v0.33.0, read at tag)
+
+v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02) and git tag `v0.33.0`; the GitHub Release named "v0.33.0" is attached to tag `v0.33.0rc3`, the same commit `4ba787ec99` ([#65662](https://github.com/vllm-project/vllm/issues/65662)).
+
+| Item | Status at v0.33.0 | Source |
+|---|---|---|
+| `VLLM_USE_RAY_COMPILED_DAG_CHANNEL_TYPE`, `VLLM_USE_RAY_COMPILED_DAG_OVERLAP_COMM`, `VLLM_USE_RAY_WRAPPED_PP_COMM`, `VLLM_USE_RAY_V2_EXECUTOR_BACKEND` | **removed** with the legacy Ray compiled-graph executor | [PR #61712](https://github.com/vllm-project/vllm/pull/61712), merged 2026-10-15; [PR #62228](https://github.com/vllm-project/vllm/pull/62228), merged 2026-10-19; `vllm/envs.py` v0.32.0 vs v0.33.0 |
+
 ### Flag-surface deltas found 2026-10-18 (v0.30.0 → v0.32.0, read at tag)
 
 | Item | Status at v0.32.0 | Source |
