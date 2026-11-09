@@ -248,7 +248,7 @@ State on ≥ v0.31.0. Which release enabled each combination, with PR numbers:
 | FP8 KV | Supported | Drafter KV dtype via `kv_cache_dtype` inside `--speculative-config`; unset inherits `--kv-cache-dtype` |
 | Structured outputs | Supported | — |
 | Disaggregated serving (P/D) | Supported (incl. NixlConnector + EAGLE-3) | — |
-| Watermarking | `dual_key_gumbel` native | Other algorithms need `"allow_target_only_watermarking": true` in `--watermark-config` (dilutes the signal), and only with probabilistic draft sampling, standard rejection sampling, and `eagle`/`eagle3`/`mtp`/`dspark` |
+| Watermarking | `dual_key_gumbel` native | Other algorithms need `"allow_target_only_watermarking": true` in `--watermark-config` (dilutes the signal), and only with probabilistic draft sampling, standard rejection sampling, and `eagle`/`eagle3`/`mtp`/`dspark` — plus `dflash` from v0.33.0, except DFlash2 / LiLiCorr checkpoints |
 | Multimodal | Spotty — check the target family | EAGLE/EAGLE3 on Qwen2.5-VL; text-only drafters auto-disabled for MM inputs on mismatch |
 
 ## Air-gapped operation
