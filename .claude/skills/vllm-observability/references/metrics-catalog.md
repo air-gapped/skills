@@ -271,7 +271,7 @@ clamp only changes anything once `context_len > sliding_window`.
 **log-only**. Turning one on and then grepping `/metrics` for it is a wasted
 half-hour, so the first column below is the one that matters. All are read from
 `vllm/config/observability.py` and exposed as CLI flags in
-`vllm/engine/arg_utils.py` (verified at upstream `main`, 2026-09-15).
+`vllm/engine/arg_utils.py` (v0.33.0).
 
 | Flag | Output | What it gives you |
 |---|---|---|
@@ -508,14 +508,15 @@ V0 metrics are hidden by default on V1. Re-enable during migration with `--show-
 
 For debugging, jumping into the source is fastest:
 
-Line ranges at tag v0.32.0 (file length in parentheses):
+Line ranges at tag v0.33.0 (file length in parentheses):
 
 - Prometheus setup & metric definitions: `vllm/v1/metrics/loggers.py:473-1137` (1453)
 - Bucket defaults: `vllm/v1/metrics/buckets.py`
-- Data classes (SchedulerStats, IterationStats): `vllm/v1/metrics/stats.py:222-643` (700)
+- Data classes (SchedulerStats, IterationStats): `vllm/v1/metrics/stats.py:222-647` (704)
 - Spec decode counters: `vllm/v1/spec_decode/metrics.py:177-281` (281)
 - MFU (perf.py `PerfMetricsProm`): `vllm/v1/metrics/perf.py:1741-1827` (1827)
 - Tracing init: `vllm/tracing/__init__.py:66-89` (155), `vllm/tracing/otel.py:60-124` (260)
+- Request span: `OutputProcessor.do_tracing` in `vllm/v1/engine/output_processor.py`; attribute names in `vllm/tracing/utils.py`
 - ObservabilityConfig: `vllm/config/observability.py:19-222` (222)
 - Programmatic metric reader (`llm.get_metrics()`): `vllm/v1/metrics/reader.py:70-146` (258)
 - Canonical design doc: `docs/design/metrics.md`

@@ -198,10 +198,12 @@ Preemption is not on the span — use `vllm:request_num_preemptions` (v0.30.0+).
 
 ## Code anchors
 
-- Tracing init / wiring: `vllm/tracing/__init__.py:66-87`
-- OTLP exporter + protocol selection: `vllm/tracing/otel.py:60-124`
-- ObservabilityConfig (CLI + env binding): `vllm/config/observability.py:17-153`
-- Detailed-traces flag parsing: `vllm/engine/arg_utils.py:560-563`
+At tag v0.33.0 (file length in parentheses):
+
+- Request span and its attributes: `OutputProcessor.do_tracing` in `vllm/v1/engine/output_processor.py`; names in `vllm/tracing/utils.py`
+- Tracer init and exporter/protocol selection: `vllm/tracing/otel.py:60-102` (260)
+- `instrument` / `instrument_manual` wrappers: `vllm/tracing/__init__.py:66-89` (155)
+- ObservabilityConfig, tracing validation: `vllm/config/observability.py:19-222` (222)
 
 ## References
 
