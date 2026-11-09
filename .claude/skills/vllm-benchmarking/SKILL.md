@@ -93,6 +93,7 @@ See `scripts/bench-sweep.sh` for a parametrized sweep runner that emits one JSON
 7. **Noisy neighbor.** Shared GPU, unrelated container load, MIG partition changes mid-run — check `nvidia-smi dmon` for unrelated activity before trusting numbers.
 8. **`latency` subcommand disables prefix caching by default** (to keep numbers clean). If benchmarking prefix-cache behavior, use `serve` with the `prefix_repetition` dataset.
 9. **Do not compare streaming TTFT/E2EL across v0.29 → v0.30.0 — re-baseline.** v0.30.0 fixed streaming TTFT timing and stopped counting zero-chunk streams as successes with `ttft=0`, so older runs read low (`troubleshooting.md`).
+10. **Chat backend + client-templated dataset = chat template applied twice (through v0.33.0).** `custom`, `hf`, `spec_bench` and `speed_bench` render the chat template client-side; with `--backend openai-chat` or `openai-responses` (`vllm-chat` in `bench throughput`) the server applies it again — nested templates, inflated input tokens. Pass `--skip-chat-template` with those backends.
 
 For the full flag reference for each subcommand, see `references/commands.md`. For the dataset catalog and when to use each, see `references/datasets.md`.
 
