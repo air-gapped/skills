@@ -28,7 +28,7 @@ Legend: ✅ supported / 🆕 Blackwell-only / 🧪 experimental / ❌ not suppor
 | **CPU KV offload (native)** | ✅ | ✅ | Production | `--kv-offloading-size` / `--cpu-offload-gb` |
 | **LMCache (CPU + NVMe + GDS)** | ✅ | ✅ | Production | Heaviest deployed option; 3FS/hf3fs connector for distributed KV |
 | **FP8 KV cache** | ✅ | ✅ | Production | `--kv-cache-dtype fp8` |
-| **FP4 KV cache** | ❌ | 🆕 🧪 | Early-production | Up to 3× TTFT in long-context prefill-heavy |
+| **FP4 KV cache** (`--kv-cache-dtype nvfp4`) | ✅ v0.32.0+ via `FLASHINFER` | ✅ 🧪 | Early-production | Up to 3× TTFT in long-context prefill-heavy. On SM8x/SM90/SM12x: plain `nvfp4` only, not head size 64, not with attention sinks |
 | **Algorithmic KV eviction** (H2O, StreamingLLM, SnapKV, PyramidKV) | ✅ | ✅ | Research | Correctness on long agentic traces hard to bound |
 
 ## System-level
