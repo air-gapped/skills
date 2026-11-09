@@ -1,11 +1,9 @@
 # vLLM environment variables — full catalog
 
-Load when the operator needs to look up a specific env var or survey what's configurable. Source of truth is `vllm/envs.py` (verify against the installed version — this table reflects **v0.18–v0.32**, re-diffed against `envs.py` at tag `v0.32.0`). Additions since v0.30.0 are mostly model- and hardware-specific kernel knobs outside this catalog's scope; the operator-facing ones are listed below. Of the removals, only `VLLM_ENGINE_ITERATION_TIMEOUT_S` was catalogued here.
+Load when the operator needs to look up a specific env var or survey what's configurable. Source of truth is `vllm/envs.py` (verify against the installed version — this table reflects **v0.18–v0.33**, re-diffed against `envs.py` at tag `v0.33.0`). Model- and hardware-specific kernel knobs are outside this catalog; removals are in §Removed and renamed.
 
-**Do not assume vLLM minors leave operator env vars alone.** A prior pass
-concluded they only touch torch/C++/pooling; the v0.22–v0.25 window disproved
-that by deleting `VLLM_RPC_TIMEOUT`, and v0.32.0 deleted `VLLM_ENGINE_ITERATION_TIMEOUT_S`.
-Re-check by name, not by release-note skim.
+**Every vLLM minor adds and deletes env vars** (v0.33.0: 8 removed, 10 added).
+Check a name against the installed `vllm/envs.py` before writing it into a manifest.
 
 The docs page at https://docs.vllm.ai/en/stable/configuration/env_vars/ is literally generated from `vllm/envs.py` via an `--8<--` include, so both are the same list.
 
@@ -63,7 +61,7 @@ Two consequences worth internalising:
   consumers, not just for the definition.
 
 If the actual need is a timeout on engine/worker plumbing, these exist and are
-live (defaults and consumers re-read at `v0.32.0`):
+live:
 
 | Variable | Default | Controls |
 |---|---|---|
@@ -74,7 +72,7 @@ live (defaults and consumers re-read at `v0.32.0`):
 
 `VLLM_ENGINE_ITERATION_TIMEOUT_S` is gone too — see §Removed and renamed.
 
-## Removed and renamed (v0.29 – v0.32)
+## Removed and renamed (v0.29 – v0.33)
 
 Delete these from manifests on upgrade. A removed env var is read by nothing, so
 setting it is silently inert.
@@ -82,13 +80,16 @@ setting it is silently inert.
 | Name | Status | Use instead |
 |---|---|---|
 | `VLLM_TEST_FORCE_FP8_MARLIN` | removed v0.29.0 (#52182) | `--linear-backend` / `--moe-backend` |
-| `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` | removed v0.29.0 (#53141), **restored v0.31.0** (#57055), default off | — |
+| `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` | removed v0.29.0 (#53141), restored v0.31.0 (#57055), **removed again v0.33.0** (#61278) | nothing — AITER tuned configs pick the kernel; set it only on v0.31–v0.32 |
 | `VLLM_PREFIX_CACHE_RETENTION_INTERVAL` | deprecated v0.29.0 (#52216), removed v0.30.0 (#55353) | `--prefix-cache-retention-interval` |
 | `VLLM_MM_HASHER_ALGORITHM` | removed v0.30.0 | `--mm-hasher-algorithm` |
 | `use_fp4_indexer_cache` (config alias) | removed v0.30.0 | `indexer_kv_dtype` |
 | ROCm `CUDA_VISIBLE_DEVICES` fallback | removed v0.30.0 | `HIP_VISIBLE_DEVICES` |
 | `VLLM_ENABLE_SCALE_OUT_ENDPOINTS` | removed v0.30.0 (#54579, #55176) | `--enable-scale-out` (default `False`) — without it plain `vllm serve` does not register `/render`, `/derender`, `/inference/v1/generate`; `vllm launch render` and `vllm serve --tokens-only` always register them |
 | `VLLM_ENGINE_ITERATION_TIMEOUT_S` | removed v0.32.0 (#59781); had no consumer at v0.30.0 either | nothing — no per-iteration timeout knob exists |
+| `VLLM_USE_RAY_V2_EXECUTOR_BACKEND`, `VLLM_USE_RAY_COMPILED_DAG_CHANNEL_TYPE`, `VLLM_USE_RAY_COMPILED_DAG_OVERLAP_COMM`, `VLLM_USE_RAY_WRAPPED_PP_COMM` | removed v0.33.0 (#61712, #62228) | nothing — the compiled-graph executor is gone and `RayExecutorV2` is the only Ray executor |
+| `VLLM_ROCM_MONO_DECODE` | removed v0.33.0 (#61082) | `--monokernel` |
+| `VLLM_ROCM_AITER_MLA_DCP_VERIFY`, `VLLM_ROCM_AITER_MEGA_MOE_FUSE_SHARED_EXPERTS` | removed v0.33.0 (#61628, #61345) | nothing |
 | `python -m vllm.entrypoints.grpc_server` | deprecated v0.30.0 (#56746), `DeprecationWarning` | `vllm serve <model> --grpc` |
 
 Added in v0.29.0: `VLLM_ALLREDUCE_USE_FLASHINFER` (default on) — set `0` to opt
