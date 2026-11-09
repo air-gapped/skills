@@ -109,7 +109,7 @@ docker run ... \
   -e LMCACHE_USE_EXPERIMENTAL=True \
   -e LMCACHE_CHUNK_SIZE=256 \
   -e LMCACHE_LOCAL_CPU=True \
-  -e LMCACHE_MAX_LOCAL_CPU_SIZE=1600 \
+  -e LMCACHE_MAX_LOCAL_CPU_SIZE=200 \
   -e LMCACHE_LOCAL_DISK="file:///mnt/nvme0/lm,file:///mnt/nvme1/lm,file:///mnt/nvme2/lm,file:///mnt/nvme3/lm" \
   -e LMCACHE_MAX_LOCAL_DISK_SIZE=4000 \
   -e LMCACHE_LOCAL_DISK_PATH_SHARDING=by_gpu \
@@ -128,16 +128,18 @@ docker run ... \
 > the measurement it documents. For anything but reproducing these numbers, run **≥ v0.22.0**
 > (CVE-2026-48746, critical `--api-key` bypass) and re-run the two-step bundling check in
 > SKILL.md against whichever tag you pick, since bundling is verified per tag.
+>
+> **On v0.23.0+ the two `--kv-offloading-*` flags start LMCache MP, not this recipe** (#42865).
+> Replace them with `--kv-transfer-config '{"kv_connector":"LMCacheConnectorV1","kv_role":"kv_both"}'`.
+> `LMCACHE_MAX_LOCAL_CPU_SIZE` is per rank: 8 ranks × 200 GiB = the 1600 GiB total.
 
 
 The in-process `LMCacheConnectorV1` does **not** declare `SupportsHMA` at v0.32.0, so on v0.23.0+ vLLM auto-disables HMA for it and logs a warning — you don't pass the flag yourself, but you do inherit the consequence: hybrid-attention models stay unsupported on this path (LMCache #3106, still open 2026-10-18).
 
 Key env vars:
-- `LMCACHE_MAX_LOCAL_CPU_SIZE` and `LMCACHE_MAX_LOCAL_DISK_SIZE` are **GiB as floats** (e.g. `5.0`, `1600`)
+- `LMCACHE_MAX_LOCAL_CPU_SIZE` and `LMCACHE_MAX_LOCAL_DISK_SIZE` are **GiB as floats** (e.g. `5.0`, `200`); the CPU size applies per rank
 - `LMCACHE_LOCAL_DISK` takes comma-separated paths in `file:///` URL form
 - `LMCACHE_LOCAL_DISK_PATH_SHARDING=by_gpu` (default) shards one path per GPU device id. Match drive count to GPU count when possible; with fewer drives than GPUs, multiple GPUs will contend on a single drive.
-
-Keep `LMCACHE_MAX_LOCAL_CPU_SIZE` and `--kv-offloading-size` consistent. LMCache env vars win on the backend side; inconsistency leads to scheduler miscounting available slots.
 
 Avoid `LMCACHE_LOCAL_CPU=False` (a.k.a. `use_hot=False`) — LMCache #2942 deadlocks `LocalCPUBackend.allocate()` when the staging buffer fills with no eviction path. The default is `True`; do not flip it. The issue now reads CLOSED, but it was **closed by the stale bot on 2026-07-30 (`not_planned`) after 60 days of silence, and its fix PR #3006 was closed unmerged** — the deadlock is unfixed in 0.5.x. Do not relax this on the strength of the closed state. The disk tier crash #2502 was closed NOT_PLANNED on 2026-05-04 (not being fixed) — DRAM-only remains the simpler default, but the disk tier is usable with the alloc-pressure caveats below.
 
@@ -151,7 +153,7 @@ LMCache WARNING: Failed to allocate memory block of size 37748736 because no mem
 
 Verified 2026-04-25: `LMCACHE_MAX_LOCAL_CPU_SIZE=6` on an 8-prefix × 6000-token bench (~48 K tokens, ~6.75 GB raw KV) triggered 413 alloc-failures in 60 s. Bumping to `12` eliminated them **and** raised CPU-tier hit rate from 9.4 % → 39.4 % on identical workload.
 
-Sizing rule: `LMCACHE_MAX_LOCAL_CPU_SIZE ≥ 2 × (num_prefixes × prefix_len × kv_bytes_per_token)`. Apply the 2× margin for concurrent-store headroom during burst prefill. Keep `LMCACHE_MAX_LOCAL_CPU_SIZE == --kv-offloading-size` (LMCache wins on the backend, vLLM on the scheduler — mismatch costs the scheduler correctness).
+Sizing rule: `LMCACHE_MAX_LOCAL_CPU_SIZE ≥ 2 × (num_prefixes × prefix_len × kv_bytes_per_token)`. Apply the 2× margin for concurrent-store headroom during burst prefill.
 
 ### Running LMCache 0.4.4+ on a CUDA 13 image
 

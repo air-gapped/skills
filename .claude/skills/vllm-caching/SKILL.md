@@ -30,6 +30,7 @@ Confirm the vLLM version before recommending any config.
 | KV Offload + Hybrid Memory Allocator (HMA) | **v0.21.0** (2026-05-15) | Native offload integrates with HMA — full enablement (#41445) + sliding-window groups (#41228) + multi-connector HMA (#39571), plus Qwen3.5/Mamba hybrid support (#35520). |
 | **Native multi-tier offloading** (`TieringOffloadingSpec`, fs / obj / p2p secondary tiers) | **v0.22.0** (2026-05-29) | Framework #40020 + Python filesystem tier #41735; object-store tier #41968 and per-request policy hooks landed in v0.23.0. Native offload is no longer CPU-DRAM-only — an NVMe or S3 tier no longer requires LMCache. See the decision tree. |
 | **HMA on by default for capable connectors** | **v0.23.0** (2026-06-15) | #41847. `disable_hybrid_kv_cache_manager` became tri-state (`None` = auto): vLLM disables HMA only for connectors that don't subclass `SupportsHMA`. This retires the manual-flag pitfall for native offload — see "Critical pitfalls". |
+| `--kv-offloading-backend lmcache` means LMCache **MP** | **v0.23.0** (2026-06-15) | #42865. With `--kv-offloading-size` set, the flag selects `LMCacheMPConnector`, which dials an LMCache server at `tcp://localhost:5555` unless `kv_connector_extra_config` gives host/port. The size value only switches offloading on; it is not passed to LMCache. Through v0.22.x the flag selected in-process `LMCacheConnectorV1`. |
 | `P2pNcclConnector` removed | **v0.24.0** (2026-06-29) | #44854. Migrate to NixlConnector or the `p2p` secondary tier. |
 | `p2p` secondary tier gets env-var defaults + hard `PYTHONHASHSEED` check | **v0.26.0** (2026-07-27) | #47636. `host`/`port` now default to `VLLM_P2P_SIDE_CHANNEL_HOST` (`localhost`) / `VLLM_P2P_SIDE_CHANNEL_PORT` (`5710`), not the old literal `7777`, and the tier raised at startup if `PYTHONHASHSEED` was unset — **lifted in v0.29.0** (#51875), which gives `NONE_HASH` a fixed default seed so cross-instance prefix sharing works unpinned. See `references/connectors.md`. |
 
@@ -75,7 +76,7 @@ Ask these in order:
 
 1. **Single node, CPU DRAM tier only, no disk?** → `--kv-offloading-backend native`. Zero extra deps, included since v0.11.1. Start here unless there is a concrete reason to add complexity.
 2. **Single node, want NVMe (or S3, or a peer's DRAM) as a third tier?** → **on v0.22.0+, prefer the native multi-tier framework** — `OffloadingConnector` with `spec_name: TieringOffloadingSpec` and a `secondary_tiers` list. Registered tier types are `fs` (local filesystem/NVMe), `obj` (object store), `p2p` (peer vLLM instances over NIXL), `kvcr` (v0.30.0+, see `references/connectors.md`), and `example`. Zero extra pods, no second cache implementation to keep in version-sync. LMCache in-process via `LMCacheConnectorV1` + `LMCACHE_LOCAL_DISK` remains the pre-v0.22 answer and is still the right call when a deploy needs LMCache-specific features (CacheBlend, its own controller, cross-engine sharing with SGLang).
-3. **Multiple vLLM pods on the same node want a SHARED KV cache, OR cache CPU work should not contend with the inference GIL, OR cache memory needs to scale independently of GPU pods?** → **LMCache MP mode** (separate-pod LMCache server, vLLM connects via ZMQ using `LMCacheMPConnector`). Defer to the **`lmcache-mp` skill** for the DaemonSet+Deployment pattern, image pair, ZMQ protocol, L2 adapter cascade.
+3. **Multiple vLLM pods on the same node want a SHARED KV cache, OR cache CPU work should not contend with the inference GIL, OR cache memory needs to scale independently of GPU pods?** → **LMCache MP mode** (separate-pod LMCache server, vLLM connects via ZMQ using `LMCacheMPConnector`; `--kv-offloading-backend lmcache` is its CLI shorthand on v0.23.0+). Defer to the **`lmcache-mp` skill** for the DaemonSet+Deployment pattern, image pair, ZMQ protocol, L2 adapter cascade.
 4. **Disaggregated prefill across nodes (separate prefill and decode pods)?** → NixlConnector via `--kv-transfer-config`. Tunes TTFT and ITL independently.
 5. **RDMA-backed KV transfer between nodes, high-throughput datacenter fabric?** → MooncakeConnector.
 6. **NIXL between prefill/decode pods AND local CPU overflow on each?** → MultiConnector, composing NixlConnector + OffloadingConnector.
@@ -101,7 +102,7 @@ If an SGLang config was 200 GB per GPU × 8 GPUs = 1600 GB, then on vLLM use `--
 
 **Delete `--mamba-cache-mode` from serve args.** From v0.33.0 the flag is deprecated and ignored whatever its value ([#60043](https://github.com/vllm-project/vllm/pull/60043)): Mamba prefix caching follows `--enable-prefix-caching` (`align` when on, `none` when off). The value `all` already fails config validation from v0.32.0 ([#58997](https://github.com/vllm-project/vllm/pull/58997)); on v0.30.0–v0.31.x it warned and forced MRV1 ([#55041](https://github.com/vllm-project/vllm/pull/55041)).
 
-When using LMCache as the backend, keep `LMCACHE_MAX_LOCAL_CPU_SIZE` and `--kv-offloading-size` consistent. LMCache env vars win on the backend side; inconsistency leads to scheduler miscounting available slots and either over-subscribing or under-using the cache.
+**With `--kv-offloading-backend lmcache`, `--kv-offloading-size` sizes nothing on v0.23.0+**: the pair starts the LMCache MP connector and the standalone LMCache server owns capacity (→ `lmcache-mp`). For in-process LMCache pass `--kv-transfer-config '{"kv_connector":"LMCacheConnectorV1","kv_role":"kv_both"}'` and size it with `LMCACHE_MAX_LOCAL_CPU_SIZE`, which is GiB **per rank** — on ≤ v0.22.x vLLM set it to `--kv-offloading-size ÷ (TP × PP)` itself.
 
 ## Critical pitfalls
 
@@ -271,7 +272,7 @@ Compare two runs on identical traffic with and without `--kv-offloading-size` se
 The recipe is finished only when every item holds for the exact tag deployed:
 
 1. Every cache-related flag and env var in the serve args is accounted for: available at that tag (version gates), not removed or ignored (`--calculate-kv-scales`, `--mamba-cache-mode`, `VLLM_PREFIX_CACHE_RETENTION_INTERVAL`), and not the weights flag `--cpu-offload-gb` standing in for KV offload.
-2. `--kv-offloading-size` is the TP-wide total in GiB; with LMCache, `LMCACHE_MAX_LOCAL_CPU_SIZE` agrees with it.
+2. `--kv-offloading-size` is the TP-wide total in GiB with backend `native`. `--kv-offloading-backend lmcache` appears only where an LMCache MP server is deployed (v0.23.0+); in-process LMCache is sized per rank by `LMCACHE_MAX_LOCAL_CPU_SIZE`.
 3. `--disable-hybrid-kv-cache-manager` appears only for a connector without `SupportsHMA` or MoRI-IO WRITE mode on a sliding-window hybrid.
 4. The image tag passed both bundling steps and is ≥ v0.22.0.
 5. Every row of "Known bugs" was rechecked and its avoidance applied.
