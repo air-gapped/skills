@@ -230,6 +230,7 @@ State on ≥ v0.31.0. Which release enabled each combination, with PR numbers:
 | Combined with | Status | Constraint |
 |---|---|---|
 | Chunked prefill | Supported | — |
+| Prefix caching | Supported | ≤ v0.32.x: every hit loses its last matched block under `eagle`/`eagle3`/`mtp`/`dflash`/`dspark`. v0.33.0: full hits for `dflash`/`dspark`, and for `eagle`/`eagle3`/`mtp` when no KV connector is configured (lookahead block hashes, on by default). A consumer of KV cache events must then hash with `BlockStored.lookahead_token_ids`, or set `"disable_lookahead_block_hashes": true` on the engines |
 | Async scheduling | Default ON | Zero-bubble variant included |
 | LoRA | Supported | EAGLE + LoRA CUDA graphs specialised; Nemotron-H MTP + LoRA supported |
 | Pipeline parallel | Model Runner V2 only | On the V1 runner, PP turns spec-dec off. The drafter itself always runs `pipeline_parallel_size=1` |
