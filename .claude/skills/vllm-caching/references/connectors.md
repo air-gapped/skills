@@ -560,7 +560,7 @@ Stacks connectors in priority order. Common pattern: NIXL for inter-node prefill
   "kv_role":"kv_both",
   "kv_connector_extra_config":{
     "connectors":[
-      {"kv_connector":"NixlConnector","kv_role":"kv_both"},
+      {"kv_connector":"NixlConnector","kv_role":"kv_consumer"},
       {"kv_connector":"OffloadingConnector","kv_role":"kv_both",
        "kv_connector_extra_config":{"block_size":64,"cpu_bytes_to_use":1000000000}}
     ]
@@ -568,4 +568,4 @@ Stacks connectors in priority order. Common pattern: NIXL for inter-node prefill
 }'
 ```
 
-Order matters — the first connector that can satisfy a lookup wins. Put the fastest tier first.
+Order matters — the first connector that can satisfy a lookup wins. Put the fastest tier first. Each child takes its own `kv_role`: the example is a decode pod, so its NixlConnector child is `kv_consumer` (`kv_producer` on a prefill pod).
