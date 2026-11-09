@@ -49,14 +49,14 @@ Fix: either set `--num-warmups 50` or bump `--num-prompts` to ≥500 and visuall
 
 Two causes:
 
-1. `--enable-prefix-caching` missing on the server side. Offload/caching config has no effect without this flag.
+1. Prefix caching is off on the server. It is on by default for every model that supports it, so do not look for a missing `--enable-prefix-caching` — look for `--no-enable-prefix-caching` in the serve args. Offload/caching config has no effect while it is off.
 2. Using `--dataset-name random` — random tokens share no prefix structure, so hit rate is legitimately 0. Switch to `prefix_repetition` or `custom` with real-traffic JSONL.
 
 Verify on the server's `/metrics` endpoint:
 
 ```bash
 curl -s http://<server>/metrics | grep prefix_cache
-# expect: prefix_cache_hits_total and prefix_cache_queries_total
+# expect: vllm:prefix_cache_hits_total and vllm:prefix_cache_queries_total
 ```
 
 ### Goodput reports 0.0 across the board
