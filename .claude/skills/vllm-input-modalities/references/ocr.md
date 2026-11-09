@@ -178,7 +178,11 @@ instructions; offline, prefix them with `<image>\n`.
    documented instruction templates.
 4. **Tensor parallelism** — works on the purpose-built OCR models but
    rarely worth it below 7B. These models are already encoder-bottlenecked
-   on single-GPU setups.
+   on single-GPU setups. **Exception — dots.ocr / dots.mocr through v0.33.0:**
+   with `--tensor-parallel-size` > 1 every region comes back as the same
+   "does not contain any text … blurry image" sentence (vision-tower QKV split,
+   #64541; fix merged after v0.33.0). Run TP=1 or add
+   `--mm-encoder-tp-mode data`.
 5. **GLM-OCR model_type quirk** — it's `glm_ocr` inside the `glm4_1v`
    family. If auto-detection picks the plain `glm4_1v` class, the model
    runs but without OCR-specific preprocessing; pin via
