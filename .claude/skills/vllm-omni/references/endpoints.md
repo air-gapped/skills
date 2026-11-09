@@ -73,6 +73,8 @@ Non-OpenAI extensions:
 
 Response: `{"created": <ts>, "data": [{"b64_json": "...", "revised_prompt": null}], "output_format", "size"}`, plus `cot_output` for CoT-enabled edit models.
 
+**Known failure, v0.32.0 (#9731, open):** `/v1/images/generations` does not inherit `--default-sampling-params`. Omitted fields fall back to the model's own defaults and the request still returns 200 (reported on MOSS-Image: configured `guidance_scale` 3 ran as 1, CFG off). Send `num_inference_steps`, `guidance_scale` and `flow_shift` in every request.
+
 **Gotcha**: Python OpenAI SDK doesn't have fields for the non-OpenAI extras. Use curl, or pass them through the SDK's `extra_body` (if translating to `/v1/chat/completions` with diffusion).
 
 ## `/v1/images/edits`
