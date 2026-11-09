@@ -48,7 +48,7 @@ bash ${CLAUDE_SKILL_DIR}/scripts/isolated-run.sh \
 
 - `--model` is `<provider-alias>/<served-model-id>`; the alias is arbitrary.
 - `--base-url` is any reachable endpoint, local or remote. `--api-key` defaults to `sk-dummy` for endpoints without auth.
-- `--max-turns` sets `agent.build.steps`; at the cap tools are disabled and the model must answer.
+- `--max-turns N` sets `agent.build.steps`. Request N is the cap request: `tool_choice: "none"`, tools still listed, and a trailing assistant-role "maximum steps reached" message. Keep N above the tier's expected turns.
 - Shell is denied unless `--allow-shell`. Pass it only for tiers 3 and 7; the shell is not sandboxed.
 - Scenario on stdin when `--prompt` is omitted.
 - `OC_CI_KEEP=1` keeps the scratch home (copied credentials are deleted).
@@ -140,6 +140,7 @@ Before v2.2.3 the last step usually loses its `step_finish` and often its `step_
 | No events, process exits | HTTP failure to the engine | `grep -iE 'ECONNREFUSED|timeout|50[0-9]' t.stderr` |
 | Correct round 1, garbage round 2 | Template drops prior `tool_calls` / tool results in the message loop | Inspect the template's history loop |
 | `error` event but the run finished with a correct answer (before v2.2.6) | A transient provider error was retried | Treat as pass if the final step completed; exit code is 1 regardless. From v2.2.6 a recovered error is a `retry` event with exit 0, so an `error` event there is a real failure |
+| Break only on the last step, and `step_start` count = `--max-turns` | That step is the cap request (trailing assistant message, `tool_choice: "none"`); a tool call there fails with `Tools are disabled after the maximum agent steps` | Raise `--max-turns` and re-run before blaming the tier; an engine or template that rejects a trailing assistant turn fails only here |
 | Run hangs, zero events, `/v1/models` still answers | Wedged tunnel or proxy that serves short requests but stalls streams | Connect to the engine directly; restart the run |
 | Exit 124 after a `step_finish` with no errors | `--timeout` hit during final text | Raise `--timeout` |
 

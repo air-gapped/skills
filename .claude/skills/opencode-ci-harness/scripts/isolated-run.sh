@@ -31,8 +31,8 @@
 #   @ai-sdk/anthropic         → POST /v1/messages          (Anthropic API)
 # Same --base-url ".../v1" works for all three (the SDK appends the
 # endpoint path).
-# --max-turns caps agent steps (config `agent.build.steps`); at the cap
-# opencode disables tools and asks the model for a final answer.
+# --max-turns N caps agent steps (config `agent.build.steps`); request N is
+# sent with tool_choice "none" and a trailing assistant "max steps" message.
 # --provider-options-json fields are sent verbatim in every request body
 # (openai-compatible only), e.g. `chat_template_kwargs`.
 # --allow-shell permits the shell tool (tiers 3, 7); denied by default.
