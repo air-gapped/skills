@@ -83,12 +83,16 @@ Source: [disagg prefill docs](https://docs.vllm.ai/en/latest/features/disagg_pre
 
 ### Connector catalog
 
-| Connector | Transport | Use |
+`kv_connector` must be a registered name — an unregistered one fails at startup. Names at v0.33.0 (`vllm/distributed/kv_transfer/kv_connector/factory.py`):
+
+| `kv_connector` | Transport | Use |
 |---|---|---|
-| `SharedStorageConnector` | filesystem | dev-only; slowest |
-| `LMCacheConnector` | tiered HBM+CPU+NVMe+GDS | reusable KV (RAG, multi-turn) |
-| `NixlConnector` | UCX (RDMA/IB, RoCE, TCP, NVMe-oF, S3) | NVIDIA NIXL, open-sourced GTC 2025 |
+| `ExampleConnector` (formerly `SharedStorageConnector`) | filesystem | dev-only; slowest |
+| `LMCacheConnectorV1`, `LMCacheMPConnector` (not `LMCacheConnector`) | tiered HBM+CPU+NVMe+GDS | reusable KV (RAG, multi-turn) |
+| `NixlConnector` = `NixlPullConnector` | UCX (RDMA/IB, RoCE, TCP, NVMe-oF, S3) | decode pulls KV (NIXL READ) |
+| `NixlPushConnector` (v0.24.0+) | same | prefill writes KV into decode memory (NIXL WRITE); rejects `--decode-context-parallel-size > 1` |
 | `MooncakeConnector` | RDMA | Kimi Moonshot's transfer layer |
+| `MoRIIOConnector` | AMD MORI-IO | P/D on AMD nodes |
 | `MultiConnector` | compose | tiered or fallback chains |
 
 ### NIXL flow (from [LMCache blog 2025-04-11](https://blog.lmcache.ai/en/2025/04/11/shaping-nixl-based-pd-disaggregation-in-vllm-v1))
