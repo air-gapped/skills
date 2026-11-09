@@ -196,7 +196,7 @@ A `model` that differs from the served model returns **400 "Model mismatch"** on
 
 ## `/v1/realtime` (WebSocket, Qwen3-Omni)
 
-Full recipe in `references/realtime-tts.md`. On v0.22.0+ the default `qwen3_omni_moe.yaml` (`async_chunk: true`) serves realtime; only v0.20.x and older reject realtime under `async_chunk`. Since v0.30.0 audio arrives as `response.output_audio.delta` (formerly `response.audio.delta`).
+Full recipe and the per-version wire contract in `references/realtime-tts.md`. On v0.22.0+ the default `qwen3_omni_moe.yaml` (`async_chunk: true`) serves realtime; only v0.20.x and older reject realtime under `async_chunk`. v0.32.0 turn mode: PCM16 mono 24 kHz in, `commit` then `response.create`, audio in `response.output_audio.delta` field `delta`. v0.30.0: 16 kHz in, field `audio`, transcripts as `transcription.delta`.
 
 ## `/v1/chat/completions` with diffusion via `extra_body`
 

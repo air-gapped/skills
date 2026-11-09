@@ -6,13 +6,13 @@ Load when serving Qwen3-Omni with `/v1/realtime`, serving Qwen3-TTS via `/v1/aud
 
 ### Hard constraints
 
-1. **`async_chunk` is allowed on v0.22.0+.** The default `qwen3_omni_moe.yaml` ships `async_chunk: true` and serves `/v1/realtime`; PR #3614 removed the handshake rejection. Only on v0.20.x and older does realtime need a stage config with `async_chunk` off (the server then answers `"unsupported"` at handshake).
+1. **The turn-mode wire contract changed at v0.32.0** (#8339, table below). Match the client to the server version: a v0.30.0 client never sends `response.create`, so a v0.32.0 server commits the audio and stays silent.
 
-2. **Input audio format: PCM16 mono @ 16 kHz**. Anything else (stereo, 8 kHz, 24-bit, WAV-with-header) → garbage or silence. The reference client rejects other rates (`openai_realtime_client.py:60` at v0.30.0).
+2. **`async_chunk` is allowed on v0.22.0+.** The default `qwen3_omni_moe.yaml` ships `async_chunk: true` and serves `/v1/realtime`; PR #3614 removed the handshake rejection. Only on v0.20.x and older does realtime need a stage config with `async_chunk` off (the server then answers `"unsupported"` at handshake).
 
-3. **Output audio rate: 24 kHz** PCM. Concatenate `response.output_audio.delta` events and write a 24 kHz WAV (honour `sample_rate_hz` if an event carries it). Before v0.30.0 the event was `response.audio.delta`.
+3. **Audio is headerless PCM16 mono** at the rate in the table. Stereo, the wrong rate, 24-bit or WAV-with-header → garbage or silence.
 
-4. **Turn vs duplex.** Plain `/v1/realtime` on `qwen3_omni_moe.yaml` is turn mode. `?duplex=1` needs a duplex deployment (`qwen3_omni_duplex.yaml`, `session_mode: duplex`); against a turn deployment it returns `unsupported` and closes with 1008.
+4. **Turn vs duplex.** Plain `/v1/realtime` on `qwen3_omni_moe.yaml` is turn mode. `?duplex=1` needs a duplex deployment (`qwen3_omni_duplex.yaml`, `session_mode: duplex`); against a turn deployment it returns `unsupported` and closes with 1008. On a duplex deployment plain `/v1/realtime` opens a duplex session.
 
 ### Serve command
 
@@ -25,21 +25,45 @@ vllm serve Qwen/Qwen3-Omni-30B-A3B-Instruct --omni --port 8091
 
 Published production numbers (v0.16 release): TTFP reduced 90%, RTF 0.22-0.45 on H100 TP2.
 
-### Protocol — OpenAI realtime shape
+### Turn-mode wire contract by version
 
-Client sends (v0.30.0 reference client):
-1. `session.update` — `{"model": "Qwen/Qwen3-Omni-30B-A3B-Instruct"}` (with `--server-vad`: a `session` object carrying `audio.input.format` `{"type":"audio/pcm","rate":16000}` and `turn_detection: server_vad`)
-2. `input_audio_buffer.append` — base64-encoded PCM chunk (default 200 ms chunks)
-3. `input_audio_buffer.commit` — `"final": true` on the last one; omitted with server VAD
-4. `session.close`
+| | v0.30.0 | v0.32.0 |
+|---|---|---|
+| Input audio (`input_audio_buffer.append`, base64) | PCM16 mono 16 kHz | PCM16 mono **24 kHz**; a `session.update` declaring another rate or format → `unsupported_audio_format` |
+| Start a reply | `input_audio_buffer.commit` with `"final": true` | `input_audio_buffer.commit`, then **`response.create`** |
+| Audio out | `response.output_audio.delta`: base64 in `audio`, rate in `sample_rate_hz` (24 kHz) | `response.output_audio.delta`: base64 in **`delta`**, always 24 kHz PCM16 |
+| Transcript of the reply | `transcription.delta` / `transcription.done` (+ usage) | `response.output_audio_transcript.delta` / `.done` |
+| Text-only reply | `"modalities": ["text"]` in `session.update` | `"output_modalities": ["text"]` in `session.update` or `response.create` → `response.output_text.delta` / `.done` |
+| Turn end | `response.output_audio.done` (`has_audio`) | `response.done` (usage inside) |
+| Conversation history | none — one turn per commit | kept on the connection; `conversation.item.create` / `.delete` / `.truncate` / `.retrieve`, `response.cancel` |
+| Images | — | `conversation.item.create` with `input_image`, then `response.create` |
+| Function tools | — | `tools` in `session.update` or `response.create`; server needs `--enable-auto-tool-choice --tool-call-parser <name>`, else `invalid_request_error` |
+| Close | `session.close` | close the WebSocket (`session.close` is not a turn-mode event) |
 
-Server sends:
-- `response.output_audio.delta` — PCM audio chunks at 24 kHz (was `response.audio.delta` before v0.30.0)
-- `transcription.delta` — streaming transcript text
-- `transcription.done` — final transcript + usage
-- `response.output_audio.done` — end of audio (`has_audio` flag)
+v0.22.0–v0.28.0 follow the v0.30.0 column with audio events named `response.audio.delta` / `response.audio.done`.
 
-### Client template (from `examples/online_serving/qwen3_omni/openai_realtime_client.py`)
+Minimal v0.32.0 turn (client → server):
+
+```json
+{"type": "session.update", "session": {"type": "realtime", "output_modalities": ["audio"]}}
+{"type": "input_audio_buffer.append", "audio": "<base64 PCM16 mono 24 kHz>"}
+{"type": "input_audio_buffer.commit"}
+{"type": "response.create"}
+```
+
+### Server VAD (v0.32.0 turn mode, #8600)
+
+Send `session.update` with `session.audio.input.turn_detection: {"type": "server_vad"}`; the server then commits the turn and creates the response itself, so send neither `commit` nor `response.create`. Defaults: `threshold` 0.5, `prefix_padding_ms` 300, `silence_duration_ms` 500, `create_response` and `interrupt_response` true.
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `server_vad_unavailable` on the first append | No usable Silero VAD backend: the ONNX model is read only from the local HF cache or a configured path (never downloaded while serving), and a configured path that is missing is a hard error | Pre-download `istupakov/silero-vad-onnx` into the HF cache or set `duplex_session.server_vad_model_path` in the deploy YAML; install `onnxruntime` |
+| `unsupported_turn_detection` | Any type other than `server_vad` on the turn handler | Use `server_vad`; `semantic_vad` is served by duplex deployments only |
+
+### Client templates
+
+- **v0.32.0:** `python -m examples.online_serving.realtime_web --profile qwen3-turn --backend ws://127.0.0.1:8091 --manual --port 7863` (browser UI; connects to `/v1/realtime?duplex=0`).
+- **Through v0.30.0** (`examples/online_serving/qwen3_omni/openai_realtime_client.py`, removed at v0.32.0):
 
 ```bash
 python examples/online_serving/qwen3_omni/openai_realtime_client.py \
@@ -50,12 +74,10 @@ python examples/online_serving/qwen3_omni/openai_realtime_client.py \
   --send-delay-ms 200
 ```
 
-CLI args:
-
 | Flag | Purpose |
 |---|---|
 | `--url` | Full WebSocket URL (include `/v1/realtime`) |
-| `--input-wav` | 16-bit PCM mono @ 16 kHz WAV file (required) |
+| `--input-wav` | 16-bit PCM mono @ 16 kHz WAV file (required; other rates rejected) |
 | `--output-wav` | Output WAV path (default `realtime_output.wav`) |
 | `--chunk-ms` | Input chunk size ms (default 200) |
 | `--send-delay-ms` | Simulated realtime send delay (default 0) |
@@ -66,10 +88,8 @@ CLI args:
 
 ### Common realtime gotchas
 
-- **Over-generation on incomplete input**: if Thinker runs before input audio is fully committed, it may ramble past the intended end. Cap `max_tokens` in session defaults or server config.
-- **Audio gaps (#2562)**: Sporadic silence gaps during streaming. Known issue, tracked; no clean workaround as of v0.18.
-- **ASR-only flow**: For `transcription.*` events without TTS output, set `"modalities": ["text"]` in session.update. Saves decoder work.
-- **Voice prompt**: to instruct the Talker to use a specific voice, include it in the user text prompt: "Reply with Ethan's voice: ..." — there's no separate session voice field.
+- **Over-generation on incomplete input**: if Thinker runs before input audio is fully committed, it may ramble past the intended end. Cap `max_output_tokens` (v0.32.0 `session.update` / `response.create`) or the stage's `max_tokens`.
+- **Voice**: no session voice field in turn mode. Ask in the prompt ("Reply with Ethan's voice: ..."); v0.32.0 defaults the talker voice to Ethan.
 
 ## Qwen3-TTS via `/v1/audio/speech`
 

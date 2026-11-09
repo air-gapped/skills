@@ -64,7 +64,7 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
   - Streaming audio in/out with cancel, barge-in, playback-aware session state, session resume. `docs/serving/realtime_duplex_api.md` is the wire contract
 
 **Qwen3-Omni realtime + Qwen3-TTS** → `references/realtime-tts.md`
-  - PCM16 mono @ 16 kHz in / 24 kHz out, OpenAI realtime event shape (non-beta names since v0.30.0)
+  - Turn-mode wire contract per version: v0.32.0 takes PCM16 mono 24 kHz and needs `response.create`; v0.30.0 takes 16 kHz and emits `transcription.*`
   - `async_chunk` no longer blocks realtime (v0.22.0+)
   - Qwen3-TTS CustomVoice / VoiceDesign / Base modes, 12 Hz / 25 Hz tokenizers
   - Voice-upload surface (`name` + `consent` + audio ≤10 MB or a speaker embedding; process-local)
@@ -73,11 +73,21 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
 
 - **Old realtime advice: "turn `async_chunk` off for `/v1/realtime`"**. True only on **v0.20.x and older**, where the WebSocket rejected at connection when `async_chunk` was on. PR #3614 (v0.22.0) removed that gate and added streaming audio input under async-chunk. On v0.22.0+ realtime works with the default `vllm_omni/deploy/qwen3_omni_moe.yaml`, which ships `async_chunk: true`; `--no-async-chunk` / `--async-chunk` override the YAML (v0.28.0+). `qwen3_omni_moe_async_chunk.yaml` no longer exists — do not look for it.
 
-- **Realtime clients parsing beta event names on v0.30.0+**. v0.30.0 emits the current OpenAI names (#7339, #7426): `response.output_audio.delta` / `response.output_audio.done` replace `response.audio.delta` / `response.audio.done`. A client keyed on the old names receives nothing and writes silence. Transcripts arrive as `transcription.delta` / `transcription.done`.
+- **Realtime client written for another server version**. v0.32.0 rewrote turn-mode `/v1/realtime` on the OpenAI Realtime GA event set (#8339). A client that worked on v0.30.0 hangs on v0.32.0, and the reverse writes silence:
+
+  | | v0.30.0 | v0.32.0 |
+  |---|---|---|
+  | Input | PCM16 mono 16 kHz | PCM16 mono **24 kHz** |
+  | Start a reply | `input_audio_buffer.commit` | `input_audio_buffer.commit`, then **`response.create`** |
+  | Audio event | `response.output_audio.delta`, base64 in `audio` | `response.output_audio.delta`, base64 in **`delta`** |
+  | Transcript | `transcription.delta` / `.done` | `response.output_audio_transcript.delta` / `.done` |
+  | Turn end | `response.output_audio.done` | `response.done` |
+
+  Before v0.30.0 the audio events were `response.audio.delta` / `.done` (#7339). Server VAD, tools and limits: `references/realtime-tts.md`.
 
 - **v0.30.0 config removals that fail at load.** `diffusion_batch_size` is gone — use `max_num_seqs` (#6484). Unknown diffusion config fields now raise with the field name and stage id instead of being silently dropped (#5172) — a stale or misspelled key that used to be ignored now stops the server. First-party Dynin-Omni and dots.tts support was removed (#7655).
 
-- **PCM format on `/v1/realtime`**. Qwen3-Omni realtime hard-expects **16-bit PCM mono @ 16 kHz input**, outputs PCM at 24 kHz. Stereo, 8 kHz, 24-bit, or WAV-with-header inputs produce garbage or silent failures. Use the reference client in `examples/online_serving/qwen3_omni/openai_realtime_client.py` as a template.
+- **PCM format on `/v1/realtime`**. Send headerless **16-bit PCM mono** at the rate the server version expects (24 kHz on v0.32.0, 16 kHz through v0.30.0); output is 24 kHz PCM16. Stereo, the wrong rate, 24-bit, or WAV-with-header inputs produce garbage or silence. Client templates: v0.32.0 `examples/online_serving/realtime_web` (`--profile qwen3-turn`); through v0.30.0 `examples/online_serving/qwen3_omni/openai_realtime_client.py` (removed at v0.32.0).
 
 - **`guidance_scale=0` silently enabled CFG below v0.26.0**. `0.0` was the "unset" sentinel in `OmniDiffusionSamplingParams`, so an explicit `0` was replaced by the pipeline default (HunyuanImage-3.0: `5.0`, CFG on) — every pipeline, not one model. Fixed in v0.26.0 (#4999). On older builds omit the field instead of sending `0`. CFG still gates on `guidance_scale > 1.0`, so `0.5` disables it on every version.
 
@@ -162,7 +172,7 @@ vllm serve Wan-AI/Wan2.2-T2V-A14B-Diffusers --omni \
 
 | Metric | Value |
 |---|---|
-| `/v1/realtime` input | PCM16 mono @ 16 kHz |
+| `/v1/realtime` input | PCM16 mono @ 24 kHz on v0.32.0; 16 kHz through v0.30.0 |
 | Qwen3-Omni audio output rate | 24 kHz |
 | Qwen3-TTS tokenizer rate | 12 Hz or 25 Hz |
 | `/v1/videos/sync` timeout | 600 s default; `VLLM_OMNI_VIDEO_SYNC_TIMEOUT` overrides (v0.24.0+) |
