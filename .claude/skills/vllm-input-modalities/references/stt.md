@@ -180,9 +180,12 @@ lied, which is exactly the failure a caption pipeline notices late.
 ## 7. Beam search + streaming
 
 - **Beam-search transcription** (offline + online) shipped in v0.18.
-  Improves WER on noisy audio at latency cost. Enable via the standard
-  `SamplingParams(best_of=..., use_beam_search=True)` plumbing — STT inherits
-  it from the generate path.
+  Improves WER on noisy audio at latency cost. Request fields on
+  `/v1/audio/transcriptions`: `use_beam_search=true`, `n` (beam width),
+  `length_penalty`. **Below v0.33.0 beams were ranked by log-prob over prompt
+  + generated length**, so `length_penalty` did nothing and beams that hit
+  EOS early — short or empty transcripts — won (#62928). Upgrade before
+  judging beam-search quality.
 - **Streaming transcriptions** — long-awaited; check release notes per
   version for streaming support maturity. As of early 2026, offline is
   rock-solid, streaming is still evolving.
