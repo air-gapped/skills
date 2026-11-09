@@ -1,6 +1,6 @@
 # vLLM Prometheus metrics — full catalog
 
-Last verified: 2026-10-18 against vLLM **v0.32.0** (see `references/sources.md`). Every `"vllm:…"` string in the v0.32.0 tree (Python and Rust, tests excluded) was diffed against v0.30.0: **additions only — no name removed or renamed**; `gpu_cache_usage_perc` still absent. Names added in v0.31.0/v0.32.0 are marked inline with their release.
+Names verified against vLLM **v0.33.0** (`references/sources.md`): every `"vllm:…"` string in the tree, Python and Rust, diffed against v0.32.0 — additions only. Names added in v0.31.0–v0.33.0 are marked inline with their release.
 
 Load when looking up what a specific `vllm:*` metric means, its type/labels, or when debugging a dashboard/alert. Reflects V1 engine (default on current main); V0 deltas called out.
 
