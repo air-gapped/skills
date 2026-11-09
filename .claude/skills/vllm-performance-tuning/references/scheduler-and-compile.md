@@ -53,7 +53,7 @@ Incompatible-or-fragile paths:
 - Structured outputs — fixed in [#26866](https://github.com/vllm-project/vllm/issues/26866)
 - Spec-dec — fixed in [#24799](https://github.com/vllm-project/vllm/issues/24799), [#29821](https://github.com/vllm-project/vllm/issues/29821)
 - Pipeline parallelism — umbrella tracker [#27679](https://github.com/vllm-project/vllm/issues/27679) closed 2025-12-29, sub-PRs merged. Model Runner V1 + PP>1 still auto-disables async scheduling; forcing it on there with structured output is rejected at startup (v0.31.0+)
-- Spec-dec methods other than EAGLE/MTP/draft-model/GPU n-gram/DSpark/DFlash, or `disable_padded_drafter_batch=True`, auto-disable it (hard error if forced on)
+- Spec-dec methods other than EAGLE/MTP/draft-model/GPU n-gram/DSpark/DFlash, or `disable_padded_drafter_batch=True`, auto-disable it (hard error if forced on) — on Model Runner V1 only from v0.33.0 (#62521); on ≤ v0.32.0 on both runners
 - Pooling models default it off
 - Some multimodal paths — [#31679](https://github.com/vllm-project/vllm/issues/31679) closed 2026-01-07
 - vllm-ascend v0.11.0rc2 — precision regression **fixed**, [ascend #4649](https://github.com/vllm-project/vllm-ascend/issues/4649) closed 2026-03-13; upgrade rather than disabling

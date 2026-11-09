@@ -37,7 +37,7 @@ Companion skills: `vllm-benchmarking` (measure), `vllm-caching` (KV), `vllm-nvid
 
 **Latency / graph + compile:**
 - **CUDA graphs** — keep `FULL_AND_PIECEWISE` (default); the flag is now `--cudagraph-capture-sizes` / `--max-cudagraph-capture-size`, and the generated cap already tracks `min(max_num_seqs × (1+spec_tokens) × 2, ceiling)` — ceiling **1024 on SM100 (B200/B300/GB200)**, 512 elsewhere.
-- **`--async-scheduling`** — auto-on unless: pooling model, a spec method other than EAGLE/MTP/draft-model/GPU n-gram/DSpark/DFlash, `disable_padded_drafter_batch`, PP>1 on Model Runner V1, or an executor without support.
+- **`--async-scheduling`** — auto-on unless: pooling model, an executor without support, ROCm DeepEP-HT + DBO, or — on Model Runner V1 only — PP>1, `disable_padded_drafter_batch`, or a spec method other than EAGLE/MTP/draft-model/GPU n-gram/DSpark/DFlash. On ≤ v0.32.0 the two spec-decode conditions disable it on Model Runner V2 too.
 - **Compile cache** — pre-bake `$VLLM_CACHE_ROOT/torch_compile_cache` on a representative pod; mount as PVC / bake into OCI layer.
 
 **Distributed (last resort, only when the lever above is exhausted):**
