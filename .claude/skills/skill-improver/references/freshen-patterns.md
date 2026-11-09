@@ -211,7 +211,7 @@ Run each pattern against the skill directory; collect unique matches.
 - Strip trailing slashes, URL fragments, tracking parameters.
 - Collapse GitHub `owner/repo` shorthand with the full URL.
 - Map version-string variants to one canonical form (`v2.1.105` ≡ `2.1.105`).
-- Skip refs inside `<!-- ignore-freshen -->` HTML comments.
+- Probe refs marked `<!-- ignore-freshen -->` like any other: the marker is a legacy label, not a skip (§1.1b).
 
 ### 1.4 Output structure
 

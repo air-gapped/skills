@@ -32,8 +32,8 @@ stamp to cap Dim 9 (see `references/quality-rubric.md` §Dim 9).
 
 Each row below has these columns: `Source`, `URL`, `What it contains`,
 `Last verified` (YYYY-MM-DD), `Pinned` (version or git ref, optional).
-Mark rows you want Freshen Mode to skip with `<!-- ignore-freshen -->`
-at the end of the row.
+`<!-- ignore-freshen -->` at the end of a row is a legacy label for a
+historical page: Freshen Mode probes those rows too.
 
 ## Most recent freshen pass: 2026-09-01
 
