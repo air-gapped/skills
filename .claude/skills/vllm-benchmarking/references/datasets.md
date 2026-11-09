@@ -8,9 +8,8 @@ Load when picking `--dataset-name` for a specific test. What each tests, when to
 `create_txt_slices_dataset.py`. Any tooling or citation pointing at the old flat
 path will 404.
 
-**The complete `--dataset-name` value set at v0.32.0** (argparse `choices` in
-`add_dataset_parser`, `vllm/benchmarks/datasets/datasets.py`, matches the rendered
-docs table): `sharegpt`, `burstgpt`, `random`, `random-mm`, `random-rerank`, `hf`,
+**The complete `--dataset-name` value set at v0.33.0** (argparse `choices` in
+`add_dataset_parser`, `vllm/benchmarks/datasets/datasets.py`): `sharegpt`, `burstgpt`, `random`, `random-mm`, `random-rerank`, `hf`,
 `custom`, `custom_audio`, `custom_image`, `prefix_repetition`, `spec_bench`,
 `speed_bench`, `timed_trace`. `vllm bench serve` defaults to `random`.
 
