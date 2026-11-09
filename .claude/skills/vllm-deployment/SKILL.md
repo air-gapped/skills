@@ -112,7 +112,7 @@ This skill owns the **pod/container/topology** layer. It does not own:
 - **`references/disagg.md`** — cross-pod PD with NixlConnector, Mooncake, LMCache, MORI-IO; Dynamo's relation to vLLM's own connectors; topology recipes.
 - **`references/openshift.md`** — RHAIIS, RHOAI ServingRuntime templates, SCC, arbitrary UID, Routes 60 s timeout, NVIDIA GPU Operator on OCP, user-workload monitoring, air-gapped (oc-mirror v2, IDMS, ModelCar).
 - **`references/docker-lab.md`** — `docker run` canonical flags, `--shm-size` vs `--ipc=host`, `--gpus`, MIG strings, Podman/podman-compose, rootless friction, 2-node disagg compose template.
-- **`references/upgrading.md`** — manifest- and rollout-affecting changes from v0.28.0 through v0.32.0; read before bumping the image tag.
+- **`references/upgrading.md`** — manifest- and rollout-affecting changes from v0.28.0 through v0.33.0; read before bumping the image tag.
 
 ## The vLLM in-repo deployment artifacts (cheat sheet)
 
@@ -163,9 +163,9 @@ The script validates pod health, `/health`, `/v1/models`, `/dev/shm` sizing, `/m
 
 ## Upgrading the image tag
 
-Current release: **v0.32.0** (2026-10-18). Write `vllm/vllm-openai:v0.32.0` (or the tag the operator runs) into every command and manifest, never `:latest` or a `<tag>` placeholder.
+Current release: **v0.33.0** (2026-11-02). Write `vllm/vllm-openai:v0.33.0` (or the tag the operator runs) into every command and manifest, never `:latest` or a `<tag>` placeholder.
 
-Before bumping the image tag, read `references/upgrading.md`: the v0.28.0–v0.32.0
+Before bumping the image tag, read `references/upgrading.md`: the v0.28.0–v0.33.0
 changes that alter a manifest or its rollout (CORS closed by default, a removed env
 var that now silently does nothing, deprecated `python -m` entrypoints, Model
 Runner V2 default, a YaRN `--max-model-len` that must be recomputed).

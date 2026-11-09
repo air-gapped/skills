@@ -1,7 +1,7 @@
-# Upgrading a deployment through v0.32.0
+# Upgrading a deployment through v0.33.0
 
-Upstream is at **v0.32.0** (2026-10-18), via v0.31.0 (2026-10-05), v0.30.0
-(2026-09-22), v0.29.0 and v0.28.0. Changes that affect a deployment manifest or
+Upstream is at **v0.33.0** (2026-11-02), via v0.32.0 (2026-10-18), v0.31.0
+(2026-10-05), v0.30.0 (2026-09-22), v0.29.0 and v0.28.0. Changes that affect a deployment manifest or
 its rollout plan:
 
 - **CORS is closed by default** (#61009, v0.32.0): `--allowed-origins` now
@@ -31,7 +31,7 @@ its rollout plan:
   `vllm serve` (#52131, v0.29.0). If a container `command:` still spells the
   module form, change it now rather than on the release that removes it.
 - **Model Runner V2 is the default for all models** (#53183, v0.29.0). MRV1 is
-  deprecated but **still ships in v0.32.0** despite the earlier v0.32 removal
+  deprecated but **still ships in v0.33.0** despite the earlier v0.32 removal
   target, and vLLM still falls back to it for features MRV2 does not cover yet
   (log line: `Model Runner V2 does not yet support …; using the V1 model runner
   instead`; e.g. `--enable-dbo` unless `VLLM_USE_V2_MODEL_RUNNER=1`). v0.32.0
