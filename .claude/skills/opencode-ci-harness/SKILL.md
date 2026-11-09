@@ -120,7 +120,7 @@ Every line: `{type, timestamp, sessionID, ...}`.
 | `step_start` | `part` |
 | `text` | `part.text` |
 | `reasoning` | `part.text` — emitted only with `run --thinking` (the runner passes it) |
-| `tool_use` | `part.tool`, `part.state.status` (`completed`\|`error`), `part.state.input`, `part.state.output` — one event per call, after it settles |
+| `tool_use` | `part.tool`, `part.state.status` (`completed`\|`error`), `part.state.input`, then `part.state.output` when completed or `part.state.error` (message string, no `output`) when failed — one event per call, after it settles |
 | `step_finish` | `part.reason`, `part.tokens`, `part.cost` |
 | `error` | `error.type`, `error.message` |
 | `retry` (v2.2.6+) | `attempt`, `nextRetryAt`, `error` — a failed model request is being retried; not a failure. A stream cut mid-answer leaves a partial `text` before it and a second `step_start` after it |
