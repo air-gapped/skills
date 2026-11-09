@@ -7,7 +7,7 @@ Load this when the operator names a model family. Each section: required flags �
 ## Table of contents
 
 1. [Qwen3 (dense + MoE + Coder)](#qwen3)
-2. [DeepSeek-R1 / V3 / V3.1 / V3.2](#deepseek)
+2. [DeepSeek-R1 / V3 / V3.1 / V3.2 / V4 / V4.1](#deepseek)
 3. [GPT-OSS (20B / 120B)](#gpt-oss)
 4. [Kimi-K2 (and K2.5)](#kimi-k2)
 5. [Llama-4 Maverick / Scout](#llama-4)
@@ -84,7 +84,7 @@ No warning without the override — a missing override is silent.
 
 ## DeepSeek
 
-### R1 / V3 / V3.1 / V3.2 flag matrix
+### R1 / V3 / V3.1 / V3.2 / V4 / V4.1 flag matrix
 
 | Model | `--chat-template` | `--tool-call-parser` | Extra |
 |---|---|---|---|
@@ -92,6 +92,10 @@ No warning without the override — a missing override is silent.
 | DeepSeek-V3-0324 | `examples/tool_chat_template_deepseekv3.jinja` | `deepseek_v3` | — |
 | DeepSeek-V3.1 | `examples/tool_chat_template_deepseekv31.jinja` | `deepseek_v31` | `--reasoning-parser deepseek_r1` |
 | DeepSeek-V3.2 | (covered by `--tokenizer-mode deepseek_v32`) | `deepseek_v32` | `--enable-auto-tool-choice`, `--reasoning-parser deepseek_r1` |
+| DeepSeek-V4 (v0.20.1+) | (covered by `--tokenizer-mode deepseek_v4`) | `deepseek_v4` | `--reasoning-parser deepseek_v4` |
+| DeepSeek-V4.1 (v0.30.0+) | (covered by `--tokenizer-mode deepseek_v41`) | `deepseek_v41` | `--reasoning-parser deepseek_v41` |
+
+The three `deepseek_v*` tokenizer modes replace Jinja with a Python prompt encoder. `--chat-template`, `add_generation_prompt` and `continue_final_message` do nothing there (through v0.33.0). Thinking default with neither `thinking` nor `enable_thinking` sent: **off** on `deepseek_v32`, **on** on `deepseek_v4` / `deepseek_v41`.
 
 ### Known bugs
 

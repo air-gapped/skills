@@ -1,7 +1,7 @@
 ---
 name: vllm-chat-templates
 description: |-
-  vLLM chat-template (prompt-side Jinja) operator reference. Template resolution precedence (`--chat-template` → AutoProcessor → tokenizer default → bundled fallback), `chat_template_kwargs` allowlist silently dropping `add_generation_prompt`/`enable_thinking`/custom kwargs (PR 27622 fix), 27 shipped `tool_chat_template_*.jinja` files (v0.33.0), known template-layer bugs for Qwen3/Qwen3-Coder, DeepSeek-R1/V3/V3.1/V3.2, GPT-OSS, Kimi-K2, Llama-4, Mistral (HF vs mistral mode), Gemma-3/4, Phi-4, GLM. Prompt side only — output parsing lives in sibling skills.
+  vLLM chat-template (prompt-side Jinja) operator reference. Template resolution precedence (`--chat-template` → AutoProcessor → tokenizer default → bundled fallback), `chat_template_kwargs` allowlist silently dropping `add_generation_prompt`/`enable_thinking`/custom kwargs (PR 27622 fix), 27 shipped `tool_chat_template_*.jinja` files (v0.33.0), known template-layer bugs for Qwen3/Qwen3-Coder, DeepSeek-R1/V3/V3.1/V3.2/V4, GPT-OSS, Kimi-K2, Llama-4, Mistral (HF vs mistral mode), Gemma-3/4, Phi-4, GLM. Prompt side only — output parsing lives in sibling skills.
 when_to_use: |-
   Trigger on "chat template broken", "chat template no effect", "--chat-template ignored", "jinja template error vllm", "apply_chat_template error", "ChatTemplateResolutionError", "tool_chat_template", "which tool_chat_template", "chat_template_kwargs not respected", "add_generation_prompt dropped", "enable_thinking ignored", "continue_final_message", "--chat-template-content-format auto", "tokenizer-mode mistral silent", "harmony format gpt-oss template", "template resolution order", "AutoProcessor chat template skipped when tools", "prompt doesn't match model card", "/v1/chat/completions vs /v1/responses template". TGI/SGLang/TensorRT-LLM-to-vLLM migration where Jinja differs. Also implicit — "audit chat template for {model}", "deploy-memo prompt format", "why does model emit wrong prompt", "jinja check". NOT for output parsing (→ `vllm-reasoning-parsers` / `vllm-tool-parsers`), NOT for KV caching (→ `vllm-caching`).
 ---
@@ -84,6 +84,7 @@ Per-family flag matrix lives in `references/flags-matrix.md`. Quick cheat-sheet 
 | DeepSeek-V3-0324 | `examples/tool_chat_template_deepseekv3.jinja` | `deepseek_v3` | — |
 | DeepSeek-V3.1 | `examples/tool_chat_template_deepseekv31.jinja` | `deepseek_v31` | `deepseek_r1` |
 | DeepSeek-V3.2 | (uses `--tokenizer-mode deepseek_v32`) | `deepseek_v32` | `deepseek_r1` |
+| DeepSeek-V4 / V4.1 | (uses `--tokenizer-mode deepseek_v4` / `deepseek_v41`) | `deepseek_v4` / `deepseek_v41` | `deepseek_v4` / `deepseek_v41` |
 | GPT-OSS 20B/120B | prefer `/v1/responses` endpoint | `openai` (broken on chat-completions #22578) | harmony-native |
 | Kimi-K2 | tokenizer default (post-fix commit) | `kimi_k2` | `kimi_k2` |
 | Llama-4 Maverick/Scout | `examples/tool_chat_template_llama4_pythonic.jinja` | `llama4_pythonic` | — |
@@ -101,7 +102,7 @@ Commit-gated models (Kimi-K2) require minimum HF revision — check `references/
 
 Consult this list for any "broken chat template" symptom. Most reports reduce to one of these.
 
-1. **Chat template silently ignored.** `--tokenizer-mode mistral` ignores `--chat-template` with a warning only (#25401); gpt-oss ignores it by design (#23015). Symptom: edit template, nothing changes. Fix: Mistral → HF tokenizer mode, or accept the built-in Mistral template as canonical; gpt-oss → `/v1/responses`.
+1. **Chat template silently ignored.** `--tokenizer-mode mistral` ignores `--chat-template` with a warning only (#25401); gpt-oss ignores it by design (#23015). `--tokenizer-mode deepseek_v32` / `deepseek_v4` / `deepseek_v41` render with a built-in Python encoder: `--chat-template`, `add_generation_prompt` and `continue_final_message` are ignored with no warning (through v0.33.0, #64431); only `thinking` / `enable_thinking`, `reasoning_effort` and `drop_thinking` reach it. Symptom: edit template, nothing changes. Fix: Mistral → HF tokenizer mode, or accept the built-in Mistral template as canonical; gpt-oss → `/v1/responses`.
 
 2. **`skip_special_tokens=true` strips control tokens before the reasoning parser.** Qwen3 reasoning, gpt-oss harmony. Fix: `extra_body={"skip_special_tokens": false}` per request. Gemma-4 (#38855) also needs a re-pulled HF template, not only a vLLM upgrade — §Gemma-4 in `model-families.md`.
 
