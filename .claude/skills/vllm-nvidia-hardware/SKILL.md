@@ -67,9 +67,9 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
   | NVFP4/MXFP4 MoE + expert parallelism, CUTLASS MoE backend | v0.32.0 | `expert_map` ignored, wrong local experts, ~0% GSM8K (#59042) |
 
 - 270 GB (HGX bin) or 279 GB (DGX bin) HBM per B300 often removes the *need* for KV offload on 70B-scale models. LMCache still earns its keep for 1M+ context and heavy prefix reuse.
-- **Crossing v0.27.0 or v0.32.0 is an environment change:** torch, NCCL, Python,
-  GCC and transformers floors moved — rebuild the container, never pip-upgrade in
-  place. Floors per release: `references/vllm-platform-matrix.md` §6.
+- **Crossing v0.27.0, v0.32.0 or v0.33.0 is an environment change:** torch, NCCL,
+  Python, GCC and transformers floors moved — rebuild the container, never
+  pip-upgrade in place. Floors per release: `references/vllm-platform-matrix.md` §6.
 - **On v0.32.0+ pip installs, run `vllm download-kernels` after every install or
   upgrade** (#58765): `flashinfer-cubin` is no longer a dependency, so without it
   startup JIT-compiles for minutes on Blackwell, and a mismatched kernel set makes
@@ -112,6 +112,9 @@ Configuring tiered KV (`--kv-offloading-size`, LMCache, NixlConnector, MooncakeC
   which describe fab output, not delivery.
 - **Re-probe every "not supported yet" before repeating it** — negatives about a
   moving upstream decay fastest.
+- **Take the newest vLLM release from `git tag` or PyPI, not from the tag column of
+  `gh release list`** — the v0.33.0 release object is attached to tag `v0.33.0rc3`,
+  so the listing shows an rc where the final release is.
 - Prefer NVIDIA first-party datasheets, then OEM datasheets (Dell/Lenovo/Supermicro),
   SemiAnalysis, then news; where sources disagree, report the range with each citation.
   Sources and the verification stamp: `references/sources.md`.

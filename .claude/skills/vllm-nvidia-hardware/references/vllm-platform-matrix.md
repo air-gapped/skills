@@ -167,7 +167,17 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
   FlashAttention-3 pinned to the torch stable-ABI commit (#47995) and an ABI-stable
   FlashMLA build (#48174) — both reduce torch-upgrade breakage. FlashInfer
   **0.6.14** (#47669); NIXL 1.3.1 (#47559); nvidia-cutlass-dsl 4.6.0 (#47442).
-- **v0.32.0** (2026-10-18, **newest release**) — **NVFP4 KV cache on SM8x/SM12x**
+- **v0.33.0** (2026-11-02, **newest release**) — **`torch==2.14.0` /
+  `torchvision==0.29.0`** (#52183) and image **`NCCL_VERSION=2.31.2`** (was 2.30.7):
+  an environment change, rebuild the container. **CUDA 13.0 artifacts only** — no
+  `cu129` wheels or `-cu129` images (#62575). FlashInfer **0.7.2.post1**;
+  `transformers>=5.16.1,<5.21.0`; `lmcache>=0.5.6`; the NIXL connector requires
+  NIXL ≥ 1.5 (#61032; `nixl==1.5.0` is the pin). Hopper: DeepSeek-V4/V4.1 MXFP4
+  experts run as block FP8 through Humming (#61875). Rubin: low-latency BF16 GEMM on
+  SM107 (#62843). Unchanged from v0.32.0: Python ≥ 3.11, GCC ≥ 13, image
+  `CUDA_VERSION=13.0.3`, `vllm download-kernels` after every pip install. MRV1 is
+  still present.
+- **v0.32.0** (2026-10-18) — **NVFP4 KV cache on SM8x/SM12x**
   (#46963), **SM90** (#60620) and with XQA decode on SM12x (#60452). **Fixes silent
   CUTLASS NVFP4/MXFP4 MoE corruption under EP** (#59042, see SKILL.md). DeepEPv2
   hybrid NVLink+RDMA mode now **on by default** (`VLLM_DEEPEP_V2_ALLOW_HYBRID_MODE=1`,
