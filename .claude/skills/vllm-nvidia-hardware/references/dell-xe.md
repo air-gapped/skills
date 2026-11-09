@@ -1,7 +1,7 @@
 # Dell PowerEdge XE reference
 
-Primary source: [Dell PowerEdge XE AI spec sheet (PDF, rev A04, 2026-03)](https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe-ai-spec-sheet.pdf).
-The spec sheet covers 11 XE models across multiple families.
+Primary source: [Dell PowerEdge XE spec sheet (PDF, Rev A07)](https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe-ai-spec-sheet.pdf).
+Cells marked `*` in the sheet ("not available at product launch") need a check against the Dell configurator before a purchase call.
 
 ## Naming disambiguations (these trip people up)
 
@@ -24,10 +24,10 @@ The spec sheet covers 11 XE models across multiple families.
 
 | Model | GPUs | CPU | Max DRAM | NVMe | Form | PSU | Cooling |
 |---|---|---|---|---|---|---|---|
-| **XE9712** | 4× B300 + NVLink-C2C coherent | 2× Grace (72c) | 480 GB LPDDR5X + 288 GB HBM3E/GPU per Dell (NVIDIA: 279 GB) | 8× E1.S (61.44 TB) | 1 RU sled in IR9048 (48 RU rack) | 6× 5500W AC in 33 kW shelf (54 VDC) | Air or DLC |
-| **XE8712** | 4× B300 | 2× Grace | 480 GB LPDDR5X + 192 GB HBM3E/GPU | 2× E3.S (15.36 TB) | 1 OU sled in IR7044/IR7050 ORv3 | 6× 5500W AC in 33 kW shelf | **DLC only** |
+| **XE9712** | 4× B300 + NVLink-C2C coherent | 2× Grace (72c) | 480 GB LPDDR5X per CPU + 288 GB HBM3E/GPU per Dell (NVIDIA: 279 GB) | 8× E1.S (61.44 TB) | 1 RU sled in IR9048 (48 RU rack) | 6× 5500W AC in 33 kW shelf (54 VDC) | Air or DLC |
+| **XE8712** | 4× B300 | 2× Grace (72c) | 480 GB LPDDR5X per CPU + 192 GB HBM3E/GPU | 2× E3.S (15.36 TB) | 1 OU sled in IR7044/IR7050 ORv3 | 6× 5500W AC in 33 kW shelf | **DLC only** |
 | **XE9780 (air)** | 8× HGX B300 **1100 W** SXM6 (Dell: 288 GB; NVIDIA: 270 GB) **or** 8× B200 180 GB 1000 W SXM6 | 2× Intel Xeon 6 (up to 86c) | 32 DIMM (4 TB) | 16× E3.S (245.76 TB) or 10× U.2 (153.6 TB) | 10U — 439.5 × 482.3 × 1044.7 mm; **163.2 kg** | 12× 3200W Titanium 200–240 VAC / 240 VDC | Air (15 GPU fans hot-swap + 5 CPU fans cold-swap) |
-| **XE9780L / XE9780LAP** | 8× HGX B300 NVL8 **1100 W** SXM6 (Dell: 288 GB; NVIDIA: 270 GB) | 2× Xeon 6 (L: 86c, LAP: 128c) | L: 4 TB / LAP: 6 TB | 16× E1.S or 8× U.2+2× CEM | 3 OU in IR7000 | 6× 5500W AC in 33 kW shelf | Liquid (CPU+GPU+NVSwitch) |
+| **XE9780L / XE9780LAP** | 8× HGX B300 NVL8 **1100 W** SXM6 (Dell: 288 GB; NVIDIA: 270 GB); XE9780L only: **or** 8× B200 180 GB 1000 W SXM6 | 2× Xeon 6 (L: 86c, LAP: 128c) | L: 4 TB / LAP: 6 TB | 16× E1.S or 8× U.2+2× CEM | 3 OU in IR7000 | 6× 5500W AC in 33 kW shelf | Liquid (CPU+CX8+GPU+NVSwitch) |
 | **XE9785L** | 8× AMD MI355X **or** 8× HGX B300 NVL8 **1100 W** SXM6 (Dell: 288 GB; NVIDIA: 270 GB) | 2× EPYC 9005 (up to 192c) | 24 DIMM (6 TB) | 16× E1.S or 8× U.2 | 3 OU in IR7000 | 6× 5500W AC in 33 kW shelf | Liquid |
 
 ## 10U / 6U / 4U Hopper & Blackwell nodes
@@ -45,8 +45,8 @@ The spec sheet covers 11 XE models across multiple families.
 
 | Model | GPUs | CPU | Max DRAM | Form | PSU | Cooling |
 |---|---|---|---|---|---|---|
-| **XE7745** | 8× DW-FHFL 600W (e.g. RTX PRO 6000, H200 NVL, H100 NVL, L40S, L4) | 2× EPYC 9005 (up to 192c) | 24 DIMM (3 TB) | 4U | 3200W / 2900W / 2400W | Air |
-| **XE7740** | 8× DW-FHFL 600W — includes Gaudi3 600W option | 2× Xeon 6 (up to 144c) | 32 DIMM (4 TB) | 4U | 3200W / 2900W / 2400W | Air |
+| **XE7745** | 8× DW-FHFL 600W **or** 16× SW-FHFL 75W (RTX PRO 6000 Blackwell SE 96 GB, AMD MI350P 144 GB, H200 NVL, H100 NVL, L40S, L4, RTX PRO 4500) | 2× EPYC 9005 (up to 192c) | 24 DIMM (6 TB) | 4U | 3200W / 2900W / 2400W | Air |
+| **XE7740** | Same slots; Gaudi3 600W in place of MI350P | 2× Xeon 6 (up to 144c) | 32 DIMM (8 TB) | 4U | 3200W / 2900W / 2400W | Air |
 
 ## Dell Integrated Rack (IR) products
 
