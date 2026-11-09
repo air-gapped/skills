@@ -272,7 +272,7 @@ When `references/sources.md` exists, cap Dim 9 on the date it was last verified.
 
 **A header stamp with no per-row column is on the current contract, not unmarked.** Do not read it as "no markers" (that caps a freshly freshened skill at 6). `staleness-report.py` resolves the stamp first and prints `full` in its `rows` column for these files.
 
-Tolerance (legacy files only): if ≥ 80% of rows have `Last verified:` dates, use the oldest dated row; if < 80% have dates, treat the file as lacking markers. Rows marked `<!-- ignore-freshen -->` (historical/pinned sources the author keeps as-is) are excluded from the cap computation entirely.
+Tolerance (legacy files only): if ≥ 80% of rows have `Last verified:` dates, use the oldest dated row; if < 80% have dates, treat the file as lacking markers. In those legacy files, rows marked `<!-- ignore-freshen -->` (historical/pinned sources) are left out of the oldest-date computation. Under a header stamp the marker changes nothing: freshen probes those rows and the stamp covers them.
 
 Quick check:
 
