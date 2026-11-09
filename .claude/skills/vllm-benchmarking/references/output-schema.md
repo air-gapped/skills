@@ -95,6 +95,15 @@ errors              list[str]     # empty string = success
 
 Large file — use for forensic analysis after a failed run, not for routine reporting.
 
+**Splitting a bad TTFT (v0.33.0+ client):** start the server with `--enable-per-request-metrics` and bench with `--backend openai`, `vllm` or `openai-chat`. The detailed result then also carries, index-aligned with the lists above:
+
+```
+server_queue_times  list[float | null]   # seconds waiting in the server scheduler
+server_ttfts        list[float | null]   # seconds from scheduling to first token
+```
+
+`ttfts[i] ≈ server_queue_times[i] + server_ttfts[i] + frontend/network overhead` (tokenization, chat template, MM preprocessing, transport). Both lists are omitted when no request reported either value. Per-request metrics cost server CPU at high concurrency — a diagnostic run, never the headline number.
+
 ## Stable vs version-sensitive fields
 
 **Stable across v0.11 → v0.33:**
