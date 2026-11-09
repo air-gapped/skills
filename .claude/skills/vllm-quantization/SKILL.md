@@ -2,15 +2,15 @@
 name: vllm-quantization
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 description: |-
-  vLLM datacenter-GPU quantization — picking, configuring, troubleshooting NVFP4, FP8, MXFP4, MXFP8, AWQ, GPTQ, INT8, compressed-tensors, modelopt, quark on H100/H200/B200/B300/GB200/GB300; every `--quantization` flag value, KV-cache dtypes (fp8_e4m3, nvfp4, per-token-head, turboquant), MoE backend selection (CUTLASS, TRTLLM, FlashInfer, DeepGEMM, Marlin, Qutlass), producing checkpoints with llm-compressor and NVIDIA ModelOpt (NVFP4_DEFAULT_CFG, FP8_DEFAULT_CFG, W4A16, SmoothQuant+GPTQ), online quantization (`fp8_per_tensor`, `fp8_per_block`, `nvfp4_per_token`), training EAGLE-3/dflash drafters on BF16 targets before PTQ, version gates per vLLM release (v0.14 → v0.32).
+  vLLM datacenter-GPU quantization — picking, configuring, troubleshooting NVFP4, FP8, MXFP4, MXFP8, AWQ, GPTQ, INT8, compressed-tensors, modelopt, quark on H100/H200/B200/B300/GB200/GB300; every `--quantization` flag value, KV-cache dtypes (fp8_e4m3, nvfp4, per-token-head, turboquant), MoE backend selection (CUTLASS, TRTLLM, FlashInfer, DeepGEMM, Marlin, Qutlass), producing checkpoints with llm-compressor and NVIDIA ModelOpt (NVFP4_DEFAULT_CFG, FP8_DEFAULT_CFG, W4A16, SmoothQuant+GPTQ), online quantization (`fp8_per_tensor`, `fp8_per_block`, `nvfp4_per_token`), training EAGLE-3/dflash drafters on BF16 targets before PTQ, version gates per vLLM release (v0.14 → v0.33).
 when_to_use: |-
   Trigger on `--quantization`, `--kv-cache-dtype`, W8A8, W4A4, torchao, bitsandbytes, gguf, Machete, `hf_quant_config.json`, `kv_cache_scheme`. Symptoms — "garbage after FP8", "NVFP4 NaN", "FP8 KV multi-turn corruption", "MoE kernel not dispatched on SM120", "illegal memory access awq_marlin", "online FP8 quality drop", "modelopt checkpoint won't load". Decisions — NVFP4 vs FP8 on H200 vs B200, quantizing EAGLE-3/dflash drafters, generating a checkpoint vLLM can load. Also implicit — "quantize {model}", "pick quant for {model}", "audit quantization", "deploy-memo quant", "which quant fits {GPU}", "spec-study quantization".
 ---
 
 # vLLM quantization — operator skill
 
-Registries, counts and flag values below are re-derived from the **v0.32.0**
-tree (2026-10-18); verification dates and citations live in
+Registries, counts and flag values below are re-derived from the **v0.33.0**
+tree (2026-11-02); verification dates and citations live in
 `references/sources.md`.
 
 For production vLLM operators on **H100 / H200 / B200 / B300 / GB200 / GB300** fleets
@@ -68,9 +68,9 @@ accuracy benchmarks against any OpenAI-compatible endpoint).
 loads on Blackwell natively and on Hopper via emulation ([PR #35733](https://github.com/vllm-project/vllm/pull/35733), v0.19). A separate `fp8` checkpoint is still worth keeping for older Hopper nodes where the
 NVFP4 emulation path is slower.
 
-## The `--quantization` flag values (30 at v0.32.0)
+## The `--quantization` flag values (30 at v0.33.0)
 
-Ground truth is the `QuantizationMethods = Literal[...]` block in [`vllm/model_executor/layers/quantization/__init__.py`](https://github.com/vllm-project/vllm/blob/v0.32.0/vllm/model_executor/layers/quantization/__init__.py) (`get_quantization_config()` dispatches below it) — grep the symbol, not a line range. Full catalog with file paths, min-capability, kernel map, and notes: `references/formats.md`.
+Ground truth is the `QuantizationMethods = Literal[...]` block in [`vllm/model_executor/layers/quantization/__init__.py`](https://github.com/vllm-project/vllm/blob/v0.33.0/vllm/model_executor/layers/quantization/__init__.py) (`get_quantization_config()` dispatches below it) — grep the symbol, not a line range. Full catalog with file paths, min-capability, kernel map, and notes: `references/formats.md`.
 
 **Production formats (keep in head):**
 
@@ -305,7 +305,7 @@ Before any upgrade, read every hop between the installed and target release in
 - `references/kernels.md` — kernel × format × SM dispatch map (Marlin / CUTLASS / DeepGEMM / FlashInfer / TRTLLM / Qutlass / Machete / Triton / Exllamav2).
 - `references/kv-cache.md` — KV-cache quantization: dtypes, per-token-head scales, attention-backend compatibility, calibration.
 - `references/troubleshooting.md` — symptom → known-issue → fix playbook.
-- `references/version-gates.md` — release-by-release quantization changes, v0.14 → v0.32.
+- `references/version-gates.md` — release-by-release quantization changes, v0.14 → v0.33.
 
 ## External references
 

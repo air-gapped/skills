@@ -36,9 +36,9 @@ kernels dispatched to, status, key caveats. Source of truth is
 
 ## Dispatcher
 
-[`vllm/model_executor/layers/quantization/__init__.py`](https://github.com/vllm-project/vllm/blob/v0.32.0/vllm/model_executor/layers/quantization/__init__.py) — grep `QuantizationMethods = Literal` for the flag list and `def get_quantization_config` for the dispatch table (line ranges drift every minor). Detection flow: `ModelConfig._verify_quantization()` in [`vllm/config/model.py`](https://github.com/vllm-project/vllm/blob/v0.33.0/vllm/config/model.py), which calls each config class's `override_quantization_method()`.
+[`vllm/model_executor/layers/quantization/__init__.py`](https://github.com/vllm-project/vllm/blob/v0.33.0/vllm/model_executor/layers/quantization/__init__.py) — grep `QuantizationMethods = Literal` for the flag list and `def get_quantization_config` for the dispatch table (line ranges drift every minor). Detection flow: `ModelConfig._verify_quantization()` in [`vllm/config/model.py`](https://github.com/vllm-project/vllm/blob/v0.33.0/vllm/config/model.py), which calls each config class's `override_quantization_method()`.
 
-Full 30-flag catalog **verified against v0.32.0** (unchanged since v0.28.0 dropped `bitsandbytes`): `awq, auto_awq, fp8, fbgemm_fp8, fp_quant, modelopt, modelopt_fp4, modelopt_mxfp8, modelopt_mixed, auto_gptq, gptq, gptq_marlin, awq_marlin, humming, compressed-tensors, experts_int8, quark, moe_wna16, torchao, inc, mxfp4, gpt_oss_mxfp4, deepseek_v4_fp8, online, fp8_per_tensor, fp8_per_block, fp8_per_channel, int8_per_channel_weight_only, nvfp4_per_token, mxfp8`.
+Full 30-flag catalog **verified against v0.33.0** (unchanged since v0.28.0 dropped `bitsandbytes`): `awq, auto_awq, fp8, fbgemm_fp8, fp_quant, modelopt, modelopt_fp4, modelopt_mxfp8, modelopt_mixed, auto_gptq, gptq, gptq_marlin, awq_marlin, humming, compressed-tensors, experts_int8, quark, moe_wna16, torchao, inc, mxfp4, gpt_oss_mxfp4, deepseek_v4_fp8, online, fp8_per_tensor, fp8_per_block, fp8_per_channel, int8_per_channel_weight_only, nvfp4_per_token, mxfp8`.
 
 `DEPRECATED_QUANTIZATION_METHODS` (same file) is exactly `["fbgemm_fp8", "fp_quant"]`. **`gguf` and `cpu_awq` are no longer in the list** — see their sections below.
 

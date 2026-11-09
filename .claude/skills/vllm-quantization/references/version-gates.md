@@ -401,7 +401,7 @@ Security / memory leak patch on top of v0.14.0. No quantization changes.
 
 ## Deprecation watch
 
-Re-verified against v0.32.0. vLLM's own `DEPRECATED_QUANTIZATION_METHODS`
+Re-verified against v0.33.0. vLLM's own `DEPRECATED_QUANTIZATION_METHODS`
 (`layers/quantization/__init__.py`) contains exactly two entries:
 
 - `fbgemm_fp8` — use `fp8`.
