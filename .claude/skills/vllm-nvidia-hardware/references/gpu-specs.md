@@ -44,6 +44,11 @@ operator refers to B300 in a Dell / Supermicro / Lenovo HGX box, default to the
 **270 GB / 1,100 W / 7.7 TB/s HGX NVL8** bin. When citing NVIDIA marketing numbers
 ("288 GB B300", "15 PFLOPS FP4"), those are the DGX / Superchip bin.
 
+**Tell the bins apart by TDP (1,100 W vs 1,400 W), not by a "288 GB" on an OEM
+sheet.** Dell's XE spec sheet prints **288 GB / 1,100 W** for HGX B300 NVL8 (its
+earlier revisions printed 270 GB) while NVIDIA's datasheet says 270 GB / 7.7 TB/s.
+Report both figures with their source and size against 270 GB.
+
 **The dense FLOPS above are NVIDIA's, not a halving of FP4.** Its datasheet marks
 each row with one of two footnotes — *"Specification in Sparse | Dense"* for FP4, and
 *"Specification in sparse. Dense is 1/2 sparse spec shown."* for the rest. Applying
@@ -63,8 +68,8 @@ and matches raw 12-Hi stack arithmetic, so the likeliest reconciliation is raw v
 usable capacity — but that is inference, not something the datasheet states. For any
 sizing decision use the datasheet number: the gap is 9 GB per GPU, 648 GB across an
 NVL72 rack, and 72 x 279 GB = 20.1 TB agrees with the datasheet's own
-"> 20 TB of HBM3E" rack figure. The HGX bin's 270 GB and 1,100 W are confirmed
-exactly, and are NVIDIA's spec rather than a Dell-specific bin.
+"> 20 TB of HBM3E" rack figure. The HGX bin's 270 GB and 1,100 W are NVIDIA's spec,
+not a Dell-specific bin.
 
 **Compute-format ratio** is 4:2:1 FP4:FP8:FP16 dense — if only one column is cited,
 derive the others.

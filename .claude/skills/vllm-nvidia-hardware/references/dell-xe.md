@@ -14,18 +14,21 @@ The spec sheet covers 11 XE models across multiple families.
   XE9712 is a 19" 1 RU sled in IR9048; XE8712 is a 21" ORv3 1 OU sled in IR7044/IR7050.
 - **XE9680 accepts five GPU options** in the same chassis: H100, H200, H20 (China SKU),
   AMD MI300X, Intel Gaudi3.
-- **XE9780 / XE9780L / XE9785 / XE9785L all carry the HGX B300 NVL8 (270 GB / 1,100 W)
-  bin**, not the DGX-bin (279 GB / 1,400 W). See `gpu-specs.md` §2.
+- **XE9780 / XE9780L / XE9780LAP / XE9785 / XE9785L all carry the HGX B300 NVL8
+  1,100 W bin**, not the 1,400 W DGX bin. **Dell prints 288 GB per GPU for it**
+  (270 GB in earlier revisions of the sheet); NVIDIA's datasheet says 270 GB /
+  7.7 TB/s. Same split on XE9712: Dell prints 288 GB, NVIDIA's GB300 figure is
+  279 GB. Size against NVIDIA's figures and quote both. See `gpu-specs.md` §2.
 
 ## Flagship Blackwell Ultra / NVL-tray models
 
 | Model | GPUs | CPU | Max DRAM | NVMe | Form | PSU | Cooling |
 |---|---|---|---|---|---|---|---|
-| **XE9712** | 4× B300 + NVLink-C2C coherent | 2× Grace (72c) | 480 GB LPDDR5X + 279 GB HBM3E/GPU | 8× E1.S (61.44 TB) | 1 RU sled in IR9048 (48 RU rack) | 6× 5500W AC in 33 kW shelf (54 VDC) | Air or DLC |
+| **XE9712** | 4× B300 + NVLink-C2C coherent | 2× Grace (72c) | 480 GB LPDDR5X + 288 GB HBM3E/GPU per Dell (NVIDIA: 279 GB) | 8× E1.S (61.44 TB) | 1 RU sled in IR9048 (48 RU rack) | 6× 5500W AC in 33 kW shelf (54 VDC) | Air or DLC |
 | **XE8712** | 4× B300 | 2× Grace | 480 GB LPDDR5X + 192 GB HBM3E/GPU | 2× E3.S (15.36 TB) | 1 OU sled in IR7044/IR7050 ORv3 | 6× 5500W AC in 33 kW shelf | **DLC only** |
-| **XE9780 (air)** | 8× B300 **270 GB 1100 W** SXM6 **or** 8× B200 180 GB 1000 W SXM6 | 2× Intel Xeon 6 (up to 86c) | 32 DIMM (4 TB) | 16× E3.S (245.76 TB) or 10× U.2 (153.6 TB) | 10U — 439.5 × 482.3 × 1044.7 mm; **163.2 kg** | 12× 3200W Titanium 200–240 VAC / 240 VDC | Air (15 GPU fans hot-swap + 5 CPU fans cold-swap) |
-| **XE9780L / XE9780LAP** | 8× B300 **270 GB 1100 W** SXM6 (HGX NVL8 bin) | 2× Xeon 6 (L: 86c, LAP: 128c) | L: 4 TB / LAP: 6 TB | 16× E1.S or 8× U.2+2× CEM | 3 OU in IR7000 | 6× 5500W AC in 33 kW shelf | Liquid (CPU+GPU+NVSwitch) |
-| **XE9785L** | 8× AMD MI355X **or** 8× B300 **270 GB 1100 W** SXM6 | 2× EPYC 9005 (up to 192c) | 24 DIMM (6 TB) | 16× E1.S or 8× U.2 | 3 OU in IR7000 | 6× 5500W AC in 33 kW shelf | Liquid |
+| **XE9780 (air)** | 8× HGX B300 **1100 W** SXM6 (Dell: 288 GB; NVIDIA: 270 GB) **or** 8× B200 180 GB 1000 W SXM6 | 2× Intel Xeon 6 (up to 86c) | 32 DIMM (4 TB) | 16× E3.S (245.76 TB) or 10× U.2 (153.6 TB) | 10U — 439.5 × 482.3 × 1044.7 mm; **163.2 kg** | 12× 3200W Titanium 200–240 VAC / 240 VDC | Air (15 GPU fans hot-swap + 5 CPU fans cold-swap) |
+| **XE9780L / XE9780LAP** | 8× HGX B300 NVL8 **1100 W** SXM6 (Dell: 288 GB; NVIDIA: 270 GB) | 2× Xeon 6 (L: 86c, LAP: 128c) | L: 4 TB / LAP: 6 TB | 16× E1.S or 8× U.2+2× CEM | 3 OU in IR7000 | 6× 5500W AC in 33 kW shelf | Liquid (CPU+GPU+NVSwitch) |
+| **XE9785L** | 8× AMD MI355X **or** 8× HGX B300 NVL8 **1100 W** SXM6 (Dell: 288 GB; NVIDIA: 270 GB) | 2× EPYC 9005 (up to 192c) | 24 DIMM (6 TB) | 16× E1.S or 8× U.2 | 3 OU in IR7000 | 6× 5500W AC in 33 kW shelf | Liquid |
 
 ## 10U / 6U / 4U Hopper & Blackwell nodes
 
