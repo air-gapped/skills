@@ -49,7 +49,7 @@ fallback; update it in the same commit as any agent-definition change.
 
 ## Measured scorer behaviour (2026-08-20)
 
-- **Effort buys nothing.** Inherit the session effort; do not raise it for the scorer.
+- **Effort buys nothing.** Do not set or raise it for the scorer (§Model selection says what it runs at).
 - **Frontier floor.** Haiku reordered skills and swung 14 points across three runs of one unchanged skill. Sonnet, Opus and Fable returned identical rankings. The floor is not a pin: Sonnet and Fable both qualify.
 - **Never compare totals across scorer models.** Haiku, Sonnet and Fable scored about +5 to +6 above Opus on the same skills.
 - **Noise floor exceeds the keep threshold.** Within-cell spread was medians 2-4, maxima 3-6 (14 for Haiku), so a bare +2 is undecided, not a keep. Rankings between skills are stable above the floor.
@@ -91,9 +91,18 @@ Constraints:
   small model, pass a frontier-tier model explicitly (`model: "opus"` or
   better).
 
-**Effort: inherited from the session.** Omit any effort field in the spawn
-call; record the effective effort in the run log. If the session is at `low`,
-note in the run log that the blind scores were produced at low effort.
+**Effort: the session's only when the session runs the scorer's model.** Omit
+any effort field in the spawn call. What the scorer then runs at:
+
+| Session model | Scorer effort |
+|---|---|
+| same as the scorer (a Sonnet session) | the session's level (`/effort`, `--effort`) |
+| any other model (Claude Code v2.1.317+) | the level saved for the scorer's model, else that model's default — `medium` for Sonnet 5.5 |
+
+`CLAUDE_CODE_SUBAGENT_EFFORT` (v2.1.316+) sets the level for every subagent
+that names none; `CLAUDE_CODE_EFFORT_LEVEL` overrides all of it. Change none of
+these between the baseline and the final scorer, and record in the run log
+which one set the level. A scorer at `low` gets a note in the run log.
 Sonnet's own effort curve is untested.
 
 For the baseline agent, copy the original skill to a temp directory first so

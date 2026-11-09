@@ -181,7 +181,7 @@ acting; detail in `references/fleet-checks.md`.
 ## Blind validation
 
 **Scorer** — the `blind-scorer` agent, spawned with a two-line path tail. Omit
-`model` and effort (the definition pins them). Run at baseline (on a snapshot,
+`model` (the definition pins it) and effort. Run at baseline (on a snapshot,
 in the background) and at stop. Print the bias table: every dimension where
 self and blind differ by 2+.
 

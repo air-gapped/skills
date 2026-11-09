@@ -32,10 +32,11 @@ export const meta = {
 // it, absolute dirs bypass it entirely.
 //
 // All agents inherit the main-loop model (the role the session model plays in
-// a solo run). Blind scorers inherit the session model AND effort (operator
-// decision 2026-08-16), matching references/blind-validation.md §Model
-// selection; within one batch run every blind scorer therefore shares one
-// model, which is the comparison the bias check depends on.
+// a solo run), except blind scorers: they run on the `sonnet` pin (agent
+// definition, or stated explicitly on the legacy path below), at the effort
+// references/blind-validation.md §Model selection describes — the session's
+// only when the session itself runs Sonnet. Within one batch run every blind
+// scorer shares one model, which is the comparison the bias check depends on.
 // No git ops happen inside agents; commit after review.
 // ---------------------------------------------------------------------------
 

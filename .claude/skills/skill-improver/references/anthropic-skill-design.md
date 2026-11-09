@@ -262,6 +262,7 @@ Current Claude Code facts that affect skill authoring and runs:
 | v2.1.283 | `/doctor prompt-audit [path]` audits CLAUDE.md, skills, agents and commands — or the one path given — for instructions written for older models, missing files or commands, and contradictions; report only, edits on request. Use it on a skill directory instead of the v2.1.221 `claude-api` form. |
 | v2.1.284 | Sonnet 5.5 (`claude-sonnet-5-5`) is the default Sonnet: $2/$10 per Mtok, cache reads 0.05x, default effort `medium` in Claude Code (`high` on the API). The `sonnet` alias moves with it — see `blind-validation.md` §Model selection. |
 | v2.1.293 | Haiku 5.5 (`claude-haiku-5-5`) is the default Haiku: $0.10/$0.50 per Mtok for prompts up to 100K tokens, 5x above; default effort `medium`. |
+| v2.1.317 | A subagent or teammate on a different model from the main conversation runs at the effort level saved for that model, else the model's default — not the session's. Set `effort` in the agent definition to pin it; `CLAUDE_CODE_SUBAGENT_EFFORT` (v2.1.316) sets the level for subagents that name none. |
 | v2.1.321 | Fable 5.2 (`claude-fable-5-2`) is the default Fable: 1M context, $8/$40 per Mtok, **$0.20/Mtok cache reads**, all five effort levels, default `medium` in Claude Code (`high` on the API). The `fable` alias and a saved `claude-fable-5-1` pick move to it; the id needs v2.1.321+. |
 
 ### Key Settings
