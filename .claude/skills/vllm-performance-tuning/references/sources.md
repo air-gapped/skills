@@ -179,6 +179,7 @@ v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02) and git tag `v0.33.0`; the 
 
 ### MoE / DeepEP
 - [#39107](https://github.com/vllm-project/vllm/pull/39107) — "[MoE Refactor] Remove MoE DP chunking" — **MERGED 2026-04-14, verified directly 2026-07-21** (no longer inferred from release notes; this closes a carried backlog item). Stated purpose: *"Remove DP chunking MoE runner. Use `max_num_batched_tokens` as default for `max_num_tokens` in `FusedMoEConfig`."* Grepping `vllm/envs.py` at v0.25.1 returns **zero** hits for `VLLM_ENABLE_MOE_DP_CHUNK`, `VLLM_MOE_DP_CHUNK_SIZE`, **and** `VLLM_FUSED_MOE_CHUNK_SIZE` — all three gone, one more than previously recorded. `max_num_batched_tokens` is the replacement knob.
+- [#65919](https://github.com/vllm-project/vllm/issues/65919) — `benchmark_moe.py` fails with Ray 2.59 on ROCm — **OPEN** (opened 2026-11-05); fix [PR #65935](https://github.com/vllm-project/vllm/pull/65935) open, unmerged. The rename is at `benchmarks/kernels/benchmark_moe.py` L1070-1078 of v0.33.0
 - [#17619](https://github.com/vllm-project/vllm/issues/17619) — default-config warning
 - [#24112](https://github.com/vllm-project/vllm/issues/24112) — RFC improve MoE tuning
 - [#28456](https://github.com/vllm-project/vllm/issues/28456) — config discovery improvements

@@ -83,6 +83,8 @@ Verify: no `default MoE config` warning in logs.
 
 **Env vars:** `VLLM_MOE_TUNE_CACHE_CLEAR_INTERVAL=50` (clear Triton JIT cache every N iters — OOM prevention on many-expert models).
 
+**ROCm with Ray ≥ 2.59:** the script renames `HIP_VISIBLE_DEVICES` to `ROCR_VISIBLE_DEVICES` before `ray.init()`, and Ray aborts with `RuntimeError: Please use HIP_VISIBLE_DEVICES instead of ROCR_VISIBLE_DEVICES` ([#65919](https://github.com/vllm-project/vllm/issues/65919), open through v0.33.0). Workaround: delete that rename (the `is_rocm() and "HIP_VISIBLE_DEVICES" in os.environ` block in `main`) in a local copy and keep `HIP_VISIBLE_DEVICES` set; leaving it unset makes Ray count an integrated GPU too.
+
 ## DeepEP all-to-all
 
 **What it is:** DeepSeek AI's all-to-all kernel library for MoE dispatch/combine. Two modes:
