@@ -48,6 +48,11 @@ previously polluted TTFT measurements on a cold replica are now warmed by the en
   serves garbage. Before choosing TP, divide every `down_proj` / `o_proj` / expert
   `down_proj` input width by TP × group size; e.g. K = 2112 and 704 are whole at
   TP=2 and TP=4, not at TP=8.
+- **MXFP4 linear layers on Hopper — unfixed at v0.33.0 (#66074):** from v0.32.0 SM90
+  picks Humming over Marlin, and Humming silently rounds or zeroes MXFP4 blocks whose
+  scale sits more than 11 binades below the fused layer's largest.
+  `VLLM_DISABLED_KERNELS=HummingMxFp4LinearKernel` restores Marlin. Detection:
+  `vllm-quantization` skill, `references/kernels.md` §Hopper-specific notes.
 - **MXFP8**: compressed-tensors MoE + W8A8 online quantization in v0.19 (#35448).
 - **QuTLASS**: new quant method added v0.11.1.
 

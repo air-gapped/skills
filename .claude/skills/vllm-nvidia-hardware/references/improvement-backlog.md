@@ -5,15 +5,14 @@ but could not be applied in one atomic, score-improving iteration. Not a wishlis
 
 ## Open
 
-- **Humming kernels on Hopper: silent wrong weights for some MXFP4 / W4A16 shapes** (Dim 9).
-  Would add a row to the floor table in `SKILL.md` and a note in
-  `references/vllm-platform-matrix.md` §2. Reports: vllm-project/vllm#66074 (MXFP4 linear
-  layers round or zero blocks whose E8M0 scale sits 12+ binades below the layer maximum)
-  and #66437 (W4A16 group sizes that do not tile the K-blocks). **Blocked on:** a merged
-  fix or a maintainer confirmation — each has one reporter, the fix PRs (#66112 for the
-  first) are unmerged, and the mechanism is inside the `humming-kernels` wheel, so the
-  vLLM tree at v0.33.0 cannot confirm or bound it. When either lands: read which
-  versions carry the Humming-first default on SM90 (#56997, v0.32.0) and write the row.
+- **Humming W4A16: wrong output for group sizes that do not tile its K blocks** (Dim 9).
+  Would add one line to `references/vllm-platform-matrix.md` §2. Report:
+  vllm-project/vllm#66437, OPEN, fix PR #66445 OPEN, one reporter, no maintainer reply on
+  2026-11-09. The vLLM half is in the tree at v0.33.0 — `HummingLinearKernel.can_implement`
+  has no group-size check and is the last CUDA fallback. **Blocked on** the wrong-output
+  claim, which sits in the compiled CUDA main loop of `humming-kernels` and one SM120
+  measurement on synthetic layers: needs a second reproduction, a Humming maintainer
+  statement, or #66445 merging. No published checkpoint is known to use an affected size.
 
 ## Resolved this pass (2026-11-09)
 
