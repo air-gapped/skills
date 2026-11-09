@@ -191,17 +191,17 @@ switches the runner, and `VLLM_USE_V2_MODEL_RUNNER=0` is the way back.
 v0.29.0 also made MRV2 the default for *every* model, not just pooling
 ([#53183](https://github.com/vllm-project/vllm/pull/53183)), and its notes declare MRV1 deprecated and
 **target v0.32 for its removal**, with no further MRV1-specific work accepted.
-**v0.32.0 shipped without removing it**: `VLLM_USE_V2_MODEL_RUNNER=0` still
-selects MRV1 (`VllmConfig.use_v2_model_runner`, `vllm/config/vllm.py`). The
+**v0.32.0 and v0.33.0 shipped without removing it**: `VLLM_USE_V2_MODEL_RUNNER=0`
+still selects MRV1 (`VllmConfig.use_v2_model_runner`, `vllm/config/vllm.py`). The
 removal is still announced — pinning `=0` buys time to fix a blocker, it is not
-a durable configuration. Re-check on every upgrade past v0.32.
+a durable configuration. Re-check on every upgrade past v0.33.
 
 **vLLM also falls back to MRV1 by itself** when a feature MRV2 does not yet
-support is configured. At v0.32.0 (`_get_v2_model_runner_unsupported_features`):
+support is configured. At v0.33.0 (`_get_v2_model_runner_unsupported_features`):
 PP with the `external_launcher` backend, speculative methods `suffix` /
-`medusa` / `mlp_speculator` / `custom_class`, EAGLE parallel drafting,
-heterogeneous-vocabulary draft models, some dual-batch-overlap setups, and no
-Triton ([tracking issue #47172](https://github.com/vllm-project/vllm/issues/47172)).
+`custom_class` (v0.32.0 also listed `medusa` / `mlp_speculator`; v0.33.0 removes
+both methods outright), EAGLE parallel drafting, heterogeneous-vocabulary draft
+models, some dual-batch-overlap setups, and no Triton ([tracking issue #47172](https://github.com/vllm-project/vllm/issues/47172)).
 The fallback logs `Model Runner V2 does not yet support ...; using the V1 model
 runner instead.` Check which runner is actually in use before concluding the
 upgrade changed anything. HiSparse and watermarking force MRV2 even with `=0`.
