@@ -105,7 +105,7 @@ curl -fsS http://<endpoint>/metrics | head -30
 curl -s http://<endpoint>/metrics | grep -E '^vllm:(kv_cache_usage_perc|num_requests_(waiting|running)|time_to_first_token|request_success|num_preemptions|prefix_cache_(hits|queries))'
 ```
 
-`${CLAUDE_SKILL_DIR}/scripts/metrics-smoke.sh` runs the full smoke check against a deployment: confirms endpoints, greps load-bearing series, warns on deprecated metric names, cross-checks DCGM availability if configured. Output is color-coded pass/warn/fail.
+`${CLAUDE_SKILL_DIR}/scripts/metrics-smoke.sh <vllm-url> [dcgm-url]` runs the full smoke check: endpoints, load-bearing series, deprecated names, DCGM pairing fields. Exit 0 pass, 2 warnings, 1 fail. No network path to the endpoint: save the scrape and run `--file <metrics.txt> [--dcgm-file <dcgm.txt>]`. After editing the script, run `--selfcheck` (planted cases; must print `selfcheck: PASS`).
 
 **An observability audit is done when all three hold:**
 
