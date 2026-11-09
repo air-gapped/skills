@@ -181,7 +181,7 @@ Sibling skill: `vllm-reasoning-parsers` — defer there for reasoning-side quest
 
 Work down this list in order on any broken tool call.
 
-1. **Both flags set?** Check serve command for `--enable-auto-tool-choice --tool-call-parser <name>`.
+1. **Both flags set?** Check serve command for `--enable-auto-tool-choice --tool-call-parser <name>`. Then the request's `tool_choice`: calls come back only for `auto` (the default when `tools` is sent and the field is omitted), `required` or a named tool. An explicit `"tool_choice": null` or `"none"` returns no `tool_calls` — non-streaming on every version, streaming from v0.33.0 (older streams still returned them). Fix the client: omit the field or send `"auto"`.
 2. **Right parser for the model?** Cross-check with the table above AND with `vllm/tool_parsers/__init__.py` registry.
 3. **Chat template matches?** Inspect the actual template bytes — don't trust the filename. See step 7. Parser and template are a pair: switching `--tool-call-parser` between flavours (`llama4_json` ↔ `llama4_pythonic`, JSON ↔ pythonic) without switching `--chat-template` makes the model emit a shape the parser never matches — calls arrive as plain content. A `--chat-template` value that cannot be opened fails startup (`looks like a file path, but it failed to be opened`) — unless it contains `{`, `}` or a newline, in which case vLLM uses the string itself as the template — a mistyped path containing `{` silently becomes a literal template. Check the path is readable inside the container before rollout.
 4. **Reasoning parser paired?** If the model has `<think>` / `</seed:think>` / harmony channels, `--reasoning-parser` must match. Check `vllm/reasoning/` for the registry.
