@@ -19,7 +19,7 @@ The paper's central claim: disaggregation enables per-stage scaling independentl
 
 ## Stage config YAML grammar
 
-Deploy-YAML format since v0.28.0 (the `stage_args:` / `runtime:` / `engine_args:` nesting and `--stage-configs-path` were removed). Topology — `model_stage`, `input_sources`, `engine_output_type`, `final_output`, input-processor funcs — comes from the model's registered pipeline; the deploy YAML carries placement and engine args, flat per stage. Excerpt of `vllm_omni/deploy/qwen3_omni_moe.yaml` at v0.30.0:
+Deploy-YAML format since v0.28.0 (the `stage_args:` / `runtime:` / `engine_args:` nesting and `--stage-configs-path` were removed). Topology — `model_stage`, `input_sources`, `engine_output_type`, `final_output`, input-processor funcs — comes from the model's registered pipeline; the deploy YAML carries placement and engine args, flat per stage. Excerpt of `vllm_omni/deploy/qwen3_omni_moe.yaml` at v0.32.0:
 
 ```yaml
 async_chunk: true              # deploy-wide; --async-chunk / --no-async-chunk override
@@ -40,7 +40,7 @@ platforms:                     # per-platform deltas merged over the stages
   npu: {stages: [{stage_id: 0, tensor_parallel_size: 2, devices: "0,1"}]}
 ```
 
-Other deploy-level keys: `pipeline` (pick a registered pipeline variant), `session_mode` (`turn` | `duplex`), `model_runner` (`v1` | `v2`), `trust_remote_code`, `edges`.
+Other deploy-level keys: `base_config` (inherit another deploy YAML and override it), `pipeline` (pick a registered pipeline variant), `session_mode` (`turn` | `duplex`), `duplex_session` (e.g. `server_vad_model_path`), `model_runner` (`v1` | `v2`), `trust_remote_code`, `edges`.
 
 ## Key fields (OmniModelConfig + StageConfig)
 
@@ -69,7 +69,7 @@ Other deploy-level keys: `pipeline` (pick a registered pipeline variant), `sessi
 
 ## Pipeline topology validation
 
-`PipelineConfig.get_validation_errors()` (`stage_config.py:358-382` at v0.30.0, run from `__post_init__`) rejects at load:
+`PipelineConfig.get_validation_errors()` (`stage_config.py:492-516` at v0.32.0, run from `__post_init__`) rejects at load:
 
 - No stages, or duplicate `stage_id`s.
 - An `input_sources` entry naming a missing stage, or the stage itself.
@@ -93,7 +93,7 @@ Source: `vllm_omni/distributed/omni_connectors/connectors/`.
 | `NixlConnector` | NIXL transport for full AR/encoder→DiT conditioning payloads (v0.30.0, #6093/#6264) | `nixl_connector.py` |
 | `YuanrongConnector`, `YuanrongTransferEngineConnector` | Alternative remote backend | `yuanrong_connector.py`, `yuanrong_transfer_engine_connector.py` |
 
-There is no `RDMAConnector` at v0.28.0+ — RDMA goes through the Mooncake or MORI transfer-engine connectors. Registered names: `vllm_omni/distributed/omni_connectors/factory.py`.
+There is no `RDMAConnector` on v0.28.0–v0.32.0 — RDMA goes through the Mooncake or MORI transfer-engine connectors. Registered names: `vllm_omni/distributed/omni_connectors/factory.py`.
 
 Declare connectors once at deploy level, then wire them per stage:
 
@@ -156,14 +156,14 @@ If `need_kv_receive: true` and transfer stalls (broken connector, mis-sized buff
 
 ## Example stage configs shipped with the repo
 
-At v0.30.0:
+At v0.32.0 (142 YAML files):
 
 - `qwen3_omni_moe.yaml` — canonical Qwen3-Omni turn deployment (Thinker/Talker/Code2Wav), `async_chunk: true`, serves `/v1/realtime`
 - `qwen3_omni_duplex.yaml` — Qwen3-Omni duplex (`session_mode: duplex`); `qwen3_omni_moe_thinking.yaml` — thinker-only
-- `qwen3_tts.yaml` (+ `_mrv2`, `_high_concurrency*` variants) — Qwen3-TTS
+- `qwen3_tts.yaml` (+ `_mrv2`, `_high_concurrency*`, `_fused_single_gpu` variants) — Qwen3-TTS
 - `bagel.yaml`, `bagel_single_stage.yaml`, `bagel_think.yaml` — BAGEL
-- `wan2_2_ti2v.yaml` — Wan2.2 TI2V
+- `wan2_2.yaml`, `wan2_2_ti2v.yaml`, `wan2_2_eg*.yaml` — Wan2.2
 
-`qwen3_omni_moe_async_chunk.yaml`, `qwen_image.yaml` and `wan2_2_t2v.yaml` do not exist at v0.30.0; single-stage diffusion models need no deploy YAML.
+`qwen3_omni_moe_async_chunk.yaml`, `qwen_image.yaml` and `wan2_2_t2v.yaml` do not exist at v0.30.0 or v0.32.0; single-stage diffusion models need no deploy YAML.
 
 Check `ls vllm_omni/deploy/` in the cloned repo for the current list.

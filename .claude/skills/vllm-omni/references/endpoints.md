@@ -4,11 +4,11 @@ Load when operator asks about a specific API endpoint's shape, streaming, auth, 
 
 **Contents:** Endpoint map · `/v1/images/generations` · `/v1/images/edits` · `/v1/audio/speech` · `/v1/audio/voices` · `/v1/audio/speech/stream` · `/v1/videos` (async vs sync) · `/v1/realtime` · `/v1/chat/completions` with diffusion.
 
-## Endpoint map (paths and field tables verified at v0.30.0)
+## Endpoint map (paths and field tables verified at v0.30.0 and v0.32.0)
 
-Also registered at v0.30.0, not detailed here: `/v1/audio/generate` (POST),
-`/v1/realtime/video` and `/v1/video/chat/stream` (WebSocket), `/v1/omni/sleep` /
-`/v1/omni/wakeup` (POST), RL rollout `/v1/realtime/sessions…` (POST/GET).
+Also registered, not detailed here: `/v1/chat/completions/batch` and `/v1/audio/generate` (POST),
+`/v1/realtime/video`, `/v1/video/chat/stream` and `/v1/realtime/robot/openpi` (WebSocket), `/v1/omni/sleep` /
+`/v1/omni/wakeup` (POST; 409 with `--api-server-count` > 1), RL rollout `/v1/realtime/sessions…` (POST/GET).
 
 | Path | Method | Purpose |
 |---|---|---|

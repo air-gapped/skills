@@ -47,7 +47,7 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
 
 **Writing / debugging stage configs** → `references/stage-config.md`
   - OmniModelConfig + StageConfig YAML grammar
-  - OmniConnector types (Shared-memory / Mooncake-Store / Mooncake-Transfer-Engine / RDMA / Yuanrong)
+  - OmniConnector types (Shared-memory / Mooncake-Store / Mooncake-Transfer-Engine / MORI / NIXL / Yuanrong)
   - Pipeline edge validation, entry-point requirement
   - `stage_id`, `model_stage`, `worker_type`, `engine_output_type`, `async_chunk`
 
