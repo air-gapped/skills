@@ -156,6 +156,8 @@ All built-in parsers do this.
 
 **Known failure through v0.31.x.** When the implicit end token is also content (`<tool_call>` with no `</think>` before it — GLM `glm47`, `qwen3` + `hermes`), structured output skipped that token, the grammar then forced a *second* `<tool_call>`, and `tool_choice="required"`/named calls were lost. v0.32.0 feeds the token to the grammar for adapter-path parsers ([#59627](https://github.com/vllm-project/vllm/pull/59627)); legacy `ReasoningParser` subclasses are unchanged — on those, make the model emit `</think>` before tool calls.
 
+**Known failure on v0.32.x.** Adapter-path parser + a grammar that cannot *start* with the implicit end token (JSON-schema `response_format`, `tool_choice="none"` with `response_format`): the model samples `<tool_call>` while reasoning, the token is fed to the grammar, and the request fails with HTTP 500, `grammar rejected tokens` in the server log. v0.33.0 masks grammar-rejected implicit ends while the request reasons ([#61574](https://github.com/vllm-project/vllm/pull/61574)); `</think>` and implicit ends the grammar accepts (`required`, named, `auto` with tools) stay allowed.
+
 **Takeaway.** If you're authoring a parser for a model that has implicit end markers (tool calls, answer sections, channel changes), encode them explicitly. Single-token `</think>` is the exception, not the rule.
 
 ## 14. `--enable-reasoning` is dead
