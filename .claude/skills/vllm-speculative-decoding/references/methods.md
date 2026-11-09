@@ -273,6 +273,16 @@ All fields from `vllm/config/speculative.py`:
 - `parallel_drafting: bool = False` — v0.16+; forced True for `dflash`/`dspark`
 - `disable_padded_drafter_batch: bool = False`
 
+**Batch-size schedule (Dynamic SD, v0.24.0+):**
+- `num_speculative_tokens_per_batch_size: [[start_bs, end_bs, K], ...]` —
+  inclusive concurrency ranges; `K: 0` disables drafting in that range. This is
+  the only batch-size gate: `disable_by_batch_size` is not a key and fails
+  config validation.
+- Silently dropped (warning, static K used) with `--data-parallel-size > 1`,
+  and on the V1 runner for methods other than `ngram` / `eagle` / `eagle3` /
+  `mtp` / `draft_model` / `dflash`. On the V1 runner it also forces
+  `cudagraph_mode` to `PIECEWISE`.
+
 **Draft-model tuning:**
 - `quantization: QuantizationMethods | str | None` — separate from target
 - `draft_lm_head_quantization: "fp8" | "nvfp4" | None` (v0.33.0+, #59973) —
@@ -350,7 +360,7 @@ select different N on the same model.
 
 **Covered elsewhere in this skill:** `use_heterogeneous_vocab` (TLI),
 `kv_cache_dtype`, `attention_backend`, `enable_adaptive_verification` (`version-gates.md`
-version gates). Also present at v0.33.0: `dspark_draft_topk`, `num_speculative_tokens_per_batch_size`,
+version gates). Also present at v0.33.0: `dspark_draft_topk`,
 `disable_eagle_block_drop`, `index_share_for_mtp_iteration` — read their
 docstrings in `config/speculative.py` before setting.
 

@@ -147,9 +147,9 @@ Concrete causes:
 1. **Domain mismatch** (see SKILL.md for the size of the drop) — the EAGLE-3
    fix is to domain-adapt the head by continual pretraining, or to pick a
    workload-specific checkpoint rather than a stock one.
-2. **BS >= 32** (see SKILL.md for why) — EAGLE-3 exposes
-   `disable_by_batch_size`, so the threshold can be enforced in config instead
-   of by routing.
+2. **BS >= 32** (see SKILL.md for why) — enforce the threshold in config with
+   `num_speculative_tokens_per_batch_size` (K=0 above it; `methods.md` §11)
+   instead of by routing.
 3. **Context > 2048** on older stock checkpoints — they were trained at short
    context and extrapolate badly. Check the checkpoint's released sequence
    length before deploying on long context.

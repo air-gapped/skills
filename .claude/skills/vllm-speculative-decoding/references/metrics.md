@@ -152,8 +152,10 @@ Spec-dec interacts with other vLLM state. Use these joined reads:
   v0.14.0+) and `enforce_eager` is False. Smoke test with
   `scripts/check-spec-decode.sh`.
 - **AL high but queue growing** → verification is fine, but the BS-growing
-  regime makes target compute-bound. Consider `disable_by_batch_size` or
-  routing high-concurrency traffic away from spec-dec replicas.
+  regime makes target compute-bound. Add a
+  `num_speculative_tokens_per_batch_size` schedule with K=0 at high batch
+  (`methods.md` §11), or route high-concurrency traffic away from spec-dec
+  replicas.
 - **`num_preemptions` up + acceptance down** → KV pressure is causing
   drafter stalls; see `vllm-caching` for tiered-KV mitigation before touching
   spec-dec config.

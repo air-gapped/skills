@@ -26,7 +26,10 @@ guess k tokens that a single target-model forward can verify in parallel.
 - **Hurts at high concurrency (BS ≥ 32)**: target becomes compute-bound, draft
   latency is no longer hidden, rejections waste GPU time. Red Hat, Snowflake
   and the P-EAGLE author all report this. Gate spec-dec to the low-concurrency
-  tier of a disagg or multi-tenant deployment, or disable above a threshold.
+  tier of a disagg or multi-tenant deployment, or step K down with batch size:
+  `"num_speculative_tokens_per_batch_size": [[1,16,3],[17,32,1],[33,512,0]]`
+  (v0.24.0+; K=0 turns drafting off in that range; ignored with
+  `--data-parallel-size > 1`). There is no `disable_by_batch_size` key.
 - **Domain mismatch sinks acceptance**: stock EAGLE-3 checkpoints are chat-tuned.
   Code / agentic / RL-rollout workloads see AL drop from ~3 to ~2. Measure on
   actual traffic before trusting vendor numbers.
