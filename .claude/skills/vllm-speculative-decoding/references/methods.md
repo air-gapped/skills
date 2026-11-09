@@ -272,6 +272,13 @@ All fields from `vllm/config/speculative.py`:
 
 **Draft-model tuning:**
 - `quantization: QuantizationMethods | str | None` — separate from target
+- `draft_lm_head_quantization: "fp8" | "nvfp4" | None` (v0.33.0+, #59973) —
+  gives an `eagle` / `eagle3` / `mtp` drafter a quantized private copy of the
+  target `lm_head` it shares; the target still verifies with its own head, so
+  only acceptance length can move. MRV2 only. `ValueError` for any other
+  method, for Gemma 4 MTP, or when the head dtype differs from the model
+  dtype. Costs extra VRAM for the copy — with `--kv-cache-memory-bytes`, leave
+  room for it. Try it when the vocabulary is large and concurrency is low.
 - `moe_backend: MoEBackend | None` — per-draft MoE kernel override (v0.19+,
   PR #37880)
 - `max_model_len: int | None` — cap drafter context
