@@ -88,6 +88,8 @@ done
 [[ -z "$BASE_URL" && -z "$CREDENTIAL" ]] && { echo "--base-url or --credential required" >&2; exit 1; }
 [[ "$MODEL" == */* ]] || { echo "--model must be provider-alias/model-id" >&2; exit 1; }
 [[ -n "$CREDENTIAL" && -n "$PROVIDER_OPTIONS_JSON" ]] && { echo "--provider-options-json needs --base-url" >&2; exit 1; }
+[[ "$MAX_TURNS" =~ ^[1-9][0-9]*$ ]] || { echo "--max-turns must be a positive integer" >&2; exit 1; }
+[[ "$TIMEOUT" =~ ^[1-9][0-9]*$ ]] || { echo "--timeout must be a positive integer (seconds)" >&2; exit 1; }
 [[ "$CONTEXT" =~ ^[0-9]+$ ]] || { echo "--context must be a token count" >&2; exit 1; }
 [[ -n "$CREDENTIAL" && "$CONTEXT" != 0 ]] && { echo "--context needs --base-url" >&2; exit 1; }
 # Resolve the operator store BEFORE HOME/XDG are redirected.
