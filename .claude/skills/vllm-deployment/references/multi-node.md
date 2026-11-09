@@ -148,7 +148,7 @@ On AKS/EKS/GKE with managed GPU pools, the operator is preinstalled and `nvidia.
 KubeRay (Ray's own k8s operator) is an alternative to LWS. vllm-production-stack has a dedicated recipe:
 
 - https://docs.vllm.ai/projects/production-stack/en/latest/use_cases/pipeline-parallelism-kuberay.html
-- https://github.com/ray-project/kuberay
+- https://github.com/kuberay-project/kuberay
 
 When to pick KubeRay over LWS:
 - Already running Ray for data-pipeline work; want a single operator.

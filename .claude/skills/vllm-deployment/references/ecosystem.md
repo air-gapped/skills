@@ -154,7 +154,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 Not strictly a K8s project, but Ray Serve on KubeRay is a sibling deployment path.
 
 - **Repo**: https://github.com/ray-project/ray
-- **K8s operator**: https://github.com/ray-project/kuberay
+- **K8s operator**: https://github.com/kuberay-project/kuberay
 - **Example**: ``vllm` repo: examples/ray_serving/ray_serve_deepseek.py`
 - **Pick when**: Multi-tenant Ray cluster shared across vLLM + training + batch.
 - **Metrics caveat**: Ray Serve doesn't auto-expose vLLM `/metrics`. Wire `RayPrometheusStatLogger` explicitly or use Ray 2.51+ ingestion. See `vllm-observability` skill §Ray.
