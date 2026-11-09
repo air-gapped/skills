@@ -41,7 +41,7 @@ Full catalog with types, buckets, labels, and emission file:line anchors in `ref
 | 7 | **Corrupted logits** | `increase(vllm:corrupted_requests_total[5m])` | Page on **any** > 0 |
 | 8 | **Prefix-cache hit rate** | `rate(vllm:prefix_cache_hits_total[5m]) / rate(vllm:prefix_cache_queries_total[5m])` | Warn if WoW drops > 20% |
 | 9 | **Queue depth (for autoscaling)** | `vllm:num_requests_waiting` | KEDA trigger at 2–10 per replica |
-| 10 | **XID errors (DCGM side)** | `DCGM_FI_DEV_XID_ERRORS` | Page on any increment |
+| 10 | **XID errors (DCGM side)** | `DCGM_FI_DEV_XID_ERRORS != 0` | Page. Gauge = last XID code, not a counter — never `rate()`/`increase()` it |
 
 Full PromQL with multi-window burn-rate templates, SLO calibration notes, and goodput approximation in `references/alerting.md`.
 

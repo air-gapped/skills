@@ -28,7 +28,7 @@ Thresholds here are starter values — calibrate against an actual SLO document.
 | 7 | Corrupted logits | Silent — request returns garbage, not error | page on **any** increment |
 | 8 | Prefix-cache hit-rate drop | Leading indicator of prompt-shape change | warn if WoW drops `>20%` |
 | 9 | Queue depth (autoscale trigger) | Autoscaling signal | KEDA: 2–10 per replica |
-| 10 | GPU XID errors | Hardware fault, page immediately | page on any increment |
+| 10 | GPU XID errors | Hardware fault, page immediately | page on `DCGM_FI_DEV_XID_ERRORS != 0` (gauge holding the last XID code) |
 
 ## PromQL templates (copy-paste ready)
 
@@ -264,7 +264,7 @@ Compare current hit rate to 7d ago (see PromQL template above). A cliff usually 
 ### Step 5 — GPU-side fault?
 
 If software metrics don't explain it:
-- `DCGM_FI_DEV_XID_ERRORS` — any increment = hardware event
+- `DCGM_FI_DEV_XID_ERRORS` — non-zero = the last XID code seen on that GPU (a gauge; it does not count). For counts enable the opt-in `DCGM_EXP_XID_ERRORS_TOTAL` counter in the exporter's CSV
 - `DCGM_FI_PROF_SM_OCCUPANCY` — if low while `num_requests_running` is high, scheduler stall (ebpf territory)
 - `DCGM_FI_DEV_GPU_TEMP` — thermal throttling shows up in ITL tail first
 - `DCGM_FI_PROF_NVLINK_RX_BYTES` — TP saturation on MoE wide-EP configs

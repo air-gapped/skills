@@ -130,7 +130,7 @@ vLLM's metrics say nothing about the hardware. Every production deployment needs
 | `DCGM_FI_DEV_MEM_COPY_UTIL` | HBM bandwidth saturation | ITL tail. Decode is BW-bound — this metric is the ITL-regression leading indicator |
 | `DCGM_FI_DEV_GPU_TEMP` + `DCGM_FI_DEV_POWER_USAGE` | Temp + power | Thermal throttling appears in ITL tail fluctuation before anywhere else |
 | `DCGM_FI_PROF_NVLINK_RX_BYTES` / `TX_BYTES` | NVLink traffic | Multi-GPU TP — saturates before compute on MoE wide-EP |
-| `DCGM_FI_DEV_XID_ERRORS` | XID fault counter | **Page on any increment** — usually first sign of a dying GPU |
+| `DCGM_FI_DEV_XID_ERRORS` | Gauge holding the last XID code, 0 = none. Not a counter | **Page on `!= 0`** — usually first sign of a dying GPU. `increase()` only works on the opt-in `DCGM_EXP_XID_ERRORS_TOTAL` |
 
 ### Deploy DCGM exporter
 
