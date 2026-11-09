@@ -59,7 +59,7 @@ Shows `llm.get_metrics()` for notebook/benchmark contexts without HTTP. Useful f
 
 ## vLLM Production Stack dashboard
 
-Source: `github.com/vllm-project/production-stack/helm/charts/vllm/dashboards/vllm-dashboard.json` + optional `lmcache-dashboard-cm.yaml`.
+Source in `vllm-project/production-stack` (chart `vllm-stack-0.1.14`): `helm/dashboards/vllm-dashboard.json`, `vllm-model-metrics-dashboard.json`, `lmcache-dashboard.json`; `observability/lmcache-dashboard-cm.yaml` for a hand-applied ConfigMap.
 
 Deployed as ConfigMaps picked up by kube-prometheus-stack sidecar when the Helm values enable `grafanaDashboards.enabled: true`.
 
@@ -71,7 +71,9 @@ Four-row layout:
 
 Uniquely surfaces **router-level metrics** that don't exist on a pure vLLM-serve deployment:
 - `vllm:current_qps` — router-level QPS; **absent** on standalone vLLM
-- `healthy_pods_total` — backend liveness count
+- `vllm:healthy_pods_total` — backend liveness count
+
+The router also exports its own `vllm:num_requests_running` and `vllm:num_requests_waiting` gauges, labelled `server` instead of `engine`. With router and engines both scraped, an unscoped `sum(vllm:num_requests_waiting)` counts each request twice — select `{engine!=""}` or filter by job.
 
 **Enable via Helm values:**
 ```yaml
