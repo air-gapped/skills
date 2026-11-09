@@ -2,7 +2,7 @@
 
 Separate CLI axis from weight quant. `--kv-cache-dtype` + optional pre-calibrated
 scales in the model checkpoint. Source of truth:
-[`vllm/config/cache.py`](https://github.com/vllm-project/vllm/blob/v0.32.0/vllm/config/cache.py) — grep the `CacheDType = Literal[...]` block rather than a line range (19 entries at v0.32.0) — and
+[`vllm/config/cache.py`](https://github.com/vllm-project/vllm/blob/v0.33.0/vllm/config/cache.py) — grep the `CacheDType = Literal[...]` block rather than a line range (22 entries at v0.33.0; platform backends can register more through `register_kv_cache_dtype`) — and
 [`vllm/model_executor/layers/quantization/kv_cache.py`](https://github.com/vllm-project/vllm/blob/main/vllm/model_executor/layers/quantization/kv_cache.py) (loading + scale handling).
 
 ## Table of Contents
@@ -40,6 +40,9 @@ scales in the model checkpoint. Source of truth:
 | `turboquant_k3v4_nc` | 3-bit K + 4-bit V + NC | SM89+ | Hadamard |
 | `turboquant_3bit_nc` | 3-bit K + 3-bit V + NC | SM89+ | Hadamard |
 | `ultraquant_4bit` | FP4 E2M1 codes + UE8M0 per-32 scales, Hadamard-rotated K; ~2× FP8 density (v0.32.0, #57057) | ROCm only | No checkpoint scales |
+| `octave_k3v4` | 3-bit K (four rotated 64-dim blocks) + 4-bit V, 3.88 bits/value (v0.33.0, #59774) | ROCm RDNA3 / CDNA3, `ROCM_OCTAVE`; head size 256 with 64 rotary dims only | fp16 scales stored in the slot |
+| `octave_k3v3` | 3-bit block K + 3-bit V, 3.38 bits/value | same | same |
+| `octave_k3v3_compact` | 3-bit K rotated over all 256 dims + 3-bit V, 3.06 bits/value | same | same |
 | `nvfp4` | **Shipped — no longer roadmap** | FlashInfer: SM100 (TRTLLM); SM80 / SM90 / SM12x via the FA2 path from v0.32.0 (#46963, #60620; XQA decode on SM12x, #60452) — rejected at head size 64 and with attention sinks | [#32220](https://github.com/vllm-project/vllm/issues/32220) **CLOSED `COMPLETED` 2026-05-04** (maintainer closing on a contributor's work, not a bot). v0.25.0 added NVFP4 KV cache with skip-layers sliding window ([#42890](https://github.com/vllm-project/vllm/pull/42890)) |
 | `nvfp4_4over6` | NVFP4 layout; picks max/6 or max/4 scale per 16 values by squared reconstruction error | FlashInfer SM100 (TRTLLM) only — the FA2 path accepts plain `nvfp4` only | Computed at write time |
 

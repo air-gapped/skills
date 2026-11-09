@@ -45,6 +45,10 @@ Quantization:
 - [PR #63125](https://github.com/vllm-project/vllm/pull/63125) — Quark MXFP8 (W8A8) routed experts. [PR #51933](https://github.com/vllm-project/vllm/pull/51933) — `--linear-backend torch` for MXFP8 on XPU. [PR #50415](https://github.com/vllm-project/vllm/pull/50415) — MoNe expert-pruning checkpoints.
 - Batch invariance under `VLLM_BATCH_INVARIANT`: compressed-tensors W4A16/W8A16 linear ([#60524](https://github.com/vllm-project/vllm/pull/60524)), online FP8 MoE ([#57092](https://github.com/vllm-project/vllm/pull/57092)).
 
+KV cache:
+- [PR #59774](https://github.com/vllm-project/vllm/pull/59774) — `octave_k3v4` / `octave_k3v3` / `octave_k3v3_compact` KV dtypes (ROCm `ROCM_OCTAVE`).
+- [PR #52670](https://github.com/vllm-project/vllm/pull/52670) — pluggable KV dtypes: platform backends register extra `--kv-cache-dtype` values.
+
 ## v0.32.0 — 2026-10-18
 
 Quantization:

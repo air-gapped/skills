@@ -119,14 +119,15 @@ longer accepted.
 
 **Newer values not in older skill copies:** `humming` (Humming mixed-precision, also a `--linear-backend` / `--moe-backend` value), `deepseek_v4_fp8` (DeepSeek-V4 checkpoint config), `fp8_per_channel` and `nvfp4_per_token` (online shorthands; `nvfp4_per_token` added v0.26.0, [#48538](https://github.com/vllm-project/vllm/pull/48538)).
 
-## KV-cache dtypes (19 at v0.32.0)
+## KV-cache dtypes (22 at v0.33.0)
 
-Single dispatch: [`vllm/config/cache.py`](https://github.com/vllm-project/vllm/blob/v0.32.0/vllm/config/cache.py) — grep the `CacheDType = Literal[...]` block, not a line range; it has grown every minor.
+Single dispatch: [`vllm/config/cache.py`](https://github.com/vllm-project/vllm/blob/v0.33.0/vllm/config/cache.py) — grep the `CacheDType = Literal[...]` block, not a line range; it has grown every minor. From v0.33.0 a platform backend can register further values (`register_kv_cache_dtype`), so on an out-of-tree platform the accepted set is whatever the `Invalid kv_cache_dtype ... Valid values are:` startup error lists, not the `Literal`.
 
 - `auto` — match model weight dtype, except where the model overrides it: DeepSeek-V3.2 and (v0.32.0+, SM100 only) GLM-5.x `GlmMoeDsaForCausalLM` resolve `auto` to FP8. `float16` / `bfloat16` — pin an explicit unquantized KV dtype; set `bfloat16` to opt out of those defaults.
 - `fp8`, `fp8_e4m3`, `fp8_e5m2` — the production path. **E4M3 is default**; E5M2 only for ROCm-specific setups.
 - `fp8_inc` (Intel), `fp8_ds_mla` (DeepSeek MLA variant), `nvfp4_ds_mla` (sparse-MLA NVFP4 NoPE + FP8 RoPE, SM100 only).
 - `ultraquant_4bit` — ROCm-only 4-bit KV (FP4 E2M1 + UE8M0 per-32 scales, Hadamard-rotated K), ~2× FP8 density (v0.32.0).
+- `octave_k3v4`, `octave_k3v3`, `octave_k3v3_compact` — ROCm-only 3–4 bit KV (v0.33.0, `ROCM_OCTAVE` backend, selected by the dtype). RDNA3 / CDNA3 only, and only head size 256 with partial RoPE (Qwen3-Next / 3.5 / 3.6 / 3.8); any other model is rejected at startup.
 - `int4_per_token_head`, `int8_per_token_head`, `fp8_per_token_head` — dynamic per-(token,head) scales computed in-kernel. **No checkpoint scales needed.** Added in [PR #34281](https://github.com/vllm-project/vllm/pull/34281), v0.17.
 - `turboquant_k8v4`, `turboquant_4bit_nc`, `turboquant_k3v4_nc`, `turboquant_3bit_nc` — Hadamard-rotated 2-4 bit KV (v0.19, [PR #38479](https://github.com/vllm-project/vllm/pull/38479)).
 - `nvfp4` — **shipped, not roadmap.** [#32220](https://github.com/vllm-project/vllm/issues/32220) closed `COMPLETED` 2026-05-04; v0.25.0 landed NVFP4 KV with skip-layers sliding window ([#42890](https://github.com/vllm-project/vllm/pull/42890)). FlashInfer-only: SM100 through TRTLLM; **v0.32.0 added SM80/SM90/SM12x** through the FA2 path (not at head size 64, not with attention sinks). `nvfp4_4over6` (4-over-6 scale selection) stays SM100-only. See `references/kv-cache.md`.
