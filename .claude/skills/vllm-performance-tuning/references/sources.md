@@ -91,7 +91,7 @@ v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02) and git tag `v0.33.0`; the 
 
 ## vLLM recipes (per-model deployment guides)
 
-- [DeepSeek-V3.2](https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-V3_2.html)
+- [DeepSeek-V3.2](https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-V3_2.html) — "Prefer TP=1~2 + DP/EP … Hopper: TP=2, Blackwell: TP=1"; same text in `vllm-project/vllm` `recipes/models/deepseek-ai/DeepSeek-V3.2.yaml` at v0.33.0 (the recipes moved into the main repo in v0.33.0)
 - [Qwen3-Coder-480B-A35B](https://docs.vllm.ai/projects/recipes/en/latest/Qwen/Qwen3-Coder-480B-A35B.html)
 - [Kimi-K2](https://docs.vllm.ai/projects/recipes/en/latest/moonshotai/Kimi-K2.html)
 - [GLM-4.X](https://docs.vllm.ai/projects/recipes/en/latest/GLM/GLM.html)

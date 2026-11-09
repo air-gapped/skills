@@ -189,7 +189,7 @@ Models with **single KV head** (DeepSeek-V2/V3/V3.2/R1, Kimi-K2) can't shard KV 
 
 ### DeepSeek-V3.2 FlashMLA-Sparse warning
 
-**Avoid TP=8 on H100/H200/B200/B300.** Only 16 heads per rank, padded to 64 → overhead. **Recipe: `DP=8, EP=8, TP=1`** ([DeepSeek-V3.2 recipe](https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-V3_2.html), [vllm.ai/blog/deepseek-v3-2](https://vllm.ai/blog/deepseek-v3-2)).
+**Avoid TP=8 on H100/H200/B200/B300.** Only 16 heads per rank, padded to 64 → overhead. **Recipe: DP/EP mode with TP=2 on Hopper (64 heads per rank), TP=1 on Blackwell** — `vllm serve deepseek-ai/DeepSeek-V3.2 -dp 8 --enable-expert-parallel` is the TP=1 form ([DeepSeek-V3.2 recipe](https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-V3_2.html), [vllm.ai/blog/deepseek-v3-2](https://vllm.ai/blog/deepseek-v3-2)).
 
 ### Supported combinations
 
@@ -216,7 +216,7 @@ Models with **single KV head** (DeepSeek-V2/V3/V3.2/R1, Kimi-K2) can't shard KV 
 | Llama-4-Scout | 8× H100: TP=8, up to 1M ctx. 8× H200: up to 3.6M ctx. `VLLM_DISABLE_COMPILE_CACHE=1`, `--override-generation-config='{"attn_temperature_tuning": true}'` | [vLLM Llama-4 blog](https://blog.vllm.ai/2025/04/05/llama4.html) |
 | Llama-4-Maverick | 8× H100: ~430K ctx, EP=0. 8× H200: 1M ctx, EP=0 | same |
 | DeepSeek-V3 (FP8, 128K) | TP=8 + EP, 96 GPUs for Wide-EP | LMSYS |
-| DeepSeek-V3.2 | `DP=8, EP=8, TP=1` — see warning | [recipe](https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-V3_2.html) |
+| DeepSeek-V3.2 | DP + EP; TP=2 on Hopper, TP=1 on Blackwell — see warning | [recipe](https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-V3_2.html) |
 | Qwen3-Coder-480B-A35B-FP8 | `--max-model-len 131072 --enable-expert-parallel --data-parallel-size 8` | [recipe](https://docs.vllm.ai/projects/recipes/en/latest/Qwen/Qwen3-Coder-480B-A35B.html) |
 | Kimi-K2 FP8 128K | Smallest = 16 GPUs (2× 8× H800). TP=16 OR DP+EP=16 OR TP=8+PP=2 | [recipe](https://docs.vllm.ai/projects/recipes/en/latest/moonshotai/Kimi-K2.html) |
 | Mixtral-8x7B | TP=2, EP=1 (or TP=1, DP=8) | standard |

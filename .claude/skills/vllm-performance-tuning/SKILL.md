@@ -79,7 +79,7 @@ From Red Hat's 5-step triage ([2026-03-09](https://developers.redhat.com/article
 
 3. **TP not divisible by head count.** Model has 32 heads, TP=7 → shape mismatch. Rule: `num_heads % TP == 0` AND `hidden_size % TP == 0`.
 
-4. **DeepSeek-V3.2 at TP=8 on H100/H200/B200/B300.** FlashMLA-Sparse only uses 16 heads per rank, padded to 64 → overhead. Fix: `DP=8, EP=8, TP=1`. ([DeepSeek-V3.2 recipe](https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-V3_2.html))
+4. **DeepSeek-V3.2 at TP=8 on H100/H200/B200/B300.** FlashMLA-Sparse only uses 16 heads per rank, padded to 64 → overhead. Fix: DP/EP mode with **TP=2 on Hopper, TP=1 on Blackwell** (`-dp 8 --enable-expert-parallel` is the TP=1 form). ([DeepSeek-V3.2 recipe](https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-V3_2.html))
 
 5. **Llama-4-Maverick with `--enable-expert-parallel`.** Activation density 0.78% (1/128) — AllToAll overhead exceeds parallelism win. **EP hurts 7-12%** vs TP-only for Maverick. DeepSeek-R1 (3.13%) and Qwen3-235B (6.25%) benefit from EP. Rule: only enable EP when `(experts_per_token / total_experts) > 2%`.
 
@@ -121,7 +121,7 @@ vllm serve deepseek-ai/DeepSeek-V3 --tensor-parallel-size 8 \
 | MoE non-MLA (Mixtral, Qwen3-MoE) | TP=N, EP off | TP + EP: EP = E / TP |
 | MoE MLA (DeepSeek-V3/R1, Kimi-K2) | DP=N + EP | Wide-EP: DP-attn + EP-MoE, `--enable-eplb` |
 | Llama-4-Maverick (0.78% density) | TP only | TP only (EP hurts) |
-| DeepSeek-V3.2 (FlashMLA-Sparse) | DP=8, EP=8, TP=1 | same |
+| DeepSeek-V3.2 (FlashMLA-Sparse) | DP + EP, TP=2 (Hopper) / TP=1 (Blackwell) | same |
 
 Concurrency crossover (8× MI300X benchmarks): ≤128 concurrent → TP wins, ≥512 → DP wins, 256-512 mixed. ([AMD MoE playbook](https://rocm.blogs.amd.com/software-tools-optimization/vllm-moe-guide/README.html))
 
