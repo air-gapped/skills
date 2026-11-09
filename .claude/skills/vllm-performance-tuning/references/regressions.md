@@ -12,6 +12,13 @@ Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/A
 
 ## Version regressions
 
+### v0.26.0 → v0.29.0+ MiniMax-M2.7 TP4+EP decode regression ([#63705](https://github.com/vllm-project/vllm/issues/63705)) — open, cause not isolated
+
+- 4× H100, TP=4 + `--enable-expert-parallel`, concurrency 8, 2048 in / 1024 out
+- Mean TPOT 14.71 ms on v0.26.0 → 18.05 / 18.82 / 17.96 ms on v0.29.0 / v0.31.0 / v0.32.0; total throughput 1568 → 1288 / 1237 / 1294 tok/s. TTFT unchanged — decode only
+- Two defaults changed in that window: FlashInfer all-reduce for the TP group (#52998) and Model Runner V2 for MoE (#53183)
+- **Bisect** with `VLLM_ALLREDUCE_USE_FLASHINFER=0` and `VLLM_USE_V2_MODEL_RUNNER=0`, one at a time, on the same benchmark; no fix has shipped through v0.33.0
+
 ### v0.14.0 → v0.15.1 MiniMax latency regression ([#35048](https://github.com/vllm-project/vllm/issues/35048))
 
 - Model: MiniMax-M2.1 / M2.5
