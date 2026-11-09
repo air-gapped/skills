@@ -106,15 +106,15 @@ Exact strings operators see, with meaning:
 | Error | Meaning | Fix |
 |---|---|---|
 | `ChatTemplateResolutionError: "As of transformers v4.44, default chat template is no longer allowed..."` | Neither `--chat-template`, processor, nor tokenizer provided a template. | Supply `--chat-template <path>`. |
-| `ValueError: "The supplied chat template ... appears path-like, but doesn't exist! Tried: ..."` | `--chat-template` path invalid (also not found in the bundled `chat_templates/` dir). | `ls` the path; or use relative `examples/tool_chat_template_X.jinja`. |
+| `VLLMValidationError: "The supplied chat template ... appears path-like, but doesn't exist! Tried: ..."` | `--chat-template` path invalid (also not found in the bundled `chat_templates/` dir). | `ls` the path; or use relative `examples/tool_chat_template_X.jinja`. |
 | `TimeoutError: "Chat template rendering timed out after 30.0s..."` (v0.32.0+) | Python renderer hit `VLLM_CHAT_TEMPLATE_RENDER_TIMEOUT`; the render pool is replaced and the stuck thread keeps burning CPU. | Pathological template loop → fix the template. Legitimately huge prompt → raise `VLLM_CHAT_TEMPLATE_RENDER_TIMEOUT` (seconds; `<= 0` disables). |
 | HTTP 500 `"chat template error: failed to render jinja template: engine ran out of fuel"` (Rust frontend, v0.32.0) | 500,000-instruction MiniJinja budget hit by the server's own template on a long conversation. | Upgrade to v0.33.0, or serve chat through the Python frontend. On v0.33.0+ the message reads `chat template exceeded its fuel budget; adjust VLLM_CHAT_TEMPLATE_FUEL to override` and only a request-supplied template can hit it. |
 | `"Chat template is passed with request, but --trust-request-chat-template is not set."` | Request carried `chat_template` (top-level or in `chat_template_kwargs`); `/v1/responses` enforces this from v0.32.0. | Move the template to `--chat-template`, or set `--trust-request-chat-template` on trusted deployments only. |
 | `ValueError: "Found unexpected chat template kwargs from request: {...}"` | Request passed reserved kwargs (`chat_template`, `tokenize`). | Remove from `extra_body`. |
-| `ValueError: "Found more '<##IMAGE##>' placeholders in input prompt than actual multimodal data items."` | Template has more image placeholders than images in request. | Reduce placeholders or include more images. |
-| `ValueError: "Missing 'type' field in multimodal part."` | Malformed content part. | Every `content` item needs `{"type": "..."}`. |
-| `ValueError: "Mixing raw image and embedding inputs is not allowed"` | Request has both `image_url` and `image_embeds`. | Pick one. |
-| `ValueError: "You must set \`--enable-mm-embeds\` to input \`image_embeds\`"` | Embeddings provided but flag missing. | Add `--enable-mm-embeds`. |
+| `VLLMValidationError: "Found more '<##IMAGE##>' placeholders in input prompt than actual multimodal data items."` | Template has more image placeholders than images in request. | Reduce placeholders or include more images. |
+| `VLLMValidationError: "Missing 'type' field in multimodal part."` | Malformed content part. | Every `content` item needs `{"type": "..."}`. |
+| `VLLMValidationError: "Mixing raw image and embedding inputs is not allowed"` | Request has both `image_url` and `image_embeds`. | Pick one. |
+| `VLLMValidationError: "You must set \`--enable-mm-embeds\` to input \`image_embeds\`"` | Embeddings provided but flag missing. | Add `--enable-mm-embeds`. |
 | `ValueError: "Cannot put tools in the first user message when there's no first user message!"` | Tool template injects into first user msg; none exists. | Prepend a user message. |
 | `ValueError: "This model only supports single tool-calls at once!"` | Multiple tool calls in message but template is single-call. | Switch to parallel-tool template or send one at a time. |
 | `HarmonyError: ...` (on gpt-oss) | `openai_harmony` vocab load failed. | v0.31.0+: `oss-harmony` embeds the vocab — check `pip show openai-harmony`; if present it overwrote the module, uninstall it and reinstall `oss-harmony`. v0.30.0 and older: pre-download tiktoken, set `TIKTOKEN_ENCODINGS_BASE`. |

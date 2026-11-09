@@ -18,6 +18,8 @@ Probed against `v0.32.0..v0.33.0` and the `v0.33.0` tag tree of `vllm-project/vl
 | GHSA-x567-49g5-p4cf (CVE-2026-115918) | https://github.com/advisories/GHSA-x567-49g5-p4cf | published 2026-10-28, medium (CVSS 6.5) | "Responses API bypasses trust_request_chat_template for chat_template_kwargs". Affected `>= 0.16.0, < 0.32.0`, patched 0.32.0 by PR #50300. These two are the advisories PR #50300 fixes; the GHSA-4hhp-h66f-j5j7 id in the PR title is the unrelated MiMoV2Omni SSRF advisory (see the 2026-10-18 row). |
 | vLLM PR #62374 / issue #62598 | https://github.com/vllm-project/vllm/pull/62374 | MERGED 2026-10-21, commit `1f5514ec46`, first in v0.33.0 (not in v0.32.0); #62598 CLOSED/COMPLETED by it | v0.32.0 `rust/src/chat/src/renderer/hf/template.rs:44` sets `env.set_fuel(Some(DEFAULT_TEMPLATE_FUEL))` in `build_environment()` for every template. v0.33.0: `request_template_fuel()` (`template.rs:41`) reads `VLLM_CHAT_TEMPLATE_FUEL` (`0` disables), applied to request templates only; error text `hf/error.rs:12`. Message count (1,730 on GLM-5.3, 1,682–21,740 across the shipped `examples/` templates) is from the issue thread. |
 | vLLM PR #62673 | https://github.com/vllm-project/vllm/pull/62673 | MERGED 2026-10-20, commit `29a26e5b0e`, first in v0.33.0 | Rust frontend accepts `--trust-request-chat-template` and refuses request templates without it; PR body: before it, the Rust frontend rejected the flag at startup and rendered any request `chat_template`. |
+| vLLM PRs #60972 / #62390 | https://github.com/vllm-project/vllm/pull/60972 | commits `669f85e686`, `5caabdbb65`, both first in v0.33.0 | #60972 splits `vllm/renderers/chat_utils.py` into a package and moves `ChatTemplateResolutionError` to `vllm/exceptions.py:65` (now a `VLLMClientError`, no longer a `ValueError`); #62390 moves `launchers/cli_args.py` to `vllm/entrypoints/common/cli_args.py` (startup `validate_chat_template()` call :539). Anchors at v0.33.0 — `chat_template.py` (112 lines): `validate_chat_template()` 21, `_load_chat_template()` 56; `chat_message.py` (849 lines): `get_full_multimodal_text_prompt()` 142, `_postprocess_messages()` 699, empty-`tool_calls` drop 712; `content_parser.py`: placeholder map 29. The path-like, placeholder-count, missing-`type`, mixed-embeds and `--enable-mm-embeds` errors raise `VLLMValidationError`. |
+| `hf.py` and protocol anchors | `vllm/renderers/hf.py` | v0.33.0, 1511 lines | `resolve_chat_template` 306, `_detect_content_format` 579, `resolve_chat_template_content_format` 720, `_resolve_chat_template_kwargs` 768, `_get_hf_base_chat_template_params` 783, `resolve_chat_template_kwargs` 803 (reserved 811), `safe_apply_chat_template` 847-868 (raise 885), `_render_with_timeout` 1080. `ChatMessage.reasoning` `chat_completion/protocol.py:86`, exclusion check :1063; `DeltaMessage.reasoning` `generate/base/protocol.py:359`; `VLLM_CHAT_TEMPLATE_RENDER_TIMEOUT` `envs.py:818`; Responses gate `responses/serving.py:343`; `--enable-log-requests` `arg_utils.py:3260`, `--log-level` :1657; `get_tokenizer` `tokenizers/registry.py:208`; `docker/Dockerfile` WORKDIR `/vllm-workspace` 754, `COPY examples examples` 1050, nonroot WORKDIR `/home/vllm` 1364; reranker template names `pooling/scoring/io_processor.py:483-485`; `basic_parsers.py` `extract_reasoning` 153 and `offline.py` `_preprocess_chat` 160 unchanged from v0.32.0. |
 
 ## 2026-10-18 — v0.31.0 / v0.32.0 freshen
 
@@ -95,11 +97,13 @@ HF Hub API: DeepSeek-R1 #144 closed; gemma-4-31B-it #28 open; Llama-4-Scout #78 
 
 Other: modelscope/ms-swift #5836 OPEN; MoonshotAI/Kimi-K2 #41 OPEN; vLLM blog Kimi-K2-Accuracy 200 (redirects to `/blog/2025-10-28-kimi-k2-accuracy`); HF blog qwen-3-chat-template-deep-dive 200; both discuss.vllm.ai threads 200; docs.vllm.ai tool_calling 200.
 
-## vLLM source paths cited (v0.32.0)
+## vLLM source paths cited (v0.33.0)
 
 - `vllm/renderers/hf.py` — `resolve_chat_template()`, kwarg allowlist, render timeout
 - `vllm/renderers/params.py` — `ChatParams` dataclass
-- `vllm/renderers/chat_utils.py` — multimodal placeholder injection, `ChatTemplateResolutionError` (was `vllm/entrypoints/chat_utils.py` through v0.31.0)
+- `vllm/renderers/chat_utils/` — `chat_template.py`, `chat_message.py`, `content_parser.py` (one file `vllm/renderers/chat_utils.py` at v0.32.0; `vllm/entrypoints/chat_utils.py` through v0.31.0)
+- `vllm/exceptions.py` — `ChatTemplateResolutionError`
+- `vllm/entrypoints/common/cli_args.py` — startup `validate_chat_template()` call (was `vllm/entrypoints/launchers/cli_args.py` at v0.32.0)
 - `vllm/entrypoints/openai/chat_completion/serving.py` — parser instantiation (the old `serving_chat.py` path is gone)
 - `vllm/entrypoints/common/offline.py` — `LLM._preprocess_chat()` (was `vllm/entrypoints/offline_utils.py` at v0.30.0)
 - `vllm/reasoning/__init__.py` — registered reasoning parsers (38 names)
