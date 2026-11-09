@@ -336,7 +336,7 @@ GLM-4.7, GLM-5.1-FP8. Uses Jinja templates shipped in `examples/tool_chat_templa
 
 These all live in `examples/tool_chat_template_<name>.jinja`:
 
-- `granite`, `granite_20b_fc` — IBM Granite
+- `granite`, `granite_20b_fc` — IBM Granite (`granite_20b_fc` rejects any system message — [defects](#defects-in-shipped-tool-templates))
 - `hermes` — Hermes-family (NousResearch)
 - `hunyuan_a13b` — Tencent Hunyuan
 - `internlm2_tool` — InternLM2
@@ -360,6 +360,7 @@ Open upstream, present in every release v0.28.0–v0.33.0 (the template files ar
 | `gemma3_pythonic` ([#66298](https://github.com/vllm-project/vllm/issues/66298)) | History call renders with no separator between arguments: `[get_weather(city="Paris"metric=truelimit=3unit=null)]`. | From turn 2 the model reads its own earlier calls as invalid Python. Patch: emit `, ` between arguments. |
 | `llama4_pythonic` ([#66302](https://github.com/vllm-project/vllm/issues/66302)) | History call wraps every argument in double quotes, unescaped: `metric="True", limit="3", unit="None"`; a string holding `"` renders `note="say "hi""`. | Booleans, numbers and nulls replay as strings; one embedded quote makes the whole call invalid Python. Patch: render each argument as a Python literal by type, strings escaped. |
 | `llama3.2_pythonic`, `toolace` ([#66300](https://github.com/vllm-project/vllm/issues/66300)) | History call renders string arguments unquoted: `[get_weather(city=Paris, metric=True, limit=3, unit=None)]`. | The model's own earlier call reads as a bare name, not a string literal — the form the `pythonic` parser rejects. Patch: quote and escape string arguments. |
+| `granite_20b_fc` ([#66349](https://github.com/vllm-project/vllm/issues/66349)) | The message loop iterates `messages`, not the system-stripped `loop_messages`, so a `system` message reaches `raise_exception`. | Every request with a system message fails: `Unexpected combination of role and message content`. Patch: loop over `loop_messages`; or send no system message. |
 
 ---
 

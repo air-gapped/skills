@@ -116,6 +116,7 @@ Exact strings operators see, with meaning:
 | `VLLMValidationError: "Missing 'type' field in multimodal part."` | Malformed content part. | Every `content` item needs `{"type": "..."}`. |
 | `VLLMValidationError: "Mixing raw image and embedding inputs is not allowed"` | Request has both `image_url` and `image_embeds`. | Pick one. |
 | `VLLMValidationError: "You must set \`--enable-mm-embeds\` to input \`image_embeds\`"` | Embeddings provided but flag missing. | Add `--enable-mm-embeds`. |
+| `"Unexpected combination of role and message content"` with `tool_chat_template_granite_20b_fc.jinja` | The shipped template raises on any `system` message (#66349, open at v0.33.0). | Patch a copy to loop over `loop_messages`, or drop the system message. |
 | `ValueError: "Cannot put tools in the first user message when there's no first user message!"` | Tool template injects into first user msg; none exists. | Prepend a user message. |
 | `ValueError: "This model only supports single tool-calls at once!"` | Multiple tool calls in message but template is single-call. | Switch to parallel-tool template or send one at a time. |
 | `HarmonyError: ...` (on gpt-oss) | `openai_harmony` vocab load failed. | v0.31.0+: `oss-harmony` embeds the vocab — check `pip show openai-harmony`; if present it overwrote the module, uninstall it and reinstall `oss-harmony`. v0.30.0 and older: pre-download tiktoken, set `TIKTOKEN_ENCODINGS_BASE`. |
