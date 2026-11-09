@@ -33,7 +33,7 @@ is via `--bfcl-categories`.
 
 - **`sharegpt`** — real conversational data (ShareGPT dump). Use for: "realistic average prompt" when prod replay isn't available. Requires `--dataset-path` pointing at a JSON file. **Air-gapped:** pre-download `ShareGPT_V3_unfiltered_cleaned_split.json` on a connected host, rsync into the enclave.
 - **`burstgpt`** — variable-length distributions mimicking real burst patterns. Flags: `--burstgpt-input-len`, `--burstgpt-output-len`.
-- **`custom`** — arbitrary JSONL file. One prompt per line with `{"prompt": "..."}` schema, optional `"output_tokens"` field. **Best for production A/B** — capture real prod prompts, replay them. If `--output-len` is unset or `-1`, the `output_tokens` field per row is mandatory. With a chat backend add `--skip-chat-template` (SKILL.md pitfall 10).
+- **`custom`** — arbitrary JSONL file. One prompt per line with `{"prompt": "..."}` schema, optional `"output_tokens"` field. **Best for production A/B** — capture real prod prompts, replay them. If `--output-len` is unset or `-1`, the `output_tokens` field per row is mandatory. With a chat backend add `--skip-chat-template` (SKILL.md pitfall 10). Through v0.33.0 a number-shaped prompt (`"00123"`, `"1e5"`) is loaded as a number, not the string in the file — drop or pad such rows in a replay file (fixed on `main`, #65083, unreleased).
 - **`custom_audio`** / **`custom_image`** — multimodal variants of `custom` (in docs dataset table, verified 2026-05-28). Local JSONL referencing audio/image inputs (`audio_data.jsonl` / `image_data.jsonl`). Use to replay real multimodal prod traffic against ASR / VLM endpoints; always local, no network.
 
 ## HuggingFace datasets (`hf`)
