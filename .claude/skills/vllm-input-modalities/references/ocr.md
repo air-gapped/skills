@@ -76,7 +76,9 @@ overhead (the recipe's own serve line carries the first and third):
    (`deepseek_ocr.py:140-195`). A request without `ngram_size` gets **no
    processor at all** — every client must send the §4 request shape.
 2. **`--no-enable-prefix-caching`** — OCR requests don't share prefixes;
-   the cache is pure bookkeeping overhead.
+   the cache is pure bookkeeping overhead. Keep this spelling: upstream docs
+   from v0.33.0 write `--disable-prefix-caching`, which v0.32.x and older
+   reject as an unknown argument; `--no-enable-…` parses on every version.
 3. **`--mm-processor-cache-gb 0`** — multimodal processor caching targets
    repeated images (which OCR doesn't do) and wastes RAM.
 
