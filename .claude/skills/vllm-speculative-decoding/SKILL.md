@@ -259,6 +259,11 @@ adapters) live on Hugging Face. Treat them like any other HF model per the
   repo ID that also exists as a local directory. Serve the local verifier
   explicitly instead:
   `vllm serve /path/to/verifier --speculative-config '{"model":"/path/to/speculator","method":"eagle3","num_speculative_tokens":3}'`.
+- ≤ v0.33.0 with `HF_HUB_OFFLINE=1` and the draft given as a Hub ID: each
+  worker logs two `ERROR ... Error retrieving safetensors: ... offline mode is
+  enabled` lines and sleeps 2 s, then loads the draft from the local cache and
+  serves normally. Not a failed download; pass the local snapshot path as
+  `model` in `--speculative-config` to avoid it.
 
 ## When spec-dec is the wrong lever
 
