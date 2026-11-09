@@ -16,7 +16,7 @@
     {
       "id": 1,
       "question": "Does vLLM's --tool-call-parser accept an 'auto' value?",
-      "skill_answer": "No; you must name a concrete parser."
+      "skill_answer": "No on the Python frontend; you must name a concrete parser. The experimental Rust frontend (VLLM_USE_RUST_FRONTEND=1) auto-detects both parsers from the model name."
     },
     {
       "id": 2,
@@ -25,13 +25,13 @@
     },
     {
       "id": 3,
-      "question": "How many tool-call-parser names are registered in vLLM v0.30.0?",
-      "skill_answer": "51 (49 at v0.29.0, 45 at v0.27.0)"
+      "question": "How many tool-call-parser names are registered in vLLM v0.33.0?",
+      "skill_answer": "58 (54 at v0.32.0)"
     },
     {
       "id": 4,
-      "question": "Which class implements vLLM's qwen3_coder, qwen3_xml and mimo tool parsers?",
-      "skill_answer": "Qwen3EngineToolParser, with logic in vllm/parser/qwen3.py"
+      "question": "Which class implements vLLM's qwen3_coder and qwen3_xml tool parsers?",
+      "skill_answer": "Qwen3EngineToolParser, with logic in vllm/parser/qwen3.py (mimo shared it through v0.31.0 and has its own MiMoToolParser from v0.32.0)"
     },
     {
       "id": 5,
@@ -45,8 +45,8 @@
     },
     {
       "id": 7,
-      "question": "What must the installed xgrammar expose for vLLM's deepseek_v41 parser to grammar-constrain strict tool parameter schemas?",
-      "skill_answer": "builtin_structural_tag.get_deepseek_v4_1_structural_tag"
+      "question": "On vLLM v0.30.0, what must the installed xgrammar expose for the deepseek_v41 parser to grammar-constrain strict tool parameter schemas?",
+      "skill_answer": "builtin_structural_tag.get_deepseek_v4_1_structural_tag (from v0.31.0 xgrammar is pinned and the parser uses the builtin deepseek_v4_1 structural tag)"
     },
     {
       "id": 8,
@@ -80,8 +80,8 @@
     },
     {
       "id": 14,
-      "question": "In vLLM streaming tool calls, what does finish_reason become if prev_tool_call_arr is empty when the stream ends?",
-      "skill_answer": "stop instead of tool_calls"
+      "question": "In vLLM streaming tool calls, what decides whether finish_reason is tool_calls?",
+      "skill_answer": "Whether at least one streamed delta carried tool_calls, with no named tool and the engine stopping on stop; prev_tool_call_arr is not read."
     },
     {
       "id": 15,
@@ -90,7 +90,7 @@
     },
     {
       "id": 16,
-      "question": "As of vLLM v0.27.0, which parsers set prev_tool_call_arr = [{\"arguments\": {}}] to force finish_reason=tool_calls?",
+      "question": "As of vLLM v0.33.0, which parsers still carry the prev_tool_call_arr = [{\"arguments\": {}}] placeholder, the old workaround for forcing finish_reason=tool_calls?",
       "skill_answer": "pythonic, llama4_pythonic, olmo3, lfm2, minicpm5xml"
     },
     {
