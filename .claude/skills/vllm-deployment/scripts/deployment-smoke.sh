@@ -5,7 +5,7 @@
 #   ./deployment-smoke.sh <pod-name> [namespace]
 #   ./deployment-smoke.sh vllm-0 inference
 #
-# Exits non-zero on any fail.
+# Exits non-zero on any fail. Self-test with planted failures: deployment-smoke-selftest.sh
 
 set -u
 POD="${1:?usage: $0 POD_NAME [NAMESPACE]}"
@@ -74,13 +74,14 @@ fi
 
 # 7. Usage-stats opt-out on regulated/air-gapped clusters
 stats=$($KUBECTL exec "$POD" -- printenv VLLM_NO_USAGE_STATS 2>/dev/null || true)
-if [[ -z "$stats" ]]; then
-  warn "VLLM_NO_USAGE_STATS not set — vLLM will POST to stats.vllm.ai (set to 1 on regulated/air-gapped)"
+if [[ "$stats" != "1" ]]; then
+  warn "VLLM_NO_USAGE_STATS is '${stats:-unset}' — only the value 1 opts out; vLLM will POST to stats.vllm.ai (set to 1 on regulated/air-gapped)"
 fi
 
 # 8. Image tag discipline
 img=$($KUBECTL get pod "$POD" -o jsonpath='{.spec.containers[0].image}' 2>/dev/null)
-if [[ "$img" == *":latest" || "$img" != *":"* ]]; then
+name="${img##*/}"   # last path component — a registry port (host:5000/...) is not a tag
+if [[ -z "$img" || "$name" == *":latest" || ( "$name" != *":"* && "$name" != *"@"* ) ]]; then
   fail "image tag is ':latest' or missing — pin to a version (image: $img)"
 else
   pass "image pinned: $img"
