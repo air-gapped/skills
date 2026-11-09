@@ -96,7 +96,7 @@ The v0.24.1 Qwen-Image fix reaches v0.26.0 **as a separate backport, not by desc
 
 ## Third-party
 
-- Community skills plugin: <https://github.com/hsliuustc0106/vllm-omni-skills>
+- Community skills plugin: <https://github.com/hsliuustc0106/vllm-omni-skills> — 24 `skills/*/SKILL.md` files on 2026-11-09 (not archived, pushed 2026-11-09)
 - AIToolly coverage 2026-03-23: <https://aitoolly.com/ai-news/article/2026-03-23-vllm-omni-a-new-framework-for-efficient-omni-modality-model-inference-released-on-github>
 
 ## Key issues referenced

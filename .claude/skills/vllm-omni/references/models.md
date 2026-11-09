@@ -191,4 +191,4 @@ If a model is not in the tables above, check `gh api /repos/vllm-project/vllm-om
 
 ## Community skill catalog
 
-[`hsliuustc0106/vllm-omni-skills`](https://github.com/hsliuustc0106/vllm-omni-skills) — 22-skill Claude/Cursor plugin catalog. Useful for "how do I do X with model Y" recipes the official docs don't have yet. Third-party; not an official project artifact.
+[`hsliuustc0106/vllm-omni-skills`](https://github.com/hsliuustc0106/vllm-omni-skills) — Claude/Cursor plugin catalog (20+ skills). Useful for "how do I do X with model Y" recipes the official docs don't have yet. Third-party; not an official project artifact.
