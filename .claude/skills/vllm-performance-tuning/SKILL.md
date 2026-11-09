@@ -18,7 +18,7 @@ Companion skills: `vllm-benchmarking` (measure), `vllm-caching` (KV), `vllm-nvid
 
 **Parallelism + MoE kernels (biggest single wins):**
 - **Pick parallelism** (see `references/moe-and-ep.md`) — model-fits-1-GPU → TP=1 + replicas (DP); MoE MLA (DeepSeek/Kimi-K2) → DP-attn + EP; multi-node → TP intra + PP inter OR Wide-EP.
-- **MoE on a new SKU → run `benchmark_moe.py --tune`** — generates `E=*,N=*,device_name=*.json` configs. Without tuned configs vLLM logs "Using default MoE config. Performance might be sub-optimal!" = 20-40% throughput loss.
+- **MoE on a new SKU, model shape or dtype → run `benchmark_moe.py --tune`** — generates `E=*,N=*,device_name=*.json` configs. Without tuned configs vLLM logs "Using default MoE config. Performance might be sub-optimal!" = 20-40% throughput loss.
 - **Wide-EP** (`--enable-expert-parallel --enable-eplb --enable-dbo`) for DeepSeek/Qwen3/Kimi-K2 at ≥16 GPUs.
 
 **Throughput / batching:**
@@ -73,7 +73,7 @@ From Red Hat's 5-step triage ([2026-03-09](https://developers.redhat.com/article
 
 ## Top 10 operator mistakes this skill exists to prevent
 
-1. **Not running `benchmark_moe.py` on a new GPU SKU.** Shipped configs cover common combos (H100, H200, A100, MI300X for Mixtral). B200 / B300 / GB200 / MI325X / Jetson Thor / RTX Pro Blackwell almost always need re-tuning. Symptom: `Using default MoE config. Performance might be sub-optimal!` in logs. Fix: `python benchmarks/kernels/benchmark_moe.py --model <moe-model> --tp-size <N> --enable-expert-parallel --tune --save-dir ./configs`, then `export VLLM_TUNED_CONFIG_FOLDER=./configs`. Expected: 20-40% throughput recovery.
+1. **Assuming a tuned MoE config exists because the SKU is common.** A config matches only on the exact file name `E=<experts/rank>,N=<N>,device_name=<name>[,dtype=…][,block_shape=…].json`. v0.33.0 ships files for H100 / H200 / H20 / A100 / L40S, B200 / B300 / GB200 / GB10, RTX PRO 6000 Blackwell and MI300X–MI355X — only for the shapes someone tuned, so a new model, TP/EP split or dtype on a covered SKU still misses. GB300, GH200 and Jetson Thor ship none. Symptom: `Using default MoE config. Performance might be sub-optimal! Config file not found at <path>` — the path names the file to generate; a hit logs `Using configuration from <path> for MoE layer`. Fix: `python benchmarks/kernels/benchmark_moe.py --model <moe-model> --tp-size <N> --enable-expert-parallel --tune --save-dir ./configs`, then `export VLLM_TUNED_CONFIG_FOLDER=./configs`. Expected: 20-40% throughput recovery.
 
 2. **`gpu_memory_utilization=0.95` on MoE.** All-to-all staging buffers (DeepEP, NVSHMEM) aren't in the memory accountant. OOM at high concurrency. Fix: cap at 0.85 for MoE, 0.92 for dense.
 
