@@ -38,3 +38,9 @@ reference file it concerns and delete the entry here. An entry whose cue fired a
 - **lesson:** verify the claim per member in the source at the pinned tag; list the exceptions in the reference table the agent reads
 - **evidence:** ansible-idrac-9-10 (four module families reject `x_auth_token`; two examples would have failed) and jira-cli (`--component` appends although `--help` says replace; confirmed in code and live), both 2026-10-20 (`helped`)
 - **confidence:** high — two skills, source-confirmed
+
+### An assertion that fails in both arms is the eval, not the skill (2026-11-09)
+- **cue:** an outcome run lists a weak case whose failed assertion also fails every run of the without arm, or the skill's `evals.json` names another harness in `provenance.harness`
+- **lesson:** before editing SKILL.md, test the assertion against the runner — the tools `outcome-eval.py` grants, the empty workspace, the prompt's own constraints. When no correct answer can pass, correct the eval case in its own commit and re-run it with `--case`
+- **evidence:** skill-improver 2026-11-09 fix — both weak cases (08, 11) failed on assertions no answer could pass (every judge vote FAIL in both arms); after rewording, `--case` re-runs went 0.67 → 1.00 with the skill on answers of the same substance, and a third assertion that had failed 2 of 3 runs passed 3 of 3 untouched (`helped`: the measurement was wrong, the skill was not)
+- **confidence:** medium — one skill, two cases; the mechanism applies to any eval set older than its runner
