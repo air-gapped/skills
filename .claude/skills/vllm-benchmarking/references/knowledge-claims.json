@@ -27,8 +27,8 @@
     },
     {
       "id": 4,
-      "question": "What are the four default metrics in `--percentile-metrics` for `vllm bench serve`?",
-      "skill_answer": "ttft, tpot, itl, e2el"
+      "question": "What does `--percentile-metrics` default to in `vllm bench serve`?",
+      "skill_answer": "`ttft,tpot,itl` for generative models and `e2el` for pooling models; `e2el` must be added explicitly for generative runs."
     },
     {
       "id": 5,
@@ -47,8 +47,8 @@
     },
     {
       "id": 8,
-      "question": "Where does the `sonnet` benchmark dataset live so it never downloads?",
-      "skill_answer": "In-tree at `vllm/benchmarks/sonnet.txt`"
+      "question": "In which vLLM version was the `sonnet` benchmark dataset removed from `vllm bench`?",
+      "skill_answer": "v0.32.0; `--dataset-name sonnet` is rejected from then on, so it is usable only on v0.31 and earlier."
     },
     {
       "id": 9,
