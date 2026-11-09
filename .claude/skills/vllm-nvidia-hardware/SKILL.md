@@ -39,7 +39,7 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
 
 1. **Conflating the two B300 bins.** NVIDIA ships B300 in two bins: **DGX / GB300 Superchip = 279 GB HBM3E / 8 TB/s / 1,400 W** (launch coverage says 288 GB; size against the datasheet's 279), and **HGX B300 NVL8 SXM6 (OEM baseboards) = 270 GB / 7.7 TB/s / 1,100 W**. Dell PowerEdge XE9780/XE9780L/XE9780LAP/XE9785/XE9785L all carry the **HGX NVL8 bin** — identify it by the **1,100 W** TDP, never by the memory figure: Dell's spec sheet prints "288 GB" for it (and for XE9712), NVIDIA's datasheet says 270 GB (279 GB for the GB300 bin). Size against NVIDIA's figures. Getting this wrong puts the 8-GPU TDP budget off by 2.4 kW and the per-GPU HBM off by 9 GB. `references/gpu-specs.md` §2 has both rows.
 
-2. **Assuming B300 is HBM4.** It isn't. B300 uses HBM3E (12-Hi stacks, 279 GB at the top bin). HBM4 first ships in **Vera Rubin R100** (H2 2026) with ~20 TB/s per GPU. This matters for roadmap planning.
+2. **Assuming B300 is HBM4.** It isn't. B300 uses HBM3E (12-Hi stacks, 279 GB at the top bin). HBM4 first ships in **Vera Rubin R100** (H2 2026) with 19.2 TB/s per GPU. This matters for roadmap planning.
 
 3. **Assuming GB300 NVL72 can use rear-door heat exchangers.** It can't — at 135 kW nominal / 155 kW peak per rack, direct liquid cooling is mandatory on GPUs + CPUs + NVSwitch + CX-8 NICs. Facility work (row-level CDU, 3φ 480V feeds, 1500 kg/m² floor) routinely takes 6–9 months. See `references/nvl72-procurement.md`.
 
@@ -91,7 +91,8 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
 | GB300 NVL72 aggregate HBM BW | ~576 TB/s |
 | GB300 NVL72 NVLink domain | 72 GPUs flat, 130 TB/s |
 | H200 SXM5 | 141 GB HBM3E / 4.8 TB/s / 700 W |
-| Rubin R100 (H2 2026) | ~288 GB HBM4 / ~20 TB/s |
+| Rubin R100 | 288 GB HBM4 / 19.2 TB/s |
+| Vera Rubin NVL72 rack | 20.7 TB HBM4 / 1,400 TB/s / NVLink 6 at 216 TB/s |
 | Rubin Ultra Kyber NVL576 rack | 600 kW |
 
 ## Paired skill

@@ -36,7 +36,7 @@ Across Volta → Ampere → Hopper → Blackwell:
 | H200 (2024) | 989 | 4.8 | 206 |
 | B200 (2024–25) | 2,250 | 8.0 | 281 |
 | B300 / Blackwell Ultra (2025) | 2,500 | 8.0 | 312 |
-| Rubin R100 (2026 projected) | ~8,000 (est.) | ~20 | ~400 |
+| Rubin R100 (2026) | 4,000 | 19.2 | 208 |
 
 Compute grew ~18× from V100→B200 while bandwidth grew ~9× — the **compute:bandwidth
 ratio roughly doubled**, pushing the memory wall further into the workloads we run.
@@ -50,6 +50,10 @@ Blackwell Ultra's higher FP16 TFLOPs (vs B200) comes with the same 8 TB/s HBM BW
 the ratio worsens again — which is precisely why **FP4 becomes structurally important
 on B300**: halving weight bytes buys a direct 2× relief on the memory-bound decode
 path.
+
+**Rubin reverses the trend on FP16.** HBM4 takes bandwidth 2.4× over B300 while dense
+FP16 grows 1.6×, so the ratio falls to 208 — H200 territory. Size R100 decode gains
+on the 2.4× bandwidth step, not on the FLOPS headline.
 
 Sources:
 [SemiAnalysis — NVIDIA Tensor Core Evolution](https://newsletter.semianalysis.com/p/nvidia-tensor-core-evolution-from-volta-to-blackwell),

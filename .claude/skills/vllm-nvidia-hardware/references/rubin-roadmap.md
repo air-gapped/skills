@@ -77,17 +77,20 @@ Blackwell. See `references/vllm-platform-matrix.md`.
 
 | Product | HBM | BW | FP4 | FP8 | Rack product | Rack power | Status |
 |---|---:|---:|---:|---:|---|---:|---|
-| **R100 (Rubin)** | 288 GB HBM4 (8 stacks) | ~20 TB/s (CES 2026 revision) | 50 PFLOPS | ~16 PFLOPS | **Vera Rubin NVL72** (aka VR200 NVL144, 144 dies / 72 packages) | **180–220 kW** | **In full production** (NVIDIA, Apr 2026); shipping H2 2026 |
+| **R100 (Rubin)** | 288 GB HBM4 (8 stacks) | **19.2 TB/s** | 50 PFLOPS sparse / 35 dense (NVFP4) | 17.5 PFLOPS dense | **Vera Rubin NVL72** (aka VR200 NVL144, 144 dies / 72 packages) | **180–220 kW** | **In full production** (NVIDIA, Apr 2026); shipping H2 2026 |
 | **R300 (Rubin Ultra)** | **1 TB HBM4E** (16 stacks) | TBD | 100 PFLOPS | TBD | **NVL576 Kyber** | **~600 kW** | H2 2027 |
 
-**Rubin BW revision:** initial GTC March 2025 announcement cited 13 TB/s; NVIDIA
-revised at CES 2026 to ~20 TB/s to exceed AMD MI455X. Plan against the higher figure.
+R100 values are NVIDIA's published per-GPU spec table (FP16/BF16 dense: 4 PFLOPS;
+NVLink 6: 3 TB/s per GPU). Plan against 19.2 TB/s — the 13 TB/s from GTC 2025 is
+superseded. R300 values are still roadmap figures.
 
 ## Rack products
 
-- **VR200 NVL144 (MGX rack):** 144 Rubin GPU *dies* (= 72 packages) per rack. NVIDIA
-  claims 3.6 EFLOPS FP4 inference / 1.2 EFLOPS FP8 training — **3.3× GB300**.
-  75 TB fast memory, 260 TB/s NVLink, 28.8 TB/s CX-9 per rack.
+- **Vera Rubin NVL72 (VR200 NVL144, MGX rack):** 72 Rubin GPUs (144 dies) + 36 Vera
+  CPUs. NVIDIA's spec table: 3.6 EFLOPS NVFP4 inference (sparse) / 2.52 EFLOPS NVFP4
+  dense / 1.26 EFLOPS FP8 dense — **3.3× GB300** on the inference figure.
+  **20.7 TB HBM4 at 1,400 TB/s**, up to 54 TB LPDDR5X, NVLink 6 at 216 TB/s,
+  32.4 TB/s networking, 45 °C inlet.
 - **Kyber NVL576:** 576 dies (144 quad-die Rubin Ultra packages). 15 EFLOPS FP4 /
   5 EFLOPS FP8 — **14× GB300**. New form factor: cable-free midplane, vertically
   rotated blades (18/chassis), NVL7 switches.
