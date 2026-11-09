@@ -44,6 +44,7 @@ same commit; it is the final release, not an rc.
 - [PR #52183](https://github.com/vllm-project/vllm/pull/52183) — PyTorch **2.14.0**, torchvision **0.29.0**, Triton **3.8.0**; FlashInfer **0.7.2.post1**, compressed-tensors **0.17.0**. Rebuild custom kernels and quantization plugins.
 - [PR #62575](https://github.com/vllm-project/vllm/pull/62575) — CUDA 12.9 wheels and the `-cu129` / `-cu129-ubuntu2404` images are no longer published; CUDA 13.0 only.
 - [PR #61278](https://github.com/vllm-project/vllm/pull/61278) — `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` removed again (restored in v0.31.0); AITER tuned configs select the W4A4 GEMM kernel.
+- [PR #61701](https://github.com/vllm-project/vllm/pull/61701) — Medusa and the MLP speculator removed from speculative decoding.
 
 Quantization:
 - [PR #61875](https://github.com/vllm-project/vllm/pull/61875) — Humming on SM90 runs a checkpoint's MXFP8 MoE activations (DeepSeek-V4 / V4.1 MXFP4 experts) as block FP8; an explicit `--quantization-config.moe.activation` wins ([#62751](https://github.com/vllm-project/vllm/pull/62751)).

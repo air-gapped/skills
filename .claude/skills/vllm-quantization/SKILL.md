@@ -188,8 +188,10 @@ is right, the second is wrong. The order is:
 | MoE (Qwen3-MoE), MLA (DeepSeek-V3, Kimi-K2), offline hidden-state training, or any family without a validated dflash recipe | **EAGLE-3** | ModelOpt dflash has no MoE draft, no MLA KV injection, no offline training |
 | Checkpoint ships MTP heads | **mtp** | no training needed |
 
-Medusa / MTP cannot be trained post-hoc — MTP heads are part of the
-pretraining (DeepSeek V3, Qwen3-Next, GLM-4.5 MoE, etc.). Full details +
+MTP cannot be trained post-hoc — MTP heads are part of the pretraining
+(DeepSeek V3, Qwen3-Next, GLM-4.5 MoE, etc.). **Never plan a Medusa drafter:**
+vLLM v0.33.0 removed the `medusa` and `mlp_speculator` methods (#61701), so a
+Medusa checkpoint serves on ≤ v0.32.x only. Full details +
 exact commands: `references/modelopt.md` § speculative-decoding.
 
 For spec-dec runtime tuning (acceptance rate metrics, method selection

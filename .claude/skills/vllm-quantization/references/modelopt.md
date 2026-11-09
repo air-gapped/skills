@@ -283,7 +283,7 @@ Open gaps: no offline training, MLA (Kimi-K2, DeepSeek-V3) KV injection not vali
 
 ### Medusa / MTP
 
-- **Medusa** — ModelOpt loads + exports (`modelopt/torch/speculative/medusa/`) but **does not train** post-hoc. Use for converting legacy Medusa checkpoints.
+- **Medusa** — ModelOpt loads + exports (`modelopt/torch/speculative/medusa/`) but **does not train** post-hoc. vLLM v0.33.0+ cannot serve Medusa at all (`medusa` and `mlp_speculator` methods removed, [#61701](https://github.com/vllm-project/vllm/pull/61701)) — retrain as EAGLE-3 or dflash.
 - **MTP** — not trainable post-hoc. MTP heads must be part of pretraining. Use pretrained MTP from DeepSeek V3/V3.2, GLM-4.5/4.6 MoE, Qwen3-Next — served with `--speculative-config '{"method":"mtp","num_speculative_tokens":1}'`.
 
 ### Quantization-aware drafter training — **unsupported**
