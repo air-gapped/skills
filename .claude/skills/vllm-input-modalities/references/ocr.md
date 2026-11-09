@@ -39,11 +39,27 @@ accurately as the purpose-built models on dense document images.
 From <https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-OCR.html>:
 
 ```bash
+VLLM_USE_V2_MODEL_RUNNER=0 \
 vllm serve deepseek-ai/DeepSeek-OCR \
   --logits-processors vllm.model_executor.models.deepseek_ocr:NGramPerReqLogitsProcessor \
   --no-enable-prefix-caching \
   --mm-processor-cache-gb 0
 ```
+
+**Model Runner V1 is required for the logits processor.**
+`NGramPerReqLogitsProcessor` subclasses the V1 `AdapterLogitsProcessor`. What
+happens without `VLLM_USE_V2_MODEL_RUNNER=0`:
+
+| Running version | Result |
+|---|---|
+| v0.28.x and below | V1 is the default — works |
+| v0.29.x–v0.30.x | vLLM logs `Model Runner V2 does not yet support custom logits processors; using the V1 model runner instead.` — works |
+| v0.31.0–v0.33.0 | startup fails: `ValueError: NGramPerReqLogitsProcessor is not a subclass of vllm.v1.worker.gpu.sample.logits_processor.LogitsProcessor` |
+
+Same for `baidu/Unlimited-OCR`, which reuses this processor. No V2-interface
+n-gram processor ships at v0.33.0, and MRV1 is announced for removal
+(`references/runner-flags.md` §11): re-check on every upgrade. Dropping the
+processor instead makes long pages loop.
 
 Three non-obvious flags, none optional:
 

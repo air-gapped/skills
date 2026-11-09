@@ -206,11 +206,18 @@ unquantized large-v3 / large-v3-turbo wants ≥32 GB for comfortable batch sizes
 Canonical recipe from `docs.vllm.ai/projects/recipes`:
 
 ```bash
+VLLM_USE_V2_MODEL_RUNNER=0 \
 vllm serve deepseek-ai/DeepSeek-OCR \
   --logits-processors vllm.model_executor.models.deepseek_ocr:NGramPerReqLogitsProcessor \
   --no-enable-prefix-caching \
   --mm-processor-cache-gb 0
 ```
+
+**`VLLM_USE_V2_MODEL_RUNNER=0` is mandatory from v0.31.0.** The processor
+implements the V1 logits-processor interface; Model Runner V2 rejects it at
+startup with `ValueError: NGramPerReqLogitsProcessor is not a subclass of
+vllm.v1.worker.gpu.sample.logits_processor.LogitsProcessor`. No V2 port exists
+at v0.33.0 (`references/ocr.md` §3).
 
 Three non-obvious flags:
 - `NGramPerReqLogitsProcessor` is required — without it, table-token
@@ -272,6 +279,7 @@ history and the PRs behind each row: `references/sources.md`.
 | below v0.26.0 | LAST-pooling models (Qwen3-Reranker, Qwen3-Embedding) return wrong scores when chunked prefill splits a long query+doc pair under `torch.compile` (the default); `--enforce-eager` is correct | Upgrade; **re-score** rankings produced on long documents | `references/reranking.md` §2 |
 | below v0.31.0 | Chunked long-text embeddings (`enable_chunked_processing`) come back non-unit length; a non-truncating `max_tokens_per_doc` still changes scores on Qwen3-Reranker-style models | Upgrade; **re-embed / re-score** affected output | `references/embedding.md` §7, `references/reranking.md` §3 |
 | v0.31.0+ | A request carrying `mm_processor_kwargs` or `media_io_kwargs` is rejected unless the server runs `--trust-request-mm-kwargs` (chat and pooling/scoring alike) | Set decode options server-side with `--media-io-kwargs`, or add the flag | `references/stt.md` §6 |
+| v0.31.0+ | `--logits-processors …NGramPerReqLogitsProcessor` (DeepSeek-OCR, Unlimited-OCR) fails at startup on Model Runner V2: `ValueError: … is not a subclass of vllm.v1.worker.gpu.sample.logits_processor.LogitsProcessor` | Start the server with `VLLM_USE_V2_MODEL_RUNNER=0` | `references/ocr.md` §3 |
 | v0.29.x | `media_io_kwargs` is not part of the multimodal cache hash — requests differing only in it hit each other's cache entries | Do not A/B decode settings with the processor cache on | `references/stt.md` §6 |
 | v0.29.0+ | Pooling runs on Model Runner V2 by default | `VLLM_USE_V2_MODEL_RUNNER=0` restores V1 (still accepted at v0.33.0) | `references/runner-flags.md` §11 |
 | v0.24.0+ | Rerank `top_n` below 0 is a 400 (`-1` used to mean `0`); `top_n=0` still returns all | Send `0` for "all" | `references/reranking.md` §3 |
