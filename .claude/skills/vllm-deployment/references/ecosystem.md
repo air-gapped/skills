@@ -43,7 +43,7 @@ A pointer map to the control-plane and data-plane projects that deploy, route, a
 ### vllm-production-stack (UC Berkeley + UChicago)
 
 - **Repo**: https://github.com/vllm-project/production-stack · docs: https://docs.vllm.ai/projects/production-stack/
-- **Helm chart version**: **vllm-stack-0.1.13** (2026-09-29) — adds `pvcExistingClaimName` for an externally managed PVC and `shmSize` on the operator's `VLLMRuntime`; the inference gateway path moved from kgateway to agentgateway
+- **Helm chart version**: **vllm-stack-0.1.14** (2026-11-07) — per-model `command` / `args` (replace the default `vllm serve` invocation), `extraContainers` and `serviceLabels` under `servingEngineSpec.modelSpec`; KEDA scalers render only for enabled model deployments; router image built on vLLM 0.33.0. From 0.1.13: `pvcExistingClaimName` for an externally managed PVC, `shmSize` on the operator's `VLLMRuntime`, inference gateway path on agentgateway instead of kgateway
 - **Helm chart**: https://github.com/vllm-project/production-stack/tree/main/helm · values: https://github.com/vllm-project/production-stack/blob/main/helm/values.yaml
 - **Maintainer / license**: UC Berkeley Sky Lab + UChicago LMCache + vLLM · Apache-2.0
 - **Role**: Reference "stack" — router + N vLLM engines + LMCache tiered KV + observability, packaged as one Helm release.
