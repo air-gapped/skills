@@ -94,7 +94,7 @@ Sanitize aggressively if the data has any chance of containing secrets. Replace 
 
 Disagg prefill (separate prefill/decode instances via NixlConnector or Mooncake) benchmarks differently — end-to-end latency spans a two-hop request path.
 
-Use the recipes at `benchmarks/disagg_benchmarks/` in the vLLM tree. Key differences from single-instance:
+Bring up prefill, decode and a proxy from `examples/disaggregated/` in the vLLM tree (`disaggregated_serving/disagg_proxy_demo.py` for XpYd, `lmcache/disagg_prefill_lmcache_v1/` for Nixl + LMCache), then point `vllm bench serve --base-url` at the proxy. `benchmarks/disagg_benchmarks/` exists only through v0.23. Key differences from single-instance:
 - Measure TTFT including the prefill-to-decode KV transfer. This transfer is the new critical path.
 - Tune prefill and decode `--max-num-batched-tokens` independently.
 - Compare against a single-instance baseline with equivalent total GPU count to know if disagg earned the complexity.
