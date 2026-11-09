@@ -16,6 +16,7 @@ Backends gate on `DeviceCapability` in `vllm/v1/attention/backends/`:
 | `FLASHINFER` | ✅ | ✅ | CC 8.0–12.1 — SM75 (T4) temporarily excluded from auto-selection (`flashinfer.py:571-579` at v0.32.0); FlashInfer 0.3.1+ default v0.11 |
 | `FLASHINFER_MLA` (dense) | ❌ | ✅ | Blackwell-only: `capability.major == 10` (`flashinfer_mla.py:220-221` at v0.32.0). The gate is on the *major* only, so Rubin (10.7) passes it — that admits the backend, it does not prove the kernels exist there |
 | `FLASHINFER_MLA_SPARSE` (DeepSeek V3.2) | via `_SM90` key | ✅ | TRTLLM kernel, `major == 10`; default for FP8 KV cache v0.19 (#37252). Hopper and SM12x use the separate `FLASHINFER_MLA_SPARSE_SM90` / `FLASHINFER_MLA_SPARSE_SM120` registry keys |
+| `FLASH_ATTN_MLA_SPARSE_FA4` | ❌ | ✅ | v0.33.0 (#55866): FA4 sparse MLA decode, `major == 10`. **BF16 KV cache only**, `index_topk` a multiple of 128. Auto-selected first at ≤ 16 query heads with a BF16 KV cache (then `FLASHINFER_MLA_SPARSE`, then `FLASHMLA_SPARSE`); above 16 heads it is opt-in, and a quantized KV cache still selects `FLASHINFER_MLA_SPARSE` first. An unchanged DeepSeek-V3.2-class config can land on a different decode kernel after the upgrade |
 | `FLASHMLA` (dense & sparse) | ✅ | ✅ | `capability.major in [9, 10]`; disabled on Blackwell in v0.10.2 (#24521), restored |
 | `CUTLASS_MLA` | ❌ | ✅ | `sm100_cutlass_mla_decode`; FP8 MLA (#23289, v0.10.2) |
 | `TRTLLM attention` | ❌ | ✅ | SM100 and SM103; **SM103 (GB300) previously hung with FlashInfer 0.6.7 (regression vs 0.6.6)** — **fixed 2026-04-07** via flashinfer-ai/flashinfer#2956 (a *revert* of the Blackwell-Ultra optimization that caused the deadlock; closes #2939), first shipped in 0.6.7.post2 (post1 lacks it). If stuck on 0.6.7 or 0.6.7.post1, disable TRTLLM on SM103 or upgrade. |
@@ -187,7 +188,8 @@ Full method catalogue, config, metrics, and per-method pitfalls: see the
   `transformers>=5.16.1,<5.21.0`; `lmcache>=0.5.6`; the NIXL connector requires
   NIXL ≥ 1.5 (#61032; `nixl==1.5.0` is the pin). Hopper: DeepSeek-V4/V4.1 MXFP4
   experts run as block FP8 through Humming (#61875). Rubin: low-latency BF16 GEMM on
-  SM107 (#62843). **Fixes wrong output from the default TRTLLM NVFP4 MoE backend
+  SM107 (#62843). New default: FA4 sparse MLA decode on Blackwell at ≤ 16 query
+  heads (#55866, §1). **Fixes wrong output from the default TRTLLM NVFP4 MoE backend
   under torch.compile on SM100/SM103** when the hidden size is padded (#61749, see
   SKILL.md floors). Unchanged from v0.32.0: Python ≥ 3.11, GCC ≥ 13, image
   `CUDA_VERSION=13.0.3`, `vllm download-kernels` after every pip install. MRV1 is
