@@ -40,8 +40,9 @@ changes materially; the cache records the SKILL.md hash it was built from.
 
 Every cell records `resolved_model` — the full model ids the probes ran on,
 next to the alias it was asked for. Compare cells across releases on that
-field, not on the alias: `fable` resolved to Fable 5 before 2026-09-01 and to
-Fable 5.1 after, and a `fable` column that spans both is two measurements.
+field, not on the alias: `fable` resolved to Fable 5 before 2026-09-01, to
+Fable 5.1 until 2026-11-09 and to Fable 5.2 after, and a `fable` column that
+spans two of them is two measurements.
 """
 
 from __future__ import annotations
@@ -188,7 +189,8 @@ def run_claude(
     `models` is the list of full model ids the call actually ran on, read from
     the result's `modelUsage` keys. It exists because `--model` takes an alias
     (`fable`, `sonnet`) and an alias tracks its family's current release —
-    `fable` meant Fable 5 until 2026-09-01 and Fable 5.1 after — so a cell
+    `fable` meant Fable 5 until 2026-09-01, Fable 5.1 until 2026-11-09 and
+    Fable 5.2 after — so a cell
     labelled by the alias alone cannot be attributed to a release, and
     "re-run on each model release" has nothing to diff against.
 
