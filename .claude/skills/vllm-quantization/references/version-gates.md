@@ -45,6 +45,7 @@ same commit; it is the final release, not an rc.
 - [PR #62575](https://github.com/vllm-project/vllm/pull/62575) — CUDA 12.9 wheels and the `-cu129` / `-cu129-ubuntu2404` images are no longer published; CUDA 13.0 only.
 - [PR #61278](https://github.com/vllm-project/vllm/pull/61278) — `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` removed again (restored in v0.31.0); AITER tuned configs select the W4A4 GEMM kernel.
 - [PR #61701](https://github.com/vllm-project/vllm/pull/61701) — Medusa and the MLP speculator removed from speculative decoding.
+- [PR #53123](https://github.com/vllm-project/vllm/pull/53123) — ROCm **default change:** `VLLM_ROCM_USE_AITER_FP8BMM` and `VLLM_ROCM_USE_AITER_FP4BMM` now default off (MLA `kv_b_proj` is no longer re-quantized online); set to `1` to opt back in.
 
 Quantization:
 - [PR #61875](https://github.com/vllm-project/vllm/pull/61875) — Humming on SM90 runs a checkpoint's MXFP8 MoE activations (DeepSeek-V4 / V4.1 MXFP4 experts) as block FP8; an explicit `--quantization-config.moe.activation` wins ([#62751](https://github.com/vllm-project/vllm/pull/62751)).
