@@ -34,6 +34,7 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 | Marlin wrong first Harmony token | GPT-OSS-120B SM121 | [#37030](https://github.com/vllm-project/vllm/issues/37030) | Open; SM121 not production |
 | Non-deterministic degenerate output | Dynamic FP8 + LoRA-merged on B200 | [#39662](https://github.com/vllm-project/vllm/issues/39662) | Pin static FP8, or unmerge LoRA |
 | Wrong / degraded output only with `--enable-expert-parallel` | NVFP4 or MXFP4 MoE on the CUTLASS MoE backend, ≤ v0.31.x | Fixed [PR #59042](https://github.com/vllm-project/vllm/pull/59042) (CUTLASS FP4 MoE ignored the EP `expert_map`) | Upgrade to v0.32.0; on older releases pin a non-CUTLASS `--moe-backend` or drop EP |
+| Fluent but semantically wrong output, deterministic under greedy decoding; clean with `--enforce-eager` | NVFP4 MoE on the default `flashinfer_trtllm` MoE backend (SM100) when the backend pads the hidden size — Nemotron-3-Nano-30B-A3B-NVFP4 (hidden 2688), v0.26.0 – v0.32.x | [#52308](https://github.com/vllm-project/vllm/issues/52308), fixed [PR #61749](https://github.com/vllm-project/vllm/pull/61749) | Upgrade to v0.33.0; below it `--moe-backend flashinfer_cutlass` or `--enforce-eager` |
 
 ## Load / init failures
 
