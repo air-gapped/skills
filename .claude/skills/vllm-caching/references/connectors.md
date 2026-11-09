@@ -102,7 +102,7 @@ Upstream reference: `docs/features/kv_offloading_usage.md`.
 
 ## LMCache with DRAM + NVMe tiers (single node, production)
 
-Use when LMCache-specific features are needed alongside an NVMe tier — on v0.22.0+ a plain NVMe tier is better served by the native multi-tier `fs` secondary tier above. Assumes v0.14.0+ image with LMCache bundled, or `pip install -U lmcache` at container start (latest stable v0.5.6, 2026-10-14; `vllm/vllm-openai:v0.29.0` bundles **0.5.4**, verified by container run 2026-09-15, so `-U` moves you off the image's tested pair — pin deliberately. The bundled `kv_connectors.txt` floor is `>=0.3.9`; `-cu129` tags from v0.31.0 pin `lmcache == 0.4.4` instead).
+Use when LMCache-specific features are needed alongside an NVMe tier — on v0.22.0+ a plain NVMe tier is better served by the native multi-tier `fs` secondary tier above. Use the lmcache the image bundles (0.5.6 on `v0.32.0` and `v0.33.0`). **Never `pip install -U lmcache` for this connector**: lmcache 0.5.7 moved the in-process adapter to `lmcache.inprocess.*`, and vLLM's built-in `LMCacheConnectorV1` (through v0.33.0) then fails at init with `ModuleNotFoundError: No module named 'lmcache.integration.vllm.vllm_v1_adapter'`. Pin `lmcache==0.5.6`, which is also the security floor. On 0.5.7+ only LMCache's own class loads: `{"kv_connector":"LMCacheConnectorV1Dynamic","kv_connector_module_path":"lmcache.integration.vllm.lmcache_connector_v1","kv_role":"kv_both"}`.
 
 ```bash
 docker run ... \
