@@ -49,9 +49,9 @@ Full PromQL with multi-window burn-rate templates, SLO calibration notes, and go
 
 The repo ships three operator-ready Grafana dashboards at `examples/observability/`:
 
-- `prometheus_grafana/grafana.json` — 12-panel all-in-one (E2E, TTFT, ITL, KV usage, scheduler, throughput, finish-reason, queue/prefill/decode times, token-length heatmaps)
-- `dashboards/grafana/performance_statistics.json` — 20-panel SRE dashboard (latency P50/P90/P99 over time, TPS streams)
-- `dashboards/grafana/query_statistics.json` — 18-panel product dashboard (per-model volume, token-size distributions)
+- `prometheus_grafana/grafana.json` — 13-panel all-in-one (E2E, TTFT, ITL, TPOT, KV usage, scheduler, throughput, finish-reason, queue/prefill/decode times, token-length heatmaps). Its queue, prefill/decode and max-generation-token panels plot `rate(…_sum)`, which scales with request rate — fix after import (`references/dashboards.md`)
+- `dashboards/grafana/performance_statistics.json` — SRE dashboard, 16 panels in 4 rows (latency P50/P90/P99 over time, TPS streams)
+- `dashboards/grafana/query_statistics.json` — product dashboard, 14 panels in 4 rows (per-model volume, token-size distributions)
 
 Plus a working `docker-compose.yaml` + `prometheus.yaml` for local trials. Perses YAML equivalents in `dashboards/perses/`. Pair with DCGM exporter (Grafana dashboard 15117) for hardware-side metrics.
 

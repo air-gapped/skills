@@ -12,19 +12,18 @@ Location: `examples/observability/` (path moved from the deprecated `examples/pr
 
 Ready-to-run minimal stack: Grafana + Prometheus via docker-compose, one dashboard.
 
-- `grafana.json` — **12-panel all-in-one** dashboard. Panels:
+- `grafana.json` — **13-panel all-in-one** dashboard. Panels:
   - E2E request latency (P50/P90/P95/P99 via `histogram_quantile`)
   - Token throughput (prompt + generation rate)
   - Inter-token latency (P50/P90/P95/P99)
+  - Time per output token (same quantiles)
   - Scheduler state (running + waiting over time)
   - TTFT (P50/P90/P95/P99)
   - KV cache utilization
   - Request prompt-length heatmap
   - Request generation-length heatmap
   - Finish-reason breakdown (`request_success_total{finished_reason}`)
-  - Queue time
-  - Prefill + decode time
-  - Max-generation-tokens per sequence group
+  - Queue time, Prefill + decode time, Max-generation-tokens per sequence group — **all three plot `rate(…_sum[…])`, i.e. seconds (or tokens) accumulated per second, so the line rises with request rate at constant latency** (through v0.33.0). After import rewrite each as `rate(…_sum[5m]) / rate(…_count[5m])` for the mean, or as `histogram_quantile` over `…_bucket`, and set the unit to seconds
 - `prometheus.yaml` — 5s scrape interval, 30s evaluation, target `host.docker.internal:8000`
 - `docker-compose.yaml` — `prom/prometheus:latest` + `grafana/grafana:latest`; no DCGM, no cAdvisor, no node-exporter
 
@@ -34,13 +33,13 @@ Import directly into existing Grafana via **Dashboards → New → Import → Up
 
 Two newer, more specialized dashboards:
 
-- `performance_statistics.json` — **20-panel SRE dashboard**:
+- `performance_statistics.json` — **SRE dashboard, 16 panels in 4 rows**:
   - E2E latency stats P50/P90/P99 + over-time rows
   - TTFT stats + TTFT percentile-over-time
   - ITL stats + percentile-over-time
   - Tokens-per-second streams (prompt, generation, iteration tokens)
 
-- `query_statistics.json` — **18-panel product dashboard**:
+- `query_statistics.json` — **product dashboard, 14 panels in 4 rows**:
   - Successful-request volume over time
   - P50/P90/P99 latency summary stats
   - Input token size distribution + percentiles
