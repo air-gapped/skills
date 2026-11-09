@@ -1,6 +1,6 @@
 # The Improvement Loop — Phase Workflow (Phases 0–7)
 
-Full phase workflow for `improve` mode (the default). Cross-cutting rules (rules for every mode, blind validation spawn mechanics) stay in `SKILL.md`.
+Full phase workflow for `improve` mode. Cross-cutting rules (rules for every mode, blind validation spawn mechanics) stay in `SKILL.md`.
 
 ## Table of Contents
 

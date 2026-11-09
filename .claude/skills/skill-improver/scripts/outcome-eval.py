@@ -513,7 +513,8 @@ def main() -> int:
         print(f"\nweak cases (answers and grader evidence: {work}/current.json):")
         print("\n".join(weak))
     print(f"API-price estimate ${cost:.2f}; raw results in {work}")
-    print(usage_text(*run_usage(results)))
+    usage = run_usage(results)
+    print(usage_text(*usage))
     if (
         a.write_benchmark
         and means["current"] is not None
@@ -526,6 +527,9 @@ def main() -> int:
                         "tool": "claude plugin eval via outcome-eval.py",
                         "date": date.today().isoformat(),
                         "model": a.model,
+                        # The alias moves with each release; the ids the
+                        # answering runs reported are what the numbers rest on.
+                        "models_resolved": sorted(usage[0]),
                         "judge_model": a.judge_model,
                         "runs_per_case": a.runs,
                         "cases": len(evals),

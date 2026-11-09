@@ -35,7 +35,7 @@ SKILL.md path, `--all`, or a glob (`'vllm-*'`). No mode → **Auto**. No target
 | `ages` | Fleet table of verification age vs last change | §Ages |
 | `batch` | Runs `improve`, `freshen` or `trigger` over many skills | §Batch |
 
-Flags are mode-specific: `--iterations N`, `--probe-budget N`,
+Flags are mode-specific: `--iterations N` (improve),
 `--runs-per-query N`, `--missed "<query>"` (trigger; repeatable — seeds a
 user-reported miss as a should-trigger query), `--against <git-ref>` (outcome).
 
@@ -68,9 +68,9 @@ The cheapest change that measurably improves answers: find what the skill
 lacks, from the answers it produced. Prefer it over `improve` for a skill with
 eval cases.
 
-1. Run `outcome-eval.py <skill-dir>` (no `--against`). It ends by listing the
-   **weak cases** — the skill loses to the without arm or scores under 0.7 —
-   with each failed assertion and how many runs failed it.
+1. Run `outcome-eval.py <skill-dir> --write-benchmark` (no `--against`). It
+   ends by listing the **weak cases** — the skill loses to the without arm or
+   scores under 0.7 — with each failed assertion and how many runs failed it.
 2. For each weak case, read the failed answers in the printed `current.json`
    (grader `evidence`) and name the cause: fact missing from the skill; fact
    only in `sources.md` or buried; skill text wrong; assertion stale; judge

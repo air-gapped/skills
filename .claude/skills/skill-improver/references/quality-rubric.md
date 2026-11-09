@@ -496,10 +496,10 @@ Recommended first improvement: [one sentence]
 Track the improvement loop with this TSV-style log:
 
 ```
-iteration | score | delta | status | description
-0         | 58    | —     | baseline | initial evaluation
-1         | 62    | +4    | keep     | rewrote description with specific trigger phrases
-2         | 62    | 0     | discard  | added examples/ directory (no score gain, added complexity)
-3         | 65    | +3    | keep     | moved API reference from SKILL.md to references/api.md
-4         | 67    | +2    | keep (confirmed) | converted 12 second-person sentences to imperative form
+iteration | score | delta | status | lens | description
+0         | 58    | —     | baseline | —    | initial evaluation
+1         | 62    | +4    | keep     | INV  | rewrote description with specific trigger phrases
+2         | 62    | 0     | discard  | INV  | added examples/ directory (no score gain, added complexity)
+3         | 65    | +3    | keep     | INV  | moved API reference from SKILL.md to references/api.md
+4         | 67    | +2    | keep (confirmed) | INV | converted 12 second-person sentences to imperative form
 ```
