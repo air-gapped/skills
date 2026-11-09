@@ -91,7 +91,7 @@ From Red Hat's 5-step triage ([2026-03-09](https://developers.redhat.com/article
 
 9. **Skipping compile cache on K8s.** First-pod torch.compile = 5-15 min on large models. Fix: pre-bake `$VLLM_CACHE_ROOT/torch_compile_cache` on one pod, mount as PVC / OCI layer. Llama-4 specifically needs `VLLM_DISABLE_COMPILE_CACHE=1` — stale-cache bug.
 
-10. **`NCCL_CUMEM_ENABLE=0` on GB200.** Disables multi-node NVLink, forces TCP/IB fallback. Nvidia's rule: **"users should not need to tune NCCL environment variables"** on modern clouds. GB200 set `NCCL_NET_GDR_C2C=1`. PR [#16992](https://github.com/vllm-project/vllm/pull/16992) fixed vLLM's defaults.
+10. **`NCCL_CUMEM_ENABLE=0` on GB200.** Disables multi-node NVLink, forces TCP/IB fallback. Nvidia's rule: **"users should not need to tune or set NCCL environment variables"**. `NCCL_NET_GDR_C2C` already defaults to `1` on NCCL ≥ 2.27; set it only on 2.26. PR [#16992](https://github.com/vllm-project/vllm/pull/16992) fixed vLLM's defaults.
 
 ## Operator cheat sheet
 

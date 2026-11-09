@@ -21,12 +21,12 @@ it is the new default, not fabric tuning.
 
 ## NCCL baseline
 
-**NVIDIA's explicit guidance:** "In general, users should not need to tune or set NCCL environment variables to achieve peak performance." ([GB200 multi-node tuning](https://docs.nvidia.com/multi-node-nvlink-systems/multi-node-tuning-guide/nccl.html)). NCCL ≥2.28 auto-detects GB200 NVLink domains and picks the algorithm.
+**NVIDIA's explicit guidance:** "In general, users should not need to tune or set NCCL environment variables to achieve peak performance." ([GB200 multi-node tuning](https://docs.nvidia.com/multi-node-nvlink-systems/multi-node-tuning-guide/nccl.html)). GB200 multi-node NVLink (MNNVL) is supported from NCCL 2.25.2; NCCL detects the NVLink domains and picks the algorithm itself.
 
 ### Critical exceptions for vLLM multi-node
 
-- `NCCL_CUMEM_ENABLE` — **do NOT set to 0 on GB200/NVL.** Setting 0 disables multi-node NVLink and forces TCP/IB. vLLM [PR #16992](https://github.com/vllm-project/vllm/pull/16992) tuned the defaults.
-- `NCCL_NET_GDR_C2C=1` — recommended on GB200 for GDR-C2C path.
+- `NCCL_CUMEM_ENABLE` — **do NOT set to 0 on GB200/NVL.** MNNVL requires CUMEM, so 0 disables multi-node NVLink and forces TCP/IB. vLLM [PR #16992](https://github.com/vllm-project/vllm/pull/16992) tuned the defaults. The supported off switch for MNNVL is `NCCL_MNNVL_ENABLE=0`.
+- `NCCL_NET_GDR_C2C` — GPU Direct RDMA through the NIC of a C2C-attached CPU. Default `1` since NCCL 2.27; set it by hand only on NCCL 2.26.
 - `NCCL_NVLS_ENABLE=1` — NVLink SHARP; default-on where supported (NVLink v3+).
 
 ### InfiniBand / RoCE for H100 / H200
