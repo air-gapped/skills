@@ -302,7 +302,7 @@ Never add `request_id` or user prompt as a Prometheus label. The vLLM team delib
 
 ### Histogram bucket coverage
 
-Default TTFT buckets jump `[0.25, 0.5, 0.75, 1.0]`; request-phase histograms start at 0.3s. If SLO is P99 < 250ms, resolution there is weak. On v0.32.0+ add boundaries at the SLO with `--custom-histogram-buckets` (syntax and family keys in `metrics-catalog.md` § Bucket boundaries; Python engine only). Older engines: rely on trace-level aggregation for sub-bucket precision.
+Default TTFT buckets jump `[0.25, 0.5, 0.75, 1.0]`; request-phase histograms start at 0.3s. If SLO is P99 < 250ms, resolution there is weak. On v0.32.0+ add boundaries at the SLO with `--custom-histogram-buckets` (syntax and family keys in `metrics-catalog.md` § Bucket boundaries; on the Rust frontend from v0.33.0). Older engines: rely on trace-level aggregation for sub-bucket precision.
 
 ### V0 metric names on V1 dashboards
 

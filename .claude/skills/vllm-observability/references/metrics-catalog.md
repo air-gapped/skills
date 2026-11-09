@@ -315,8 +315,9 @@ on `--grpc` deployments:
 | `vllm:request_num_preemptions` | v0.31.0+ |
 | `vllm:mooncake_*` transfer series (not `mooncake_store_*`, there since v0.30.0) | v0.33.0+ |
 | `vllm:corrupted_requests_total`, `vllm:prompt_tokens_cached_by_source_total` | v0.32.0+ |
-| `vllm:admission_rejections_total`, `vllm:watermark_requests_total`, `vllm:num_requests_kv_fetch_by_stage` | **not registered** at v0.32.0 |
-| `--custom-histogram-buckets` | **not honoured** at v0.32.0 — Rust histograms keep default buckets |
+| `vllm:admission_rejections_total`, `vllm:watermark_requests_total`, `vllm:num_requests_kv_fetch_by_stage` | **not registered** through v0.33.0 |
+| `--custom-histogram-buckets` | v0.33.0+. On v0.32.0 the flag is ignored and Rust histograms keep default buckets |
+| Per-request `metrics` response field | v0.33.0+ |
 
 HTTP-layer metrics (`http_requests_total`, `http_request_duration_seconds`)
 are **not** `vllm:`-prefixed and mirror `PrometheusFastApiInstrumentator`
@@ -490,7 +491,7 @@ KV block residency:
 [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 30, 60, 120, 300, 600, 1200, 1800]
 ```
 
-**SLO calibration warning:** for a P99 TTFT SLO below 250ms, default buckets have coarse resolution there (next break is 0.5s); request-phase histograms start at 0.3s. On **v0.32.0+** override per family with `--custom-histogram-buckets '{"time_to_first_token": [0.05, 0.1, 0.15, 0.2, 0.25, 0.5, 1, 5]}'`. Family keys: `request_latency`, `time_to_first_token`, `inter_token_latency`, `iteration_tokens`, `request_params_n`, `request_num_preemptions`, `request_tokens`, `kv_cache_residency`. A listed family's list replaces the defaults verbatim; unknown keys and non-increasing or non-positive bounds fail at startup. Each bucket adds one series per label set — keep lists short. Changing buckets breaks `histogram_quantile` continuity across the rollout. Python engine only; connector histograms (NIXL etc.) are unaffected.
+**SLO calibration warning:** for a P99 TTFT SLO below 250ms, default buckets have coarse resolution there (next break is 0.5s); request-phase histograms start at 0.3s. On **v0.32.0+** override per family with `--custom-histogram-buckets '{"time_to_first_token": [0.05, 0.1, 0.15, 0.2, 0.25, 0.5, 1, 5]}'`. Family keys: `request_latency`, `time_to_first_token`, `inter_token_latency`, `iteration_tokens`, `request_params_n`, `request_num_preemptions`, `request_tokens`, `kv_cache_residency`. A listed family's list replaces the defaults verbatim; unknown keys and non-increasing or non-positive bounds fail at startup. Each bucket adds one series per label set — keep lists short. Changing buckets breaks `histogram_quantile` continuity across the rollout. Python engine, and the Rust frontend from v0.33.0; connector histograms (NIXL etc.) are unaffected.
 
 ## V0 vs V1 deltas
 
