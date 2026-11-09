@@ -107,7 +107,7 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 |---|---|---|
 | Online FP8 drops bias weights (below v0.21.0) | [#39663](https://github.com/vllm-project/vllm/issues/39663) | Upgrade to v0.21.0+ (PR #41424), or use a pre-quantized checkpoint |
 | Online FP8 doesn't split MoE across TP/EP | [#34129](https://github.com/vllm-project/vllm/issues/34129) | Use pre-quantized checkpoint |
-| fp8_e5m2 KV gate fires on any quantized load | [#39137](https://github.com/vllm-project/vllm/issues/39137) | Patch in discussion |
+| fp8_e5m2 KV gate fires on any quantized load (below v0.24.0) | [#39137](https://github.com/vllm-project/vllm/issues/39137) | Upgrade to v0.24.0+ ([PR #45040](https://github.com/vllm-project/vllm/pull/45040)) |
 | MLA casts activations to int32 with Marlin FP8 sm<89 | [#38658](https://github.com/vllm-project/vllm/issues/38658) | Upgrade or switch kernel |
 | `runai_safetensors_weights_iterator` non-deterministic → FP8 broken | [#38991](https://github.com/vllm-project/vllm/issues/38991) | Use regular safetensors loader |
 | MTP speculative decoding with NVFP4 weight shape mismatch | [#35031](https://github.com/vllm-project/vllm/issues/35031) | Open |
