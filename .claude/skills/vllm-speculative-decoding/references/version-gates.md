@@ -32,7 +32,7 @@ build older than a row that applies, upgrade before benchmarking or debugging.
 | **Quantized DSpark Markov heads** (PR #50424) | **v0.27.1** | `DSparkMarkovHead.markov_w2` accepts `quant_config`; W4A16 (incl. `weight_scale_2`) now loads through normal quantization dispatch. Before this, the Markov head stayed unquantized whatever the checkpoint declared |
 | Native-MTP target list gains **Kimi K3** (`kimi_k3_mtp`) and **Inkling** (`inkling_mtp`) | **v0.26–v0.27** | `MTPModelTypes` 20 → 22 entries |
 | **`dspark`** drafter (#46995, #47093) | **v0.25.0** | New base method + speculators checkpoint support |
-| **Block verification** for rejection sampling (#46781) | **v0.25.0** | `RejectionSampleMethod` gains `"block"` alongside `standard` / `synthetic` |
+| **Block verification** for rejection sampling (#46781) | **v0.25.0** | `RejectionSampleMethod` gains `"block"` alongside `standard` / `synthetic`. Biased on MRV2 until **v0.33.0** (#61161) — do not use `block` below that |
 | DFlash: **CPU support** (#44029), backend selection (#46770), FlashInfer (#43081), per-layer RMSNorm fusion (#46761) | **v0.24–v0.25** | DFlash matured well past its v0.19 debut |
 | EAGLE-3 for Qwen3 (#43132); reduced TP comms for large-vocab drafts (#39419) | **v0.24.0** | |
 | **EAGLE3 + pipeline parallelism** on MRV2 (#50514); MTP under PP for sparse-MLA targets (#46994) | **v0.30.0** | Before this, `eagle3` + `pipeline_parallel_size > 1` was a hard-rejected combination (`vllm/config/vllm.py`). The draft's own parallel config is now always `pipeline_parallel_size=1` regardless of the target's PP degree — the drafter itself is never split across pipeline stages |

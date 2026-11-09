@@ -331,6 +331,8 @@ select different N on the same model.
 **Rejection sampling:**
 - `rejection_sample_method: "standard" | "synthetic" | "block" | "fly"`
   (default `"standard"`)
+- `"block"` — use only on ≥ v0.33.0: earlier MRV2 builds reuse random draws
+  across verification rounds and skew the sampled distribution (#61161)
 - `"fly"` (v0.33.0+, #53987) — **lossy**: accepts an isolated target-rejected
   draft token at a high-entropy position when the next `fly_window_size`
   drafts pass. Opt in only when a measured quality drop is acceptable; logs

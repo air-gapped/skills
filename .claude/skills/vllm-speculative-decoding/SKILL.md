@@ -203,7 +203,8 @@ traps not captured by those.
 6. **Logprob stability is not guaranteed** with spec-dec. If downstream eval
    requires reproducible logprobs, disable spec-dec. Lossless *token*
    guarantee holds "up to hardware numerics" — and only with
-   `rejection_sample_method` `standard` or `block`. `"fly"` (v0.33.0+) and
+   `rejection_sample_method` `standard`, or `block` on ≥ v0.33.0 (earlier
+   MRV2 builds bias block-verified sampling, #61161). `"fly"` (v0.33.0+) and
    `"synthetic"` commit draft tokens the target rejected: never set them where
    output must match the target, and never with `suffix` on a shared endpoint
    (suffix drafts are other requests' responses, so they can be emitted
