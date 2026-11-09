@@ -61,7 +61,7 @@ gpu-memory-utilization: 0.92        # fraction of free HBM per rank
 cpu-offload-gb: 0                   # GiB for weights CPU offload (NOT KV); lives on UVAOffloadConfig
 kv-cache-dtype: auto                # auto | fp8 | fp8_e4m3 | fp8_e5m2
 enable-prefix-caching: true         # default ON
-prefix-caching-hash-algo: sha256    # builtin | sha256
+prefix-caching-hash-algo: sha256    # sha256 | sha256_cbor | xxhash | xxhash_cbor (xxhash needs the `xxhash` package)
 num-gpu-blocks-override: null       # force exact block count
 ```
 
