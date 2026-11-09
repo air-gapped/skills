@@ -203,7 +203,7 @@ unquantized large-v3 / large-v3-turbo wants ≥32 GB for comfortable batch sizes
 
 ### OCR (DeepSeek-OCR)
 
-Canonical recipe from `docs.vllm.ai/projects/recipes`:
+Canonical recipe (`recipes.vllm.ai/deepseek-ai/DeepSeek-OCR`):
 
 ```bash
 VLLM_USE_V2_MODEL_RUNNER=0 \
@@ -221,9 +221,11 @@ at v0.33.0 (`references/ocr.md` §3).
 
 Three non-obvious flags:
 - `NGramPerReqLogitsProcessor` is required — without it, table-token
-  generation degrades. Send `whitelist_token_ids={128821,128822}`,
-  `ngram_size=30`, `window_size=90` per request in `extra_args` — the
-  processor reads them from there (`references/ocr.md` §3).
+  generation degrades. It is **off for any request that does not configure
+  it**: send `ngram_size=30`, `window_size=90`,
+  `whitelist_token_ids=[128821,128822]` in `extra_body={"vllm_xargs": {...}}`
+  (online) or `SamplingParams(extra_args=...)` (offline), plus
+  `skip_special_tokens=False` (`references/ocr.md` §4).
 - **Disable prefix caching.** OCR per-request inputs don't share prefixes;
   the cache bookkeeping is pure overhead.
 - **`--mm-processor-cache-gb 0`** — the multimodal processor cache isn't

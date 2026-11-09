@@ -36,7 +36,8 @@ accurately as the purpose-built models on dense document images.
 
 ## 3. DeepSeek-OCR — canonical recipe
 
-From <https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-OCR.html>:
+From <https://recipes.vllm.ai/deepseek-ai/DeepSeek-OCR> (source:
+`recipes/models/deepseek-ai/DeepSeek-OCR.yaml` in the vLLM repo):
 
 ```bash
 VLLM_USE_V2_MODEL_RUNNER=0 \
@@ -61,16 +62,16 @@ n-gram processor ships at v0.33.0, and MRV1 is announced for removal
 (`references/runner-flags.md` §11): re-check on every upgrade. Dropping the
 processor instead makes long pages loop.
 
-Three non-obvious flags, none optional:
+Three non-obvious flags. Only the first changes output; the other two remove
+overhead (the recipe's own serve line carries the first and third):
 
 1. **`--logits-processors ...NGramPerReqLogitsProcessor`** — applies the
    table-token whitelist (`{128821, 128822}`) with `ngram_size=30`,
    `window_size=90`. Without it, dense tables regress badly. Note the class
    does not hard-code those numbers: it reads `whitelist_token_ids`,
    `ngram_size` and `window_size` from each request's `extra_args`
-   (`deepseek_ocr.py:140-195`), and the recipe above is what supplies them.
-   A client that bypasses the recipe's request shape gets the processor
-   loaded but unconfigured.
+   (`deepseek_ocr.py:140-195`). A request without `ngram_size` gets **no
+   processor at all** — every client must send the §4 request shape.
 2. **`--no-enable-prefix-caching`** — OCR requests don't share prefixes;
    the cache is pure bookkeeping overhead.
 3. **`--mm-processor-cache-gb 0`** — multimodal processor caching targets
@@ -85,7 +86,8 @@ Published throughput: ~2500 tok/s on a single A100-40 GB, ~200 k pages/day.
 
 ## 4. Request format
 
-Standard OpenAI chat-completions with images:
+OpenAI chat-completions with images. For DeepSeek-OCR and Unlimited-OCR the
+`extra_body` block is mandatory — it is what switches the logits processor on:
 
 ```python
 from openai import OpenAI
@@ -98,28 +100,42 @@ r = client.chat.completions.create(
         "content": [
             {"type": "image_url",
              "image_url": {"url": "data:image/png;base64," + b64}},
-            {"type": "text", "text": "Transcribe this document to markdown."},
+            {"type": "text", "text": "Free OCR."},
         ],
     }],
     max_tokens=4096,
     temperature=0,
+    extra_body={
+        "skip_special_tokens": False,
+        "vllm_xargs": {                 # -> SamplingParams.extra_args
+            "ngram_size": 30,
+            "window_size": 90,
+            "whitelist_token_ids": [128821, 128822],   # <td>, </td>
+        },
+    },
 )
 print(r.choices[0].message.content)
 ```
+
+Offline (`LLM.generate`): prompt `"<image>\nFree OCR."` and
+`SamplingParams(temperature=0.0, max_tokens=8192, skip_special_tokens=False,
+extra_args=dict(ngram_size=30, window_size=90, whitelist_token_ids={128821, 128822}))`.
 
 Prompt conventions per model:
 
 | Model | Prompt style | Output |
 |---|---|---|
-| DeepSeek-OCR | `"Transcribe this document to markdown."` | markdown (tables as \| \| \|) |
-| DeepSeek-OCR | `"<image>\n<\|grounding\|>Convert to markdown."` | with bounding boxes |
+| DeepSeek-OCR | `"Free OCR."` | plain text, no layout |
+| DeepSeek-OCR | `"<\|grounding\|>Convert the document to markdown."` | markdown with layout boxes (tables as HTML `<td>`) |
+| DeepSeek-OCR | `"<\|grounding\|>OCR this image."` / `"Parse the figure."` | non-document image / figure |
 | dots.ocr | `"请识别图像内容"` | raw text (model is Chinese-first) |
 | GLM-OCR | standard VLM prompt | varies |
 | Nemotron-Parse | structure-aware prompt per model card | JSON / structured |
 
 Check the model card for exact prompt tokens. Prompts matter more for OCR
 than for general chat — the model was trained on specific instruction
-templates.
+templates. DeepSeek-OCR wants its short fixed prompts, not free-form
+instructions; offline, prefix them with `<image>\n`.
 
 ## 5. Image-input specifics
 
@@ -204,7 +220,8 @@ v0.21.0); DeepSeek-OCR-2 got a TTFT optimisation in v0.27.0 (#49531).
 - `vllm/model_executor/models/dots_ocr.py` — 770 LOC
 - `vllm/model_executor/models/lightonocr.py`
 - `vllm/multimodal/parse.py` — image-input parsing
-- Recipe: <https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-OCR.html>
+- Recipe: `recipes/models/deepseek-ai/DeepSeek-OCR.yaml`, rendered at
+  <https://recipes.vllm.ai/deepseek-ai/DeepSeek-OCR>
 
 ## 9. Related skills
 
