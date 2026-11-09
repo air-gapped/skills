@@ -144,6 +144,8 @@ All nodes must see the same `--deploy-config` YAML (`--stage-configs-path` was r
 
 5. **Global engine flags on GPU-sharing stages**: `--gpu-memory-utilization 0.85` on the CLI applies to every stage and oversubscribes a device that two stages share (Qwen3-Omni stages 1+2 on cuda:1). Use `--stage-overrides '{"1": {...}}'` or the YAML.
 
+6. **Request hangs with no error and `async_chunk: false`** (#9358, open; reproduced on v0.30.0 and v0.32.0rc1): a failed inter-stage transfer is not propagated, so the client waits until its own timeout. Give clients a timeout and read the producing stage's connector log; transfer failures are surfaced only on the async-chunk path.
+
 ## KV-transfer plumbing for DiT stages
 
 DiT stages can receive KV from an upstream AR stage (e.g., text-encoder AR → DiT image), which is how `cfg_branch_past_key_values` works. Fields in `OmniDiffusionSamplingParams`:
