@@ -22,8 +22,8 @@
     },
     {
       "id": 3,
-      "question": "From which vLLM version is LMCache bundled in the official x86 `vllm/vllm-openai` image?",
-      "skill_answer": "v0.14.0 (2026-01-20)"
+      "question": "Does the official x86 `vllm/vllm-openai:v0.13.0` image (December 2025) ship LMCache, or did x86 bundling only start with v0.14.0?",
+      "skill_answer": "It ships it: lmcache 0.3.11 and nixl 0.8.0 are installed and importable on v0.13.0; the build flag is already set on v0.11.0"
     },
     {
       "id": 4,
@@ -42,8 +42,8 @@
     },
     {
       "id": 7,
-      "question": "What is the exact NIXL pin in vLLM's `requirements/kv_connectors.txt` at v0.27.0?",
-      "skill_answer": "nixl == 1.3.1 (exact pin, bumped from 1.3.0 in v0.26.0)"
+      "question": "What is the exact NIXL pin in vLLM's `requirements/kv_connectors.txt` at v0.33.0, and what happens with an older NIXL wheel?",
+      "skill_answer": "nixl == 1.5.0 (exact pin); from v0.33.0 NixlConnector raises `RuntimeError: NIXL >= 1.5.0 is required`"
     },
     {
       "id": 8,
