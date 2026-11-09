@@ -544,7 +544,7 @@ High-performance RDMA KV transfer between prefill and decode pods using `mooncak
 Example: `examples/disaggregated/mooncake_connector/run_mooncake_connector.sh`
 Docs: `docs/features/mooncake_connector_usage.md`
 
-Bundled in v0.14.0+ images via `mooncake-transfer-engine >= 0.3.8`.
+Bundled in v0.14.0+ images; the pin is `mooncake-transfer-engine >= 0.3.12` from v0.29.0 (`>= 0.3.8` before).
 
 **Mooncake Store Connector heterogeneous TP sharing (v0.30.0+)** ([#53129](https://github.com/vllm-project/vllm/pull/53129), `docs/features/mooncake_store_connector_usage.md`). Before this, prefill and decode instances could only share a Mooncake Store KV cache if they ran the same TP size. Set a fixed `store_tp_size` (`store_tp_size >= local_tp_size` and `store_tp_size % local_tp_size == 0`) so a TP4 prefiller and a TP2 decoder can read/write the same Store keys:
 
