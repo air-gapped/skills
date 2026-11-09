@@ -296,7 +296,7 @@ and the re-verification recipe: `references/sources.md`.
 - P-EAGLE blog (2026-03-13): <https://vllm.ai/blog/p-eagle>
 - Speculators v0.3 (2025-12-13): <https://vllm.ai/blog/speculators-v030>
 - Red Hat EAGLE-3 (Jul 2025): <https://developers.redhat.com/articles/2025/07/01/fly-eagle3-fly-faster-inference-vllm-speculative-decoding>
-- Snowflake Arctic Inference: <https://www.snowflake.com/en/engineering-blog/fast-speculative-decoding-vllm-arctic/>
+- Snowflake Arctic Inference: <https://www.snowflake.com/en/blog/engineering/fast-speculative-decoding-vllm-arctic/>
 - SuffixDecoding (NeurIPS 2025): <https://arxiv.org/abs/2411.04975>
 - EAGLE-3 paper: <https://arxiv.org/abs/2503.01840>
 - DeepSeek V3 (MTP §2.2): <https://arxiv.org/abs/2412.19437>

@@ -43,7 +43,7 @@ Published numbers:
 - **1.8–4.5× end-to-end on SWE-Bench**
 - **5.3× on agentic SQL workloads**
 - **2.8× over EAGLE-2/3 on agentic workloads**
-  ([Snowflake blog](https://www.snowflake.com/en/engineering-blog/suffixdecoding-arctic-inference-vllm/))
+  ([Snowflake blog](https://www.snowflake.com/en/blog/engineering/suffixdecoding-arctic-inference-vllm/))
 
 **Anti-workload**: open-ended chat with no repetition. The suffix tree won't
 find matches, AL collapses to ~1, tree maintenance is pure overhead.
