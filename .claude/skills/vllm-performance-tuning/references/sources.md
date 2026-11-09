@@ -157,6 +157,7 @@ v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02) and git tag `v0.33.0`; the 
 
 **Closure-reason column matters more than state** — see the §3.0 note at the end of this section.
 
+- [#65055](https://github.com/vllm-project/vllm/issues/65055) — MoE top-k gating PDL launch slows CUDA graph replay on pre-Hopper GPUs — **CLOSED `COMPLETED` 2026-11-02 against fix [PR #65059](https://github.com/vllm-project/vllm/pull/65059)** (merge commit `187f1a27dc`, contained in no tag as of 2026-11-09). Cause [PR #59737](https://github.com/vllm-project/vllm/pull/59737), commit `3c9beb82d1`, first tag v0.33.0
 - [#63705](https://github.com/vllm-project/vllm/issues/63705) — MiniMax-M2.7 TP4+EP throughput regression in v0.29/v0.31/v0.32 — **OPEN** (opened 2026-10-26, 6 comments, last 2026-11-06). Figures from the reporter's table; the two changed defaults were confirmed from startup logs in the thread (TP all-reduce chain `['PYNCCL']` → `['FLASHINFER', 'PYNCCL']`, `Using V2 Model Runner` only on 0.29.0); the toggle runs had not been posted
 - [#35048](https://github.com/vllm-project/vllm/issues/35048) — v0.14→v0.15.1 MiniMax latency +24% — **CLOSED `NOT_PLANNED` 2026-07-22 by the inactivity bot, no linked fix.** The prediction recorded here when it was only stale-marked held: this is abandonment, not a fix.
 - [#32547](https://github.com/vllm-project/vllm/issues/32547) — GLM-4.7-GPTQ-Int4 MTP v0.13→v0.14.0rc2 — **bot-closed `NOT_PLANNED` 2026-07-22, no fix PR**

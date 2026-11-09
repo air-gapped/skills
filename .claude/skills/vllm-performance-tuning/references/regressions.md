@@ -12,6 +12,13 @@ Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/A
 
 ## Version regressions
 
+### v0.33.0: MoE decode slower on pre-Hopper GPUs ([#65055](https://github.com/vllm-project/vllm/issues/65055))
+
+- Affects SM80–SM89 (A100, RTX A4000, RTX 4090) with CUDA graphs on; SM90+ and eager mode are unaffected
+- MoE top-k gating is launched with a PDL attribute on every arch (#59737); below SM90 each launch becomes a programmatic edge in the captured graph and slows replay
+- Measured on 4× A100, 512-expert MoE, TP4 + EP, concurrency 16: per-request decode −9.6% and −8.1% against the commit before #59737
+- Fixed on `main` by #65059 (merged 2026-11-02); no release carries it yet. On pre-Hopper MoE stay on v0.32.0 or build from `main` — check the first release after v0.33.0 for #65059 before upgrading
+
 ### v0.26.0 → v0.29.0+ MiniMax-M2.7 TP4+EP decode regression ([#63705](https://github.com/vllm-project/vllm/issues/63705)) — open, cause not isolated
 
 - 4× H100, TP=4 + `--enable-expert-parallel`, concurrency 8, 2048 in / 1024 out
