@@ -41,7 +41,7 @@ the upstream constraints that shape the answer.
 > on large models on small cards. Pick one mitigation:
 > - leave ≥0.5 GiB/GPU more margin than MRv1 needed (lower
 >   `--gpu-memory-utilization` by ~0.01 on 80 GB cards);
-> - `VLLM_USE_V2_MODEL_RUNNER=0` to force MRv1 (present through v0.32.0);
+> - `VLLM_USE_V2_MODEL_RUNNER=0` to force MRv1 (present through v0.33.0);
 > - `--enforce-eager` (removes the gap, costs decode speed).
 >
 > [#50477](https://github.com/vllm-project/vllm/issues/50477) (named /
@@ -72,7 +72,7 @@ the upstream constraints that shape the answer.
    `references/hbm-saturation.md` for the source-code investigation
    (`get_batch_defaults()` in vllm/engine/arg_utils.py is the only
    hardware-aware batch default in the engine; H100 and H200 take the
-   *same* code path — re-verified at v0.32.0). **Don't set
+   *same* code path through v0.33.0). **Don't set
    `max_num_seqs` above the bandwidth knee** — it just inflates TPOT and
    TTFT without moving throughput.
 3. **Serve Google's canonical chat template via `--chat-template`; never the
@@ -233,7 +233,7 @@ opener shape.
 
 ### Named / `required` tool_choice is silently unenforced on stock vLLM
 
-From v0.24.0 through v0.32.0 the gemma4 tool parser sets
+From v0.24.0 through v0.33.0 the gemma4 tool parser sets
 `supports_required_and_named = False`
 (`vllm/tool_parsers/gemma4_engine_tool_parser.py`): named and `required`
 `tool_choice` get **no grammar** and are parsed as `auto`. A model that
@@ -300,11 +300,12 @@ exactly this scenario.
 
 `RedHatAI/gemma-4-31B-it-speculator.eagle3` is *vanilla* EAGLE3, no
 P-EAGLE prep tokens. `vllm/v1/spec_decode/llm_base_proposer.py` requires
-one of `dflash_config.mask_token_id` / `pard_token` / `ptd_token_id` in
-the draft `config.json` (checked in that order at v0.25.1, re-verified
-2026-07-21; grep `parallel_drafting_token_id` rather than a line number).
-Don't pass `parallel_drafting:true` with the vanilla checkpoint — engine
-init will fail with exactly that `ValueError` — **at v0.32.0 it names five keys**, `dflash_config.mask_token_id`, `mask_token_id`, `dspark_noise_token_id`, `pard_token`, `ptd_token_id`.
+one of five keys in the draft `config.json`, checked in this order on
+v0.30.0–v0.33.0: `dflash_config.mask_token_id`, `mask_token_id`,
+`dspark_noise_token_id`, `pard_token`, `ptd_token_id` (grep
+`parallel_drafting_token_id` rather than a line number). Don't pass
+`parallel_drafting:true` with the vanilla checkpoint — engine init fails
+with a `ValueError` naming those keys.
 
 ### MTP (`gemma-4-31B-it-assistant`) — 0% acceptance on quantized targets
 
