@@ -59,7 +59,7 @@ Offline batch throughput. No HTTP — spins up the engine in-process and submits
 - `--model <name-or-path>` — required; model to load.
 - `--num-prompts 1000` — batch size submitted.
 - `--dataset-name sharegpt` — default. See `datasets.md`. The old `--dataset <path>` alias was removed in v0.32.0 — use `--dataset-path`.
-- `--input-len`, `--output-len` — force fixed lengths (overrides dataset).
+- `--random-input-len`, `--random-output-len`, `--random-prefix-len` — lengths for the `random` dataset (defaults 1024 / 128 / 0), which is what runs when no `--dataset-path` is given. Through v0.33.0 `--input-len` / `--output-len` / `--prefix-len` are silently ignored there — the run uses the defaults and only warns "Both --input-len and --random-input-len are specified". Fixed on `main` (#64227), in no release yet. `--output-len` does apply to `sharegpt` and `hf`.
 - `--backend vllm` — default. `hf` / `mii` / `vllm-chat` also available.
 - `--async-engine` — use the async engine path for measurement.
 - `--lora-path <path>` — measure throughput with a LoRA adapter loaded.
