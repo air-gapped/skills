@@ -78,7 +78,7 @@ spec_decode_accepted_tokens              int
 spec_decode_per_position_acceptance_rates  list[float]
 ```
 
-Useful for evaluating P-EAGLE / Medusa / MTP configurations.
+Useful for evaluating P-EAGLE / MTP configurations.
 
 ## `--save-detailed` additions
 
