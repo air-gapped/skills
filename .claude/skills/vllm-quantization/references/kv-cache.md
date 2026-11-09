@@ -141,6 +141,8 @@ The FlashInfer `nvfp4` cell is SM100 only on ≤ v0.31.x; v0.32.0 extends it to 
     - Not affected: a checkpoint whose stored scales are all 1.0; `Attention` layers of that same model.
     - Detect: load log `Found k_scale in the checkpoint (e.g. …self_attn.attn.k_scale), but not found the expected name in the model (e.g. …self_attn.attn.attn.k_scale). k_scale is not loaded.`
     - No flag restores the scales. Where the stored scales differ from 1.0, A/B FP8 KV against `--kv-cache-dtype bfloat16` on the long-context eval before shipping it.
+13. **FP8 KV with `--kv-cache-dtype-skip-layers` breaks on the skipped (BF16) layers.** Unfixed at v0.33.0 and on `main`, checked back to v0.32.0; upstream reports without maintainer confirmation on 2026-11-09.
+    - **Silent wrong output — skipped layers on FlashInfer, compressed-tensors checkpoint with a `kv_cache_scheme`** ([#66129](https://github.com/vllm-project/vllm/issues/66129); fix PRs [#66471](https://github.com/vllm-project/vllm/pull/66471), [#66519](https://github.com/vllm-project/vllm/pull/66519) open). The skipped layers still take the checkpoint's k / v / q scales and FlashInfer multiplies them into unquantized attention: their output collapses toward zero while grammar-constrained responses still parse. Workaround: keep the skipped kind off FlashInfer — `--attention-config '{"backend_per_kind":{"sliding_window":"TRITON_ATTN"}}'` — or drop the skip list. Detect: prompt logprobs differ between that serve and the FlashInfer one.
 
 ## Roadmap items (feature requests)
 
