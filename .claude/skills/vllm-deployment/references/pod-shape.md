@@ -101,10 +101,12 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
-          # NOTE: upstream vllm/vllm-openai image runs as root (UID 0).
-          # On OpenShift or restricted-v2 PSA clusters, use RHAIIS or rebuild; see references/openshift.md.
-          # runAsNonRoot: true       # enable only with an image that supports it
-          # runAsUser: 1000
+          # NOTE: upstream vllm/vllm-openai runs as root (UID 0) by default.
+          # Non-root on v0.22.0+: the built-in `vllm` user below — then mount the
+          # cache volumes under /home/vllm, not /root. OpenShift: references/openshift.md.
+          # runAsNonRoot: true
+          # runAsUser: 2000
+          # runAsGroup: 0
       volumes:
         - name: dshm
           emptyDir: {medium: Memory, sizeLimit: 10Gi}   # LOAD-BEARING — no k8s `--ipc=host`
@@ -193,7 +195,7 @@ restarts skip the 1–3 min JIT recompile. Mechanism: vLLM sets
 `TORCHINDUCTOR_CACHE_DIR` and `TRITON_CACHE_DIR` itself, redirecting both under
 `VLLM_CACHE_ROOT` (default `~/.cache/vllm` — `vllm/compilation/compiler_interface.py:29-42`,
 `vllm/envs.py:35`). On the root-UID upstream image that resolves to `/root/.cache/vllm`,
-so mounting `/root/.cache` captures everything. Do NOT set `TORCHINDUCTOR_CACHE_DIR` —
+so mounting `/root/.cache` captures everything (as the `vllm` user: `/home/vllm/.cache`). Do NOT set `TORCHINDUCTOR_CACHE_DIR` —
 vLLM overrides it per model hash. An explicit `TRITON_CACHE_DIR` is honoured from
 v0.31.0 (#58474) and shared across models (intended reuse); before v0.31.0 vLLM
 overwrote it. On
@@ -372,7 +374,7 @@ Don't probe `/v1/models` — it is a router endpoint that requires the engine fu
 ## Gotchas not yet covered
 
 - **Istio sidecar + streaming**: the Envoy sidecar buffers SSE by default; streaming replies show up all-at-once. Either disable sidecar on the vLLM pod, or set `proxy.istio.io/config: { ... holdApplicationUntilProxyStarts: true }` and ensure streaming is not buffered.
-- **Pod Security Admission**: the upstream image cannot satisfy `restricted-v2` or `nonroot-v2`. Either run under `baseline` profile, use RHAIIS, or rebuild.
+- **Pod Security Admission**: the upstream image defaults to root, which `restricted` rejects. On v0.22.0+ set `runAsNonRoot: true`, `runAsUser: 2000`, `runAsGroup: 0` and move the cache mounts to `/home/vllm/.cache`. On older tags run under `baseline`, use RHAIIS, or rebuild.
 - **Termination grace period**: the grace alone drains nothing — vLLM aborts in-flight requests on SIGTERM unless `--shutdown-timeout N` (default `0`) is set. Pass `--shutdown-timeout 120` and `terminationGracePeriodSeconds` ≥ N + 30.
 - **CPU requests**: 16+ is sane for TP=8. Low CPU requests starve the Python engine and show up as mystery TPOT spikes under high concurrency.
 

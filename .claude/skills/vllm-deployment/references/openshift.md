@@ -61,14 +61,26 @@ Default OCP policy is `restricted-v2`:
 | Image | SCC needed |
 |---|---|
 | RHAIIS | `restricted-v2` — works out of the box |
-| Upstream `vllm/vllm-openai` | `anyuid` (not ideal), or rebuild for non-root |
+| Upstream `vllm/vllm-openai` (default target) | `anyuid` (not ideal) |
+| Upstream `vllm-openai-nonroot` target (v0.22.0+, build it — no published tag) | `restricted-v2` |
 | Custom vLLM image | Build for arbitrary UID (`chgrp -R 0 /root /tmp && chmod -R g=u /root /tmp`) → `restricted-v2` |
 
 **Do NOT grant `privileged`.** GPU access is via NVIDIA device plugin (resource request), not host device mount. PSA guidance: https://connect.redhat.com/en/blog/important-openshift-changes-pod-security-standards
 
 ## The arbitrary-UID rebuild recipe
 
-For custom / upstream `vllm/vllm-openai`:
+From v0.22.0 (#40275) build upstream's own target instead of hand-rolling one:
+
+```bash
+docker build --target vllm-openai-nonroot -t <registry>/vllm-openai-nonroot:<pinned-tag> -f docker/Dockerfile .
+```
+
+It defaults to user `vllm` (UID 2000, GID 0) with a group-0-writable `/home/vllm`, and
+its entrypoint handles a UID missing from `/etc/passwd`. Leave the UID to the SCC; the
+runtime UID must be in group 0. Mount model and cache volumes under `/home/vllm`
+(group-0-writable), not `/root`.
+
+For tags older than v0.22.0, rebuild `vllm/vllm-openai` yourself:
 
 ```dockerfile
 FROM vllm/vllm-openai:<pinned-tag>
@@ -82,7 +94,7 @@ ENV HOME=/tmp
 ENV HF_HOME=/tmp/.cache/huggingface
 ```
 
-Known upstream issues:
+Upstream issues behind the recipe (both closed; #31959 by the v0.22.0 non-root support):
 - https://github.com/vllm-project/vllm/issues/31959 — can't run as non-root
 - https://github.com/vllm-project/vllm/issues/15359 — v0.8.1 regression on non-root rebase
 
@@ -160,7 +172,7 @@ In air-gapped, combine with `HF_HUB_OFFLINE=1`, `HF_ENDPOINT=<internal-mirror>`,
 
 ## OCP-specific pitfalls checklist
 
-1. Upstream image runs as root → SCC failure. Use RHAIIS or rebuild.
+1. Upstream image runs as root → SCC failure. Use RHAIIS or the `vllm-openai-nonroot` target.
 2. Route 60 s timeout → SSE dies mid-stream. Annotate.
 3. `/dev/shm` 64 MiB default — still needs `emptyDir: {medium: Memory}` same as vanilla k8s.
 4. OSSM v2 + Gateway API conflict → pick one, or upgrade to OSSM 3.x.

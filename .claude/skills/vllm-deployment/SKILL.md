@@ -33,7 +33,7 @@ This skill is a **pointer map**. It points to the canonical sources — in the v
 
 1. **`/dev/shm` is the single most common cause of silent multi-GPU failure on k8s.** On vanilla k8s there is no `--ipc=host`. Without a shared-memory volume, `torch.distributed` segfaults on the first all-reduce of a TP>1 pod. Mount an `emptyDir` with `medium: Memory` and `sizeLimit: 10Gi` at `/dev/shm`. Documented in vLLM's own k8s guide — see ``vllm` repo: docs/deployment/k8s.md:211,291`. Since **v0.27.0 (#48879)** a pre-flight free-space check turns the *undersized* case into an actionable startup `RuntimeError` instead of a later crash — but the trap it replaces is worth knowing, because a 64 MiB `/dev/shm` is big enough to boot (see `references/pod-shape.md`).
 2. **Multi-node vLLM on k8s is Ray-on-LWS, not headless Service.** The `parallel-config` + pure headless-Service path exists but is not the vLLM-endorsed recipe. Use LeaderWorkerSet (`kubernetes-sigs/lws`) as the gang-scheduling primitive and `examples/ray_serving/multi-node-serving.sh` (which bootstraps Ray head/worker) as the entrypoint. Since Nov 2025 the `ray symmetric-run` pattern replaces the old head/worker split — see `https://blog.vllm.ai/2025/11/22/ray-symmetric-run.html`.
-3. **The upstream `vllm/vllm-openai` image runs as root.** On OpenShift (and any k8s cluster with `restricted-v2` PSA), that is a deploy-time failure. Either rebuild with `chgrp -R 0 /root /tmp && chmod -R g=u /root /tmp`, or use the Red Hat RHAIIS images (`registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.3.0`), which are UID-agnostic by construction.
+3. **The upstream `vllm/vllm-openai` image runs as root by default.** On OpenShift (and any k8s cluster with a `restricted` PSA), that is a deploy-time failure. Fixed non-root UID on v0.22.0+: run the stock image as its built-in `vllm` user (`runAsUser: 2000`, `runAsGroup: 0`) and mount caches under `/home/vllm`, not `/root`. OpenShift arbitrary UID: use the Red Hat RHAIIS images (`registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.3.0`), UID-agnostic by construction, or build upstream's `vllm-openai-nonroot` target. Tags older than v0.22.0: rebuild with `chgrp -R 0 /root /tmp && chmod -R g=u /root /tmp`.
 
 ## Minimum viable pod shape
 
@@ -81,7 +81,7 @@ For "review / audit this manifest", "cross-check flags", "caches saved?": mark e
 |---|---|---|
 | `/dev/shm` | `emptyDir {medium: Memory}` mounted at `/dev/shm`, `sizeLimit` ≥ 10Gi on TP>1 | `references/pod-shape.md` §`/dev/shm` |
 | Image | pinned version tag, never `:latest`; weight format matches the tag (`vllm-quantization`) | pitfall 3 |
-| Caches | `HF_HOME` on a PVC or ModelCar; `/root/.cache` mounted (arbitrary-UID images: `VLLM_CACHE_ROOT` at a mounted path), PVC if it must survive rescheduling; `TORCHINDUCTOR_CACHE_DIR` not set | `references/pod-shape.md` §Compile-cache survival |
+| Caches | `HF_HOME` on a PVC or ModelCar; `/root/.cache` mounted (`/home/vllm/.cache` when running as the `vllm` user; arbitrary-UID images: `VLLM_CACHE_ROOT` at a mounted path), PVC if it must survive rescheduling; `TORCHINDUCTOR_CACHE_DIR` not set | `references/pod-shape.md` §Compile-cache survival |
 | HF token | `HF_TOKEN` / `HUGGING_FACE_HUB_TOKEN` from `secretKeyRef`, never a literal `value:` | `references/pod-shape.md` template |
 | Probes | readiness and liveness on `/health`; cold-boot budget from a `startupProbe` or liveness `initialDelaySeconds: 600` | pitfalls 2, 11 |
 | Shutdown | `--shutdown-timeout N` set and `terminationGracePeriodSeconds` ≥ N + 30 | pitfall 12 |
@@ -151,7 +151,7 @@ The script validates pod health, `/health`, `/v1/models`, `/dev/shm` sizing, `/m
 1. **No `/dev/shm` emptyDir.** Silent NCCL segfault on first all-reduce. See `references/pod-shape.md`.
 2. **Default liveness probe.** `initialDelaySeconds: 30` vs 8–12 min cold load → pod liveness-kill loop. Fix: `initialDelaySeconds: 600`, or cleaner, a `startupProbe` with a 15-min budget — both in `references/pod-shape.md`.
 3. **`:latest` image tag.** Breaks on every vLLM release. Pin to a version tag and roll forward deliberately.
-4. **Root-UID image on OpenShift.** Use RHAIIS images or rebuild. See `references/openshift.md`.
+4. **Root-UID image on OpenShift.** Use RHAIIS images or build the `vllm-openai-nonroot` target. See `references/openshift.md`.
 5. **KEDA threshold 1–2 on `num_requests_waiting`.** Thrashing. Use 5–10 per replica and `cooldownPeriod: 360`. See `references/autoscaling.md`.
 6. **OCP Route 60 s idle timeout.** Kills long SSE streams. Annotate `haproxy.router.openshift.io/timeout: 10m`.
 7. **Missing `NCCL_SOCKET_IFNAME` on multi-NIC hosts.** NCCL picks the wrong interface and hangs on bootstrap. Pin explicitly.
