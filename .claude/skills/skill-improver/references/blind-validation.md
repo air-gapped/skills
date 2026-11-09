@@ -224,7 +224,8 @@ cwd `<AB>`, the agent from the `<AGENTS>` file (a project agent does not resolve
 
 ```bash
 # The prompt goes before --add-dir: --add-dir takes every following argument.
-(cd <AB> && claude -p "Rubric: <skill-improver-dir>/references/quality-rubric.md. DIR A: <AB>/x. DIR B: <AB>/y." \
+# <first>/<second> are x and y in this spawn's coin-flip order, not always x then y.
+(cd <AB> && claude -p "Rubric: <skill-improver-dir>/references/quality-rubric.md. DIR A: <AB>/<first>. DIR B: <AB>/<second>." \
   --agents <AGENTS> --agent skill-comparator --add-dir <skill-improver-dir>/references)
 ```
 
