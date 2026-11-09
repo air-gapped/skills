@@ -137,7 +137,7 @@ VLLM_LOGGING_LEVEL=DEBUG vllm serve ... 2>&1 | grep -E "(kernel|dispatch|capabil
 
 # Force specific MoE backend
 VLLM_FUSED_MOE_CHUNK_SIZE=...  # tune
-VLLM_USE_FLASHINFER_MOE_MXFP4_MXFP8=1  # GPT-OSS Blackwell
+--moe-backend flashinfer_trtllm --quantization-config.moe.activation mxfp8  # GPT-OSS on Blackwell, MXFP8 activations (v0.24.0+; the old env var is gone)
 
 # Disable CUDA graphs to isolate
 --enforce-eager

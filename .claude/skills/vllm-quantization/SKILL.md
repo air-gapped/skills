@@ -58,7 +58,7 @@ accuracy benchmarks against any OpenAI-compatible endpoint).
 | H100 / H200, accuracy-critical | `awq_marlin` / `gptq_marlin` (W4A16) | `fp8_e4m3` | Weight-only INT4 with per-group scales — best accuracy at 4-bit |
 | H100 / H200, long-context MoE | `fp8` + DeepGEMM block | `fp8_e4m3` | Block FP8 MoE uses DeepGEMM path, lower activation-scale cost |
 | B200 / B300 (SM100 / SM103) | `modelopt_fp4` or compressed-tensors NVFP4 | `fp8_e4m3`, or `nvfp4` (shipped v0.25.0, #42890) | Blackwell has native FP4 Tensor Cores — NVFP4 wins on both memory AND compute |
-| B200 / B300, GPT-OSS | `mxfp4` / `gpt_oss_mxfp4` + `VLLM_USE_FLASHINFER_MOE_MXFP4_MXFP8=1` | `fp8_e4m3` | Only vendor-supplied format GPT-OSS ships |
+| B200 / B300, GPT-OSS | `mxfp4` / `gpt_oss_mxfp4`; for MXFP8 activations add `--moe-backend flashinfer_trtllm --quantization-config.moe.activation mxfp8` | `fp8_e4m3` | Only vendor-supplied format GPT-OSS ships. `VLLM_USE_FLASHINFER_MOE_MXFP4_MXFP8` no longer exists (removed v0.24.0) — setting it does nothing |
 | B200 / B300, lower accuracy risk | `modelopt_mxfp8` or online `fp8_per_block` | `fp8_e4m3` | MXFP8 MoE has the newest kernel set (v0.19), better on shapes NVFP4 struggles with |
 | GB10 / DGX Spark (SM121) | `fp8` only (NVFP4/MXFP4 kernels brittle on SM121) | `fp8_e4m3` | See #39761 / #37030 / #34817 — desktop-Blackwell quant kernels are not production ready |
 | MI300X / MI355X (ROCm, gfx942/gfx950) | `quark` (AMD) — W4A8 MXFP4/FP8 | `fp8_e4m3` (FNUZ-adjusted) | MI300 needs FNUZ scale adjustment; AMD Quark is the validated path |
