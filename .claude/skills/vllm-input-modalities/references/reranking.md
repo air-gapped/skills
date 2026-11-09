@@ -95,6 +95,17 @@ via:
 ```
 not positional indices (order is not guaranteed).
 
+**v0.33.0+ applies a checkpoint's own score template** when the checkpoint is
+a Sentence Transformers (v5.4+) `CrossEncoder` whose `sentence_bert_config.json`
+declares the `message` modality (#60877) — e.g.
+`nvidia/llama-nemotron-rerank-vl-1b-v2` at revisions from October 2026. No
+`--chat-template` needed; passing one still wins; the template in use is
+logged at startup, and a declared template the checkpoint lacks fails startup.
+Below v0.33.0 (or with an older revision) pass
+`--chat-template examples/pooling/score/template/nemotron-vl-rerank.jinja`.
+Truncate these models with `max_tokens_per_doc`, not `truncate_prompt_tokens`
+— the template suffix is not restored after truncation.
+
 ### Late-interaction (ColBERT family, MaxSim)
 
 Per-token embeddings, MaxSim at scoring time. Higher fidelity than a single
