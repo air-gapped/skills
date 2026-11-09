@@ -136,12 +136,14 @@ Negative reports, same question, smaller models:
 - [vllm#23144](https://github.com/vllm-project/vllm/issues/23144) (2025-08): Qwen3-8B on 8× A100, 1024 ISL / 6 OSL, PyNcclConnector 1P1D vs 2× TP2 chunked-prefill — disagg worse on TTFT and ITL at every QPS.
 - [kraghavan.ca 2026-04-21](https://kraghavan.ca/llm-infrastructure/inference/2026/04/21/llm-d-pd-disaggregation.html): llm-d + NIXL on a single GH200, Qwen3-0.6B — TTFT 3.7×, ITL 3.5×, E2E 6.5× worse than aggregated.
 
-Model-specific caveat: [vllm#55434](https://github.com/vllm-project/vllm/issues/55434) (open, 2026-09-05) — GLM-5.3
+Model-specific caveat: [vllm#55434](https://github.com/vllm-project/vllm/issues/55434) (open) — GLM-5.3
 (DeepSeek-V3.2 arch, MLA + DSA indexer; NOT GLM-5.3-Flash) P/D on GB200 issues 91k–120k NIXL descriptors per
 TP-rank transfer (~4.9 GB), and `cuda_ipc` spends 57% of transfer time posting them (4.07 µs/descriptor vs
 0.20 µs on IB `rc_x`), so the intra-node MNNVL path came out slower end-to-end than RDMA. Descriptor-heavy KV
 layouts can make the same-node transport the bottleneck; check the NIXL Prometheus `postDuration` histogram
-before assuming NVLink/cuda_ipc is free.
+before assuming NVLink/cuda_ipc is free. Still open at v0.33.0, and upgrading to NIXL 1.5 does not clear it (posting stayed ~63% of transfer time):
+the NIXL 1.5 SGL speed-up (`NIXL_UCX_SGL_ENABLE=1`) applies to WRITE, and `NixlConnector` pulls with READ. The same ~3.5–3.7 µs per-descriptor
+`cuda_ipc` post cost is reported for single-node H100/H200 pull transfers whenever decode-side block IDs are scattered, so it is not GLM-specific.
 
 No published single-node numbers exist (as of 2026-09-16) for GLM-5.x-Flash, DeepSeek, Llama-3.3-70B or SGLang.
 Recipes (recipes.vllm.ai, NVIDIA Dynamo) document the 4+4 split without benchmarking it. Measure per model:
