@@ -21,10 +21,10 @@ vllm-omni layers on upstream vLLM: upstream's own CLI hands `vllm serve <model> 
 | Rule | Action |
 |---|---|
 | omni major.minor must equal vLLM major.minor (`vllm_omni/version.py` warns on mismatch) | Install omni **v0.32.0** (current stable) with vLLM **0.32.0** |
-| v0.33.0rc1 is the newest tag and a pre-release | Do not deploy it as current |
+| vLLM **0.33.0** is the newest vLLM release, so an unpinned `pip install vllm` resolves to it (PyTorch 2.14.0); omni's only build for it is the pre-release v0.33.0rc1 | Always write `vllm==0.32.0` beside `vllm-omni==0.32.0`. Do not deploy v0.33.0rc1 as current |
 | transformers ranges are disjoint across omni minors: v0.30.0 pins `>= 5.13.0, < 5.15`, v0.32.0 pins `>= 5.16.1, < 5.20.0` (same as vLLM 0.32.0) | Upgrade omni and vLLM together, in a fresh venv/image. Never put omni v0.30.0 in a vLLM 0.32.0 env or the reverse |
 | v0.32.0 requires Python `>=3.11,<3.14` (v0.30.0 accepted 3.10) | Use 3.12; rebuild 3.10 envs before upgrading |
-| Odd minors (v0.21 … v0.31) exist only as `rc1`; v0.33 so far too | Check `prerelease` before pinning a minor; a missing stable is not a withdrawn one |
+| Odd omni minors (v0.21 … v0.33) exist only as `rc1` | Check `prerelease` before pinning a minor; a missing stable is not a withdrawn one |
 | Docker `vllm/vllm-omni:latest` follows the newest image, and has pointed at rc builds (v0.29.0rc1, v0.31.0rc1; today v0.32.0) | Pin `vllm/vllm-omni:v0.32.0` (`-x86_64` / `-aarch64` variants) in every manifest |
 | ROCm images live in `vllm/vllm-omni-rocm`, newest stable **v0.30.0** (no v0.32.0 tag, no `latest`) | On ROCm deploy the v0.30.0 pair; the 0.32.0 ROCm wheel is unvalidated (Install below) |
 | A tag is not a wheel and not an image | Check GitHub releases, PyPI and both Docker repos before quoting a version |
