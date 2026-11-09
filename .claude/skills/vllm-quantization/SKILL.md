@@ -281,6 +281,7 @@ Internalize these before debugging accuracy / throughput regressions:
 4. **Dynamic FP8 + LoRA-merged model on B200 → non-deterministic degenerate output** ([#39662](https://github.com/vllm-project/vllm/issues/39662)). Pin static FP8.
 5. **SM120 (RTX 5090, 6000 Pro) is not a datacenter NVFP4 MoE target** ([#35065](https://github.com/vllm-project/vllm/issues/35065), [#31085](https://github.com/vllm-project/vllm/issues/31085)) — full kernel set is SM100 / SM103 only. Desktop Blackwell is production only for `fp8`.
 6. **CUTLASS NVFP4 / MXFP4 MoE under expert parallelism → silently wrong output** before v0.32.0: the CUTLASS FP4 MoE path ignored the EP `expert_map` ([#59042](https://github.com/vllm-project/vllm/pull/59042)). Upgrade to v0.32.0; on older releases with `--enable-expert-parallel`, pin a non-CUTLASS `--moe-backend`.
+7. **compressed-tensors NVFP4 / MXFP4 at a TP that cuts a scale group → silently wrong output**, unfixed at v0.33.0 ([#66211](https://github.com/vllm-project/vllm/issues/66211)). Before picking TP, check that every `down_proj` / `o_proj` / expert `down_proj` input width ÷ TP is a multiple of 16 (NVFP4) or 32 (MXFP4). Row in `references/troubleshooting.md`.
 
 The hardware-/version-gated traps (B300 TRTLLM hang, ModelOpt-vs-compressed-tensors export drift, MXFP4-linear-falls-back-to-BF16, A100 TurboQuant crash, Qwen3.5 v0.18 KV regression, MXFP8+DeepGEMM pre-v0.19 crash) live in the full triage playbook with symptoms → PR → workaround: `references/troubleshooting.md`.
 
