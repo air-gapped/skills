@@ -37,9 +37,10 @@ Serving the frozen copy silently drops:
 Both cyankiwi repos (`gemma-4-31B-it-AWQ-4bit`, `gemma-4-31B-it-qat-AWQ-INT4`)
 squashed their git history on 2026-07-21. Every pre-squash revision SHA returns
 404, so an older `--revision` pin crash-loops on a cold boot with an empty HF
-cache. Re-pin to the current HEADs — `6f1b616c` (AWQ-4bit), `e0814036`
+cache. Re-pin to the squash commits — `6f1b616c` (AWQ-4bit), `e0814036`
 (qat-AWQ-INT4). Config, tokenizer and template files are byte-identical across
-the squash; re-pinning needs no re-audit.
+the squash; re-pinning needs no re-audit. The later HEADs (`a6b1af08`,
+`b0af25ee`, 2026-10-19) change `README.md` only.
 
 ## Re-vet procedure
 
