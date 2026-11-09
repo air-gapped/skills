@@ -2,7 +2,7 @@
 name: vllm-speculative-decoding
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 description: |-
-  Pick, configure, tune, monitor vLLM speculative decoding in production. Thirteen SpeculativeMethod options (ngram, ngram_gpu, medusa, mlp_speculator, draft_model, suffix, custom_class, eagle, eagle3, dflash, dspark, mtp, extract_hidden_states), `--speculative-config` JSON schema, which methods pair with which target model family, Prometheus acceptance metric surface, version gates (v0.11.1 EAGLE-3 preamble fix, v0.16 parallel drafting, v0.18 ngram_gpu, v0.19 dflash and zero-bubble), composability with chunked prefill / PP / LoRA / FP8 / structured outputs, Arctic Inference plugin, where spec-dec stops paying at high batch.
+  Pick, configure, tune, monitor vLLM speculative decoding in production. Eleven SpeculativeMethod options at v0.33.0 (ngram, ngram_gpu, draft_model, suffix, custom_class, eagle, eagle3, dflash, dspark, mtp, extract_hidden_states; medusa and mlp_speculator removed), `--speculative-config` JSON schema, which methods pair with which target model family, Prometheus acceptance metric surface, version gates (v0.11.1 EAGLE-3 preamble fix, v0.16 parallel drafting, v0.18 ngram_gpu, v0.19 dflash and zero-bubble), composability with chunked prefill / PP / LoRA / FP8 / structured outputs, Arctic Inference plugin, where spec-dec stops paying at high batch.
 when_to_use: |-
   Trigger on speculative decoding, draft model, EAGLE/EAGLE-2/EAGLE-3, MTP/multi-token prediction, deepseek_mtp, glm4_moe_mtp, qwen3_next_mtp, Medusa, MLPSpeculator, DFlash, suffix decoding, ngram speculation, ngram_gpu, acceptance rate / AL, --speculative-config, -sc, --num-speculative-tokens, prompt_lookup_min/max, draft_tensor_parallel_size, parallel_drafting, vllm:spec_decode_num_drafts, vllm:spec_decode_num_accepted_tokens, Arctic Inference, SuffixDecodingCache, SpeculativeMethod, P-EAGLE, PARD, dynamic-K, rejection_sample_method. Low-acceptance troubleshooting, BS>=32 regressions, method-selection decisions, air-gapped draft-checkpoint sourcing, integration with chunked prefill/disagg serving/PP/LoRA/FP8 KV/structured outputs. Also implicit — "speed up decode", "draft model for X", "audit spec dec", "deploy-memo speculative", "can we get more tokens/sec".
 ---
@@ -49,7 +49,7 @@ across 466 published checkpoints.**
 | Agentic / code-editing / RL-rollout workload with repetition | `suffix` | Model-free suffix trees, 1.8–4.5× on SWE-Bench. Requires `pip install arctic-inference` |
 | No pre-trained head, have a good tiny model (≤2B) in same family | `draft_model` | Runs full LM as drafter; TP must match target |
 | Quick win, no drafter of any kind | `ngram_gpu` (v0.18+) or `ngram` | Prefix-matching only; fine for repetitive prompts, skip for open chat |
-| Locked into vendor checkpoint | `medusa` / `mlp_speculator` | Legacy; still works, do not adopt for new deployments |
+| Medusa or MLP-speculator checkpoint | none on ≥ v0.33.0 | `medusa` and `mlp_speculator` were removed in v0.33.0 (config validation error). Retrain as `eagle3`, or pin ≤ v0.32.x |
 
 **EAGLE-3 / DFlash target support is a capability interface, not a name list.**
 To answer "is my model supported?", grep the target's model class for `SupportsEagle3`
@@ -146,7 +146,6 @@ rate(vllm:spec_decode_num_drafts_total[5m])
 - DFlash: 0.80–0.90
 - Draft model (well-matched): 0.70–0.85
 - ngram / ngram_gpu: 0.30–0.60 (higher on repetitive prompts)
-- Medusa: 0.60–0.75
 - **Alert if below 0.50** — drafter divergence, tokenizer mismatch, or temperature drift.
 
 Alertmanager templates, Grafana-panel layout, and cross-metric diagnostics
@@ -168,6 +167,7 @@ Floors that change what to deploy today:
 | v0.30.x | Dense drafter + EP-enabled MoE target fails startup: *"Number of experts in the model must be greater than 0 when expert parallelism is enabled"* | Upgrade to ≥ v0.31.0 |
 | < v0.31.0 | P/D (KV connector) deployment with MTP stalls under KV pressure (#57104) | Upgrade to ≥ v0.31.0 |
 | v0.31.x | `use_heterogeneous_vocab: true` (TLI) device-side assert at startup | Upgrade to v0.32.0, or set `VLLM_USE_V2_MODEL_RUNNER=0` |
+| ≥ v0.33.0 | `method: "medusa"` / `"mlp_speculator"`, or a Medusa / MLP-speculator draft checkpoint, fails config validation | Move the deployment to `eagle3` before upgrading |
 
 ## Critical pitfalls
 
@@ -179,10 +179,9 @@ traps not captured by those.
 1. **Draft-model TP must equal target TP** — hard `ValueError` in
    `vllm/v1/spec_decode/draft_model.py::_raise_if_draft_tp_mismatch` (L63-77
    at v0.32.0), root cause is torch.compile cache corruption. Keep them equal
-   on MRV2 too. `mlp_speculator` instead forces draft TP=1 when
-   `draft_tensor_parallel_size` is unset (`speculative.py::_verify_and_get_draft_tp`,
-   logs a warning), so a TP=8 target runs that drafter on one GPU. Medusa
-   inherits the target TP.
+   on MRV2 too. Every other method defaults the draft TP to the target TP; an
+   explicit `draft_tensor_parallel_size` must be 1 or the target TP
+   (`speculative.py::_verify_and_get_draft_tp`).
 2. **MTP `num_speculative_tokens` > model's native `n_predict`** must be a
    *multiple* of `n_predict` — hard `ValueError` *"must be divisible by
    n_predict"* (`speculative.py:1493-1501` at v0.32.0); vLLM re-runs the MTP
@@ -236,7 +235,7 @@ State on ≥ v0.31.0. Which release enabled each combination, with PR numbers:
 
 ## Air-gapped operation
 
-Spec-dec checkpoints (EAGLE-3 heads, MLP speculators, LSTM speculators, DFlash
+Spec-dec checkpoints (EAGLE-3 heads, LSTM speculators, DFlash / DSpark
 adapters) live on Hugging Face. Treat them like any other HF model per the
 `vllm-configuration` skill's air-gap patterns (`HF_ENDPOINT` mirror,
 `HF_HUB_OFFLINE=1`, or `VLLM_USE_MODELSCOPE=True`). Specific gotchas:
@@ -268,7 +267,7 @@ Source claims are probed against **v0.32.0**. Per-row provenance, check dates
 and the re-verification recipe: `references/sources.md`.
 
 - Main docs: <https://docs.vllm.ai/en/latest/features/speculative_decoding/>
-- Per-method docs: `/features/speculative_decoding/{eagle,mtp,draft_model,mlp,n_gram,suffix}/`
+- Per-method docs: `/features/speculative_decoding/{eagle,mtp,draft_model,n_gram,suffix,lilicorr,fly,speculators,adaptive_verification}/`
 - P-EAGLE blog (2026-03-13): <https://vllm.ai/blog/p-eagle>
 - Speculators v0.3 (2025-12-13): <https://vllm.ai/blog/speculators-v030>
 - Red Hat EAGLE-3 (Jul 2025): <https://developers.redhat.com/articles/2025/07/01/fly-eagle3-fly-faster-inference-vllm-speculative-decoding>

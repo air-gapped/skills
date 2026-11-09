@@ -54,10 +54,10 @@ Spec-dec is accepting tokens but wall-clock isn't budging.
 4. **Drafter CUDA graph cache miss storm.** Logs show repeated graph capture.
    Raise `--max-num-seqs` batching headroom, or set
    `-cc.cudagraph_mode=PIECEWISE` if full-graph capture is unstable.
-5. **Draft TP != Target TP.** Would have failed at engine start on
-   `draft_model` (hard error in `v1/spec_decode/draft_model.py::_raise_if_draft_tp_mismatch`),
-   but `mlp_speculator` forces draft TP=1 when `draft_tensor_parallel_size` is
-   unset. On an 8-way target the TP=1 drafter becomes a serial bottleneck.
+5. **Draft TP != Target TP.** Fails at engine start on `draft_model` (hard
+   error in `v1/spec_decode/draft_model.py::_raise_if_draft_tp_mismatch`). On
+   other methods an explicit `draft_tensor_parallel_size: 1` under an 8-way
+   target makes the drafter a serial bottleneck — unset it.
 6. **Verification bottleneck on the target** — rare, but if the target's
    sampler is unusually slow (e.g., structured output with a complex
    grammar), verification dominates. Test without structured outputs.
@@ -109,6 +109,7 @@ Map symptom → likely cause:
 | Multimodal target + Llama 4 / Mistral Large 3 EAGLE drafter fails in the first draft prefill (startup profile run) | v0.28.0–v0.31.x regression (#50417), fixed v0.32.0 (#57633) | Upgrade to v0.32.0 |
 | ModelOpt NVFP4 DeepSeek-V4/V4.1 + DSpark/MTP: AL exactly 1.00, no error; only hint is `w1_weight_scale_2 must match w3_weight_scale_2` after draft load | Ignored MTP/DSpark experts not kept on MXFP4 — fixed v0.32.0 (#59655) | Upgrade to v0.32.0, or use the non-NVFP4 checkpoint |
 | `draft_model` + `use_heterogeneous_vocab: true` dies with a device-side assert | v0.31.x put TLI on MRV2, which has no vocab mapping; fixed v0.32.0 (#59541) | Upgrade, or `VLLM_USE_V2_MODEL_RUNNER=0` |
+| `method: "medusa"` / `"mlp_speculator"`, or a Medusa / MLP-speculator draft checkpoint, rejected by config validation | v0.33.0 removed both methods (#61701) | Retrain as EAGLE-3, or pin ≤ v0.32.x |
 | Pipeline-parallel spec-dec broken | PP + spec-dec only on MRV2 (v0.17+ #33960). If on V1 engine runner, PP disables spec-dec | Switch to MRV2 or disable PP |
 
 ## Interpreting engine log lines

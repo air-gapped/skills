@@ -43,6 +43,7 @@ build older than a row that applies, upgrade before benchmarking or debugging.
 | Dense drafter (EAGLE/EAGLE3/`draft_model`) with an EP-enabled MoE target (#56930) | **v0.31.0** | On v0.30.x startup fails with *"Number of experts in the model must be greater than 0 when expert parallelism is enabled"*; the dense draft no longer inherits target EP |
 | **LiLiCorr** drafter (#57934) | **v0.31.0** | Not a new method: a `LiLiCorrDraftModel` checkpoint under `method: "dflash"`, MRV2 only. See `references/dflash.md` |
 | **`ngram` / `ngram_gpu` on Model Runner V2** (#40704) | **v0.32.0** | GPU n-gram speculator with variable-length drafts; before this, n-gram forced the V1 runner |
+| ⚠ **`medusa` and `mlp_speculator` removed** (#61701) | **v0.33.0** | Breaking: the method names and Medusa / MLP-speculator draft checkpoints fail config validation. 11 base methods remain |
 
 ## Composability history
 

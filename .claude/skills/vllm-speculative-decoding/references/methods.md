@@ -8,8 +8,8 @@ in SKILL.md.
 
 1. `ngram` — CPU n-gram
 2. `ngram_gpu` — GPU-vectorised n-gram (v0.18+)
-3. `medusa` — Medusa heads
-4. `mlp_speculator` — IBM-flavoured MLP drafter
+3. `medusa` — removed in v0.33.0
+4. `mlp_speculator` — removed in v0.33.0
 5. `draft_model` — generic draft LM
 6. `eagle` / `eagle3` — EAGLE family
 7. `dflash` — block-diffusion parallel drafter
@@ -53,39 +53,25 @@ drafts) instead of forcing the V1 runner.
 
 ## 3. `medusa`
 
-Multiple independent heads on top of the target model's hidden states, each
-predicting a token at position k.
+**Removed in v0.33.0** (#61701): `method: "medusa"` or a Medusa draft checkpoint
+fails config validation. Retrain as EAGLE-3. On ≤ v0.32.x only:
 
-- Proposer: `MedusaProposer`, `v1/spec_decode/medusa.py:18-79`
-- Config: `model` = Medusa checkpoint (auto-detected when
-  `hf_config.model_type == "medusa"`, `config/speculative.py:1356-1357`).
-  `num_speculative_tokens` inferred from head count.
-- Draft TP defaults to the target TP (`_verify_and_get_draft_tp`); an explicit
-  `draft_tensor_parallel_size` must be 1 or the target TP. V1 runner only —
-  `medusa` forces Model Runner V1.
-- No active development in 2025-2026. Superseded by EAGLE-3. Keep only if
-  locked into an existing Medusa checkpoint.
-- Expected AL: 1.6–1.75. Draft-compute overhead low (small heads).
+- V1 runner only; `model` = Medusa checkpoint (auto-detected from
+  `hf_config.model_type == "medusa"`); `num_speculative_tokens` inferred from
+  head count; draft TP defaults to the target TP.
+- Expected AL: 1.6–1.75.
 
 ## 4. `mlp_speculator`
 
-IBM-family MLP drafter (the "accelerator" models on HF like
-`ibm-ai-platform/llama3-8b-accelerator`). Takes previous embeddings, projects
-through MLP layers, outputs k tokens.
+**Removed in v0.33.0** (#61701), same failure as `medusa`. On ≤ v0.32.x only:
 
-- Model: `model_executor/models/mlp_speculator.py:61-182`
-- Config auto-detection: `config/speculative.py:1358-1359`
-  (`hf_config.model_type == "mlp_speculator"`)
-- `num_speculative_tokens` defaults to the checkpoint's `n_predict`; above
-  `n_predict` it must be divisible by it, else `ValueError`
-  (`config/speculative.py:1489-1501`)
-- **TP=1 forced** when `draft_tensor_parallel_size` is unset — logs
-  *"cannot currently be run with tp>1"* (`_verify_and_get_draft_tp`,
-  L1723-1730). V1 runner only.
+- V1 runner only; draft TP forced to 1 when `draft_tensor_parallel_size` is
+  unset (logs *"cannot currently be run with tp>1"*), so a TP=8 target runs the
+  drafter on one GPU.
+- `num_speculative_tokens` defaults to the checkpoint's `n_predict`; above it,
+  must be divisible by it.
 - Known broken for `llama3-70b-accelerator`: `AttributeError: 'MLPSpeculatorConfig'
-  object has no attribute 'num_attention_heads'` (issues #34106, #34163)
-- Snowflake benchmarks this at 13.7% accept vs 44.5% for their LSTM-Speculator.
-  Historical, not a 2026 choice.
+  object has no attribute 'num_attention_heads'` (issue #34106, closed unfixed).
 
 ## 5. `draft_model`
 
@@ -277,8 +263,7 @@ All fields from `vllm/config/speculative.py`:
 
 **Parallelism:**
 - `draft_tensor_parallel_size: int | None` — must be 1 or the target TP;
-  must equal target TP for `draft_model` (hard error); unset → target TP,
-  except `mlp_speculator` → 1
+  must equal target TP for `draft_model` (hard error); unset → target TP
 - `parallel_drafting: bool = False` — v0.16+; forced True for `dflash`/`dspark`
 - `disable_padded_drafter_batch: bool = False`
 
