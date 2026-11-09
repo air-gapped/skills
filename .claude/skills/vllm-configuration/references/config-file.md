@@ -232,13 +232,12 @@ tool-call-parser: llama3_json
 - **Kustomize / Helm charts** often generate the YAML into a ConfigMap, mount it read-only, and pass `--config /etc/vllm/config.yaml`.
 - **Precedence escape:** to override one YAML value at runtime, pass the corresponding CLI flag after `--config`: `vllm serve --config prod.yaml --max-num-seqs 1024`.
 
-## Keys that no longer exist (verified against the v0.32.0 tree)
+## Keys that no longer exist (as of v0.33.0)
 
 A YAML key that vLLM no longer recognises is not ignored — argparse rejects it
-and the server refuses to start. Every row below was confirmed absent from
-`vllm/config/*.py` + `vllm/engine/arg_utils.py` at tag `v0.32.0`. Config
-dataclasses use `extra="forbid"`, so a stale key inside a nested dict
-(`speculative-config`, `kv-transfer-config`) fails validation the same way.
+and the server refuses to start. Config dataclasses use `extra="forbid"`, so a
+stale key inside a nested dict (`speculative-config`, `kv-transfer-config`)
+fails validation the same way.
 
 | Removed key | Removed in | Do this instead |
 |---|---|---|
@@ -253,10 +252,18 @@ dataclasses use `extra="forbid"`, so a stale key inside a nested dict
 | `enable-mamba-fine-grained-prefix-cache` | v0.31.0, renamed ([PR #57382](https://github.com/vllm-project/vllm/pull/57382)) | `enable-mamba-shared-prefix-checkpoint` |
 | `speculative-config.disable_by_batch_size`, `.speculative_model_quantization` | v0.17.0 / v0.8.3 | Drop the first; use `speculative-config.quantization` for the second. |
 | `kv-transfer-config.kv_buffer_size`, `.kv_rank`, `.kv_parallel_size`, `.kv_ip`; `ec-transfer-config.ec_rank`, `.ec_parallel_size` | v0.32.0 ([PR #59781](https://github.com/vllm-project/vllm/pull/59781)) | Delete them — old 1P1D connector fields; `kv_port` remains. |
+| `speculative-config.method: medusa` / `mlp_speculator` | v0.33.0 ([PR #61701](https://github.com/vllm-project/vllm/pull/61701)) | Another method (`eagle3`, `draft_model`, `ngram`, …) — see `vllm-speculative-decoding`. |
+
+Still accepted at v0.33.0 but dead — delete on sight:
+
+| Key | Status | Why |
+|---|---|---|
+| `mamba-cache-mode` | deprecated, warns, no effect (#60043) | Mamba prefix caching follows `enable-prefix-caching`. |
+| `ir-op-priority` | deprecated, removal v0.34.0 (#63371) | vLLM IR is being removed. |
 
 ## Version notes
 
-- Section catalog above re-read key-by-key against tag `v0.32.0`
+- Section catalog above re-read key-by-key against tag `v0.33.0`
 - YAML config support: stable since v0.5.0
 - Nested dict-to-JSON conversion: enhanced in v0.11 to handle `compilation-config`, `speculative-config`, `kv-transfer-config` reliably
 - Boolean handling: pre-v0.10 was inconsistent; current parser requires explicit `true`/`false`
