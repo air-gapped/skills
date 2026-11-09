@@ -76,6 +76,7 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 | CUDA graph replay triggers Xid 13 | Qwen3-32B-AWQ TP=2 | [#40121](https://github.com/vllm-project/vllm/issues/40121) | `--enforce-eager` |
 | CUDA illegal instruction during NVFP4 decode | aarch64 GB10 DGX Spark | [#35519](https://github.com/vllm-project/vllm/issues/35519), [#39761](https://github.com/vllm-project/vllm/issues/39761) | Tracked [#37141](https://github.com/vllm-project/vllm/issues/37141) |
 | CUDA illegal memory access GPTQ Marlin | — | [#36811](https://github.com/vllm-project/vllm/issues/36811) | Open |
+| CUDA illegal memory access at the first MTP verify step | b12x attention on SM120, v0.33.0 (not v0.32.0) | [#65139](https://github.com/vllm-project/vllm/issues/65139) | Open; fix [PR #66277](https://github.com/vllm-project/vllm/pull/66277) not merged. Stay on v0.32.0 for b12x with MTP |
 | Hang mid-inference FP8 | Qwen3.5-35B-A3B-FP8 | [#36736](https://github.com/vllm-project/vllm/issues/36736) | Open |
 | FlashInfer FP8 ScaledMM segfault SM100 | — | [#39814](https://github.com/vllm-project/vllm/issues/39814) | Pin to CUTLASS backend |
 

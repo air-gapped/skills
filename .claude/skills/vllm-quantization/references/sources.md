@@ -83,6 +83,7 @@ earlier passes that only chased issue states:
 | vLLM issue #39133 — Gemma 4 INT4 KV sizing on 2×24 GB | https://github.com/vllm-project/vllm/issues/39133 | 2026-11-09 | **fixed** | CLOSED `COMPLETED` 2026-07-25. Maintainer breakdown (2026-07-05): the 25,200-token figure was a display artifact (blocks divided by KV-cache groups); `fp8_e5m2` rejection fixed by #45040; `fp8_e4m3` on SM 8.6 is a hardware limit (SM ≥ 8.9). |
 | vLLM issue #39004 — Qwen3.5-397B NVFP4 decode regression | https://github.com/vllm-project/vllm/issues/39004 | 2026-11-09 | **withdrawn** | CLOSED 2026-05-21 by its reporter with "not actual". Row deleted from troubleshooting.md. |
 | vLLM issue #37996 — Qwen3.5-397B GPTQ on ROCm | https://github.com/vllm-project/vllm/issues/37996 | 2026-11-09 | **resolved (skill said open)** | CLOSED `COMPLETED` 2026-07-23 by an AMD maintainer after a 2026-07-16 retest on `vllm/vllm-openai-rocm:v0.25.1` (gfx942) served both the AWQ and GPTQ-Int4 checkpoints without the symptom. No fix PR named. |
+| vLLM issue #65139 — b12x attention crash at first MTP verify, v0.33.0 | https://github.com/vllm-project/vllm/issues/65139 | 2026-11-09 | known failure (new, open) | OPEN, created 2026-11-02, regression from v0.32.0. Two independent reporters confirm PR #66277 ("Keep B12X kernels loaded for captured CUDA graphs", OPEN) stops it; one bisects to the PyTorch 2.14 / Triton 3.8 bump (#52183). |
 
 ## Classification summary
 
