@@ -38,7 +38,7 @@ vllm serve MyOrg/MyModel \
     --reasoning-parser my_model
 ```
 
-Order matters: `--reasoning-parser-plugin` imports the file (runs `@register_module`), then `--reasoning-parser` looks up the registered name. If the file fails to import, vLLM logs the traceback and continues — but `--reasoning-parser my_model` will fail validation with "invalid reasoning parser: my_model (choose from {...})".
+Order matters: `--reasoning-parser-plugin` imports the file (runs `@register_module`), then `--reasoning-parser` looks up the registered name. If the file fails to import, vLLM logs the traceback and continues — but `--reasoning-parser my_model` will fail validation with `KeyError: invalid reasoning parser: my_model (chose from {...})`.
 
 ### 3. Verify
 
