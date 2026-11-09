@@ -28,17 +28,17 @@
     {
       "id": 4,
       "question": "What are the aggregate HBM capacity and bandwidth of a GB300 NVL72 rack?",
-      "skill_answer": "20.7 TB HBM3E, ~576 TB/s"
+      "skill_answer": "20.1 TB HBM3E (72 x 279 GB; NVIDIA states \"> 20 TB\"), ~576 TB/s"
     },
     {
       "id": 5,
       "question": "What minimum vLLM version is required to serve NVFP4 without garbage output?",
-      "skill_answer": "v0.25.1; v0.25.0 and earlier emit repeated '!!!!!'"
+      "skill_answer": "It depends on the workload: v0.25.1 for multi-GPU NVFP4 with Gemma/Qwen-style RMSNorm (below it, repeated '!!!!!'); v0.32.0 for NVFP4/MXFP4 MoE with expert parallelism on the CUTLASS MoE backend; v0.33.0 for NVFP4 MoE on SM100/SM103 with a padded hidden size on the default flashinfer_trtllm backend. A compressed-tensors NVFP4/MXFP4 checkpoint at a TP that cuts a scale group is unfixed at v0.33.0."
     },
     {
       "id": 6,
       "question": "Which FlashInfer version hangs with TRTLLM attention on SM103 (GB300), and when was it fixed?",
-      "skill_answer": "0.6.7; fixed 2026-04-07 in 0.6.7.postN (flashinfer#2956)"
+      "skill_answer": "0.6.7 and 0.6.7.post1; fixed in 0.6.7.post2 (flashinfer#2956, a revert)"
     },
     {
       "id": 7,
@@ -53,7 +53,7 @@
     {
       "id": 9,
       "question": "What are Rubin R100's expected HBM capacity, bandwidth, and ship window?",
-      "skill_answer": "~288 GB HBM4, ~20 TB/s, H2 2026"
+      "skill_answer": "288 GB HBM4, 19.2 TB/s; shipping, with cloud GA on Oracle OCI on 2026-10-27"
     }
   ]
 }
