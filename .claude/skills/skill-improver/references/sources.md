@@ -468,6 +468,9 @@ skill-creator "has known bugs but is actively maintained".
 
 ### backlog-format.md
 
+#### Open — what may be filed (2026-11-10)
+On 2026-11-09 a freshen pass filed nine upstream reports as "single reporter, no fix PR". A 25-minute read of the cited code confirmed eight of them, and all nine had an open fix PR — the vllm-project/vllm issues listed under freshen-patterns §3.0a. The code read was done by the session orchestrating that pass; this file's own pass re-ran the fix-PR probes on six of the nine. Until this change the admission test accepted an operator ruling (for spend), "a measurement nobody can run now" and "larger than one iteration" discards as Open entries, and this skill's own Open list carried one item of each of the first two kinds. Open is now limited to what no agent in the session can obtain; the single-reporter rule is also stated in freshen-patterns Phase F3, where the classification is made.
+
 #### Drain duty
 **Why this is enforced rather than advised.** Open counts across the fleet do not fall — they sit flat or rise across successive passes, and "Resolved this pass" becomes a changelog of whatever that session happened to do rather than the Open list being worked off. This skill's own target proved the cost: `netbox-best-practices` carried a `when_to_use` split from 2026-06-12 described as "spec-preferred but cosmetic today; do it next description edit". Nothing was absent — it was a two-minute frontmatter edit. It sat for 69 days while `description` grew from 866 to 1,070 chars, crossed the 1,024-char spec hard max, and hard-capped Dim 9 at 3. A deferred cosmetic item became the skill's single worst dimension by doing nothing at all.
 

@@ -5,48 +5,42 @@ Section shapes and admission rules for `<skill>/references/improvement-backlog.m
 (`improve-loop.md` §"Phase 6: Persist the backlog"). Load when writing or rewriting a target skill's backlog.
 
 ## Table of Contents
-- [Open](#open) — attempted-but-unapplied issues
+- [Open](#open) — only what no agent in the session can obtain
 - [Resolved this pass](#resolved-this-pass) — what the metric registered
 - [File shape and carry-forward](#file-shape-and-carry-forward)
 
 ## Open
 
-List every issue the loop **actually attempted** as a hypothesis and could NOT apply in a single
-iteration (multi-file restructure, author-only domain content, flagged-for-review findings from
-freshen, rule-ceiling discards). Each entry:
-- one-line title
-- dimension number affected (e.g. "Dim 2" or "Dim 6/8")
-- file:line pointer OR the exact file-set that would need to change
-- why skill-improver couldn't apply it in one iteration (e.g. "9-file split",
-  "requires author-authored error-handling content", "breaks self-consistency without restructure")
-- enough context to act without re-running the baseline scoring
+One entry per thing **no agent in this session can obtain**. Nothing else is filed.
 
-**Open is NOT a wishlist.** Do not add hypothetical-future-risk items ("description is 8 chars
-from cap"; "this keyword could become ambiguous if X"). Admit only a mutation the loop proposed,
-attempted or planned this iteration and could not apply. Never tried, or would surface naturally in
-tomorrow's edits: leave it out.
+| Valid blocker | The entry names |
+|---|---|
+| an upstream version not yet released | the version, and where its release will show |
+| hardware or an endpoint that was probed and is not reachable | the probe that ran and what it returned |
+| a credential | which one, and the call that needs it |
+| a real-money purchase | what, and its price |
+
+Each entry: one-line title · dimension affected ("Dim 2", "Dim 6/8") · file:line or the file set
+that would change · the blocker · the command or purchase that unblocks it · enough context to act
+without re-running the baseline scoring.
 
 ### The admission test: name the absent thing
 
-Before writing ANY Open entry, answer in one clause: **what, specifically, that is not here right
-now, prevents doing this?** Valid: a missing thing — an operator ruling, a credential, an unreleased
-upstream version, a live system to test against, a measurement run nobody can do this pass.
-Invalid: "larger than one iteration", "a lot of edits", "didn't fit the rule I was applying", "ran
-out of scope" — these describe effort, not a blocker.
+**Before filing, write the command or purchase that would unblock it. If that command can run now,
+run it instead.**
 
-**Check the absence before naming it.** Two blockers are usually not absent:
+Never filed — do the right-hand column in this pass:
 
-| Claimed blocker | Required check | If the check finds it |
-|---|---|---|
-| "a live endpoint / real hardware / a test instance" | probe the operator's environment: forwarded services and hosts entries, the device inventory, what monitoring already scrapes | run the test this pass |
-| "live-verify CLI subcommand X" | read X's source at the pinned tag; a thin wrapper (one API call, no branch on instance state) is settled by the code | apply what the code shows, delete the item |
-| "an operator ruling" | is the decision about the skill's own content — what it says, which scripts or files it ships, its layout? | that is the pass's decision: decide, record it under `## Decided` with the reason |
-
-An operator ruling is a valid blocker only for spend, an outward-facing action (writes to a third-party system, creating resources in the operator's accounts), or private policy.
-
-**Honest answer "nothing, it is just work": do it in this pass, before the pass ends.** Mechanical
-volume is not a reason to defer; the one-change-per-iteration rule keeps score movement
-attributable, not a cap on how much a pass may fix.
+| Claimed blocker | Do this instead |
+|---|---|
+| "needs an operator decision / ruling" | decide with the best default, apply it, record the choice and its reason under `## Decided` |
+| "single reporter", "unconfirmed", "needs a second source" | read the cited code at the release tag. Confirmed in code: write it into the skill text, marked as an unconfirmed upstream report. File only a claim that reading cannot settle, naming the runtime fact that is missing |
+| "no fix PR" | run the three probes in `freshen-patterns.md` §3.0a first |
+| subscription-usage cost | state the spend and run it |
+| "large", "tedious", "out of this pass's scope", "more than one iteration" | do it; the one-change rule keeps score movement attributable, it is not a cap on how much a pass fixes |
+| "a live endpoint / real hardware / a test instance", not yet probed | probe the operator's environment: forwarded services and hosts entries, the device inventory, what monitoring already scrapes. Reachable: run the test |
+| "live-verify CLI subcommand X" | read X's source at the pinned tag; a thin wrapper (one API call, no branch on instance state) is settled by the code |
+| a hypothetical future risk, or a change never attempted | leave it out |
 
 **A pass may not end having ADDED an unblocked item.** Renaming the section, qualifying it
 ("available to the next pass", "not a blocker"), or filing it under another heading changes
@@ -55,8 +49,8 @@ nothing. Actionable by the next person with no new information means actionable 
 ### Drain duty
 
 Phase 0 reads Open to check whether anything there has become unblocked, not only to avoid
-re-proposing. When the named absent thing has arrived (release shipped, ruling came, measurement
-exists), that item is this pass's work, ahead of a fresh hypothesis of equal size. Delete it from
+re-proposing. When the named absent thing has arrived (release shipped, endpoint reachable, credential
+issued, purchase made), that item is this pass's work, ahead of a fresh hypothesis of equal size. Delete it from
 Open when done; the diff is the record. Never tick it in place.
 
 ## Resolved this pass
@@ -85,16 +79,16 @@ Blind 84 → 86; comparators 2/3 REGRESSED on the lifecycle cut → reverted.
 
 **"Resolved" means** the iteration applied a real mutation the metric registered. A placeholder file
 (e.g., empty `sources.md` with no `Last verified:` dates) does NOT resolve a Dim 9 staleness cap.
-Log such cases as Open with action "run freshen mode".
+Run `freshen` instead; it is not an Open item.
 
 ## File shape and carry-forward
 
 Plain markdown; `## Open` and `## Resolved this pass` as top-level sections, plus `## Decided` for
-content choices the pass made instead of filing (one line each: decision, reason, re-open condition).
+choices the pass made instead of filing (one line each: decision, reason, re-open condition).
 Keep the shape uniform across runs so loops can diff.
 
-Existing backlog with items skill-improver chose not to fix this run: carry them into the new
-"Open" section with a `(carried YYYY-MM-DD)` marker.
+An existing Open item whose blocker is still absent is carried with a `(carried YYYY-MM-DD)`
+marker. One that fails the admission test is done, moved to `## Decided`, or deleted — never carried.
 
 **Append-only history.** When rewriting, never drop prior passes' "Resolved" sections or discard
 rationales; keep them as dated `## Resolved — YYYY-MM-DD` sections below the current pass. Loops

@@ -412,7 +412,7 @@ python -m scripts.aggregate_benchmark <workspace>/iteration-N --skill-name <name
 # -> benchmark.json carries delta_pass_rate, delta_time, delta_tokens
 ```
 
-Requires the target to have `evals/evals.json`. A skill with no eval set cannot clear the unmeasured cap: log an Open backlog item with action "build an eval set, then measure delta_pass_rate".
+Requires the target to have `evals/evals.json`. A skill with no eval set cannot clear the unmeasured cap; the cap is then correct, not a defect to file. To clear it, build the set (`scripts/grow-evals.py`, floor of 8 cases) and measure.
 
 **An errored case is not a failed case.** Before reading any delta, check every case in `benchmark.json` ran. A crashed, timed-out or ungraded case measured nothing: counting it as a failure manufactures a negative delta; dropping it changes the denominator between arms. Re-run errored cases. If they cannot be made to run, the delta is **unmeasured** and the 8 cap applies.
 

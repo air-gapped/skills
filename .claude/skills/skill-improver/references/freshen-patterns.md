@@ -96,6 +96,8 @@ Only drift, deprecation, new-feature and broken produce mutation hypotheses.
 
 **Tag ancestry answers "did this COMMIT ship", not "did this FIX ship".** On a project that backports, the fix reaches an older patch release as a *different commit*, so `compare <tag>...<merge-sha>` reports `diverged` while the fix is in the tag. Ancestry is authoritative for a commit; release notes are authoritative for an attribution. When they disagree the project backports and both are true about different things — say which question you asked. Use the notes when the project maintains parallel stable lines.
 
+**A single-reporter upstream report is not `unverifiable` until its code has been read.** Read the code the report cites at the release tag. Confirmed in code: write the failure into the skill, marked as an unconfirmed upstream report, with the issue and any fix PR (§3.0a). Only a claim that reading cannot settle stays out, with the missing runtime fact named.
+
 **Gate on `unverifiable`: name the probe that failed.** The class means probes ran and came back ambiguous, not that two documents look like they disagree. Before logging it, state in the findings log which probe was run and what it returned. If that sentence cannot be written, the finding is **unverified** and the pass is not done. Two cheap probes:
 - **Sibling test** — for a claim about one item in a set that shipped together, check the siblings (a change that hit `/verify` but not `/run` localizes mechanically).
 - **Re-read the primary for scope** — an official doc vs official blog "conflict" is usually a scope mismatch (human workflow vs agent behaviour). Check both talk about the same actor.

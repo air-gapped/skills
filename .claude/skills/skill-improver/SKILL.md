@@ -111,11 +111,11 @@ noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
 - **Two lenses, never mixed in one hypothesis.** INV = how the agent works
   (procedure, tool use, done conditions, scripts). DOM = what a practitioner
   knows (facts, failure mechanisms, decision rules). `improve-loop.md` Phase 2.
-- **The backlog records blockers only.** Every Open entry in
-  `<skill>/references/improvement-backlog.md` names the absent thing (a ruling,
-  a credential, an unreleased version, a measurement nobody can run now) and
-  passes the absence checks in `references/backlog-format.md`. Effort is not a
-  blocker: do it before the pass ends.
+- **The backlog holds only what no agent in the session can obtain:** an
+  unreleased upstream version, hardware or an endpoint probed and unreachable, a
+  credential, a real-money purchase. A ruling, an unconfirmed report, usage cost
+  and effort are never filed (`references/backlog-format.md`). Before filing,
+  write the command that would unblock it; if it can run now, run it.
 - **Read `references/lessons.md` in Phase 0; write at most one entry at the
   end.** Each kept change gets an attribution verdict in the landing commit
   (`improve-loop.md` Phase 7).

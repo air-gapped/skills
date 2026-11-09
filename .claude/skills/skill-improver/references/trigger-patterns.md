@@ -74,7 +74,7 @@ Categorise train failures and pick ONE mutation type:
 | Mixed under + over | T3 — fix whichever class has more failures first |
 | Fractional trigger rates dominate (not 0.00/1.00) | T4 — the measurement is underpowered before it is a mutation problem: re-measure the disputed queries at N=7+ (§T5 noise floor) before proposing any edit |
 | Cap-bound: description hits 1024 chars | T5 — re-balance into description vs when_to_use |
-| Sibling skill steals the trigger | T6 — backlog finding, NOT single-skill mutation |
+| Sibling skill steals the trigger | T6 — a decision about the sibling, NOT a single-skill mutation |
 
 ### Phase T4: Mutate
 
@@ -115,7 +115,7 @@ Up to **5 iterations** (default; probes cost 5–10x rubric scoring). Stop when:
 
 - Train pass-rate ≥ 95% AND test pass-rate ≥ 80% — converged.
 - 3 consecutive discards across at least 2 mutation patterns — ceiling mapped. Surface what was tried.
-- A T6 (cross-skill conflict) finding emerges — surface as backlog.
+- A T6 (cross-skill conflict) finding emerges — decide it per Pattern T6.
 - User interrupts.
 
 ### Phase T7: Apply and persist
@@ -123,7 +123,7 @@ Up to **5 iterations** (default; probes cost 5–10x rubric scoring). Stop when:
 1. Pick the winner by **TEST** score, NOT train (overfit guard).
 2. Write the winning frontmatter to `<skill>/SKILL.md`. Do NOT edit the body.
 3. Save queries added this run to `<skill>/references/trigger-evals.json`. Keep it a bare list of query objects — `probe-trigger.py` treats every element as a query, so a metadata block breaks the next run. Date, baseline, final, and iteration count go in the backlog entry.
-4. Update `<skill>/references/improvement-backlog.md`: move resolved trigger items to "Resolved this pass"; add T6 cross-skill conflicts as new "Open" items.
+4. Update `<skill>/references/improvement-backlog.md`: move resolved trigger items to "Resolved this pass"; record each T6 cross-skill conflict and the choice made under `## Decided` (Pattern T6), never under Open.
 5. Print:
    ```
    skill: <name>
@@ -355,7 +355,7 @@ Do not fix both in one iteration. Apply T1 or T2 for whichever class has more fa
 
 **Symptom:** a should-trigger query passes solo, fails in real sessions; another skill's description over-claims the territory.
 
-**Fix:** NOT a single-skill mutation. Surface as a backlog finding: name the sibling, recommend tightening its `description` or adding "Do NOT use for X — use `<sibling>` instead" to one or both. Cross-skill negotiation requires the author.
+**Fix:** NOT a single-skill mutation, and not a backlog item. Name the sibling and decide: a sibling editable in this session gets its own trigger pass (tighten its `description`, or add "Do NOT use for X — use `<sibling>` instead" to one or both); a sibling the session cannot edit (a plugin skill) is won't-fix here. Record the choice and its reason under `## Decided`.
 
 The inverse — a should-NOT query firing at 1.00 because the real handler was not installed in the temp project — is also T6, not T2.
 

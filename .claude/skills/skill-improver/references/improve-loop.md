@@ -17,7 +17,7 @@ Full phase workflow for `improve` mode. Cross-cutting rules (rules for every mod
 
 1. Identify the target skill. Accept a path, or run `scripts/scan-skills.sh` (or Glob `**/SKILL.md` under `~/.claude/skills/` and `.claude/skills/`). Do NOT search `~/.claude/plugins/` — managed externally.
 2. Read `SKILL.md`, then list the directory. Open a `references/`, `scripts/`, `examples/` or `assets/` file only when a phase needs it (Phase 1 needs the reference files, Phase 2 whichever the hypothesis targets). Do not read the whole tree up front.
-3. **Read `<skill>/references/improvement-backlog.md` if it exists.** It carries open ceiling-hit items from prior runs. Do NOT re-propose a listed item unless new evidence shows the ceiling is now breakable in one iteration. Items resolved mid-loop move to the backlog's "Resolved this pass" section in Phase 6.
+3. **Read `<skill>/references/improvement-backlog.md` if it exists.** Its Open items are blocked on something no agent could obtain: check whether each blocker has arrived (`backlog-format.md` §Drain duty). Its discard entries are re-proposal guards: do NOT re-propose one unless a kept change has removed the reason it failed. Items resolved mid-loop move to the backlog's "Resolved this pass" section in Phase 6.
 4. Read `references/lessons.md` (skill-improver's). Apply every entry whose `cue` matches this target or this pass; name the entry in the hypothesis it shapes.
 5. Read **both** `references/quality-rubric.md` and `references/improvement-patterns.md` from the skill-improver directory. Both are mandatory; skipping the patterns file misses documented techniques (Pattern 8.2 terminology standardisation, Pattern 6.1 redundancy removal, Pattern 9.3 frontmatter fields). Feeling unsure what to try next is a symptom of skipping this read. **Apply the Boris Alignment Check** (rubric §"Boris Alignment Check") to the baseline: up-front context dumps and model-version compensation cap Dims 4 and 9; procedural scaffolding is advisory only (no cap). Lift caps ahead of cosmetic dim improvements of the same magnitude.
 6. Establish a baseline score against the rubric. **Run `python3 ${CLAUDE_SKILL_DIR}/scripts/eval-evidence.py <skill-dir>` first** and take Dim 10's cap from it; do not judge it yourself. It also reports case count and noise floor. A new skill usually has **no** eval set (cap 8, correct, nothing to fix); one with 3 cases resolves nothing under 0.33 and is worse than none. State which of the two it is in the baseline; when the corpus is thin, name `scripts/grow-evals.py` as the fix. Applies on every scoring run.
@@ -112,7 +112,7 @@ Then run the **A/B comparator** — it, not the score delta, decides whether the
 
 Before declaring the run done, update `<skill>/references/improvement-backlog.md` (create if absent). Mandatory — findings left only in chat are lost.
 
-Admission rules for **Open** (attempted, could not be applied in one iteration; not a wishlist) and **Resolved this pass** (a mutation the metric registered; not a placeholder file), the carry-forward marker, and the append-only rule live in **`references/backlog-format.md`**. Read it before writing the file.
+Admission rules for **Open** (only what no agent in the session can obtain) and **Resolved this pass** (a mutation the metric registered; not a placeholder file), the carry-forward marker, and the append-only rule live in **`references/backlog-format.md`**. Read it before writing the file.
 
 ## Phase 7: Land it
 
