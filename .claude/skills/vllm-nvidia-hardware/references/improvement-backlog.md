@@ -5,10 +5,21 @@ but could not be applied in one atomic, score-improving iteration. Not a wishlis
 
 ## Open
 
-_None._ Nothing here is waiting on an absent ruling, credential, release, or
-measurement nobody can run.
+- **Humming kernels on Hopper: silent wrong weights for some MXFP4 / W4A16 shapes** (Dim 9).
+  Would add a row to the floor table in `SKILL.md` and a note in
+  `references/vllm-platform-matrix.md` §2. Reports: vllm-project/vllm#66074 (MXFP4 linear
+  layers round or zero blocks whose E8M0 scale sits 12+ binades below the layer maximum)
+  and #66437 (W4A16 group sizes that do not tile the K-blocks). **Blocked on:** a merged
+  fix or a maintainer confirmation — each has one reporter, the fix PRs (#66112 for the
+  first) are unmerged, and the mechanism is inside the `humming-kernels` wheel, so the
+  vLLM tree at v0.33.0 cannot confirm or bound it. When either lands: read which
+  versions carry the Humming-first default on SM90 (#56997, v0.32.0) and write the row.
 
-## Resolved this pass (2026-10-18)
+## Resolved this pass (2026-11-09)
+
+Freshen at vLLM v0.33.0, every `sources.md` row probed, no exceptions; one finding per commit.
+
+## Resolved — 2026-10-18
 
 Improve, cap reached at 5 iterations, 0 discards (no ceiling mapped). Blind baseline
 74 at 68dca10; self 73 → 81; final blind score and A/B comparator run by the operator.

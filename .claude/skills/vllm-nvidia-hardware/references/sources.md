@@ -1,35 +1,33 @@
 # Consolidated source list
 
-Freshened: 2026-10-18 (exceptions: 1 row, noted inline) — probed at vLLM v0.32.0 (deps, build floors, attention gates and anchors re-read from the tag; v0.31.0/v0.32.0 rows added); Rubin moved from "no delivery" to first customer in production (CoreWeave 2026-09-30); H100/H200 datasheet URLs replaced with product pages; 403-to-curl rows read in a browser.
+Freshened: 2026-11-09 — probed at vLLM v0.33.0 (pins, build floors, attention gates and line anchors re-read from the tag; v0.33.0 row and the issues opened since 2026-10-18 added); Dell XE spec sheet at Rev A07; Rubin specs from NVIDIA's product page, cloud GA on OCI 2026-10-27; every URL row fetched with bare curl, then WebFetch, then a browser where the first two returned 403 (noted on the row).
 
 Grouped by topic. `foundational` tags mean the source pre-dates 2025 but is still the
 canonical reference on its claim.
 
-**Earlier passes:** 2026-09-15; prior 2026-08-11 (vLLM release line v0.26.0-v0.27.0, probed
+**Earlier passes:** 2026-10-18 (vLLM v0.32.0); 2026-09-15; prior 2026-08-11 (vLLM release line v0.26.0-v0.27.0, probed
 against the **v0.27.0 source tree** — `CMakeLists.txt`, `requirements/cuda.txt`,
 `docker/Dockerfile`, `vllm/platforms/cuda.py`, the attention-backend and KV-connector
 modules — plus the Rubin `sm_107` tracking issue); prior passes 2026-07-21 (vLLM
 release line v0.22.0-v0.25.1 + Rubin shipping status), 2026-05-28 (vLLM release rows
 only) and 2026-04-24 (full).
-Rows annotated `[LV: <date>]` were probed on that date; `[LV: <date>, drift]` means the
-probe surfaced a material change that was applied to the relevant reference file(s).
-Unannotated rows are inherited from passes before 2026-04-24 and have not been
-re-verified since. The 2026-05-28 pass re-probed the vLLM release line via
-`gh release list -R vllm-project/vllm` only.
+`[LV: <date>]` markers are per-row dates left by passes that predate the header stamp;
+the stamp above is authoritative for every row, annotated or not. `[LV: <date>, drift]`
+marks a row whose probe changed a reference file on that date.
 
 ## Fundamentals / HBM / supply / energy
 
 - [arXiv 2512.01644 — Systematic roofline characterization (2025-12)](https://arxiv.org/html/2512.01644v1) [LV: 2026-09-15]
 - [arXiv 2402.16363 — LLM Inference Unveiled (foundational)](https://arxiv.org/pdf/2402.16363) [LV: 2026-09-15]
-- [Towards Data Science — Prefill/Decode](https://towardsdatascience.com/prefill-is-compute-bound-decode-is-memory-bound-why-your-gpu-shouldnt-do-both/) [LV: 2026-09-15]
+- [Towards Data Science — Prefill/Decode](https://towardsdatascience.com/prefill-is-compute-bound-decode-is-memory-bound-why-your-gpu-shouldnt-do-both/) — published 2026-04-15. 403 to bare curl and WebFetch; read in a browser 2026-11-09.
 - [SemiAnalysis — Memory Wall (2024-09, foundational)](https://newsletter.semianalysis.com/p/the-memory-wall) [LV: 2026-09-15, URL moved to the `newsletter.` host — the old address still 200s by redirect]
 - [SemiAnalysis — HBM rise and roadmap](https://newsletter.semianalysis.com/p/scaling-the-memory-wall-the-rise-and-roadmap-of-hbm) [LV: 2026-09-15]
 - [SemiAnalysis — Tensor core evolution Volta→Blackwell](https://newsletter.semianalysis.com/p/nvidia-tensor-core-evolution-from-volta-to-blackwell) [LV: 2026-09-15]
 - [NotebookCheck — SK hynix sold out 2026](https://www.notebookcheck.net/SK-hynix-sells-out-its-DRAM-NAND-and-HBM-chip-supply-to-Nvidia-through-2026-as-AI-demand-outpaces-Samsung-and-Micron-s-capacity.1151402.0.html) [LV: 2026-09-15]
 - [Astute — HBM market share](https://www.astutegroup.com/news/general/sk-hynix-holds-62-of-hbm-micron-overtakes-samsung-2026-battle-pivots-to-hbm4/) [LV: 2026-09-15]
 - [Network World — 2026 memory shortage](https://www.networkworld.com/article/4113772/samsung-warns-of-memory-shortages-driving-industry-wide-price-surge-in-2026.html) [LV: 2026-09-15, back on the primary host — the previous pass's archive.org fallback is itself dead now (404, and no snapshot indexed). The original only ever needed `.html` appending; the 404 that triggered the fallback was a truncated path, not a removed page]
-- [Introl — AI Memory Supercycle](https://introl.com/blog/ai-memory-supercycle-hbm-2026) [LV: 2026-09-15]
-- [Future of Computing — Breaking the Memory Wall pt 2](https://news.future-of-computing.com/p/breaking-the-memory-wall-pt-2-a-closer-look-at-hbm-high-bandwidth-memory) [LV: 2026-09-15]
+- [Introl — AI Memory Supercycle](https://introl.com/blog/ai-memory-supercycle-hbm-2026) — published 2026-01-03. 403 to bare curl; WebFetch reads it.
+- [Future of Computing — Breaking the Memory Wall pt 2](https://news.future-of-computing.com/p/breaking-the-memory-wall-pt-2-a-closer-look-at-hbm-high-bandwidth-memory) — published 2025-11-24. 403 to bare curl; WebFetch reads it.
 - [NVIDIA HPCA 2017 — Energy-efficient DRAM (foundational)](https://research.nvidia.com/sites/default/files/pubs/2017-02_Architecting-an-Energy-Efficient/chatterjee.hpca2017.pdf) [LV: 2026-09-15]
 
 ## NVIDIA hardware
@@ -57,8 +55,8 @@ re-verified since. The 2026-05-28 pass re-probed the vLLM release line via
 - [Tom's — Rubin $8.8M](https://www.tomshardware.com/tech-industry/artificial-intelligence/price-of-nvidias-vera-rubin-nvl72-racks-skyrockets-to-as-much-as-usd8-8-million-apiece-but-server-makers-margins-will-be-tight-nvidia-is-moving-closer-to-shipping-entire-full-scale-systems) [LV: 2026-09-15]
 - [Tom's — $50k cooling BoM](https://www.tomshardware.com/pc-components/cooling/cooling-system-for-a-single-nvidia-blackwell-ultra-nvl72-rack-costs-a-staggering-usd50-000-set-to-increase-to-usd56-000-with-next-generation-nvl144-racks) [LV: 2026-09-15]
 - [Register — 600 kW racks](https://www.theregister.com/special-features/2025/03/19/nvidias-vera-rubin-cpu-gpus-chart-course-for-600kw-racks/1125168) — moved from `/2025/03/19/nvidia_charts_course_for_600kw/`, which redirects here.
-- [DCD — 1 MW racks / 800 VDC](https://www.datacenterdynamics.com/en/news/nvidia-prepares-data-center-industry-for-1mw-racks-and-800-volt-dc-power-architectures/) [LV: 2026-09-15]
-- [Wikipedia — Blackwell microarch](https://en.wikipedia.org/wiki/Blackwell_(microarchitecture)) [LV: 2026-09-22] — live, on-topic, last edited 2026-09-11.
+- [DCD — 1 MW racks / 800 VDC](https://www.datacenterdynamics.com/en/news/nvidia-prepares-data-center-industry-for-1mw-racks-and-800-volt-dc-power-architectures/) — 403 to bare curl and WebFetch; read in a browser 2026-11-09.
+- [Wikipedia — Blackwell microarch](https://en.wikipedia.org/wiki/Blackwell_(microarchitecture)) — live, on-topic, last edited 2026-11-07 (MediaWiki API).
 - [TweakTown — B100 cancelled, B200A to replace it](https://www.tweaktown.com/news/100083/analyst-nvidia-has-effectively-canceled-b100-ai-gpu-over-design-flaw-b200a-to-replace-it/index.html) — slug moved from `…-b200-to-replace-it` to `…-b200a-to-replace-it`; the old address redirects. Published 2024-08-22.
 - [SemiAnalysis — Blackwell Perf/TCO (2024-04)](https://newsletter.semianalysis.com/p/nvidia-blackwell-perf-tco-analysis) — cited from `gpu-specs.md`; the `semianalysis.com/2024/04/10/…` address redirects here.
 - [Modal — Decoding Blackwell](https://modal.com/blog/nvidia-blackwell) [LV: 2026-09-15]
@@ -73,12 +71,12 @@ re-verified since. The 2026-05-28 pass re-probed the vLLM release line via
 - [Supermicro GB300 NVL72 product](https://www.supermicro.com/en/products/rack/srs-gb300-nvl72) [LV: 2026-09-15, URL moved out of `/system/gpu/48u/` into `/rack/`; no longer bot-blocked, 200 to bare curl]
 - [Supermicro GB200 NVL72 PDF](https://www.supermicro.com/datasheet/datasheet_SuperCluster_GB200_NVL72.pdf) [LV: 2026-09-15, now 200 to bare curl — the bot-block lifted]
 - [Supermicro GB300 NVL72 PDF](https://www.supermicro.com/datasheet/datasheet_SuperCluster_GB300_NVL72.pdf) [LV: 2026-09-15, now 200 to bare curl — the bot-block lifted]
-- [HPE Store — GB300 NVL72 by HPE](https://buy.hpe.com/us/en/compute/rack-scale-system/nvidia-nvl-system/nvidia-gb300-nvl72-by-hpe/p/1014890105) [LV: 2026-09-15] — 403 to bare curl (UA block); loads in a browser (title "NVIDIA GB300 NVL72 System - Features & Specs, HPE Store", 2026-10-18). Probe via browser, not curl.
+- [HPE Store — GB300 NVL72 by HPE](https://buy.hpe.com/us/en/compute/rack-scale-system/nvidia-nvl-system/nvidia-gb300-nvl72-by-hpe/p/1014890105) — 403 to bare curl and WebFetch (UA block); loads in a browser (title "NVIDIA GB300 NVL72 System - Features & Specs | HPE Store", 2026-11-09). Probe via browser, not curl.
 - [Wiwynn GTC 2025](https://www.wiwynn.com/news/wiwynn-showcases-ai-servers-featuring-nvidia-gb300-nvl72-platform-and-liquid-cooling-innovations-at-gtc-2025) [LV: 2026-09-15]
 - [STH — first GB300 NVL72](https://www.servethehome.com/dell-and-coreweave-show-off-first-nvidia-gb300-nvl72-rack/) [LV: 2026-09-15]
-- [TweakTown — IR7000 480 kW](https://www.tweaktown.com/news/101839/) [LV: 2026-09-15]
+- [TweakTown — IR7000 480 kW](https://www.tweaktown.com/news/101839/) — "Dell IR7000 with Direct Liquid Cooling: up to 480kW per rack", published 2024-11-24. 403 to bare curl and WebFetch; read in a browser 2026-11-09.
 - [Sunbird DCIM — GB300 power](https://www.sunbirddcim.com/blog/how-much-power-does-nvidia-gb300-nvl72-need) [LV: 2026-09-15]
-- [Introl — B300 infra requirements](https://introl.com/blog/nvidia-blackwell-ultra-b300-infrastructure-requirements-2025) [LV: 2026-09-15]
+- [Introl — B300 infra requirements](https://introl.com/blog/nvidia-blackwell-ultra-b300-infrastructure-requirements-2025) — published 2026-02-02. 403 to bare curl; WebFetch reads it.
 
 ## Mitigations (algorithms)
 
@@ -128,7 +126,7 @@ re-verified since. The 2026-05-28 pass re-probed the vLLM release line via
 ## Public deployments / benchmarks
 
 - [CoreWeave GB200 NVL72 GA](https://www.coreweave.com/news/coreweave-first-cloud-provider-to-announce-general-availability-of-nvidia-gb200-nvl72-instances) [LV: 2026-09-15]
-- [Oracle OCI GB200 NVL72 (DCD)](https://www.datacenterdynamics.com/en/news/nvidia-gb200-nvl72-now-available-via-oracle-cloud/) [LV: 2026-09-15]
+- [Oracle OCI GB200 NVL72 (DCD)](https://www.datacenterdynamics.com/en/news/nvidia-gb200-nvl72-now-available-via-oracle-cloud/) — 403 to bare curl and WebFetch; read in a browser 2026-11-09.
 - [Microsoft Azure GB300 NVL72](https://techcommunity.microsoft.com/blog/azureinfrastructureblog/reimagining-ai-at-scale-nvidia-gb300-nvl72-on-azure/4464556) — published **2025-10-28** (`datePublished` in the page JSON-LD). 403 to bare curl; readable through WebFetch and a browser.
 - [LMSYS / SGLang GB300 benchmarks](https://www.lmsys.org/blog/2026-02-20-gb300-inferencex/) [LV: 2026-09-15]
 - [TrendForce — GTC 2025 Blackwell/Rubin](https://www.trendforce.com/research/download/RP250319GB) [LV: 2026-09-15]
@@ -147,7 +145,7 @@ imply a delivery date.**
 - [CoreWeave validates Vera Rubin NVL72 for production use](https://cryptobriefing.com/coreweave-nvidia-vera-rubin-nvl72-validation/) **[LV: 2026-09-15]** — rack supplied by **Dell**, arrived **2026-05-31**, passed NVIDIA **L11 diagnostics** + a **147-hour** test suite. First publicly claimed production validation. NVIDIA "plans to begin broader shipments in the second half of 2026".
 - [Nvidia CEO says Vera Rubin is in production, denies delay](https://winbuzzer.com/2026/07/18/nvidia-ceo-says-vera-rubin-is-in-production-denies-delay-xcxwbn/) **[LV: 2026-09-15]** — Jensen Huang at a Tokyo developer event, **2026-07-15**: *"Vera Rubin is already in production. Giant amounts of production incoming."* Responding to press reports of manufacturing delay. **No public transcript**; no fiscal-quarter, revenue-timing, or shipping date given. A KeyBanc analyst separately flagged an unconfirmed **SK hynix heat-lid qualification** risk.
 - [CoreWeave delivers Vera Rubin NVL72 at production scale, starting with Cognition](https://www.coreweave.com/news/coreweave-delivers-nvidia-vera-rubin-nvl72-performance-at-production-scale-starting-with-cognition) — dated **2026-09-30** (`datePublished` in page JSON-LD; re-read with bare curl 2026-10-18). Quotes: "today announced the availability of NVIDIA Vera Rubin NVL72 on CoreWeave, with Cognition as the first customer anywhere running production workloads on the system"; Cognition stood up the cluster "in early September". No GA/limited-availability wording; no rack supplier named for Rubin. **First customer-delivery evidence.**
-- [Supermicro Now Shipping NVIDIA Vera Rubin NVL72 Racks](https://ir.supermicro.com/news/news-details/2026/Supermicro-Now-Shipping-NVIDIA-Vera-Rubin-NVL72-Racks/default.aspx) — dated **2026-09-23**. "is now shipping NVIDIA Vera Rubin NVL72 racks"; no customers or volumes. Cloudflare challenge to bare curl; read in a browser 2026-10-18.
+- [Supermicro Now Shipping NVIDIA Vera Rubin NVL72 Racks](https://ir.supermicro.com/news/news-details/2026/Supermicro-Now-Shipping-NVIDIA-Vera-Rubin-NVL72-Racks/default.aspx) — dated **2026-09-23**. "is now shipping NVIDIA Vera Rubin NVL72 racks"; no customers or volumes. 403 to bare curl; WebFetch read it 2026-11-09.
 - [NVIDIA Q2 FY27 results](https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027) — **2026-08-26**. Huang: "Vera Rubin, now in full production". Release text: "the NVIDIA Vera Rubin platform is ramping into full production with racks running at partners including CoreWeave, Google Cloud, Microsoft Azure, Oracle Cloud Infrastructure and Nebius" (bare curl 2026-10-18). No Rubin revenue, unit count or delivery date.
 - [NVIDIA and Oracle expand Vera Rubin to multi-gigawatt scale](https://nvidianews.nvidia.com/news/nvidia-and-oracle-expand-nvidia-vera-rubin-to-multi-gigawatt-scale-and-bring-nvidia-vera-cpu-to-oracle-cloud-infrastructure) — dated **2026-10-27** (bare curl 2026-11-09). "Oracle and NVIDIA also expanded their AI infrastructure collaboration with the general availability of NVIDIA Vera Rubin NVL72 and NVIDIA Vera CPUs on OCI." **Earliest hyperscaler GA statement found.** No rack counts, regions or on-prem lead times.
 - [NVIDIA Vera Rubin NVL72 product page — status badge](https://www.nvidia.com/en-us/data-center/vera-rubin-nvl72/) — reads "Available Now" with a "Contact Sales" call to action on 2026-11-09; the Wayback capture of 2026-08-12 reads "Notify Me". No delivery date on the page. (Spec table from the same page: see NVIDIA hardware above.)
