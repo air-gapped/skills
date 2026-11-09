@@ -102,7 +102,9 @@ Upstream reference: `docs/features/kv_offloading_usage.md`.
 
 ## LMCache with DRAM + NVMe tiers (single node, production)
 
-Use when LMCache-specific features are needed alongside an NVMe tier — on v0.22.0+ a plain NVMe tier is better served by the native multi-tier `fs` secondary tier above. Use the lmcache the image bundles (0.5.6 on `v0.32.0` and `v0.33.0`). **Never `pip install -U lmcache` for this connector**: lmcache 0.5.7 moved the in-process adapter to `lmcache.inprocess.*`, and vLLM's built-in `LMCacheConnectorV1` (through v0.33.0) then fails at init with `ModuleNotFoundError: No module named 'lmcache.integration.vllm.vllm_v1_adapter'`. Pin `lmcache==0.5.6`, which is also the security floor. On 0.5.7+ only LMCache's own class loads: `{"kv_connector":"LMCacheConnectorV1Dynamic","kv_connector_module_path":"lmcache.integration.vllm.lmcache_connector_v1","kv_role":"kv_both"}`.
+> **In-process mode is deprecated upstream and unmaintained** — LMCache closes its defects unfixed. Use this section and "LMCache P2P" only to keep an existing deploy running; build new ones on the native multi-tier `fs` tier above or on LMCache MP (`lmcache-mp`). Live defects: SKILL.md "Known bugs".
+
+Use the lmcache the image bundles (0.5.6 on `v0.32.0` and `v0.33.0`). **Never `pip install -U lmcache` for this connector**: lmcache 0.5.7 moved the in-process adapter to `lmcache.inprocess.*`, and vLLM's built-in `LMCacheConnectorV1` (through v0.33.0) then fails at init with `ModuleNotFoundError: No module named 'lmcache.integration.vllm.vllm_v1_adapter'`. Pin `lmcache==0.5.6`, which is also the security floor. On 0.5.7+ only LMCache's own class loads: `{"kv_connector":"LMCacheConnectorV1Dynamic","kv_connector_module_path":"lmcache.integration.vllm.lmcache_connector_v1","kv_role":"kv_both"}`.
 
 ```bash
 docker run ... \
@@ -206,7 +208,7 @@ Verified 2026-04-25 on Qwen3-4B + 12 GB DRAM + 30 GB disk at `/models/lmcache-kv
 
 Use case: two or more vLLM pods serving the same model discover and retrieve KV chunks from each other over the network (NIXL/UCX transport). First hit on any pod → subsequent hits on all pods. Equivalent to a shared-LRU CPU tier spread across nodes.
 
-> NIXL is the transport layer here; for transport choice / UCX tuning / plugin selection see the **`nvidia-nixl`** skill. This section covers LMCache P2P configuration only.
+> In-process mode — deprecated upstream, see the status note under "LMCache with DRAM + NVMe tiers". NIXL is the transport layer here; for transport choice / UCX tuning / plugin selection see the **`nvidia-nixl`** skill. This section covers LMCache P2P configuration only.
 
 Verified 2026-04-25 on 2× RTX 4060 Ti + cu130-nightly + Qwen3-4B BF16 + LMCache 0.4.4-cu13. Prime pod-a with a 1002-token prefix; pod-b receives same prefix → **pod-a log `Received P2P batched lookup and get msg`**, pod-b log `Retrieved 768 of 768 required tokens, cost 22.87 ms, throughput 4.61 GB/s`, pod-b external hit rate **76.6 %**.
 

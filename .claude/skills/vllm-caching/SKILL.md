@@ -75,7 +75,7 @@ For other diagnostics (LMCache logs, `gdscheck`, Prometheus metrics), see `refer
 Ask these in order:
 
 1. **Single node, CPU DRAM tier only, no disk?** → `--kv-offloading-backend native`. Zero extra deps, included since v0.11.1. Start here unless there is a concrete reason to add complexity.
-2. **Single node, want NVMe (or S3, or a peer's DRAM) as a third tier?** → **on v0.22.0+, prefer the native multi-tier framework** — `OffloadingConnector` with `spec_name: TieringOffloadingSpec` and a `secondary_tiers` list. Registered tier types are `fs` (local filesystem/NVMe), `obj` (object store), `p2p` (peer vLLM instances over NIXL), `kvcr` (v0.30.0+, see `references/connectors.md`), and `example`. Zero extra pods, no second cache implementation to keep in version-sync. LMCache in-process via `LMCacheConnectorV1` + `LMCACHE_LOCAL_DISK` remains the pre-v0.22 answer and is still the right call when a deploy needs LMCache-specific features (CacheBlend, its own controller, cross-engine sharing with SGLang).
+2. **Single node, want NVMe (or S3, or a peer's DRAM) as a third tier?** → **on v0.22.0+, prefer the native multi-tier framework** — `OffloadingConnector` with `spec_name: TieringOffloadingSpec` and a `secondary_tiers` list. Registered tier types are `fs` (local filesystem/NVMe), `obj` (object store), `p2p` (peer vLLM instances over NIXL), `kvcr` (v0.30.0+, see `references/connectors.md`), and `example`. Zero extra pods, no second cache implementation to keep in version-sync. A deploy that needs LMCache-specific features goes to LMCache MP (step 3). Do not start a deploy on in-process `LMCacheConnectorV1`: LMCache deprecated the mode and closes its defects unfixed (see "Known bugs").
 3. **Multiple vLLM pods on the same node want a SHARED KV cache, OR cache CPU work should not contend with the inference GIL, OR cache memory needs to scale independently of GPU pods?** → **LMCache MP mode** (separate-pod LMCache server, vLLM connects via ZMQ using `LMCacheMPConnector`; `--kv-offloading-backend lmcache` is its CLI shorthand on v0.23.0+). Defer to the **`lmcache-mp` skill** for the DaemonSet+Deployment pattern, image pair, ZMQ protocol, L2 adapter cascade.
 4. **Disaggregated prefill across nodes (separate prefill and decode pods)?** → NixlConnector via `--kv-transfer-config`. Tunes TTFT and ITL independently.
 5. **RDMA-backed KV transfer between nodes, high-throughput datacenter fabric?** → MooncakeConnector.
@@ -200,12 +200,16 @@ Check in order, most common first:
 
 ## Known bugs to check before recommending offload
 
-States verified 2026-10-18. Before authoring an offload deploy, recheck each row with `gh issue view <N> --repo <repo> --json state,stateReason`.
+States verified 2026-11-09. Before authoring an offload deploy, recheck each row with `gh issue view <N> --repo <repo> --json state,stateReason`.
 
 | Issue | State | Affects | Avoidance |
 |---|---|---|---|
 | [LMCache#2942](https://github.com/LMCache/LMCache/issues/2942) | closed by the stale bot — **NOT fixed** (fix PR #3006 closed unmerged) | `LocalCPUBackend.allocate()` deadlocks when the staging buffer fills; reproduced with `use_hot=False` and with `use_hot=True` | Keep `LMCACHE_LOCAL_CPU=True` (default); never `use_hot=False`. Treat the closure as live in 0.5.x |
 | [LMCache#3106](https://github.com/LMCache/LMCache/issues/3106) | **open** | `LMCacheConnectorV1` unusable on hybrid-attention models (Gemma-4, Qwen3.5/3.6, DeepSeek-V4): single-shape `MemoryObj.tensor` fails on a multi-group buffer | Use native offload or LMCache **MP** mode; never the in-process connector |
+| [LMCache#6156](https://github.com/LMCache/LMCache/issues/6156) | closed unfixed — maintainers no longer fix in-process mode | In-process `LMCacheConnectorV1` with a remote backend stores an all-zero V half (K intact) on vLLM v0.29.0: garbage output, no error, no metric | Move the deploy to native tiering or LMCache MP |
+| [LMCache#6021](https://github.com/LMCache/LMCache/issues/6021) | **open** | CacheBlend (`LMCACHE_ENABLE_BLENDING`) crashes the in-process connector at the first `store_layer` on vLLM v0.32.0's packed KV layout | No CacheBlend on v0.32.0+ |
+| [vLLM#64790](https://github.com/vllm-project/vllm/issues/64790) | **open** | `use_native: true` on `LMCacheConnectorV1`, and `LMCACHE_USE_UPSTREAM_MP=1`, fail on lmcache ≥ 0.5.6: `ImportError: cannot import name 'CudaIPCWrapper'` | Leave both unset |
+| [vLLM#62808](https://github.com/vllm-project/vllm/issues/62808) | **open** | Built-in `LMCacheConnectorV1` never shuts LMCache down; EngineCore hangs until the shutdown timeout force-kills it | No flag avoids it; expect a forced kill at every stop |
 | lmcache 0.5.7 with vLLM's built-in `LMCacheConnectorV1` | live through vLLM v0.33.0 | Connector init fails: `ModuleNotFoundError: No module named 'lmcache.integration.vllm.vllm_v1_adapter'` (0.5.7 moved the in-process code to `lmcache.inprocess`) | Pin `lmcache==0.5.6`; never `pip install -U lmcache` on an in-process deploy. `LMCacheMPConnector` is unaffected |
 | [LMCache#2502](https://github.com/LMCache/LMCache/issues/2502) | closed not_planned — not being fixed | `LocalDiskBackend` crashes vLLM under burst allocation pressure | Keep `LMCACHE_ENABLE_ASYNC_LOADING=False` on a disk tier; DRAM-only stays the simpler default |
 
