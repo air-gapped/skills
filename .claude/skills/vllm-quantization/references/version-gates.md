@@ -1,4 +1,4 @@
-# Version gates — v0.14 → v0.32
+# Version gates — v0.14 → v0.33
 
 Quantization churns fast enough that cached operator knowledge goes stale
 within a release cycle. This table is the ground-truth for "what does vLLM
@@ -8,7 +8,8 @@ Check actual version: `vllm --version`. Release notes: [github.com/vllm-project/
 
 ## Table of Contents
 
-- [v0.32.0 — 2026-10-18 (current)](#v0320--2026-10-18-current)
+- [v0.33.0 — 2026-11-02 (current)](#v0330--2026-11-02-current)
+- [v0.32.0 — 2026-10-18](#v0320--2026-10-18)
 - [v0.31.0 — 2026-10-05](#v0310--2026-10-05)
 - [v0.28.0 – v0.30.0](#v0280--v0300)
 - [v0.27.1 — 2026-08-11](#v0271--2026-08-11)
@@ -32,7 +33,19 @@ Check actual version: `vllm --version`. Release notes: [github.com/vllm-project/
 
 ---
 
-## v0.32.0 — 2026-10-18 (current)
+## v0.33.0 — 2026-11-02 (current)
+
+Read the notes with `gh release view v0.33.0rc3` — the GitHub release named
+v0.33.0 hangs off that tag and `gh release view v0.33.0` returns "release not
+found". The `v0.33.0` git tag, the PyPI wheel and the `v0.33.0` images are that
+same commit; it is the final release, not an rc.
+
+Quantization:
+- [PR #61875](https://github.com/vllm-project/vllm/pull/61875) — Humming on SM90 runs a checkpoint's MXFP8 MoE activations (DeepSeek-V4 / V4.1 MXFP4 experts) as block FP8; an explicit `--quantization-config.moe.activation` wins ([#62751](https://github.com/vllm-project/vllm/pull/62751)).
+- [PR #63125](https://github.com/vllm-project/vllm/pull/63125) — Quark MXFP8 (W8A8) routed experts. [PR #51933](https://github.com/vllm-project/vllm/pull/51933) — `--linear-backend torch` for MXFP8 on XPU. [PR #50415](https://github.com/vllm-project/vllm/pull/50415) — MoNe expert-pruning checkpoints.
+- Batch invariance under `VLLM_BATCH_INVARIANT`: compressed-tensors W4A16/W8A16 linear ([#60524](https://github.com/vllm-project/vllm/pull/60524)), online FP8 MoE ([#57092](https://github.com/vllm-project/vllm/pull/57092)).
+
+## v0.32.0 — 2026-10-18
 
 Quantization:
 - [PR #59042](https://github.com/vllm-project/vllm/pull/59042) — **silent CUTLASS NVFP4/MXFP4 MoE corruption under expert parallelism fixed** (the CUTLASS FP4 MoE path ignored the EP `expert_map`). Any EP deployment on CUTLASS FP4 MoE at ≤ v0.31.x is suspect.
