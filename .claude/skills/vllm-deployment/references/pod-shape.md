@@ -219,9 +219,11 @@ implications:
   processes in the **one GPU container** — weights survive engine-process
   restarts, not container or pod restarts. A separate sidecar container needs GPU
   visibility arranged outside the device plugin; test that before relying on it.
-- Supports TP, EP, DP (v0.31.0, #57386) and PP (v0.32.0, #55477); multi-node
-  needs `--weight-cache-master-port` distinct from the engine's `--master-port`.
-  On v0.30.x, PP and DP are rejected at daemon launch.
+- Supports TP, DP (v0.31.0, #57386), PP (v0.32.0, #55477) and EP (v0.33.0,
+  #55490); multi-node needs `--weight-cache-master-port` distinct from the
+  engine's `--master-port`. On v0.30.x, PP and DP are rejected at daemon launch.
+  `--enable-eplb` is rejected by daemon and engine (`does not support EPLB`) —
+  drop one of the two.
 - `--weight-cache-health-port <p>` exposes `/health` (200 once every daemon is
   loaded, 503 otherwise; off by default) — gate the engine start on it (#58552).
 - From v0.32.0 the engine charges daemon-held weights against its
