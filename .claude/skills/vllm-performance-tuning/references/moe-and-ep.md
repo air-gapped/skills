@@ -205,6 +205,7 @@ The padding is a FlashMLA-Sparse property, not a TP property. On Blackwell with 
 | EP + DP | Yes | DP-attn + EP-MoE common pattern |
 | TP + PP + EP | Yes | DeepSeek / Qwen3 multi-stage |
 | TP + EP + DP | Yes | Full 3D parallelism |
+| EP + TP>1 + `--prefill-context-parallel-size` > 1 on the NVIDIA DeepSeek-V3.2 decoder (`nvidia/GLM-5.3-NVFP4`) | **No — silently wrong output** | v0.31.0–v0.33.0: the MoE output is all-reduced twice and enters the residual stream scaled by TP size — word salad at TP=4, degraded at TP=2, no error or warning. Run PCP=1 or TP=1 until [#62947](https://github.com/vllm-project/vllm/pull/62947) is in a release ([#62945](https://github.com/vllm-project/vllm/issues/62945)). |
 
 ### PP rules
 
