@@ -267,9 +267,9 @@ The flags an operator most often asks about when cross-checking a manifest's `ar
   limit is the deploy-layer bug to catch in review. Choosing between TP/EP/DP and
   sizing them → `vllm-performance-tuning`; this file owns whether the manifest's flags,
   GPU limits, and nodeSelector agree.
-  - **DeepEPv2 is an image-only capability.** v0.27.0 (#45321) raised the
-    `vllm/vllm-openai` image's NCCL to **2.30.7** (DeepEPv2 needs ≥ 2.30.4 for the GIN
-    backend; `docker/Dockerfile` `ARG NCCL_VERSION=2.30.7`, `ARG DEEPEP_COMMIT_HASH`).
+  - **DeepEPv2 is an image-only capability.** The `vllm/vllm-openai` image pins the
+    NCCL DeepEPv2 needs: ≥ 2.30.4 for the GIN backend (2.30.7 from v0.27.0, #45321),
+    ≥ 2.31 for DeepEPv2 over EFA (`ARG NCCL_VERSION=2.31.2` at v0.33.0).
     The PyPI wheel is unchanged because DeepEP is not shipped in it — a pip-installed
     vLLM in a custom image does not get DeepEPv2 by bumping the version alone.
   - **DP+EP on an external load balancer can hang the whole cluster.** When one DP rank

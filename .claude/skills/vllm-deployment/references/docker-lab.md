@@ -228,21 +228,20 @@ Useful for developing Grafana dashboards before handing off to k8s. See `vllm-ob
 
 ## Building a custom image
 
-Dockerfiles in the repo:
+Dockerfiles under `docker/` in the repo (v0.33.0):
 
 | File | Purpose |
 |---|---|
-| `Dockerfile` | Main CUDA (base `nvidia/cuda:13.0.0-devel-ubuntu22.04`, runtime `nvidia/cuda:13.0.0-base-ubuntu22.04`) |
-| `Dockerfile.rocm` / `Dockerfile.rocm_base` | AMD ROCm |
-| `Dockerfile.cpu` | CPU-only |
-| `Dockerfile.tpu` | Google TPU |
+| `Dockerfile` | Main CUDA (build base `pytorch/manylinux2_28-builder:cuda13.0`, runtime `nvidia/cuda:13.0.3-base-ubuntu24.04`); targets `vllm-openai`, `vllm-openai-nonroot`, `vllm-sagemaker` |
+| `Dockerfile.efa` | AWS EFA layer; needs a base built with `INSTALL_KV_CONNECTORS=true` |
+| `Dockerfile.rocm` / `Dockerfile.rocm_base` | AMD ROCm 10.0 (`.rocm_72` / `.rocm_72_base` for ROCm 7.2) |
+| `Dockerfile.cpu`, `Dockerfile.zen` | CPU-only; AMD Zen |
 | `Dockerfile.xpu` | Intel XPU |
-| `Dockerfile.nightly_torch` | PyTorch nightly |
 | `Dockerfile.ppc64le`, `Dockerfile.s390x` | Non-x86 |
 | `docker-bake.hcl` | buildx bake |
-| `tools/generate_versions_json.py` → `versions.json` | Version source of truth |
+| `tools/generate_versions_json.py` → `docker/versions.json` | Version source of truth |
 
-Build args worth knowing: `CUDA_VERSION=13.0.0`, `PYTHON_VERSION=3.12`, `UBUNTU_VERSION=22.04`, `PIP_INDEX_URL`, `UV_INDEX_URL` (private mirror support).
+Build args worth knowing: `CUDA_VERSION=13.0.3`, `PYTHON_VERSION=3.12`, `UBUNTU_VERSION=24.04`, `NCCL_VERSION=2.31.2`, `PIP_INDEX_URL`, `UV_INDEX_URL` (private mirror support).
 
 ## Common single-node pitfalls
 
