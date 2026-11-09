@@ -92,7 +92,7 @@ In vLLM 0.20+ the metric prefix dropped the legacy `gpu_` segment — `vllm:gpu_
 
 LMCache defines **117 `lmcache:*` metric families** (verified 2026-04-25 on v0.4.4-cu13) — request volume, token volume, eviction counts, latency histograms, hit rates, remote-tier ping health, and chunk-statistics. **None of them appear on vLLM's `/metrics`**: they live in the `EngineCore` subprocess's Prometheus REGISTRY, not the API server's. Stock setup hides them entirely.
 
-Enable LMCache's internal API server to expose its own `/metrics`:
+Enable LMCache's internal API server to expose its own `/metrics` — **on lmcache ≥ 0.5.6 only**. Below 0.5.6 the same server exposes an unauthenticated `POST /run_script` that executes caller-supplied Python in the engine process (CVE-2026-107204, critical). From 0.5.6 that endpoint is off unless `run_script_api_enabled` is set, and the server binds `127.0.0.1` unless told otherwise: keep `run_script_api_enabled` unset and limit the port to the Prometheus scraper with a NetworkPolicy.
 
 ```yaml
 # in lmcache.yaml
