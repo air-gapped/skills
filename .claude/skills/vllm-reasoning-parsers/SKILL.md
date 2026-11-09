@@ -90,7 +90,7 @@ See `references/pitfalls.md` for each with repros and fixes. Quick index:
 
 14. **`--enable-reasoning` does not exist** — `vllm serve` exits with `unrecognized arguments: --enable-reasoning`. Drop it: passing `--reasoning-parser NAME` enables reasoning, omitting it disables it.
 
-15. **`reasoning_content` is always null — but the parser worked.** The client reads the removed field name (field-name note above). Before debugging any parser, run `jq '.choices[0].message | keys'` — if `reasoning` is there, fix the client.
+15. **`reasoning_content` is always null — but the parser worked.** The client reads the removed field name (field-name note above). Before debugging any parser, run `jq '.choices[0].message | keys'` — if `reasoning` is there, fix the client. A client that echoes history with both `reasoning` and `reasoning_content` gets 400 `duplicate field` from the Rust frontend through v0.33.0 — send one key (`references/pitfalls.md` §15).
 
 ## The per-model matrix
 

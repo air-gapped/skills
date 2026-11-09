@@ -187,6 +187,8 @@ All built-in parsers do this.
 - If you can't change the client, pin vLLM below v0.16.0, where the response still carried `reasoning_content`.
 - There is no `--include-reasoning-content` flag. The request field `include_reasoning` (default `true`) controls whether `reasoning` is returned at all.
 
+**Do not echo both names back (Rust frontend, through v0.33.0).** With `VLLM_USE_RUST_FRONTEND=1`, an assistant message in `messages` that carries both `reasoning` and `reasoning_content` is rejected: `400 … duplicate field \`reasoning\``, and every later turn fails too because the message stays in history. The Python frontend accepts both (non-null `reasoning` wins). Send one key, or strip `reasoning_content` in the client; fixed on `main` after v0.33.0 ([#63137](https://github.com/vllm-project/vllm/pull/63137)).
+
 **Takeaway.** When someone asks "why is reasoning_content null" — before diving into parser debugging, first run `jq '.choices[0].message | keys'` to see what fields actually exist. If `reasoning` is there, the parser ran fine and this is purely a client-side name mismatch.
 
 ## Bonus: `include_reasoning=False` does not disable the parser
