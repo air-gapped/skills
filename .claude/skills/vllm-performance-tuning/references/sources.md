@@ -18,6 +18,7 @@ v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02) and git tag `v0.33.0`; the 
 | Item | Status at v0.33.0 | Source |
 |---|---|---|
 | `VLLM_USE_RAY_COMPILED_DAG_CHANNEL_TYPE`, `VLLM_USE_RAY_COMPILED_DAG_OVERLAP_COMM`, `VLLM_USE_RAY_WRAPPED_PP_COMM`, `VLLM_USE_RAY_V2_EXECUTOR_BACKEND` | **removed** with the legacy Ray compiled-graph executor | [PR #61712](https://github.com/vllm-project/vllm/pull/61712), merged 2026-10-15; [PR #62228](https://github.com/vllm-project/vllm/pull/62228), merged 2026-10-19; `vllm/envs.py` v0.32.0 vs v0.33.0 |
+| `VLLM_ROCM_USE_AITER_FP8BMM`, `VLLM_ROCM_USE_AITER_FP4BMM` | default `True` → **`False`** | [PR #53123](https://github.com/vllm-project/vllm/pull/53123), merged 2026-10-14, first tag v0.33.0; PR body cites 0% → 58.5% MTP acceptance on `amd/GLM-5.2-MXFP4` with the re-quantization skipped; `vllm/envs.py` |
 
 ### Flag-surface deltas found 2026-10-18 (v0.30.0 → v0.32.0, read at tag)
 

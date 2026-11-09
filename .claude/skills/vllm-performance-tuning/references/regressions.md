@@ -84,6 +84,7 @@ allreduce-fusion detail.
 | Issue | Details |
 |---|---|
 | `VLLM_ROCM_USE_AITER_FP4BMM=True` default crash | MI300X gfx942 has no FP4 hardware. Regression from Jan 15 2026 commit `8c11001`. [#34641](https://github.com/vllm-project/vllm/issues/34641) — **closed 2026-05-28**. Legacy workaround for pre-fix builds: `VLLM_ROCM_USE_AITER_FP4BMM=False`; upgrade clears it |
+| AITER FP8/FP4 BMM re-quantizes MLA `kv_b_proj` online, whatever precision the checkpoint asked for | ≤ v0.32.0 with `VLLM_ROCM_USE_AITER=1`: both `VLLM_ROCM_USE_AITER_FP8BMM` and `VLLM_ROCM_USE_AITER_FP4BMM` default `True`. Symptom: long-context repetition loops, MTP acceptance near 0% on MXFP4 MLA checkpoints. Set both to `0` on those builds. **v0.33.0 defaults both to `False`** (#53123) — MLA decode on ROCm moves to the BF16 BMM path, so re-benchmark; opt back in with `=1` only after checking long-context output |
 | FP8 **slower** than BF16 in steady-state decode | Large MoE (GLM-4.7, MiniMax-M2.1). Counter-intuitive but reproducible. [#31475](https://github.com/vllm-project/vllm/issues/31475) — **now `CLOSED` / `NOT_PLANNED` (2026-06-09), closed by the inactivity bot with no fix.** Still benchmark FP8 against BF16 on MI300X rather than assuming FP8 wins |
 
 ### AMD MI325X
