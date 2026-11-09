@@ -111,7 +111,7 @@ out of FlashInfer all-reduce.
 | Variable | Default | Purpose |
 |---|---|---|
 | `VLLM_API_KEY` | unset | Bearer token the server requires; equivalent to CLI `--api-key` |
-| `VLLM_SERVER_DEV_MODE` | `0` | Enables dev-only endpoints (`/reset_prefix_cache`, etc.). **Never set in production.** |
+| `VLLM_SERVER_DEV_MODE` | `0` | Enables dev-only endpoints (`/server_info`, `/reset_prefix_cache`, sleep, RPC), none behind `--api-key`. **Never set in production.** |
 | `VLLM_ALLOW_RUNTIME_LORA_UPDATING` | `0` | Allows runtime `load_lora_adapter` via admin endpoint |
 | `VLLM_CHAT_TEMPLATE_RENDER_TIMEOUT` | `30.0` (s) | v0.32.0+: chat-template render timeout (#50300 — template DoS fix); raise only for templates that legitimately render slowly |
 | `VLLM_MAX_MEDIA_REQUEST_DOWNLOAD_SIZE_MB` | `256` | v0.33.0+: total remote media bytes one request may download, retries included. Over budget → request rejected, error names the variable. `0` disables |

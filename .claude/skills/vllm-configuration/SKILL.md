@@ -147,11 +147,12 @@ For more failure modes and the fuller troubleshooting flow (first-boot hang, rev
 Before shipping, sanity-check the effective config:
 
 ```bash
-# Grep the startup log — vLLM prints the resolved EngineConfig in the first 200 lines
-kubectl logs <pod> --tail=400 | grep -A 40 'EngineConfig\|EngineArgs'
+# Startup log: flags that differ from defaults, then the resolved engine config.
+# Both print once at boot — read from the head of the log, not --tail
+kubectl logs <pod> | grep -E 'non-default args:|with config:'
 
-# Hit /metrics to confirm prefix caching, block size, KV dtype are live
-curl -s http://localhost:8000/metrics | grep -E 'prefix_cache|gpu_cache|kv_cache'
+# /metrics: block size, KV dtype, gpu_memory_utilization, prefix caching as labels
+curl -s http://localhost:8000/metrics | grep -E '^vllm:cache_config_info|^vllm:prefix_cache'
 
 # Confirm the model path that was actually loaded
 curl -s http://localhost:8000/v1/models | jq '.data[].id'

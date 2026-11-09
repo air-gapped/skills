@@ -110,7 +110,7 @@ Verify three things:
 ### Chat template behaviour unexpected
 
 - Check `chat_template.jinja` file in the model dir
-- Inspect via `curl -s http://localhost:8000/v1/chat/completions/playground` (dev-mode endpoint) or the raw `tokenizer_config.json`
+- Render a request without generating: `POST /v1/chat/completions/render` with the chat body (v0.30.0+ needs `--enable-scale-out`); or read the raw `tokenizer_config.json`
 - To override: `--chat-template /path/to/template.jinja`
 
 ### `--reasoning-parser` / `--tool-call-parser` not firing
@@ -196,22 +196,23 @@ Don't do this. YAML config doesn't support env substitution; put secrets in env 
 
 ## Verifying effective config
 
-The only authoritative "what's the engine actually running with" signals:
+The only authoritative "what's the engine actually running with" signals. `vllm:cache_config_info` is missing under `VLLM_USE_RUST_FRONTEND=1` through v0.33.0 — use the startup log there.
 
 ```bash
 # 1. Model ID the server loaded
 curl -s http://localhost:8000/v1/models | jq '.data[].id'
 
-# 2. Prometheus metrics — every engine knob that matters shows up here
-curl -s http://localhost:8000/metrics | grep -E \
-  'prefix_cache|block_size|max_model_len|gpu_cache|gpu_memory|kv_cache_dtype'
+# 2. Prometheus — CacheConfig as labels on one gauge (block_size, cache_dtype,
+#    gpu_memory_utilization, enable_prefix_caching, num_gpu_blocks, ...)
+curl -s http://localhost:8000/metrics | grep -E '^vllm:cache_config_info|^vllm:prefix_cache'
 
-# 3. Startup log — grep the first 100 lines for "Engine config"
-kubectl logs <pod> --tail=200 | grep -A 40 'EngineConfig\|EngineArgs'
+# 3. Startup log — printed once at boot, so read the head, not --tail
+kubectl logs <pod> | grep -E 'non-default args:|with config:'
 
-# 4. Server dev endpoint (dangerous — don't enable in prod)
+# 4. Dev endpoint: full resolved VllmConfig + every VLLM_* value the server sees.
+#    Unauthenticated even with --api-key — never enable on a reachable server
 VLLM_SERVER_DEV_MODE=1 vllm serve ...
-curl -s http://localhost:8000/v1/config  # if available in the installed version
+curl -s 'http://localhost:8000/server_info?config_format=json' | jq '.vllm_config, .vllm_env'
 ```
 
 For a more principled diff-against-config check, use `scripts/check-config.sh`.
