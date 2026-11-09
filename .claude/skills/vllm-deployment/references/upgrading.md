@@ -4,6 +4,10 @@ Upstream is at **v0.33.0** (2026-11-02), via v0.32.0 (2026-10-18), v0.31.0
 (2026-10-05), v0.30.0 (2026-09-22), v0.29.0 and v0.28.0. Changes that affect a deployment manifest or
 its rollout plan:
 
+- **No CUDA 12.9 image at v0.33.0** (#62575): a manifest pinned to a `-cu129` or
+  `-ubuntu2404` tag has no v0.33.0 tag to roll to and fails with
+  `ImagePullBackOff`. Switch to the plain tag once the node driver supports
+  CUDA 13.0; otherwise hold at `v0.32.0-cu129`.
 - **CORS is closed by default** (#61009, v0.32.0): `--allowed-origins` now
   defaults to `[]`, so a browser front end calling vLLM directly gets CORS
   errors after the upgrade. Set `--allowed-origins '["https://ui.example"]'`;

@@ -356,11 +356,15 @@ Don't probe `/v1/models` — it is a router endpoint that requires the engine fu
 ## Image tag discipline
 
 - Never `:latest` — every vLLM release is a breaking change in some dimension.
-- Use the SemVer tag (`v0.13.0`) and bump deliberately.
+- Use the SemVer tag (`v0.33.0`) and bump deliberately.
 - Pin by digest (`@sha256:...`) for reproducibility + image-signature gate (cosign verify).
-- Suffixes per release: none = CUDA 13.0; `-cu129` = CUDA 12.9 for hosts whose driver
-  predates CUDA 13; `-ubuntu2404` base variants of both; `-x86_64-zstd` = zstd layers
-  (≈7.3 GB vs 9.2 GB for `-x86_64` at v0.32.0; the runtime must support zstd).
+- Suffixes from v0.33.0: none = CUDA 13.0 on Ubuntu 24.04; `-efa` = AWS EFA libraries and
+  the EFA Mooncake build, for EFA-enabled EC2; `-x86_64-zstd` = zstd layers (≈7.7 GB vs
+  9.7 GB for `-x86_64`; the runtime must support zstd). Every tag also exists as
+  `vllm/vllm:<tag>`.
+- No CUDA 12.9 image from v0.33.0 (#62575): `-cu129` and `-ubuntu2404` tags end at
+  v0.32.0. A node whose driver predates CUDA 13 stays on `v0.32.0-cu129` until the
+  driver is upgraded.
 - RHAIIS tags are independently versioned; `rhaiis/vllm-cuda-rhel9:3.3.0` corresponds to upstream `v0.13.0`.
 
 ## Gotchas not yet covered
