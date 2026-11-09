@@ -90,8 +90,20 @@ training-data recipe survey, and the four long-merged original PRs.
 
 ## Open
 
-_None._ Nothing here is waiting on an absent ruling, credential, release, or
-measurement nobody can run.
+Each item waits on a vLLM release that does not exist yet (checked 2026-11-09
+with `git tag --contains <sha>` and the PR state; v0.33.0 is the newest release).
+
+- **Close the DFlash FULL-CUDA-graph floor** (Dim 9). SKILL.md §Version floors
+  row `v0.32.0–v0.33.0` and the paragraph after `troubleshooting.md` §4 item 4.
+  Blocker: fix #64059 (`d3a3230931`, merged 2026-11-04) is in no release. When
+  one ships it, replace the open range with that version as the fix.
+- **Bound the offline-mode safetensors ERROR bullet** (Dim 9). SKILL.md
+  §Air-gapped operation, `≤ v0.33.0`. Blocker: fix #66012 (`f29cbad494`, merged
+  2026-11-06) is in no release. Then state the first fixed version.
+- **Relax or restate the suffix + lossy-verification rule** (Dim 9). SKILL.md
+  pitfall 6 and `methods.md` §11 `"fly"` bullet. Blocker: issue #66629 is open
+  with no merged config guard or per-tenant corpus isolation. When either
+  merges into a release, state what that version rejects or isolates.
 
 ## Resolved this pass (2026-10-18, improve)
 
