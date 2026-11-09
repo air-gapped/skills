@@ -112,7 +112,7 @@ The three `deepseek_v*` tokenizer modes replace Jinja with a Python prompt encod
 | Concern | vLLM | DeepSeek official API |
 |---|---|---|
 | Thinking toggle | `extra_body={"chat_template_kwargs": {"thinking": true}}` | `extra_body={"thinking": {"type": "enabled"}}` |
-| Reasoning field (response) | **`reasoning`** — `ChatMessage.reasoning` at v0.32.0; `reasoning_content` is accepted request-side only, and normalized away (RFC #27755) | `reasoning_content` |
+| Reasoning field (response) | **`reasoning`** — `ChatMessage.reasoning` at v0.33.0; `reasoning_content` is accepted request-side only, and normalized away (RFC #27755) | `reasoning_content` |
 | Empty tool calls | `tool_calls: []` | `null` |
 
 Clients that hard-code one fail on the other.
