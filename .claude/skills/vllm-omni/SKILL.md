@@ -14,7 +14,7 @@ This skill is a **reference**, not a tutorial. SKILL.md holds the mental model, 
 
 ## How it plugs into vLLM
 
-vllm-omni layers on upstream vLLM: `vllm serve <model> --omni` routes the server through `vllm_omni.entrypoints`, and omni model registrations reach worker subprocesses through the `vllm.general_plugins` entry point. There is no `patch.py` / early-import hijack on any current build. Any-to-any models run as a **graph of disaggregated stages** (Thinker / Talker / Code2Wav for Qwen3-Omni; AR-encoder / DiT for Qwen-Image) joined by `OmniConnector`, so each stage is configured and scaled on its own (`references/stage-config.md`).
+vllm-omni layers on upstream vLLM: upstream's own CLI hands `vllm serve <model> --omni` to `vllm_omni.entrypoints.cli.main` (exit 1 with "--omni flag requires a valid instance of vllm-omni" when the package is missing), and omni model registrations reach worker subprocesses through the `vllm.general_plugins` entry point. Importing `vllm_omni` runs `vllm_omni/patch.py`, which replaces vLLM classes (`EngineCoreRequest`, `EngineCoreOutput`, `TokensPrompt`, `Request`, …) with Omni subclasses in every loaded module — so a vLLM/omni minor mismatch breaks at import, and `import vllm_omni` does not belong in a process meant to stay stock vLLM. Any-to-any models run as a **graph of disaggregated stages** (Thinker / Talker / Code2Wav for Qwen3-Omni; AR-encoder / DiT for Qwen-Image) joined by `OmniConnector`, so each stage is configured and scaled on its own (`references/stage-config.md`).
 
 ## Version pins — check before installing anything
 
