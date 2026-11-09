@@ -313,6 +313,7 @@ on `--grpc` deployments:
 | Name | Rust frontend |
 |---|---|
 | `vllm:request_num_preemptions` | v0.31.0+ |
+| `vllm:mooncake_*` transfer series (not `mooncake_store_*`, there since v0.30.0) | v0.33.0+ |
 | `vllm:corrupted_requests_total`, `vllm:prompt_tokens_cached_by_source_total` | v0.32.0+ |
 | `vllm:admission_rejections_total`, `vllm:watermark_requests_total`, `vllm:num_requests_kv_fetch_by_stage` | **not registered** at v0.32.0 |
 | `--custom-histogram-buckets` | **not honoured** at v0.32.0 — Rust histograms keep default buckets |
@@ -440,9 +441,22 @@ Non-zero drops mean the secondary tier cannot keep up and stores are being shed.
 
 A disk-backend "stored" block is not fsync-durable.
 
-Other backends (`vllm:hf3fs_*`, LMCache, Mooncake) remain
-connector-version-dependent — grep `/metrics` on a running deployment to see what
-the installed connector actually emits.
+**Mooncake connector** — the transfer series are **v0.33.0+**; the store-operation series are older:
+
+| Metric | Type | Meaning |
+|---|---|---|
+| `vllm:mooncake_xfer_time_seconds` | Histogram | Transfer duration, buckets 5 ms–5 s |
+| `vllm:mooncake_bytes_transferred` | Histogram | Bytes per transfer |
+| `vllm:mooncake_num_descriptors` | Histogram | Descriptors per transfer |
+| `vllm:mooncake_num_failed_transfers_total` | Counter | Failed transfers |
+| `vllm:mooncake_num_failed_recvs_total` | Counter | Failed receives |
+| `vllm:mooncake_num_kv_expired_reqs_total` | Counter | Requests whose KV expired; counted on the prefill instance |
+| `vllm:mooncake_store_operation_time_seconds`, `…_operation_total`, `…_operation_keys_total`, `…_operation_bytes_total`, `…_operation_failed_keys_total` | Histogram / Counters | `MooncakeStoreConnector` operations |
+
+Mooncake pushes, so the three transfer histograms populate **only on the prefill instance** — empty on a decode instance is expected. Alert on the failure and expiry counters.
+
+Other backends (`vllm:hf3fs_*`, LMCache) remain connector-version-dependent — grep
+`/metrics` on a running deployment to see what the installed connector actually emits.
 
 ## Bucket boundaries
 
