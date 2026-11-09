@@ -133,7 +133,7 @@ logging-config:
 log-level: INFO                     # shortcut; overrides logging-config.log_level
 ```
 
-`log-config-file` is deprecated (removal v0.33.0); use `logging-config: {pylogging_config_file: /path.json}`.
+`log-config-file` is deprecated — still accepted with a warning at v0.33.0; use `logging-config: {pylogging_config_file: /path.json}`.
 
 Request logging is opt-**in** now: use `enable-log-requests: true` on the
 frontend. The old `disable-log-requests` key no longer exists.

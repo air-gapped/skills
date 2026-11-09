@@ -99,7 +99,7 @@ restore `["*"]` to make them work.
 
 **Logging:**
 - `VLLM_LOGGING_LEVEL=DEBUG|INFO|WARNING|ERROR`, `VLLM_LOGGING_PREFIX="rank0: "`, `VLLM_CONFIGURE_LOGGING=0` (let the host app own config).
-- v0.31.0+: the env vars only seed `LoggingConfig` defaults. `--log-level` and `--logging-config '{"formatter": "json"}'` override them; `--log-config-file` is deprecated (removal v0.33.0) → `--logging-config.pylogging_config_file`.
+- v0.31.0+: the env vars only seed `LoggingConfig` defaults. `--log-level` and `--logging-config '{"formatter": "json"}'` override them; `--log-config-file` is deprecated but still accepted with a warning at v0.33.0 → `--logging-config.pylogging_config_file`.
 
 ## Air-gapped operation
 
