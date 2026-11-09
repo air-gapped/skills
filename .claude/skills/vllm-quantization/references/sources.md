@@ -74,6 +74,7 @@ earlier passes that only chased issue states:
 | vLLM PR #53123 — ROCm AITER FP8/FP4 BMM off by default | https://github.com/vllm-project/vllm/pull/53123 | 2026-11-09 | default change + known failure (new) | v0.33.0 (commit 81503550f3). `vllm/envs.py`: both `True` at v0.32.0, `False` at v0.33.0. PR body: with `VLLM_ROCM_USE_AITER=1` MLA `kv_b_proj` was re-quantized online with no per-model opt-out; cites ~11 % error per attention layer accumulating into repetition loops (#48051) and MTP acceptance 0 % → 58.5 % on `amd/GLM-5.2-MXFP4` (#52833). |
 | vLLM PR #61786 — EPLB with MXFP4/MXFP8 expert scales | https://github.com/vllm-project/vllm/pull/61786 | 2026-11-09 | known failure (new) | v0.33.0 (commit 876d5da831). PR body quotes both tracebacks; trigger is the dtype the MoE backend leaves in expert parameters (`float8_e8m0fnu` block scales, `float4_e2m1fn_x2` on ROCm AITER), not a model architecture. Fixes #51567. |
 | vLLM issue #35031 — MTP + NVFP4 weight shape mismatch | https://github.com/vllm-project/vllm/issues/35031 | 2026-11-09 | **fixed (skill said open)** | CLOSED `COMPLETED` 2026-06-25, closer PR #46316 "Fix NVFP4+MTP crash: force unquantized mtp.fc for Qwen3Next"; merge commit e45b279928 first stable tag v0.25.0. |
+| vLLM issue #39764 — uninitialised `PerTensorScaleParameter` | https://github.com/vllm-project/vllm/issues/39764 | 2026-11-09 | **fixed (skill gave only a workaround)** | CLOSED `COMPLETED` 2026-04-20, closer PR #39765; merge commit fcb31c1ac3 first stable tag v0.20.0. |
 
 ## Classification summary
 

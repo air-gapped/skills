@@ -45,7 +45,7 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 | `ValueError: The fp8 quantization method no longer supports online quantization` (message quotes `fp8` in backticks) | `Fp8Config` built with `is_checkpoint_fp8_serialized=False`, v0.31.0+ | [PR #53585](https://github.com/vllm-project/vllm/pull/53585) | Use `--quantization fp8_per_tensor` (or another online shorthand) for a BF16 checkpoint |
 | Unknown quantization method: mxfp4 | — | Closed [#22276](https://github.com/vllm-project/vllm/issues/22276) | Upgrade vLLM; mxfp4 needs v0.14+ |
 | NVFP4 weight missing `_double_scale` key | ModelOpt export on DGX Spark | [#38980](https://github.com/vllm-project/vllm/issues/38980) | Regenerate with ModelOpt ≥ current release |
-| Uninitialised `PerTensorScaleParameter` → NaN | Fused-QKV NVFP4 | [#39764](https://github.com/vllm-project/vllm/issues/39764) | Use split-QKV checkpoints |
+| Uninitialised `PerTensorScaleParameter` → NaN | Fused-QKV NVFP4, below v0.20.0 | [#39764](https://github.com/vllm-project/vllm/issues/39764) | Upgrade to v0.20.0+ ([PR #39765](https://github.com/vllm-project/vllm/pull/39765)); below it use split-QKV checkpoints |
 | `quant_algo MIXED_PRECISION` rejected | NGC vLLM 26.02 + Nemotron-3 NVFP4 | [#37854](https://github.com/vllm-project/vllm/issues/37854) | Use plain NVFP4 config; allow-list gap |
 | PTX toolchain error | Kimi-K2.5 compressed-tensors MoE on H200 | [#38619](https://github.com/vllm-project/vllm/issues/38619) | Driver ≥ 575 or rebuild Marlin |
 | Gemma 4 MoE NVFP4 `expert_params_mapping` | Gemma 4 | [#38912](https://github.com/vllm-project/vllm/issues/38912) | Open |

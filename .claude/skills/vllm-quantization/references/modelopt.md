@@ -106,7 +106,7 @@ Strongly recommended for smaller models (< 14B) where stock NVFP4 loses 3–5 % 
 ### Known quantization-side issues
 
 - [vLLM #38980](https://github.com/vllm-project/vllm/issues/38980) — ModelOpt NVFP4 Qwen3-30B-A3B export missing `_double_scale` key on DGX Spark.
-- [vLLM #39764](https://github.com/vllm-project/vllm/issues/39764) — uninitialised `PerTensorScaleParameter` in fused-QKV NVFP4 exports.
+- [vLLM #39764](https://github.com/vllm-project/vllm/issues/39764) — uninitialised `PerTensorScaleParameter` in fused-QKV NVFP4 exports. Fixed in vLLM v0.20.0 (PR #39765).
 - [vLLM #37854](https://github.com/vllm-project/vllm/issues/37854) — Nemotron-3 NVFP4 with `quant_algo MIXED_PRECISION` rejected by NGC vLLM 26.02 allow-list.
 - [vLLM #38912](https://github.com/vllm-project/vllm/issues/38912) — Gemma 4 MoE NVFP4 `expert_params_mapping` misses scale suffixes.
 - [vLLM #31628](https://github.com/vllm-project/vllm/issues/31628) — ModelOpt Llama-4 DP/EP FlashInfer Cutlass broken.
