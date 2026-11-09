@@ -52,8 +52,8 @@
     },
     {
       "id": 9,
-      "question": "What two gates control the per-request metrics block added to response bodies in vLLM v0.25.0?",
-      "skill_answer": "--enable-per-request-metrics flag and the include_metrics request field."
+      "question": "What gates the per-request metrics block added to response bodies in vLLM v0.25.0?",
+      "skill_answer": "The server flag --enable-per-request-metrics alone; there is no include_metrics request field."
     }
   ]
 }

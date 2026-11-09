@@ -204,21 +204,15 @@ increments and the ratio above is not a valid health signal there.
 
 ## Per-request timing in the response body (not Prometheus)
 
-PR #46768 (merged 2026-07-07, **v0.25.0**) adds a top-level `metrics` field to
-Chat/Completions responses, streaming and non-streaming:
-`time_to_first_token_ms`, `generation_time_ms`, `queue_time_ms`, `mean_itl_ms`,
-`tokens_per_second`. Motivating use cases in the RFE (#40076) are billing,
-SLAs, experimentation, and debugging — cases where per-request attribution
-matters and a Prometheus histogram cannot help.
+**v0.25.0+** (#46768). With the server flag `--enable-per-request-metrics`, responses carry a top-level `metrics` object, streaming and non-streaming: `time_to_first_token_ms`, `generation_time_ms`, `queue_time_ms`, `mean_itl_ms`, `tokens_per_second`. Use it for billing, SLA and per-request debugging, where a Prometheus histogram cannot attribute.
 
-**Double-gated**, so it is off unless deliberately turned on at both levels:
-
-1. server flag `--enable-per-request-metrics`
-2. request body parameter `include_metrics`
-
-**Suppressed when attribution to a single generation stream isn't meaningful**
-— e.g. `n > 1` or multi-prompt requests. Absent fields there are by design;
-don't treat a missing `metrics` block as a bug before checking request shape.
+| Rule | Detail |
+|---|---|
+| One gate | The server flag alone. No release (v0.25.0–v0.33.0) has an `include_metrics` request field — do not send or wait for one |
+| Endpoints (v0.33.0) | `/v1/chat/completions`, `/v1/completions`, `/v1/responses`. **Not `/v1/messages`** |
+| `--disable-log-stats` | Startup fails when combined with the flag |
+| `n > 1` | `metrics` is `null` by design — check the request shape before calling it a bug |
+| Cost | CPU overhead at high concurrency; benchmark before enabling fleet-wide |
 
 ## Speculative decoding
 
