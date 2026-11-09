@@ -98,7 +98,6 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 
 | Symptom | Issue | Fix |
 |---|---|---|
-| ~23 % output-throughput drop Qwen3.5-397B NVFP4 decode 8× B200 | [#39004](https://github.com/vllm-project/vllm/issues/39004) | Pin to last known-good nightly |
 | FP8 speed regression 0.16.0rc2 | [#34377](https://github.com/vllm-project/vllm/issues/34377) | Upgrade |
 | W4Afp8 slower than FP8-W8A8 | [#34212](https://github.com/vllm-project/vllm/issues/34212) | Open — format doesn't pay off |
 | AWQ-Marlin long-input perf (closed 2026-03-04) | [#27956](https://github.com/vllm-project/vllm/issues/27956) | Upgrade |

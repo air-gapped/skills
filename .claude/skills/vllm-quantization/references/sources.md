@@ -81,6 +81,7 @@ earlier passes that only chased issue states:
 | vLLM issue #38991 — Run:ai streamer and FP8 checkpoints | https://github.com/vllm-project/vllm/issues/38991 | 2026-11-09 | **root cause found** | CLOSED `COMPLETED` 2026-11-04; closing comment: the streamer silently terminated on an empty safetensors shard, fixed in model-streamer 0.16.1 (dsx-ai-factory/model-streamer#158). `requirements/rocm.txt` pins `runai-model-streamer==0.15.7` at v0.32.0 and v0.33.0, `0.17.1` on `main` @1bbbb4cb (2026-11-09). |
 | vLLM issue #40291 — Gemma-4-31B-IT-NVFP4 OOM on RTX 5090 | https://github.com/vllm-project/vllm/issues/40291 | 2026-11-09 | **not a bug (skill said open)** | CLOSED 2026-04-20 by the reporter: "not a bug in vllm", pointing at https://huggingface.co/nvidia/Gemma-4-31B-IT-NVFP4/discussions/3 ("Why is this 4bit version has a 32.7 GB size?", tensor types BF16 / F8_E4M3 / U8). |
 | vLLM issue #39133 — Gemma 4 INT4 KV sizing on 2×24 GB | https://github.com/vllm-project/vllm/issues/39133 | 2026-11-09 | **fixed** | CLOSED `COMPLETED` 2026-07-25. Maintainer breakdown (2026-07-05): the 25,200-token figure was a display artifact (blocks divided by KV-cache groups); `fp8_e5m2` rejection fixed by #45040; `fp8_e4m3` on SM 8.6 is a hardware limit (SM ≥ 8.9). |
+| vLLM issue #39004 — Qwen3.5-397B NVFP4 decode regression | https://github.com/vllm-project/vllm/issues/39004 | 2026-11-09 | **withdrawn** | CLOSED 2026-05-21 by its reporter with "not actual". Row deleted from troubleshooting.md. |
 
 ## Classification summary
 
