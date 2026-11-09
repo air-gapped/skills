@@ -99,7 +99,7 @@ If an SGLang config was 200 GB per GPU × 8 GPUs = 1600 GB, then on vLLM use `--
 
 **If Model Runner V2 was opted into before v0.29.0, KV auto-sizing did not reserve CUDA graph memory.** MRV1 always did; MRV2 gained it in **v0.29.0** ([#53306](https://github.com/vllm-project/vllm/pull/53306)), explicitly to unblock making MRV2 the default. Since the default flip ships in that same release, a deployment that never set `VLLM_USE_V2_MODEL_RUNNER=1` is unaffected. An **early opt-in on v0.27.x or v0.28.0** is the exposed case: auto-sizing over-allocated KV against memory the graphs then needed. Suspect it before re-deriving a sizing formula on a box that OOMs only after capture.
 
-**`--mamba-cache-mode all` is removed in v0.32.0** ([#58997](https://github.com/vllm-project/vllm/pull/58997)) — it now fails config validation at startup (accepted values: `align`, `none`). On v0.30.0–v0.31.x it was deprecated ([#55041](https://github.com/vllm-project/vllm/pull/55041)): it warned and forced MRV1. vLLM sets `align` itself when prefix caching is on (`vllm/model_executor/models/config.py`), so only a deployment that explicitly passes `all` is affected — delete the flag before upgrading to v0.32.0.
+**Delete `--mamba-cache-mode` from serve args.** From v0.33.0 the flag is deprecated and ignored whatever its value ([#60043](https://github.com/vllm-project/vllm/pull/60043)): Mamba prefix caching follows `--enable-prefix-caching` (`align` when on, `none` when off). The value `all` already fails config validation from v0.32.0 ([#58997](https://github.com/vllm-project/vllm/pull/58997)); on v0.30.0–v0.31.x it warned and forced MRV1 ([#55041](https://github.com/vllm-project/vllm/pull/55041)).
 
 When using LMCache as the backend, keep `LMCACHE_MAX_LOCAL_CPU_SIZE` and `--kv-offloading-size` consistent. LMCache env vars win on the backend side; inconsistency leads to scheduler miscounting available slots and either over-subscribing or under-using the cache.
 
@@ -270,7 +270,7 @@ Compare two runs on identical traffic with and without `--kv-offloading-size` se
 
 The recipe is finished only when every item holds for the exact tag deployed:
 
-1. Every cache-related flag and env var in the serve args is accounted for: available at that tag (version gates), not removed (`--calculate-kv-scales`, `--mamba-cache-mode all`, `VLLM_PREFIX_CACHE_RETENTION_INTERVAL`), and not the weights flag `--cpu-offload-gb` standing in for KV offload.
+1. Every cache-related flag and env var in the serve args is accounted for: available at that tag (version gates), not removed or ignored (`--calculate-kv-scales`, `--mamba-cache-mode`, `VLLM_PREFIX_CACHE_RETENTION_INTERVAL`), and not the weights flag `--cpu-offload-gb` standing in for KV offload.
 2. `--kv-offloading-size` is the TP-wide total in GiB; with LMCache, `LMCACHE_MAX_LOCAL_CPU_SIZE` agrees with it.
 3. `--disable-hybrid-kv-cache-manager` appears only for a connector without `SupportsHMA` or MoRI-IO WRITE mode on a hybrid.
 4. The image tag passed both bundling steps and is ≥ v0.22.0.
