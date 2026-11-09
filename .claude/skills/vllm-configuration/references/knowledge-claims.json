@@ -33,7 +33,7 @@
     {
       "id": 5,
       "question": "Does VLLM_USE_MODELSCOPE route LoRA adapter downloads to ModelScope?",
-      "skill_answer": "No \u2014 LoRA adapters still fetch from HuggingFace; PR #13220 closed unmerged 2025-06-20."
+      "skill_answer": "Yes from v0.15.0 for an adapter given as a repo id; below v0.15.0 it still fetches from HuggingFace, so download it and pass --lora-modules name=/local/path."
     },
     {
       "id": 6,
@@ -53,7 +53,7 @@
     {
       "id": 9,
       "question": "What are the dependency requirements for vLLM's `--load-format fastsafetensors`?",
-      "skill_answer": "fastsafetensors>=0.2.2 and libnuma-dev; no env-var toggle exists."
+      "skill_answer": "fastsafetensors>=0.3.3 (the vllm[fastsafetensors] extra) and libnuma-dev; no env-var toggle exists."
     }
   ]
 }
