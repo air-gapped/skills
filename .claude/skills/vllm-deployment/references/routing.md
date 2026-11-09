@@ -131,7 +131,7 @@ See `references/autoscaling.md`.
 
 ```bash
 # Pool view from GAIE
-kubectl get inferencepool,inferencemodel -A
+kubectl get inferencepool -A
 
 # EPP picking endpoints
 kubectl logs -n <ns> -l app=endpoint-picker --tail=100
