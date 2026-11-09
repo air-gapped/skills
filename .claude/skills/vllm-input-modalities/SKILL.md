@@ -257,6 +257,9 @@ no dedicated `/ocr` endpoint.
    instruction-tuned causal LM masquerading as a cross-encoder — skipping
    any of the three extras (see the reranking cheat-sheet command above)
    gives random-looking scores, not errors. Full recipe: `references/reranking.md` §2.
+   Same class, different overrides and template per model:
+   `bge-reranker-v2-gemma`, `mxbai-rerank-v2`, `llama-nemotron-rerank`
+   (table in `references/reranking.md` §2).
    **Second cause of the same symptom, below v0.26.0:** #48901 — any
    LAST-pooling model returns wrong scores once a query+doc pair is long
    enough to be chunk-prefilled, under `torch.compile` (the default). Rule

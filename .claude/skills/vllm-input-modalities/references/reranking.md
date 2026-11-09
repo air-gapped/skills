@@ -35,11 +35,18 @@ to enable or disable this.
 | Model | Invocation notes |
 |---|---|
 | `BAAI/bge-reranker-v2-m3` | `--runner pooling`. Native classify head. |
-| `BAAI/bge-reranker-v2-gemma` | `--runner pooling`. |
+| `BAAI/bge-reranker-v2-gemma` | causal LM — `--hf-overrides '{"architectures":["GemmaForSequenceClassification"],"classifier_from_token":["Yes"],"method":"no_post_processing"}'` plus `--chat-template examples/pooling/score/template/bge-reranker-v2-gemma.jinja` |
 | `Qwen/Qwen3-Reranker-0.6B/4B/8B` | **three extras required** — see below |
-| `mixedbread-ai/mxbai-rerank-large-v2` | `--runner pooling`. |
-| `nvidia/llama-nemotron-rerank-1b-v2` | `--runner pooling`. |
+| `mixedbread-ai/mxbai-rerank-base-v2` / `-large-v2` | causal LM — `--hf-overrides '{"architectures":["Qwen2ForSequenceClassification"],"classifier_from_token":["0","1"],"method":"from_2_way_softmax"}'` plus `--chat-template examples/pooling/score/template/mxbai_rerank_v2.jinja` |
+| `nvidia/llama-nemotron-rerank-1b-v2` | `--runner pooling --trust-remote-code --chat-template examples/pooling/score/template/nemotron-rerank.jinja` |
 | `polaria-tech/zerank-2-reranker-vllm` | v0.32.0+ (#60415): `--runner pooling --chat-template examples/pooling/score/template/zerank2.jinja`. A `Qwen3ForSequenceClassification` conversion of `zeroentropy/zerank-2-reranker`. |
+
+Only encoder cross-encoders with a native classification head (BERT,
+RoBERTa, XLM-RoBERTa, ModernBERT — e.g. `bge-reranker-v2-m3`) need nothing
+beyond `--runner pooling`. Every LLM-based reranker above needs its score
+template, and the original (non-`seq-cls`) checkpoints also need the
+`--hf-overrides`; without them the server starts and returns plausible wrong
+scores.
 
 **Qwen3-Reranker** is an instruction-tuned causal LM that expects a specific
 prompt format — vLLM needs to be told about the classifier head and score
