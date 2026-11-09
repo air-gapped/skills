@@ -236,6 +236,16 @@ dropped instead of parsed. Fixed by
 change needed — take v0.30.0+ when serving a checkpoint that emits this
 opener shape.
 
+### Streamed string tool arguments arrive late and parse slowly on < v0.33.0 (fixed)
+
+Before v0.33.0 the gemma4 parser holds a `<|"|>` string argument that
+contains none of `,:{}[]<` and emits it as one fragment when its closing
+delimiter arrives, and parser CPU grows quadratically with argument length
+(32 KB value: 7.0 s, 0.15 s after the fix). Fixed by
+[#61494](https://github.com/vllm-project/vllm/pull/61494). Take v0.33.0+
+when clients stream long tool arguments (code, file bodies). The accumulated
+arguments are byte-identical on both sides of the fix — only timing changes.
+
 ### Named / `required` tool_choice is silently unenforced on stock vLLM
 
 From v0.24.0 through v0.33.0 the gemma4 tool parser sets
