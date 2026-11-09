@@ -27,6 +27,10 @@ If the server loaded a local path but the benchmark used the HF id (or vice vers
 
 Not a regression. Before v0.30.0, a streaming request that never received a valid chunk was counted as **success with `ttft=0`** (silently skewing TTFT/E2EL percentiles down); v0.30.0 correctly marks it failed with `error: "Never received a valid chunk to calculate TTFT."` (#55508). Rising `failed` counts post-upgrade with unchanged traffic likely mean those requests were always failing and the old numbers were wrong, not that v0.30.0 introduced a regression.
 
+### Sporadic failed requests or output counts that change with the network path (client ≤ v0.32)
+
+The completions, chat and audio clients stripped whitespace from every transport chunk before reassembling SSE events. A chunk boundary right after `data:` makes the event unparseable and the request fails; a boundary before whitespace inside generated text silently drops that whitespace, and when the server sends no streaming usage the client re-tokenizes the text, shifting output length, throughput and TPOT. Proxies and ingress change chunking, so results differ per path. Fixed in v0.33.0 (#51172) — upgrade the client.
+
 ### `failed == 0` but the server logged errors during the run (client ≤ v0.33.0)
 
 Through v0.33.0 a completions, chat or audio stream that delivered at least one token and then ended in a server `error` event counts as a success. After an engine crash or restart mid-run the report overstates completed requests and output throughput and understates E2EL. Check the server log over the run window before accepting `failed == 0`; discard the run on any stream error. Fixed on `main` (#57519), in no release yet.
