@@ -63,6 +63,13 @@ refinement pass to the drafter's top-C candidates (`0` = full vocabulary; unset
    (`vllm/transformers_utils/configs/speculators/algos.py`). If measured
    drafts-per-step is one below what the checkpoint card advertises, this is
    why — it is not a bug.
+7. **Size `--max-num-batched-tokens` for the draft pass.** On ≤ v0.32.x every
+   DFlash request is charged K extra tokens (DSpark K − 1) of that budget, so a
+   small budget throttles running requests — raise it or upgrade. From v0.33.0
+   nothing is charged, but running requests are capped at
+   `max_num_batched_tokens // num_lookahead_tokens` (log: *"Overriding
+   max_num_active_seqs from N to M"*); raise the budget if that cap sits below
+   `--max-num-seqs`.
 
 ## Published numbers
 

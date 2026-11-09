@@ -46,6 +46,7 @@ build older than a row that applies, upgrade before benchmarking or debugging.
 | ⚠ **`medusa` and `mlp_speculator` removed** (#61701) | **v0.33.0** | Breaking: the method names and Medusa / MLP-speculator draft checkpoints fail config validation. 11 base methods remain |
 | **FLy** lossy verification (#53987) | **v0.33.0** | `rejection_sample_method: "fly"` plus `fly_window_size` / `fly_entropy_threshold` / `fly_entropy_top_k`. Output no longer follows the target distribution; opt-in only. Same PR makes `use_heterogeneous_vocab` + `use_local_argmax_reduction` a `ValueError` |
 | **XPress** refiner for block-diffusion drafters (#54448) | **v0.33.0** | Not a new method: an XPress checkpoint under `method: "dflash"`, MRV2 only; optional `xpress_topc`. See `references/dflash.md` |
+| DFlash / DSpark draft slots no longer charged to the scheduler token budget (#59468) | **v0.33.0** | Before: each request reserved K (DFlash) or K − 1 (DSpark) tokens of `--max-num-batched-tokens`. After: 0, with running requests capped at `max_num_batched_tokens // num_lookahead_tokens` |
 
 ## Composability history
 
