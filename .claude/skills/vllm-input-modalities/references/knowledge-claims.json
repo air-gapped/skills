@@ -37,13 +37,13 @@
     },
     {
       "id": 6,
-      "question": "Which three flags does the canonical vLLM DeepSeek-OCR serving recipe require?",
-      "skill_answer": "`--logits-processors ...NGramPerReqLogitsProcessor`, `--no-enable-prefix-caching`, `--mm-processor-cache-gb 0`."
+      "question": "Besides `--logits-processors ...NGramPerReqLogitsProcessor`, which two flags does the vLLM DeepSeek-OCR serve recipe carry, and which environment variable is mandatory from v0.31.0?",
+      "skill_answer": "`--no-enable-prefix-caching` and `--mm-processor-cache-gb 0` (overhead only); `VLLM_USE_V2_MODEL_RUNNER=0`, because the processor is V1-interface and Model Runner V2 rejects it at startup."
     },
     {
       "id": 7,
-      "question": "What ngram_size and window_size does DeepSeek-OCR's NGramPerReqLogitsProcessor enforce?",
-      "skill_answer": "ngram_size=30, window_size=90, whitelist_token_ids {128821,128822}."
+      "question": "Which values must a DeepSeek-OCR request send to switch on NGramPerReqLogitsProcessor, and in which field on the OpenAI-compatible route?",
+      "skill_answer": "ngram_size=30, window_size=90, whitelist_token_ids [128821,128822] in `extra_body={\"vllm_xargs\": {...}}` (offline: `SamplingParams(extra_args=...)`); a request without them gets no processor."
     },
     {
       "id": 8,
@@ -53,7 +53,7 @@
     {
       "id": 9,
       "question": "Is Model Runner V2 the default for pooling models in vLLM v0.27.0?",
-      "skill_answer": "No \u2014 pooling defaults to V1; needs `VLLM_USE_V2_MODEL_RUNNER=1` (PR #48290 still open)."
+      "skill_answer": "No \u2014 at v0.27.0 pooling defaults to V1 (opt in with `VLLM_USE_V2_MODEL_RUNNER=1`); V2 becomes the pooling default in v0.29.0 (PR #48290)."
     }
   ]
 }
