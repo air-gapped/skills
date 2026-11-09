@@ -127,7 +127,7 @@ vLLM's `NixlConnector` works without Dynamo (production-stack supports it). Dyna
 
 ## Disagg status in upstream docs
 
-As of April 2026, the disagg-prefill docs are still marked **experimental**:
+At v0.33.0 the disagg-prefill docs are still marked **experimental**:
 
 - https://docs.vllm.ai/en/latest/features/disagg_prefill/
 
