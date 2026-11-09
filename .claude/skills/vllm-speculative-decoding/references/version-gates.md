@@ -44,6 +44,7 @@ build older than a row that applies, upgrade before benchmarking or debugging.
 | **LiLiCorr** drafter (#57934) | **v0.31.0** | Not a new method: a `LiLiCorrDraftModel` checkpoint under `method: "dflash"`, MRV2 only. See `references/dflash.md` |
 | **`ngram` / `ngram_gpu` on Model Runner V2** (#40704) | **v0.32.0** | GPU n-gram speculator with variable-length drafts; before this, n-gram forced the V1 runner |
 | ⚠ **`medusa` and `mlp_speculator` removed** (#61701) | **v0.33.0** | Breaking: the method names and Medusa / MLP-speculator draft checkpoints fail config validation. 11 base methods remain |
+| **FLy** lossy verification (#53987) | **v0.33.0** | `rejection_sample_method: "fly"` plus `fly_window_size` / `fly_entropy_threshold` / `fly_entropy_top_k`. Output no longer follows the target distribution; opt-in only. Same PR makes `use_heterogeneous_vocab` + `use_local_argmax_reduction` a `ValueError` |
 
 ## Composability history
 

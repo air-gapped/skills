@@ -199,7 +199,13 @@ traps not captured by those.
    (PR #25232). Old names still work but log deprecation.
 6. **Logprob stability is not guaranteed** with spec-dec. If downstream eval
    requires reproducible logprobs, disable spec-dec. Lossless *token*
-   guarantee holds "up to hardware numerics."
+   guarantee holds "up to hardware numerics" — and only with
+   `rejection_sample_method` `standard` or `block`. `"fly"` (v0.33.0+) and
+   `"synthetic"` commit draft tokens the target rejected: never set them where
+   output must match the target, and never with `suffix` on a shared endpoint
+   (suffix drafts are other requests' responses, so they can be emitted
+   verbatim to another tenant; `suffix_decoding_max_cached_requests: 0` removes
+   the shared cache).
 7. **Draft/target tokenizer mismatch destroys acceptance.** The `draft_model`
    validator checks vocab size, not token-id alignment: pick a drafter from the
    target's tokenizer family. For different but overlapping vocabularies, opt in

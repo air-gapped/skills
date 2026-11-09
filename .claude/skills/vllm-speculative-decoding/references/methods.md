@@ -120,8 +120,8 @@ vllm serve <target> --speculative-config \
     "num_speculative_tokens":4,"use_heterogeneous_vocab":true}'
 ```
 
-Two **hard** constraints, both raised as `ValueError` at config validation
-(`vllm/config/speculative.py`, v0.27.0):
+**Hard** constraints, raised as `ValueError` at config validation
+(`vllm/config/speculative.py`):
 
 - **`method` must be `draft_model`.** *"use_heterogeneous_vocab only works with
   method='draft_model'"*. TLI is not available for `eagle3`, `mtp`, `dflash`,
@@ -131,6 +131,9 @@ Two **hard** constraints, both raised as `ValueError` at config validation
   currently only supports greedy draft sampling."* If you had set
   `draft_sample_method: "probabilistic"` to keep the drafter's full logits for
   the ratio test, TLI and that setting are mutually exclusive today.
+- **`use_local_argmax_reduction` must stay `false`** (v0.33.0+): *"use_heterogeneous_vocab
+  is not compatible with use_local_argmax_reduction"*. On ≤ v0.32.x the pair
+  is accepted and bypasses the vocabulary mapping — do not set both.
 
 This widens drafter selection considerably — a small model from a different
 family is now a candidate where previously only same-tokenizer pairs were. Two
@@ -316,8 +319,19 @@ select different N on the same model.
 - `suffix_decoding_min_token_prob: float = 0.1`
 
 **Rejection sampling:**
-- `rejection_sample_method: "standard" | "synthetic" | "block"`
+- `rejection_sample_method: "standard" | "synthetic" | "block" | "fly"`
   (default `"standard"`)
+- `"fly"` (v0.33.0+, #53987) — **lossy**: accepts an isolated target-rejected
+  draft token at a high-entropy position when the next `fly_window_size`
+  drafts pass. Opt in only when a measured quality drop is acceptable; logs
+  *"FLy verification is a lossy speculative decoding method"* once.
+  - `fly_window_size: int | None` — default `min(6, num_speculative_tokens - 1)`;
+    must be < `num_speculative_tokens`
+  - `fly_entropy_threshold: float = 0.3`, `fly_entropy_top_k: int = 3`
+  - `ValueError` with `num_speculative_tokens < 2` or
+    `method: "extract_hidden_states"`
+  - Do not combine `"fly"` or `"synthetic"` with `method: "suffix"` on a
+    multi-tenant endpoint — see SKILL.md pitfall 6
 - `synthetic_acceptance_rates: list[float] | None` /
   `synthetic_acceptance_length: float | None` — for the synthetic sampler,
   a testing tool not a prod knob (v0.19+, PR #38045)
