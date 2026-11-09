@@ -91,4 +91,5 @@ snap > before.txt; <runs>; snap | diff before.txt - && echo unchanged
 |---|---|
 | System config dir (`/etc/opencode`, macOS `/Library/Application Support/opencode`, macOS MDM preferences) still loads | Check it is absent on the CI host |
 | `.well-known` remote config fetched for credentials that declare one | Block egress for air-gapped CI |
+| OpenCode Console login as the `--credential` (v2.2.0+): the Console's config layer loads — its providers, remote MCP servers, web-search choice, and policies that outrank the runner's config | Use a provider API-key credential when the run must expose no MCP tools; with a Console login, check the tool list of the first request and expect policy denials |
 | Built-in (internal) plugins still run; `"plugin": []` only adds none | Accept; external plugins load only from the isolated config dirs |
