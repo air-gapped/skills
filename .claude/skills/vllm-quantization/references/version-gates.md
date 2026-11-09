@@ -41,6 +41,8 @@ found". The `v0.33.0` git tag, the PyPI wheel and the `v0.33.0` images are that
 same commit; it is the final release, not an rc.
 
 **Breaking:**
+- [PR #52183](https://github.com/vllm-project/vllm/pull/52183) — PyTorch **2.14.0**, torchvision **0.29.0**, Triton **3.8.0**; FlashInfer **0.7.2.post1**, compressed-tensors **0.17.0**. Rebuild custom kernels and quantization plugins.
+- [PR #62575](https://github.com/vllm-project/vllm/pull/62575) — CUDA 12.9 wheels and the `-cu129` / `-cu129-ubuntu2404` images are no longer published; CUDA 13.0 only.
 - [PR #61278](https://github.com/vllm-project/vllm/pull/61278) — `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` removed again (restored in v0.31.0); AITER tuned configs select the W4A4 GEMM kernel.
 
 Quantization:

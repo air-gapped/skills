@@ -64,6 +64,7 @@ earlier passes that only chased issue states:
 | vllm-bnb-plugin | https://github.com/vllm-project/vllm-bnb-plugin | 2026-10-18 | new | Named by `docs/features/quantization/bnb.md` @v0.32.0; repo latest v0.0.3. |
 | vLLM b12x backend (SM120/121) | https://github.com/vllm-project/vllm/blob/v0.32.0/docs/features/quantization/b12x.md | 2026-10-18 | new | b12x FP4 MoE backend commit (#52018) first in v0.29.0; MoE has no EP / expert maps. IQ2_XS/IQ2_XXS/Q8_0 block codecs #59604 (v0.32.0). |
 | vLLM PR #61278 — `VLLM_ROCM_USE_AITER_FP4_ASM_GEMM` removed again | https://github.com/vllm-project/vllm/pull/61278 | 2026-11-09 | **breaking (new)** | v0.33.0 (commit 2067297b2f in `v0.32.0..v0.33.0`; release notes list it under removed env vars). Absent from `vllm/envs.py` at v0.33.0, present at v0.32.0 (default `False`). SKILL.md told the reader to set it to `1`. |
+| vLLM PR #52183 / #62575 — PyTorch 2.14, CUDA 12.9 dropped | https://github.com/vllm-project/vllm/pull/52183 | 2026-11-09 | **breaking (new)** | v0.33.0. `requirements/cuda.txt` @v0.33.0: `torch==2.14.0`, `torchvision==0.29.0`, `flashinfer-python==0.7.2.post1`; `requirements/common.txt`: `compressed-tensors == 0.17.0`. Triton 3.8.0 per the PR title. #62575 per release notes Highlights + Breaking Changes. |
 
 ## Classification summary
 

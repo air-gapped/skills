@@ -280,6 +280,7 @@ Before any upgrade, read every hop between the installed and target release in
 
 | Gate | Action |
 |---|---|
+| v0.33.0+ | PyTorch 2.14.0 / Triton 3.8.0 (#52183), and CUDA 13.0 only — `-cu129` wheels and images are no longer published (#62575). Rebuild any custom kernel or plugin image on CUDA 13.0 |
 | v0.32.0+ on SM90 | `auto` picks Humming over Marlin for linear and MoE (#56997). Pin `--linear-backend marlin` / `--moe-backend marlin` to A/B a throughput change |
 | v0.32.0+ MXFP4 W4A4 checkpoint, no W4A4 MoE kernel | falls back to W4A16 with a warning (#60079) — grep the load log before benchmarking |
 | v0.27.0+ | PyTorch 2.13.0 / Triton 3.7.1 / Transformers 5.14.1 (#48155, #49223) — rebuild any custom kernel or plugin image |
