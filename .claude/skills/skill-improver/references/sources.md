@@ -816,6 +816,7 @@ Catalogue lives here rather than in SKILL.md: progressive disclosure (Pattern 2.
 - Haiku ~20-40x faster and ~5x cheaper than Opus; Anthropic builds it for routing/classification.
 - Measured on this repo (2026-06): of 6 skills Haiku flagged as under-triggering, 5 fired 1.00 on Opus (the 6th was correct deferral to a sibling).
 - Sonnet matched Opus on a 5-query subset, but only at n=3 (provisional).
+- The pin moved `claude-sonnet-5` → `claude-sonnet-5-5` on 2026-11-10. The models overview (read 2026-11-09) lists Sonnet 5.5 as the current Sonnet and Sonnet 5 as legacy; the deprecations page has `claude-sonnet-5` active, retiring not sooner than 2027-06-30, so the old id still works with `--model`. Six of this skill's trigger queries probed on both ids at n=3, same description: four agreed (clear positive 1.00, contextual miss 0.00, both negatives 0.00); "quality score out of 100" read 0.67 on Sonnet 5 and 0.33 on 5.5, "my skill didn't fire" 0.00 and 1.00. Same pass count (4 of 6), different queries — hence the rule that a baseline on another id is re-probed. n=3 locates the disagreement and decides nothing else.
 - Cache-prefix identity: a fresh model/--effort/--settings value writes ~35k tokens, then runs warm at ~0.
 
 #### Cost & time budget

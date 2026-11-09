@@ -224,7 +224,7 @@ Before saving, each class must have ≥3. If user-reported failures are all shou
 | `--num-workers` | 6 | Lower on rate limits; each worker spawns a `claude -p` subprocess. |
 | `--timeout` | 180 (s) | Only caps a hung call; a high value has no downside. Timed-out runs surface as a `warn:` line; an all-positives-0.0 result emits a "probe isn't measuring" warning. Lower only if calls are reliably fast. |
 | `--holdout` | 0.0 | Set 0.4 for train/test split. |
-| `--model` | `claude-sonnet-5` | Pinned, not inherited (§Which model to probe with). Override only to answer "does it fire on the model *I* run", never mid-sweep. |
+| `--model` | `claude-sonnet-5-5` | Pinned, not inherited (§Which model to probe with). Override only to answer "does it fire on the model *I* run", never mid-sweep. |
 
 ### Calling the probe
 
@@ -253,7 +253,8 @@ Output is JSON: `train.summary` and `test.summary` each carry `{total, passed, f
 
 - **Haiku is the cheap broad-screen model.** A skill that fires on Haiku fires on stronger models, so **Haiku-CLEAN results are trustworthy** (use it to clear the bulk of an `--all` audit).
 - **Haiku OVER-reports under-triggering** (answers actionable queries directly, giving false 0.0s). **Never change a description off a Haiku under-trigger flag alone.** Workflow: screen on Haiku → re-probe only the flagged misses on Opus → fix only what Opus also misses.
-- **Default is `claude-sonnet-5`, pinned.** An inherited model makes a run unreproducible. Sonnet-vs-Opus agreement was measured only at n=3; treat as provisional.
+- **Default is `claude-sonnet-5-5`, pinned by full id** — the current target of the `sonnet` alias. An inherited model makes a run unreproducible. Sonnet-vs-Opus agreement was measured only at n=3; treat as provisional.
+- **A baseline probed on another model id is not a baseline.** Read `model` in the stored run; when it differs from this run's (a baseline taken on `claude-sonnet-5`, or any run after a Sonnet release moved the pin), re-probe the baseline on the current id before any keep/discard. Near-threshold queries flip between Sonnet releases while clear positives and negatives hold.
 - **Pass `--model` explicitly** when the question is "does it fire on the model *I* run".
 - **Never vary model, `--effort`, or `--settings` inside one sweep** (each is a cache-prefix identity). Batch all calls of one identity together.
 - High variance on a borderline query is real — re-probe a lone Opus 0.00 before trusting it. Timed-out and errored runs (API error, usage limit, dead `claude -p`) are excluded from the rate: read `measured` beside `timeouts` and `errors`, and re-probe a query whose `measured` fell below `runs`.
