@@ -165,6 +165,7 @@ comparing to numbers taken before them.
 **v0.32.0 → v0.33.0:**
 
 - **torch 2.14.0 / torchvision 0.29.0 / Triton 3.8.0** (#52183), and release wheels and images are **CUDA 13.0 only** (#62575). Rebuild any pre-baked compile cache; a manifest pinned to a `-cu129` image tag has no v0.33.0 image to pull.
+- **DeepEP v2 decode fuses globalize + align + sort into one launch** (#53911) on the CUDA Humming path under CUDA-graph decode: 1.14–1.36× on that chain at ≤ 64 tokens, up to 2.01× at 256, measured on H200 EP32. DeepEP-v2 decode baselines from ≤ v0.32.0 are not comparable.
 - **NIXL connectors require NIXL ≥ 1.5.0** (#61032) — the worker refuses to start on older NIXL. Upgrade NIXL in the image before the vLLM bump.
 - **Ray compiled-graph executor removed** (#61712, #62228). `--distributed-executor-backend ray` now always runs the MQ-based `RayExecutorV2`; `VLLM_USE_RAY_V2_EXECUTOR_BACKEND` and the three `VLLM_USE_RAY_COMPILED_DAG_*` / `VLLM_USE_RAY_WRAPPED_PP_COMM` env vars are gone and silently ignored.
 
