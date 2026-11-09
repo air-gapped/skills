@@ -356,6 +356,8 @@ catalog):
 | `vllm:kv_offload_lookup_async_delay_seconds` | Histogram | Time from a request's lookup first deferring until it resolves |
 | `vllm:kv_offload_allocation_failure` | Counter | Store allocation attempts that failed |
 
+`vllm:kv_offload_config_info` (**v0.33.0+**) — info gauge, value 1, one series per engine and per manager configuration. Its labels are the offload managers' static settings and vary with the configured offloading spec: read capacity and backend from them instead of hard-coding. Per engine, never an instance total — do not `sum` it.
+
 CPU-tier gauges (`CPUOffloadingMetrics`) — the read/write split arrived in
 **v0.26.0 (#47666)** and is the one worth alerting on, because it separates
 back-pressure on the write path from stall on the read path:
