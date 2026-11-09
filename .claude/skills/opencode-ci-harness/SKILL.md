@@ -150,7 +150,16 @@ Wrong tool, wrong path, wrong arithmetic with correct tool outputs, or a halluci
 bash ${CLAUDE_SKILL_DIR}/scripts/scan-token-leakage.sh t.ndjson <model-source>
 ```
 
-`<model-source>`: model dir with `tokenizer_config.json`, a dir of `.jinja` templates, or a file with one token per line. Exit 0 clean, 1 leak, 2 usage. Zero leaks only means these scenarios did not trigger one — escalate tiers before concluding.
+`<model-source>`: model dir with `tokenizer_config.json`, a dir of `.jinja` templates, or a file with one token per line. Exit 0 clean, 1 leak, 2 nothing scanned (usage, empty or non-NDJSON transcript, no tokens in the source). Zero leaks only means these scenarios did not trigger one — escalate tiers before concluding.
+
+Scanned as model-emitted: `text`, `reasoning`, tool name, tool arguments (parsed and `rawInput`), `error.message`. Tool output and tool failure text count as info only.
+
+Planted check for a new `<model-source>` — must exit 1:
+
+```bash
+printf '%s\n' '{"type":"text","part":{"text":"x TOKEN y"}}' > plant.ndjson   # TOKEN = one of the model's special tokens
+bash ${CLAUDE_SKILL_DIR}/scripts/scan-token-leakage.sh plant.ndjson <model-source>
+```
 
 ## Scripts
 

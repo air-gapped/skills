@@ -2,7 +2,8 @@
 # Scan an opencode NDJSON transcript for leaked special-token text.
 #
 # Flags special tokens (e.g. `<tool_call>`, `<|im_end|>`, `<|channel|>`)
-# that leaked into text, reasoning, tool arguments or error messages.
+# that leaked into text, reasoning, tool names, tool arguments or error
+# messages.
 #
 # Usage:
 #   scan-token-leakage.sh <transcript.ndjson> <model-dir-OR-specials-file>
@@ -16,18 +17,24 @@
 #
 # Output: for each special token found leaking, report the transcript
 # event type, location, and a snippet of context. Exit 0 if clean,
-# 1 if any leak detected.
+# 1 if any leak detected, 2 when nothing could be scanned (usage, a
+# transcript that is empty or not NDJSON events, a source with no tokens).
 
 set -euo pipefail
 
 if [[ $# -ne 2 ]]; then
-  sed -n '2,19p' "$0" >&2
+  awk 'NR > 1 { if (/^#/) print; else exit }' "$0" >&2
   exit 2
 fi
 
 TRANSCRIPT="$1"
 SOURCE="$2"
 [[ -f "$TRANSCRIPT" ]] || { echo "ERROR: transcript not found: $TRANSCRIPT" >&2; exit 2; }
+# An empty file, an HTML error body or log lines would otherwise scan "clean".
+if ! jq -e -s 'length > 0 and all(.[]; type == "object" and has("type"))' "$TRANSCRIPT" >/dev/null 2>&1; then
+  echo "ERROR: $TRANSCRIPT holds no NDJSON events (empty, or not a --format json transcript); nothing scanned" >&2
+  exit 2
+fi
 
 # --- Build specials list ---
 SPECIALS_FILE=$(mktemp)
@@ -71,7 +78,9 @@ else
 fi
 
 # Clean + dedupe
-sort -u "$SPECIALS_FILE" | grep -v '^$' > "${SPECIALS_FILE}.dedup"
+# `|| true`: grep exits 1 on an empty list, which under `set -e` would end
+# the script with the leak status instead of the "no specials" one below.
+sort -u "$SPECIALS_FILE" | grep -v '^$' > "${SPECIALS_FILE}.dedup" || true
 mv "${SPECIALS_FILE}.dedup" "$SPECIALS_FILE"
 
 specials_count=$(wc -l < "$SPECIALS_FILE")
@@ -86,11 +95,12 @@ echo "[scan] $specials_count special tokens loaded from $SOURCE"
 # --- Scan transcript ---
 # Two classes:
 #   CRITICAL = model-emitted fields the parser should have scrubbed:
-#     text, reasoning, tool_use.state.input (args model wrote),
-#     error.message
-#   INFO = tool_use.state.output (raw tool result; specials here are
-#     normal if the tool read a file containing them — informational
-#     only, NOT a parser bug)
+#     text, reasoning, tool_use.tool (the name the model called),
+#     tool_use.state.input and state.metadata.rawInput (args the model
+#     wrote, parsed and as the engine returned them), error.message
+#   INFO = tool_use.state.output / state.error (tool result or failure
+#     text; specials here are normal if the tool read a file containing
+#     them or echoes a bad call — informational only, NOT a parser bug)
 
 critical_leaks=0
 info_leaks=0
@@ -128,9 +138,13 @@ while IFS= read -r token; do
         scan_field "$token" "reasoning" "$body" "CRITICAL"
         ;;
       tool_use)
+        name=$(printf '%s' "$line" | jq -r '.part.tool // empty' 2>/dev/null)
         in_body=$(printf '%s' "$line" | jq -r '.part.state.input | tostring // empty' 2>/dev/null)
-        out_body=$(printf '%s' "$line" | jq -r '.part.state.output // empty' 2>/dev/null)
+        raw_body=$(printf '%s' "$line" | jq -r '.part.state.metadata.rawInput // empty' 2>/dev/null)
+        out_body=$(printf '%s' "$line" | jq -r '[.part.state.output, .part.state.error] | map(strings) | join("\n")' 2>/dev/null)
+        scan_field "$token" "tool_use.tool" "$name" "CRITICAL"
         scan_field "$token" "tool_use.input" "$in_body" "CRITICAL"
+        scan_field "$token" "tool_use.rawInput" "$raw_body" "CRITICAL"
         scan_field "$token" "tool_use.output" "$out_body" "INFO"
         ;;
       error)
