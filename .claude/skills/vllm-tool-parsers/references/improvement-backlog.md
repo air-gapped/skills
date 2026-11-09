@@ -5,8 +5,12 @@ hypothesis but not applied in a single atomic iteration. Not a wishlist.
 
 ## Open
 
-_None._ Nothing here is waiting on an absent ruling, credential, release, or
-measurement nobody can run.
+- **Pin two "first release after v0.33.0" fixes to a tag** (Dim 9) —
+  `references/parser-index.md` rows `functiongemma` (fix #63992) and `minicpm5` /
+  `poolside_v1` / `muse` (fix #64518). Blocked on an unreleased upstream version: both
+  merge commits (`410ab341a8`, `1fc9d008eb`) are on main only and no release newer than
+  v0.33.0 exists (2026-11-09). When one ships, run
+  `git merge-base --is-ancestor <sha> <tag>` and write the tag into the four rows.
 
 ## Decided — do not re-propose
 

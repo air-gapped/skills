@@ -8,7 +8,7 @@ you which — `grep -l "ParserToolAdapter" vllm/tool_parsers/*.py` does,
 **except** `cohere_command_tool_parser.py`, whose stub is composed via a
 name-check in `vllm/parser/parser_manager.py` instead (see its row below), and
 `step5_tool_parser.py` / `beam_tool_parser.py` (v0.33.0+, see their rows).
-Verified at v0.32.0.
+Verified at v0.33.0.
 
 ## JSON-in-sentinels family
 

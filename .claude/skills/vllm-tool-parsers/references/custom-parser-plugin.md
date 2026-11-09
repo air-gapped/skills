@@ -20,7 +20,7 @@ Goal: ship as a plugin, not an upstream PR — unless the format is broadly usef
 ## Minimum skeleton
 
 ```python
-# v0.32.0 module paths — copy the import block of the parser you started from
+# v0.32.0-v0.33.0 module paths — copy the import block of the parser you started from
 # if these fail on your version (vllm.entrypoints.openai.protocol does not exist).
 # make_tool_call_id: vllm.renderers.chat_utils on v0.32.0+ (vllm.entrypoints.chat_utils
 # was removed with no shim -- a plugin copied from an older parser fails to import).

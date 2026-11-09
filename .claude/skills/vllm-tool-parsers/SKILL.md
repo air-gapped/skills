@@ -237,7 +237,7 @@ grep -rn "TODO" vllm/tool_parsers/
 grep -rn "prev_tool_call_arr = \[{\"arguments\": {}}\]" vllm/tool_parsers/
 ```
 
-The `prev_tool_call_arr = [{"arguments": {}}]` plant is the old "force finish_reason=tool_calls" workaround; `finish_reason` no longer reads that field, and where it once forced `tool_calls` it produced a call with empty arguments — hiding the failed parse instead of fixing it. Do not copy it into a new parser. At v0.32.0 exactly five parsers carry it: `pythonic`, `llama4_pythonic`, `olmo3`, `lfm2`, `minicpm5xml` — the pythonic family plus the two that reuse its flush shape. (`mistral` does **not**; it populates `prev_tool_call_arr` properly.) Write a new parser to the `parse_delta` shape (RFC #11522) instead.
+The `prev_tool_call_arr = [{"arguments": {}}]` plant is the old "force finish_reason=tool_calls" workaround; `finish_reason` no longer reads that field, and where it once forced `tool_calls` it produced a call with empty arguments — hiding the failed parse instead of fixing it. Do not copy it into a new parser. At v0.33.0 exactly five parsers carry it: `pythonic`, `llama4_pythonic`, `olmo3`, `lfm2`, `minicpm5xml` — the pythonic family plus the two that reuse its flush shape. (`mistral` does **not**; it populates `prev_tool_call_arr` properly.) Write a new parser to the `parse_delta` shape (RFC #11522) instead.
 
 ## Writing a custom parser
 
@@ -265,9 +265,9 @@ Before upstreaming, read `AGENTS.md` at the repo root for the duplicate-work + P
 |---|---|
 | `references/parser-index.md` | before reading a parser's source — per-name file path (including the `→ vllm/parser/` real file), wrapping tokens, and the one non-obvious fact (full-width `｜` sentinels, non-streaming only, schema-aware coercion) |
 | `references/streaming-pitfalls.md` | a streaming-only failure (playbook steps 5–6): full-width pipes, special-token stripping, empty-args stalls, O(n²) pythonic re-parse, truncated markup |
-| `references/custom-parser-plugin.md` | writing or reviewing a `--tool-parser-plugin`: read order, v0.32.0 import skeleton, ship checklist |
+| `references/custom-parser-plugin.md` | writing or reviewing a `--tool-parser-plugin`: read order, v0.32.0-v0.33.0 import skeleton, ship checklist |
 | `references/sources.md` | before citing an issue/PR state or a version gate; re-probe a row whose `Freshened:` date is >90 days old |
 
 ---
 
-**Last verified: 2026-10-18** against vLLM **v0.32.0**. See `references/sources.md` for per-reference probe details and timestamps.
+**Last verified: 2026-11-09** against vLLM **v0.33.0**. See `references/sources.md` for per-reference probe details and timestamps.
