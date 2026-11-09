@@ -5,8 +5,16 @@ iteration, plus changes the metric registered this pass.
 
 ## Open
 
-_None._ Nothing here is waiting on an absent ruling, credential, release, or
-measurement nobody can run.
+- **Unconfirmed quantization reports against v0.32.0 / v0.33.0** (Dim 5/9;
+  `references/troubleshooting.md`, one row each). Blocked on upstream triage:
+  on 2026-11-09 each is a single-reporter issue with no maintainer confirmation
+  and no merged fix — #66211 (compressed-tensors NVFP4/MXFP4 scale groups cut by
+  the TP split), #66074 and #66437 (Humming MXFP4 / W4A16 wrong values), #66109
+  (Marlin NVFP4 subnormal scales), #65944 (ModelOpt FP8 KV scales not loaded
+  into MLA), #62945 (GLM-5.3-NVFP4 with EP + TP>1 + PCP), #65821 (FP8 KV with
+  skip-layers on FA3). Add the row, with the fixing release, when a maintainer
+  confirms the report or its fix PR merges; symptoms are in the `sources.md`
+  issue-sweep row.
 
 ## Resolved this pass (2026-10-18, improve)
 
