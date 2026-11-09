@@ -214,6 +214,8 @@ increments and the ratio above is not a valid health signal there.
 | `n > 1` | `metrics` is `null` by design — check the request shape before calling it a bug |
 | Cost | CPU overhead at high concurrency; benchmark before enabling fleet-wide |
 
+**Spec-decode acceptance per request** (v0.29.0+, #48915): `--per-request-spec-decode-metrics summary|detailed` adds `metrics.speculative_decoding` — mean acceptance length, draft acceptance rate, accepted-length histogram; `detailed` adds per-step arrays. Independent of `--enable-per-request-metrics`; `n == 1` only; the field shape is experimental. On v0.29.0–v0.31.0 the streaming final usage chunk can omit it while the `vllm:spec_decode_*` counters keep advancing — fixed in v0.32.0 (#55708).
+
 ## Speculative decoding
 
 Enable with `--speculative-config '{"model":...,"num_speculative_tokens":N}'`.
