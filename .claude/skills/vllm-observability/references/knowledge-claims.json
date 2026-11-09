@@ -23,7 +23,7 @@
     {
       "id": 3,
       "question": "Which DCGM field is the real GPU saturation signal instead of GPU_UTIL?",
-      "skill_answer": "DCGM_FI_PROF_SM_OCCUPANCY."
+      "skill_answer": "DCGM_FI_PROF_SM_OCCUPANCY (DCGM_FI_PROF_SM_OCCUPANCY_RATIO on dcgm-exporter 4.9.0+); opt-in in the exporter's counters CSV."
     },
     {
       "id": 4,
