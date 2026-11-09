@@ -69,16 +69,16 @@ Or install `opentelemetry-instrumentation-fastapi` and enable in a custom entryp
 ```yaml
 # docker-compose.yaml
 jaeger:
-  image: jaegertracing/all-in-one:1.60
-  environment:
-    COLLECTOR_OTLP_ENABLED: "true"
+  image: cr.jaegertracing.io/jaegertracing/jaeger:2.23.0   # v2 — OTLP receivers on by default
   ports:
     - "16686:16686"   # UI
     - "4317:4317"     # OTLP gRPC
     - "4318:4318"     # OTLP HTTP
 ```
 
-Point vLLM at `grpc://jaeger:4317`. UI at `http://localhost:16686`. What the repo's `examples/observability/opentelemetry/` POC uses.
+Point vLLM at `grpc://jaeger:4317`. UI at `http://localhost:16686`.
+
+Jaeger v1 reached end-of-life on 2025-12-31. The repo's `examples/observability/opentelemetry/` README still runs `jaegertracing/all-in-one:1.57` (through v0.33.0) — follow its vLLM steps, substitute the v2 image, and drop `COLLECTOR_OTLP_ENABLED`.
 
 ### OTel Collector → Tempo → Grafana (production)
 

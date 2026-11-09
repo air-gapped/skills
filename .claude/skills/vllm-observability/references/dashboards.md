@@ -52,7 +52,7 @@ Same two dashboards as above but in Perses YAML format. For operators using Pers
 
 ### `opentelemetry/`
 
-OTLP proof-of-concept: Jaeger all-in-one via docker-compose, dummy client script, example `--otlp-traces-endpoint` wiring. See `tracing.md` for the full stack.
+OTLP proof-of-concept: `README.md` (Jaeger via `docker run`, pinned to an end-of-life v1 image) and `dummy_client.py`. Use the stack in `tracing.md` instead of the README's Jaeger command.
 
 ### `metrics/offline.py`
 
