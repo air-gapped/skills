@@ -6,6 +6,7 @@ Load when building or debugging a `--config` file. vLLM parses YAML via `Flexibl
 
 - **Scalar** (`port: 8000`) → appended as `--port 8000`
 - **Boolean** (`enable-prefix-caching: true`) → `--enable-prefix-caching`; `false` → `--no-enable-prefix-caching` when a `--no-` form exists, otherwise omitted
+- **`enable-x` / `disable-x` pairs** — v0.33.0+ accepts the opposite spelling of every boolean `enable-…` / `disable-…` flag (`disable-prefix-caching: true` ≡ `enable-prefix-caching: false`). v0.32.0 and older reject the invented spelling: keep `key: false` in a config shared across versions
 - **List** (`served-model-name: ["a", "b"]`) → `--served-model-name a b` (one flag, items as separate argv)
 - **JSON-typed lists** — `allowed-origins`, `allowed-methods`, `allowed-headers` run `json.loads` on one argv, so a YAML sequence fails with `invalid loads value`. Write a quoted JSON string: `allowed-origins: '["https://app.example.com"]'`
 - **Dict / nested map** (`speculative-config: {model: ..., num_speculative_tokens: 3}`) → JSON-serialized: `--speculative-config '{"model":"...","num_speculative_tokens":3}'`
@@ -136,8 +137,8 @@ log-level: INFO                     # shortcut; overrides logging-config.log_lev
 
 `log-config-file` is deprecated — still accepted with a warning at v0.33.0; use `logging-config: {pylogging_config_file: /path.json}`.
 
-Request logging is opt-**in** now: use `enable-log-requests: true` on the
-frontend. The old `disable-log-requests` key no longer exists.
+Request logging is opt-**in**: `enable-log-requests: true`. `disable-log-requests`
+is rejected through v0.32.0; from v0.33.0 it parses again and means "off", the default.
 
 ### FrontendArgs (server-only, `vllm serve` layer)
 ```yaml
@@ -247,7 +248,7 @@ dataclasses use `extra="forbid"`, so a stale key inside a nested dict
 | `num-scheduler-steps` | V0 removal | V1 has no multi-step scheduling; use `--async-scheduling`. |
 | `worker-use-ray` | V0 removal | `distributed-executor-backend: ray` |
 | `lora-extra-vocab-size` | V0 removal | Nothing — LoRA vocab extension is gone. |
-| `disable-log-requests` | inverted | `enable-log-requests: true` |
+| `disable-log-requests` | inverted; rejected through v0.32.0, accepted again from v0.33.0 as the opposite of `enable-log-requests` (logging off) | `enable-log-requests: true` to log requests |
 | `disable-frontend-multiprocessing` | V0 removal | Nothing — V1 always runs the frontend out-of-process. |
 | `enable-mamba-fine-grained-prefix-cache` | v0.31.0, renamed ([PR #57382](https://github.com/vllm-project/vllm/pull/57382)) | `enable-mamba-shared-prefix-checkpoint` |
 | `speculative-config.disable_by_batch_size`, `.speculative_model_quantization` | v0.17.0 / v0.8.3 | Drop the first; use `speculative-config.quantization` for the second. |
