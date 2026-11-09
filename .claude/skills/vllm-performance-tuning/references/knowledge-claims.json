@@ -7,7 +7,7 @@
   "claims": [
     {
       "id": 0,
-      "question": "What is the default max_num_batched_tokens and max_num_seqs for `vllm serve` on a \u226570 GiB non-A100 GPU?",
+      "question": "What is the default max_num_batched_tokens and max_num_seqs for `vllm serve` on an H100 or H200 (\u226570 GiB, not A100, not GB10)?",
       "skill_answer": "8192 and 1024"
     },
     {
@@ -38,7 +38,7 @@
     {
       "id": 6,
       "question": "Which parallelism configuration does the DeepSeek-V3.2 vLLM recipe prescribe instead of TP=8?",
-      "skill_answer": "DP=8, EP=8, TP=1"
+      "skill_answer": "DP/EP mode with TP=2 on Hopper and TP=1 on Blackwell"
     },
     {
       "id": 7,
