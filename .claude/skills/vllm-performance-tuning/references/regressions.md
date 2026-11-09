@@ -156,6 +156,11 @@ comparing to numbers taken before them.
 - **`max_num_seqs` not a multiple of 8 hit a max-load throughput cliff before v0.31.0** (#57355) — on older builds round it to a multiple of 8.
 - **`VLLM_ENGINE_ITERATION_TIMEOUT_S` removed** (#59781, v0.32.0) — it was already dead; drop it from manifests.
 
+**v0.27.0 → v0.29.0:**
+
+- **Model Runner V2 is the default for every model from v0.29.0** (#53183), MoE included (a few ROCm models excepted). V1 runs only when a requested feature is unsupported on V2 — startup logs `Model Runner V2 does not yet support …; using the V1 model runner instead`. `VLLM_USE_V2_MODEL_RUNNER=0` forces V1 for bisection.
+- **FlashInfer all-reduce is on by default for TP CUDA groups from v0.29.0** (#52998) → `distributed.md`.
+
 **v0.26.0 → v0.27.0 (the flag-surface window — these break configs, not just numbers):**
 
 - **`--max-num-partial-prefills` / `--max-long-partial-prefills` removed**

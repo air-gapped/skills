@@ -220,6 +220,10 @@ v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02) and git tag `v0.33.0`; the 
 - [#55434](https://github.com/vllm-project/vllm/issues/55434) — GLM-5.3 P/D on GB200, NIXL descriptor count — **OPEN** (opened 2026-09-05, 10 comments, last 2026-11-06). Thread: NIXL 1.5 left posting at 509.9 ms of 814.9 ms (62.6%); SGL covers WRITE only; H200 Qwen3-8B 1P1D pull at 16 ms median for 4608 scattered descriptors; H100 TP4→TP4 Qwen3-235B FP8 at ~3.7 µs per descriptor
 - [#23144](https://github.com/vllm-project/vllm/issues/23144) — disaggregated prefilling slower than chunked prefill, Qwen3-8B on A100 — bot-closed `NOT_PLANNED` 2025-12-20; cited as a measurement, not a defect
 
+### v0.29.0 defaults
+- [#53183](https://github.com/vllm-project/vllm/pull/53183) — "[Model Runner V2] Use MRV2 for all models by default" — **MERGED 2026-08-27**, commit `4aab2b0ebe`, first tag v0.29.0; selection logic in `VllmConfig.use_v2_model_runner`, `vllm/config/vllm.py` L730-767 at v0.33.0
+- [#52998](https://github.com/vllm-project/vllm/pull/52998) — FlashInfer all-reduce on by default — **MERGED 2026-08-20**
+
 ### v0.30.0 release-note items (verified 2026-09-23 at tag v0.30.0)
 - [#52781](https://github.com/vllm-project/vllm/pull/52781) — DeepEP v2 async finalize combine overlap, default-on — **MERGED**; the PR's own claimed `VLLM_DEEPEP_V2_COMBINE_OVERLAP` disable env var is absent from the merged diff, confirmed by reading `deepep_v2.py` at the tag
 - [#53576](https://github.com/vllm-project/vllm/pull/53576) / [#54869](https://github.com/vllm-project/vllm/pull/54869) — opt-in FlashInfer PCIe IPC all-reduce, `VLLM_ALLREDUCE_USE_FLASHINFER_PCIE_IPC` (default `0`) — **MERGED**, confirmed in `vllm/envs.py`
