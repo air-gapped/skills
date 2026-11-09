@@ -220,7 +220,14 @@ Source URL: <https://developers.redhat.com/articles/2026/03/06/private-transcrip
    (tensor-size `RuntimeError`, then `EngineDeadError` on every request).
    Fixed in v0.31.0 (#57769, #56912). The transcription/translation
    endpoints chunk server-side and were not affected.
-6. **`/v1/audio/speech` (TTS)** — **not** currently supported. That's a
+6. **`vllm serve` exits at import with `OSError: Could not load this library:
+   …/torchcodec/libtorchcodec_*.so` or `libnvrtc.so.13: cannot open shared
+   object file` — any model, `-cu129` images of v0.31.0 and v0.32.0.** Those
+   images ship a CUDA-13 `torchcodec` 0.17.0 and the audio module imported it
+   unguarded. v0.33.0 catches the error and falls back to soundfile/PyAV
+   (#61090), and publishes CUDA 13 images only. On the older `-cu129` images
+   reinstall `torchcodec==0.16.0+cu129`.
+7. **`/v1/audio/speech` (TTS)** — **not** currently supported. That's a
    request-output shape nobody in vLLM serves; use a dedicated TTS engine.
 
 ## 10. Metrics
