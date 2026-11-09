@@ -175,6 +175,7 @@ v0.33.0 is PyPI `vllm==0.33.0` (uploaded 2026-11-02) and git tag `v0.33.0`; the 
 - [#24799](https://github.com/vllm-project/vllm/issues) — spec-dec fix
 - [#29821](https://github.com/vllm-project/vllm/issues) — spec-dec follow-up
 - [#31679](https://github.com/vllm-project/vllm/issues/31679) — multimodal (Qwen3-VL) — **CLOSED 2026-01-07**
+- [#63549](https://github.com/vllm-project/vllm/issues/63549) — async scheduling + preemption crashes Model Runner V1 with `KeyError all_token_ids[req_id]` — **OPEN** (opened 2026-10-25). Reported on v0.30.0; the thread traces the lookup to #27756 (first release v0.11.1) and scopes it to the V1 worker; `--no-async-scheduling` is the reporter's control. V1 removal is merged on `main` ([PR #63373](https://github.com/vllm-project/vllm/pull/63373), 2026-11-07) and in no release
 
 ### MoE / DeepEP
 - [#39107](https://github.com/vllm-project/vllm/pull/39107) — "[MoE Refactor] Remove MoE DP chunking" — **MERGED 2026-04-14, verified directly 2026-07-21** (no longer inferred from release notes; this closes a carried backlog item). Stated purpose: *"Remove DP chunking MoE runner. Use `max_num_batched_tokens` as default for `max_num_tokens` in `FusedMoEConfig`."* Grepping `vllm/envs.py` at v0.25.1 returns **zero** hits for `VLLM_ENABLE_MOE_DP_CHUNK`, `VLLM_MOE_DP_CHUNK_SIZE`, **and** `VLLM_FUSED_MOE_CHUNK_SIZE` — all three gone, one more than previously recorded. `max_num_batched_tokens` is the replacement knob.

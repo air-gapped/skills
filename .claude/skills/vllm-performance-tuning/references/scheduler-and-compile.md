@@ -57,6 +57,7 @@ Incompatible-or-fragile paths:
 - Pipeline parallelism — umbrella tracker [#27679](https://github.com/vllm-project/vllm/issues/27679) closed 2025-12-29, sub-PRs merged. Model Runner V1 + PP>1 still auto-disables async scheduling; forcing it on there with structured output is rejected at startup (v0.31.0+)
 - Spec-dec methods other than EAGLE/MTP/draft-model/GPU n-gram/DSpark/DFlash, or `disable_padded_drafter_batch=True`, auto-disable it (hard error if forced on) — on Model Runner V1 only from v0.33.0 (#62521); on ≤ v0.32.0 on both runners
 - Pooling models default it off
+- **Model Runner V1 + async scheduling + KV preemption can kill the engine**: `KeyError` at `req_data.all_token_ids[req_id]` in `_update_states`, then `EngineDeadError` ([#63549](https://github.com/vllm-project/vllm/issues/63549), open; code path present since v0.11.1). Shows under sustained preemption at high concurrency. On a deployment that runs V1 (startup logs `using the V1 model runner instead`) and preempts, set `--no-async-scheduling` or drop the feature that forces V1
 - Some multimodal paths — [#31679](https://github.com/vllm-project/vllm/issues/31679) closed 2026-01-07
 - vllm-ascend v0.11.0rc2 — precision regression **fixed**, [ascend #4649](https://github.com/vllm-project/vllm-ascend/issues/4649) closed 2026-03-13; upgrade rather than disabling
 
