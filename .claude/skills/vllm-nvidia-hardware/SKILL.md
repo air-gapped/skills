@@ -68,6 +68,7 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
   | NVFP4, multi-GPU, Gemma/Qwen-style RMSNorm | v0.25.1 | repeated `!!!!!` from the fused allreduce+RMSNorm+quant path |
   | NVFP4/MXFP4 MoE + expert parallelism, CUTLASS MoE backend | v0.32.0 | `expert_map` ignored, wrong local experts, ~0% GSM8K (#59042) |
 | NVFP4 MoE on SM100/SM103 with a hidden size the TRTLLM MoE pads (2688 → 2816), default `flashinfer_trtllm` backend | v0.33.0 | fluent but wrong text under torch.compile (#52308); `--enforce-eager` or `--moe-backend flashinfer_cutlass` avoids it |
+| NVFP4/MXFP4 compressed-tensors checkpoint at a TP where a `down_proj`/`o_proj`/expert `w2` input width ÷ TP is not a multiple of 16 (NVFP4) or 32 (MXFP4) | none — unfixed at v0.33.0 | loads clean, ranks read other groups' block scales (#66211). Pick a TP that divides evenly |
 
 - 270 GB (HGX bin) or 279 GB (DGX bin) HBM per B300 often removes the *need* for KV offload on 70B-scale models. LMCache still earns its keep for 1M+ context and heavy prefix reuse.
 - **Crossing v0.27.0, v0.32.0 or v0.33.0 is an environment change:** torch, NCCL,

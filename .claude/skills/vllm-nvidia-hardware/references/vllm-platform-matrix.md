@@ -40,6 +40,13 @@ previously polluted TTFT measurements on a cold replica are now warmed by the en
   `FLASHINFER_TRTLLM_MXFP4_MXFP8` backend SM100-only. CUTLASS MoE NVFP4 for SM120
   (v0.12, #29242). Default MXFP4 MoE on Blackwell since v0.10.2 (#23008). NVFP4
   dense in v0.11 (#25609).
+- **FP4 scale groups vs TP — unfixed at v0.33.0 (#66211):** compressed-tensors NVFP4
+  (group 16) and MXFP4 (group 32) row-parallel layers allocate
+  `input_size_per_partition // group_size` scales with no divisibility check. When
+  `K / TP` is not a whole number of groups the model loads without a warning and
+  serves garbage. Before choosing TP, divide every `down_proj` / `o_proj` / expert
+  `down_proj` input width by TP × group size; e.g. K = 2112 and 704 are whole at
+  TP=2 and TP=4, not at TP=8.
 - **MXFP8**: compressed-tensors MoE + W8A8 online quantization in v0.19 (#35448).
 - **QuTLASS**: new quant method added v0.11.1.
 
