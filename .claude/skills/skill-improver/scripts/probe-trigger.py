@@ -19,8 +19,10 @@ triggered. The default `--timeout` is 180s because `claude -p` routinely takes
 60-150s/call.
 
 Fails closed on anything it did not measure. A call killed before the model
-reaches the Skill measured nothing, so it is excluded from the rate instead of
-counted as a non-trigger; a query with no measured run at all gets
+reaches the Skill measured nothing, and neither did one whose turn ended in an
+error (`result` event with `is_error`: API error, auth, usage limit) or whose
+`claude -p` exited with no `result` event. Each is excluded from the rate
+instead of counted as a non-trigger; a query with no measured run at all gets
 `"trigger_rate": null` and `"pass": null`, and the process exits 1. Coercing
 those to 0.0 biases both directions at once — should-trigger queries deflate
 toward failure while should-NOT-trigger queries inflate toward passing — so a
@@ -39,6 +41,7 @@ Usage:
                    [--runs-per-query 7] [--trigger-threshold 0.5] [--timeout 180]
                    [--num-workers 6] [--holdout 0.4] [--seed 42]
                    [--model claude-sonnet-5]
+  probe-trigger.py --selfcheck      # offline: a stub `claude` on PATH
 
 Model is PINNED to Sonnet 5, not inherited from the session. Measured
 2026-08-21 on a 5-query discriminating subset (the two near-threshold cases
@@ -153,13 +156,14 @@ def run_single_query(
 ) -> tuple[bool, bool, dict]:
     """Run one query against a synthetic skill installation.
 
-    Returns (triggered, timed_out, usage):
-      triggered — the skill name appeared in a Skill/Read tool_use event.
-      timed_out — the `claude -p` subprocess was still running when `timeout`
-                  elapsed and was killed. A timed-out run is NOT a genuine
-                  non-trigger (the model may simply not have reached its tool
-                  call yet); the caller surfaces timeouts so an all-0.0 result
-                  from premature kills is never read as under-triggering.
+    Returns (triggered, unmeasured, usage):
+      triggered  — the skill name appeared in a Skill/Read tool_use event.
+      unmeasured — the run says nothing about triggering: the subprocess was
+                   still running when `timeout` elapsed and was killed, or the
+                   turn ended in an error (`usage["error"]` then holds the
+                   reason). Neither is a genuine non-trigger; the caller
+                   excludes both, so an all-0.0 result built from kills or API
+                   errors is never read as under-triggering.
       usage     — token counts accumulated from the STREAM, not from the
                   `result` event.
 
@@ -385,7 +389,15 @@ def run_single_query(
                             ) and clean_name in json.dumps(c.get("input", {})):
                                 return (True, False, snap())
                     elif event.get("type") == "result":
-                        return (False, False, snap())
+                        done = snap()
+                        if event.get("is_error"):
+                            # API error, auth failure, usage limit: the model
+                            # never got to choose a tool. Not a non-trigger.
+                            done["error"] = str(
+                                event.get("result") or event.get("subtype") or "error"
+                            )[:200]
+                            return (False, True, done)
+                        return (False, False, done)
             else:
                 # The while condition went false without break/return: the
                 # subprocess was still running when `timeout` elapsed and is
@@ -395,7 +407,13 @@ def run_single_query(
             if proc.poll() is None:
                 proc.kill()
                 proc.wait()
-        return (False, timed_out, snap())
+        done = snap()
+        if not timed_out:
+            # EOF with no `result` event: `claude -p` died before the turn
+            # finished (startup failure, crash). A finished turn always ends
+            # in a `result`, so this measured nothing either.
+            done["error"] = f"claude -p exited {proc.returncode} with no result event"
+        return (False, True, done)
     finally:
         shutil.rmtree(work_root, ignore_errors=True)
 
@@ -453,21 +471,29 @@ def score_set(
                 # A crashed worker measured nothing — flag it as unreliable
                 # (timed_out=True) rather than a confident non-trigger.
                 print(f"warn: query failed: {e}", file=sys.stderr)
-                runs_by_query[q].append((False, True, {}))
+                runs_by_query[q].append((False, True, {"error": str(e)[:200]}))
 
     results = []
     total_timeouts = 0
+    total_errors = 0
+    error_sample = None
     for q, runs in runs_by_query.items():
         n = len(runs)
         n_trig = sum(1 for triggered, _, _ in runs if triggered)
-        n_to = sum(1 for _, to, _ in runs if to)
+        n_err = sum(1 for _, un, u in runs if un and u.get("error"))
+        n_to = sum(1 for _, un, u in runs if un and not u.get("error"))
         total_timeouts += n_to
-        # A timed-out or crashed run measured NOTHING. Dividing by `n` would
+        total_errors += n_err
+        if error_sample is None:
+            error_sample = next(
+                (u["error"] for _, _, u in runs if u.get("error")), None
+            )
+        # A timed-out, errored or crashed run measured NOTHING. Dividing by `n` would
         # turn it into a confident non-trigger, which biases both directions at
         # once: it deflates should-trigger queries toward failure and inflates
         # should-NOT-trigger queries toward passing. Score over measured runs
         # only, and give a query with no measured run no score at all.
-        measured = n - n_to
+        measured = n - n_to - n_err
         rate = (n_trig / measured) if measured else None
         item = by_query[q]
         if rate is None:
@@ -486,6 +512,7 @@ def score_set(
                 "trigger_rate": rate,
                 "triggers": n_trig,
                 "timeouts": n_to,
+                "errors": n_err,
                 "runs": n,
                 "measured": measured,
                 "pass": passed,
@@ -501,6 +528,8 @@ def score_set(
         "unmeasured": unmeasured,
         "scored": len(results) - unmeasured,
         "timeouts": total_timeouts,
+        "errors": total_errors,
+        "error_sample": error_sample,
         # The caller must refuse to compare two descriptions when this is set.
         "complete": unmeasured == 0,
     }
@@ -578,7 +607,67 @@ def score_set(
     return {"description": description, "results": results, "summary": summary}
 
 
+FAKE_CLAUDE = r"""#!/usr/bin/env python3
+import glob, json, os, sys
+query = sys.argv[sys.argv.index("-p") + 1]
+name = os.path.basename(glob.glob(".claude/skills/*")[0])
+def emit(o):
+    print(json.dumps(o), flush=True)
+emit({"type": "system", "subtype": "init", "model": "stub"})
+if "DIE" in query:
+    sys.exit(1)
+if "ERROR" in query:
+    emit({"type": "result", "subtype": "success", "is_error": True,
+          "result": "API Error: usage limit reached"})
+    sys.exit(1)
+if "TRIGGER" in query:
+    emit({"type": "assistant", "message": {"content": [
+        {"type": "tool_use", "name": "Skill", "input": {"skill": name}}]}})
+emit({"type": "result", "subtype": "success", "is_error": False})
+"""
+
+
+def selfcheck() -> int:
+    """Offline: a stub `claude` on PATH plays a trigger, a clean non-trigger,
+    an errored turn and a dead process. The last two must come out unmeasured."""
+    stub_dir = Path(tempfile.mkdtemp(prefix="sktrig-stub-"))
+    stub = stub_dir / "claude"
+    stub.write_text(FAKE_CLAUDE)
+    stub.chmod(0o755)
+    old_path = os.environ["PATH"]
+    os.environ["PATH"] = f"{stub_dir}{os.pathsep}{old_path}"
+    try:
+        items = [
+            {"query": "TRIGGER please", "should_trigger": True},
+            {"query": "plain question", "should_trigger": False},
+            {"query": "ERROR turn", "should_trigger": False},
+            {"query": "DIE early", "should_trigger": True},
+        ]
+        out = score_set(items, "stub-skill", "stub description", 2, 0.5, 30, 2, "stub")
+    finally:
+        os.environ["PATH"] = old_path
+        shutil.rmtree(stub_dir, ignore_errors=True)
+    by = {r["query"]: r for r in out["results"]}
+    assert by["TRIGGER please"]["trigger_rate"] == 1.0, by["TRIGGER please"]
+    assert by["TRIGGER please"]["pass"] is True
+    assert by["plain question"]["trigger_rate"] == 0.0, by["plain question"]
+    assert by["plain question"]["pass"] is True
+    for q in ("ERROR turn", "DIE early"):
+        # The planted failure: an errored or dead run is no measurement. Scored
+        # as 0.0 it passes the should-NOT-trigger query and fails the other.
+        assert by[q]["trigger_rate"] is None and by[q]["pass"] is None, by[q]
+        assert by[q]["errors"] == 2 and by[q]["measured"] == 0, by[q]
+    s = out["summary"]
+    assert (s["passed"], s["failed"], s["unmeasured"]) == (2, 0, 2), s
+    assert s["errors"] == 4 and s["complete"] is False, s
+    assert s["error_sample"], s
+    print("selfcheck: all assertions passed")
+    return 0
+
+
 def main():
+    if "--selfcheck" in sys.argv[1:]:
+        return selfcheck()
     p = argparse.ArgumentParser(description=(__doc__ or "").split("\n\n", 1)[0])
     p.add_argument("--skill-path", required=True)
     p.add_argument("--eval-set", required=True)
@@ -692,6 +781,22 @@ def main():
             "killed before completing. They are excluded from every rate rather "
             "than counted as non-triggers — raise --timeout and re-run to score "
             "on a full set.",
+            file=sys.stderr,
+        )
+    total_errors = sum(o["summary"].get("errors", 0) for o in all_out)
+    if total_errors:
+        sample = next(
+            (
+                o["summary"]["error_sample"]
+                for o in all_out
+                if o["summary"].get("error_sample")
+            ),
+            "",
+        )
+        print(
+            f"warn: {total_errors} run(s) ended in an error and are excluded from "
+            "every rate, never counted as non-triggers. Fix the cause and re-run "
+            f"to score on a full set. First error: {sample}",
             file=sys.stderr,
         )
     if pos_results and not any(r["triggers"] > 0 for r in pos_results):

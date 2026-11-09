@@ -256,7 +256,7 @@ Output is JSON: `train.summary` and `test.summary` each carry `{total, passed, f
 - **Default is `claude-sonnet-5`, pinned.** An inherited model makes a run unreproducible. Sonnet-vs-Opus agreement was measured only at n=3; treat as provisional.
 - **Pass `--model` explicitly** when the question is "does it fire on the model *I* run".
 - **Never vary model, `--effort`, or `--settings` inside one sweep** (each is a cache-prefix identity). Batch all calls of one identity together.
-- High variance on a borderline query is real — re-probe a lone Opus 0.00 before trusting it; a timed-out run also reads 0.0 (the `timeouts` field tells them apart).
+- High variance on a borderline query is real — re-probe a lone Opus 0.00 before trusting it. Timed-out and errored runs (API error, usage limit, dead `claude -p`) are excluded from the rate: read `measured` beside `timeouts` and `errors`, and re-probe a query whose `measured` fell below `runs`.
 
 ### Cost & time budget
 
