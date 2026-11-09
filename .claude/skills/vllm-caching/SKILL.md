@@ -33,7 +33,7 @@ Confirm the vLLM version before recommending any config.
 | `P2pNcclConnector` removed | **v0.24.0** (2026-06-29) | #44854. Migrate to NixlConnector or the `p2p` secondary tier. |
 | `p2p` secondary tier gets env-var defaults + hard `PYTHONHASHSEED` check | **v0.26.0** (2026-07-27) | #47636. `host`/`port` now default to `VLLM_P2P_SIDE_CHANNEL_HOST` (`localhost`) / `VLLM_P2P_SIDE_CHANNEL_PORT` (`5710`), not the old literal `7777`, and the tier raised at startup if `PYTHONHASHSEED` was unset — **lifted in v0.29.0** (#51875), which gives `NONE_HASH` a fixed default seed so cross-instance prefix sharing works unpinned. See `references/connectors.md`. |
 
-Latest stable: **v0.32.0** (2026-10-18). Confirm the deployed tag before recommending a config; per-tag evidence lives in `references/sources.md`.
+Latest stable: **v0.33.0** (2026-11-02). Its GitHub Release object hangs on the tag `v0.33.0rc3`, so `gh release view v0.33.0` 404s and `gh release list` shows an rc as latest — the `v0.33.0` git tag, PyPI `0.33.0` and the `vllm/vllm-openai:v0.33.0` image are the release. Confirm the deployed tag before recommending a config; per-tag evidence lives in `references/sources.md`.
 
 | Question | Answer at v0.32.0 | Action |
 |---|---|---|
