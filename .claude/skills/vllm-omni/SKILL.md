@@ -113,7 +113,8 @@ source .venv/bin/activate
 
 # CUDA 13.0 — vLLM and omni on the same minor (needs a CUDA 13 driver):
 uv pip install "vllm==0.32.0" "vllm-omni==0.32.0" --torch-backend=cu130
-# OR editable: git clone -b v0.32.0 https://github.com/vllm-project/vllm-omni && cd vllm-omni && uv pip install -e .
+# OR omni from source, after `uv pip install "vllm==0.32.0" --torch-backend=cu130`:
+#   git clone -b v0.32.0 https://github.com/vllm-project/vllm-omni && cd vllm-omni && uv pip install -e .
 
 # ROCm — validated prebuilt pair is still 0.30.0 (vLLM wheel is cp312-only):
 uv pip install vllm==0.30.0+rocm723 \
