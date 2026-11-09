@@ -162,6 +162,10 @@ Pinning `matryoshka_dimensions` explicitly avoids the whole ambiguity.
 - Text-only deployment: add `--limit-mm-per-prompt '{"image":0,"audio":0,"video":0}'` — unused modality encoders are not loaded (#60289).
 - MRL (the model card lists 128/256/512/768): on v0.32.0–v0.33.0 every request carrying `dimensions` fails with `does not support Matryoshka embeddings`. Add `--hf-overrides '{"matryoshka_dimensions":[128,256,512]}'`; for 768 omit `dimensions` (768 is the default width, but an explicit 768 is rejected as outside `[1, 512]`). Fixed upstream after v0.33.0 (#64885, #60978).
 
+### LFM2.5-Embedding (Liquid AI, v0.33.0+)
+
+- `LiquidAI/LFM2.5-Embedding-350M` (`Lfm2BidirectionalModel`, #62201): encoder-only attention, CLS pooling. `vllm serve LiquidAI/LFM2.5-Embedding-350M --runner pooling`.
+
 ## 5. Generative-model adaptation (`--convert embed`)
 
 For a `*ForCausalLM` that doesn't have its own pooling head, vLLM can adapt

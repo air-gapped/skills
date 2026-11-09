@@ -101,6 +101,7 @@ vector on retrieval tasks, at the cost of 10–100× storage per document.
 | `vidore/colpali-v1.3-hf` | **multimodal** (image + query) |
 | `ColQwen3`, `ColQwen3.5` | multimodal, Qwen3 base |
 | `ColModernVBertForRetrieval` | multimodal, ModernBERT base |
+| `athrael-soju/ColUltraVBERT` | v0.33.0+ (#62237), `ColUltraVBertForRetrieval`: multimodal, 768-d token vectors. Clients must send the trained prompts — page: `User:<image>Describe the image.<end_of_utterance>\nAssistant:` plus the image; query: the text followed by ten `<end_of_utterance>` |
 
 Serve: `vllm serve jinaai/jina-colbert-v2 --runner pooling --trust-remote-code`.
 Runner pick is auto for most; `--runner pooling` is the safe explicit form.
