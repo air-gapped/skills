@@ -7,8 +7,8 @@
   "claims": [
     {
       "id": 0,
-      "question": "How many `--quantization` flag values does vLLM v0.27.0 accept?",
-      "skill_answer": "31"
+      "question": "How many `--quantization` flag values does vLLM v0.33.0 accept?",
+      "skill_answer": "30"
     },
     {
       "id": 1,
@@ -33,7 +33,7 @@
     {
       "id": 5,
       "question": "In which vLLM version did `nvfp4` become a supported `--kv-cache-dtype` value?",
-      "skill_answer": "v0.25.0, via PR #42890"
+      "skill_answer": "v0.21.0, via PR #40177"
     },
     {
       "id": 6,
@@ -47,8 +47,8 @@
     },
     {
       "id": 8,
-      "question": "Which vLLM version introduced the online quantization redesign (`fp8_per_tensor`, `fp8_per_block`)?",
-      "skill_answer": "v0.14, via PR #37776"
+      "question": "Which vLLM version first accepted the online quantization shorthands (`fp8_per_tensor`, `fp8_per_block`)?",
+      "skill_answer": "v0.20.0, via PR #38138"
     },
     {
       "id": 9,
