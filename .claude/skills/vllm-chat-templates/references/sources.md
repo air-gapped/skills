@@ -22,6 +22,7 @@ Probed against `v0.32.0..v0.33.0` and the `v0.33.0` tag tree of `vllm-project/vl
 | `hf.py` and protocol anchors | `vllm/renderers/hf.py` | v0.33.0, 1511 lines | `resolve_chat_template` 306, `_detect_content_format` 579, `resolve_chat_template_content_format` 720, `_resolve_chat_template_kwargs` 768, `_get_hf_base_chat_template_params` 783, `resolve_chat_template_kwargs` 803 (reserved 811), `safe_apply_chat_template` 847-868 (raise 885), `_render_with_timeout` 1080. `ChatMessage.reasoning` `chat_completion/protocol.py:86`, exclusion check :1063; `DeltaMessage.reasoning` `generate/base/protocol.py:359`; `VLLM_CHAT_TEMPLATE_RENDER_TIMEOUT` `envs.py:818`; Responses gate `responses/serving.py:343`; `--enable-log-requests` `arg_utils.py:3260`, `--log-level` :1657; `get_tokenizer` `tokenizers/registry.py:208`; `docker/Dockerfile` WORKDIR `/vllm-workspace` 754, `COPY examples examples` 1050, nonroot WORKDIR `/home/vllm` 1364; reranker template names `pooling/scoring/io_processor.py:483-485`; `basic_parsers.py` `extract_reasoning` 153 and `offline.py` `_preprocess_chat` 160 unchanged from v0.32.0. |
 | vLLM PR #61983 | https://github.com/vllm-project/vllm/pull/61983 | commit `53172fa72e`, first in v0.33.0 | `requirements/common.txt` at v0.33.0: `transformers >= 5.16.1, < 5.21.0` (v0.32.0 `< 5.20.0`), `tokenizers >= 0.23.2` and `oss-harmony >= 0.0.11` unchanged. huggingface/transformers advisories re-read 2026-11-09: none published after 2026-09-01, none patched above 5.15.0; latest transformers release v5.22.2 (2026-11-06) is above the v0.33.0 cap. |
 | Fallback registry | `vllm/transformers_utils/chat_templates/registry.py` | v0.33.0 | 15 model types; `minicpm_ocr` added by #63095 (commit `18343393b4`, MiniCPM-OCR 1.0), mapped to the MiniCPM-V fallback function; 7 `.jinja` files unchanged. |
+| Counts at v0.33.0 | `examples/`, `vllm/reasoning/__init__.py` | v0.33.0 | `git ls-tree` gives 27 `tool_chat_template_*.jinja` at v0.28.0, v0.29.0, v0.30.0, v0.31.0, v0.32.0 and v0.33.0; `git diff v0.28.0 v0.33.0` over those files is empty. Reasoning-parser registry: 42 names (38 at v0.32.0) — `beam`, `muse`, `musespark1x` and `step5` added. |
 
 ## 2026-10-18 — v0.31.0 / v0.32.0 freshen
 
@@ -108,6 +109,6 @@ Other: modelscope/ms-swift #5836 OPEN; MoonshotAI/Kimi-K2 #41 OPEN; vLLM blog Ki
 - `vllm/entrypoints/common/cli_args.py` — startup `validate_chat_template()` call (was `vllm/entrypoints/launchers/cli_args.py` at v0.32.0)
 - `vllm/entrypoints/openai/chat_completion/serving.py` — parser instantiation (the old `serving_chat.py` path is gone)
 - `vllm/entrypoints/common/offline.py` — `LLM._preprocess_chat()` (was `vllm/entrypoints/offline_utils.py` at v0.30.0)
-- `vllm/reasoning/__init__.py` — registered reasoning parsers (38 names)
+- `vllm/reasoning/__init__.py` — registered reasoning parsers (42 names)
 - `vllm/transformers_utils/chat_templates/registry.py` — bundled fallback lookup
 - `examples/tool_chat_template_*.jinja` (27 files)

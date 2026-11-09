@@ -1,7 +1,7 @@
 ---
 name: vllm-chat-templates
 description: |-
-  vLLM chat-template (prompt-side Jinja) operator reference. Template resolution precedence (`--chat-template` → AutoProcessor → tokenizer default → bundled fallback), `chat_template_kwargs` allowlist silently dropping `add_generation_prompt`/`enable_thinking`/custom kwargs (PR 27622 fix), 27 shipped `tool_chat_template_*.jinja` files, known template-layer bugs for Qwen3/Qwen3-Coder, DeepSeek-R1/V3/V3.1/V3.2, GPT-OSS, Kimi-K2, Llama-4, Mistral (HF vs mistral mode), Gemma-3/4, Phi-4, GLM. Prompt side only — output parsing lives in sibling skills.
+  vLLM chat-template (prompt-side Jinja) operator reference. Template resolution precedence (`--chat-template` → AutoProcessor → tokenizer default → bundled fallback), `chat_template_kwargs` allowlist silently dropping `add_generation_prompt`/`enable_thinking`/custom kwargs (PR 27622 fix), 27 shipped `tool_chat_template_*.jinja` files (v0.33.0), known template-layer bugs for Qwen3/Qwen3-Coder, DeepSeek-R1/V3/V3.1/V3.2, GPT-OSS, Kimi-K2, Llama-4, Mistral (HF vs mistral mode), Gemma-3/4, Phi-4, GLM. Prompt side only — output parsing lives in sibling skills.
 when_to_use: |-
   Trigger on "chat template broken", "chat template no effect", "--chat-template ignored", "jinja template error vllm", "apply_chat_template error", "ChatTemplateResolutionError", "tool_chat_template", "which tool_chat_template", "chat_template_kwargs not respected", "add_generation_prompt dropped", "enable_thinking ignored", "continue_final_message", "--chat-template-content-format auto", "tokenizer-mode mistral silent", "harmony format gpt-oss template", "template resolution order", "AutoProcessor chat template skipped when tools", "prompt doesn't match model card", "/v1/chat/completions vs /v1/responses template". TGI/SGLang/TensorRT-LLM-to-vLLM migration where Jinja differs. Also implicit — "audit chat template for {model}", "deploy-memo prompt format", "why does model emit wrong prompt", "jinja check". NOT for output parsing (→ `vllm-reasoning-parsers` / `vllm-tool-parsers`), NOT for KV caching (→ `vllm-caching`).
 ---
@@ -184,10 +184,10 @@ Grep the symbol; line anchors per release are in `references/sources.md`.
 - `vllm/exceptions.py` — `ChatTemplateResolutionError` (v0.33.0; defined in `chat_utils.py` before).
 - `vllm/renderers/hf.py` — `resolve_chat_template()` (precedence), `safe_apply_chat_template()` (error surface), `resolve_chat_template_kwargs()` (allowlist), `resolve_chat_template_content_format()`, `_render_with_timeout()` (`VLLM_CHAT_TEMPLATE_RENDER_TIMEOUT`).
 - `vllm/renderers/params.py` — `ChatParams` dataclass.
-- `vllm/reasoning/__init__.py` — registered reasoning parsers (38 names at v0.32.0).
+- `vllm/reasoning/__init__.py` — registered reasoning parsers (42 names at v0.33.0).
 - `vllm/transformers_utils/chat_templates/registry.py` — `_MODEL_TYPE_TO_CHAT_TEMPLATE_FALLBACK`, `get_chat_template_fallback_path()`.
 - `vllm/entrypoints/openai/chat_completion/serving.py` — parser instantiation (`serving_chat.py` no longer exists).
-- `examples/tool_chat_template_*.jinja` (**27** files at v0.30.0–v0.32.0) — ready-made tool templates per model family.
+- `examples/tool_chat_template_*.jinja` (**27** files, unchanged v0.28.0–v0.33.0) — ready-made tool templates per model family.
 
 ## Per-family deep-dive
 

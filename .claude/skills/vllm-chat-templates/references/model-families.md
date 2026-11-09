@@ -350,7 +350,7 @@ Pair each with the matching `--tool-call-parser`. If unsure, check the vLLM docs
 
 ## Complete list of shipped tool templates
 
-27 files in `examples/` at v0.30.0–v0.32.0 (`tool_chat_template_` prefix omitted after the first). `minimax_m1.jinja` was removed in v0.24.0 with the MiniMax-Text-01/VL-01 models (#45993) — do not point `--chat-template` at it.
+27 files in `examples/`, unchanged v0.28.0–v0.33.0 (`tool_chat_template_` prefix omitted after the first). `minimax_m1.jinja` was removed in v0.24.0 with the MiniMax-Text-01/VL-01 models (#45993) — do not point `--chat-template` at it.
 
 **JSON-based:** `tool_chat_template_llama3.1_json.jinja`, `llama3.2_json.jinja`, `llama4_json.jinja`, `deepseekv3.jinja`, `deepseekv31.jinja`, `deepseekr1.jinja`, `mistral.jinja`, `mistral3.jinja`, `glm4.jinja`, `gemma4.jinja`
 
