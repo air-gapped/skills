@@ -74,6 +74,10 @@ unmeasured cap of 8 standing. The fix for an unresolved delta is more cases
 Usage:
     eval-evidence.py <TARGET DIR>
     eval-evidence.py <TARGET DIR> --json
+    eval-evidence.py --selfcheck
+
+Exit: 0 evidence read; 1 a file under evals/ did not parse (its measurements
+are missing); 2 the target is not a skill directory.
 """
 
 from __future__ import annotations
@@ -250,10 +254,20 @@ def cap_for(
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Blind-safe eval evidence extract.")
-    ap.add_argument("target", type=Path, help="skill directory")
+    ap.add_argument("target", type=Path, nargs="?", help="skill directory")
     ap.add_argument("--json", action="store_true", dest="as_json")
+    ap.add_argument("--selfcheck", action="store_true")
     args = ap.parse_args()
+    if args.selfcheck:
+        return selfcheck()
+    if args.target is None:
+        ap.error("target is required")
+    if not (args.target / "SKILL.md").is_file():
+        # A mistyped path has no evals/ either; that is not "no eval set".
+        print(f"not a skill directory (no SKILL.md): {args.target}", file=sys.stderr)
+        return 2
 
+    unreadable: list[str] = []
     evals_dir = args.target / "evals"
     if not evals_dir.is_dir():
         out = {
@@ -265,6 +279,8 @@ def main() -> int:
         }
     else:
         cases, source = count_cases(evals_dir)
+        if "unparseable" in source:
+            unreadable.append(source.split(" ")[0])
         deltas: list[tuple[str, float]] = []
         stored: list[tuple[str, float]] = []
         incomplete: list[str] = []
@@ -274,6 +290,8 @@ def main() -> int:
             try:
                 data = json.loads(path.read_text())
             except (json.JSONDecodeError, UnicodeDecodeError):
+                # A truncated benchmark is a lost measurement, not an absent one.
+                unreadable.append(path.name)
                 continue
             for where, with_rate, without_rate in find_arms(data):
                 if with_rate is None or without_rate is None:
@@ -301,9 +319,10 @@ def main() -> int:
             "cap_reason": reason,
         }
 
+    out["unreadable"] = unreadable
     if args.as_json:
         print(json.dumps(out, indent=2))
-        return 0
+        return 1 if unreadable else 0
 
     print(f"eval evidence for {args.target}")
     if not out["has_evals"]:
@@ -335,10 +354,56 @@ def main() -> int:
                     f"    MISMATCH — stored {s['value']:+.4f} at {s['path']} "
                     "does not match any derived delta; trust the arms"
                 )
+    for name in unreadable:
+        print(
+            f"    UNREADABLE — evals/{name} does not parse; whatever it measured "
+            "is missing from the lines above and from the cap below"
+        )
     print(f"  Dim 10 cap: {out['dim10_cap']}  — {out['cap_reason']}")
     print("\nThis is the ONLY evidence from evals/ a blind scorer may use. Do not")
     print("open the directory: it also holds prior scores, keep/discard records,")
     print("and regression verdicts, which un-blind the pass.")
+    return 1 if unreadable else 0
+
+
+def selfcheck() -> int:
+    """Offline. Runs this script on planted skill directories."""
+    import subprocess
+    import tempfile
+
+    def run(target: Path) -> tuple[int, str]:
+        p = subprocess.run(
+            [sys.executable, __file__, str(target)], capture_output=True, text=True
+        )
+        return p.returncode, p.stdout + p.stderr
+
+    root = Path(tempfile.mkdtemp(prefix="eval-evidence-"))
+    rc, text = run(root / "no-such-skill")
+    assert rc == 2 and "no SKILL.md" in text, (rc, text)
+
+    skill = root / "ok"
+    (skill / "evals").mkdir(parents=True)
+    (skill / "SKILL.md").write_text("---\nname: ok\n---\n")
+    rc, text = run(root / "ok" / "evals")  # a directory, but not a skill
+    assert rc == 2, (rc, text)
+    (skill / "evals" / "evals.json").write_text(json.dumps({"evals": [{}] * 10}))
+    bench = skill / "evals" / "benchmark.json"
+    arms = {"with_skill": {"pass_rate": {"mean": 0.9}}}
+    arms["without_skill"] = {"pass_rate": {"mean": 0.5}}
+    bench.write_text(json.dumps({"run_summary": arms}))
+    rc, text = run(skill)
+    assert rc == 0 and "+0.4000" in text and "Dim 10 cap: 10" in text, (rc, text)
+
+    # One arm absent: no delta, never a flattering one.
+    bench.write_text(json.dumps({"run_summary": {**arms, "without_skill": {}}}))
+    rc, text = run(skill)
+    assert rc == 0 and "INCOMPLETE" in text and "Dim 10 cap: 8" in text, (rc, text)
+
+    # The plant: a truncated benchmark must not read as "nothing measured".
+    bench.write_text('{"run_summary": {"with_skill"')
+    rc, text = run(skill)
+    assert rc == 1 and "UNREADABLE — evals/benchmark.json" in text, (rc, text)
+    print("selfcheck: all assertions passed")
     return 0
 
 

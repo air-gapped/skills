@@ -147,6 +147,11 @@ def short_refs(text):
 def scan(roots):
     lines, refs, bare = [], set(), 0
     for root in roots:
+        if not Path(root).is_dir():
+            # A mistyped path holds no citations; that is not a clean tree.
+            print(f"not a directory: {root}", file=sys.stderr)
+            return 2
+    for root in roots:
         for f in sorted(Path(root).rglob("*.md")):
             for ln, text in enumerate(
                 f.read_text(encoding="utf-8", errors="replace").splitlines(), 1
@@ -289,6 +294,10 @@ def selfcheck():
     }
     assert not short_refs("https://" + "github.com/o/r/issues/7#issuecomment-1")
     assert RE_BARE.findall("#30760 is open; color &#123; a/b#9; [#77](u)") == ["30760"]
+
+    # --- a path that is not a directory is an error, never "no citations" ---
+    assert scan([str(Path(__file__).parent / "no-such-dir")]) == 2
+    assert scan([__file__]) == 2
 
     print("selfcheck OK — 6 real defects caught, 4 deliberate phrasings exempt")
     return 0

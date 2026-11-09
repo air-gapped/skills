@@ -295,6 +295,14 @@ def main():
     cap_rank = {"5": 0, "6": 1, "7": 2, "-": 3}
     rows.sort(key=lambda r: (cap_rank[r["cap"]], r["oldest"] or "9999", r["skill"]))
 
+    if not rows:
+        # An empty table reads as "nothing is stale". A mistyped root or a glob
+        # that matches no skill is an error, not an empty fleet.
+        sys.exit(
+            f"No skill matched {positional or [str(r) for r in roots]}: a "
+            "non-directory argument is a name glob over the default roots."
+        )
+
     if as_json:
         json.dump(rows, sys.stdout, indent=1)
         print()
