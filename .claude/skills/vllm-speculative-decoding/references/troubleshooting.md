@@ -111,6 +111,7 @@ Map symptom → likely cause:
 | n-gram drafting on a hybrid recurrent-state target (GDN / Mamba2 / KDA layers): some requests return wrong tokens at temperature 0, no error | Present through v0.31.x; fixed v0.32.0 (#56531) | Upgrade to ≥ v0.32.0 |
 | `draft_model` + `use_heterogeneous_vocab: true` dies with a device-side assert | v0.31.x put TLI on MRV2, which has no vocab mapping; fixed v0.32.0 (#59541) | Upgrade, or `VLLM_USE_V2_MODEL_RUNNER=0` |
 | `method: "medusa"` / `"mlp_speculator"`, or a Medusa / MLP-speculator draft checkpoint, rejected by config validation | v0.33.0 removed both methods (#61701) | Retrain as EAGLE-3, or pin ≤ v0.32.x |
+| After upgrading to v0.33.0 the served `max_model_len` is lower than configured, with a warning naming the draft | MRV2 now lowers it to the drafter's limit when the drafter's rotary cache cannot be extended (`draft_model`, or RoPE types other than default / linear / llama3 / ntk / proportional) (#63251) | Use a drafter trained for the target's context, or accept the lower limit — on ≤ v0.32.x the same setup crashed |
 | Pipeline-parallel spec-dec broken | PP + spec-dec only on MRV2 (v0.17+ #33960). If on V1 engine runner, PP disables spec-dec | Switch to MRV2 or disable PP |
 
 ## Interpreting engine log lines

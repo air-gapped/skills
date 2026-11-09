@@ -168,6 +168,7 @@ Floors that change what to deploy today:
 | < v0.31.0 | P/D (KV connector) deployment with MTP stalls under KV pressure (#57104) | Upgrade to ≥ v0.31.0 |
 | v0.31.x | `use_heterogeneous_vocab: true` (TLI) device-side assert at startup | Upgrade to v0.32.0, or set `VLLM_USE_V2_MODEL_RUNNER=0` |
 | < v0.32.0 | `ngram` / `ngram_gpu` on a hybrid recurrent-state target (GDN, Mamba2 or KDA layers) silently corrupts output — wrong tokens at temperature 0, no error (#56531) | Upgrade to ≥ v0.32.0; until then use no n-gram drafting on those targets |
+| < v0.33.0 | Drafter published for a shorter context than the target is served with (`dflash`, `dspark`, `mtp`, `draft_model` on MRV2): engine dies with `CUDA error: an illegal memory access` on the first request past the drafter's limit | Upgrade to v0.33.0, or cap `--max-model-len` at the drafter's `max_position_embeddings` |
 | v0.32.x | `method: "ngram"` silently runs with async scheduling off (log: *"Async scheduling not supported with ngram-based speculative decoding and will be disabled"*) | Use `ngram_gpu`, or upgrade to v0.33.0 |
 | ≥ v0.33.0 | Serving a Speculators checkpoint directly fails when its metadata names a local verifier (#61587) | Serve the verifier as the model and pass the checkpoint in `--speculative-config` (§Air-gapped operation) |
 | ≥ v0.33.0 | `method: "medusa"` / `"mlp_speculator"`, or a Medusa / MLP-speculator draft checkpoint, fails config validation | Move the deployment to `eagle3` before upgrading |

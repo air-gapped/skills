@@ -50,6 +50,7 @@ build older than a row that applies, upgrade before benchmarking or debugging.
 | Quantized draft `lm_head` (#59973) | **v0.33.0** | `draft_lm_head_quantization: "fp8" \| "nvfp4"` for `eagle` / `eagle3` / `mtp` on MRV2; decode gain at low concurrency, acceptance length is the only thing that can change |
 | Prefix-cache hits keep their last block under spec-dec: lookahead block hashes for `eagle`/`eagle3`/`mtp` (#61589), no drop for `dflash`/`dspark` (#54163) | **v0.33.0** | Before: one cache unit lost per hit (full-context recompute on hybrid Mamba targets with DFlash/DSpark). Lookahead hashes change block hashes — off with any KV connector, or via `disable_lookahead_block_hashes: true` |
 | Async scheduling kept for `ngram` (and `disable_padded_drafter_batch`) on MRV2 (#62521) | **v0.33.0** | v0.32.x moved `ngram` to MRV2 but still forced async scheduling off for it; the fallbacks are now V1-runner-only |
+| Drafters kept inside their rotary cache on MRV2 (#63251) | **v0.33.0** | Fixes the illegal-memory-access crash when a `dflash` / `dspark` / `mtp` / `draft_model` drafter has a shorter context than the target: the drafter's `max_position_embeddings` is raised where its RoPE type allows, otherwise the engine `max_model_len` is lowered to the drafter's with a warning |
 
 ## Composability history
 
