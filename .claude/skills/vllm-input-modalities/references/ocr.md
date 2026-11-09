@@ -161,6 +161,14 @@ templates.
    Unlimited-OCR, below v0.32.0).** A normalized pixel tensor summing to
    exactly zero was treated as "no image" and tripped the encoder-output
    check (#59417). Upgrade to ≥v0.32.0 for any public-facing OCR endpoint.
+7. **Startup fails with `triton.compiler.errors.CompilationError … Cannot
+   access global variable LOG2E from within @jit'ed function`, then `Engine
+   core initialization failed`** (DeepSeek-OCR, DeepSeek-OCR-2, Unlimited-OCR —
+   the shared DeepEncoder attention kernel). Reported on v0.32.0; the kernel
+   code is identical in v0.30.0–v0.33.0 and the upstream issue (#62848) is
+   open. Set `TRITON_ALLOW_NON_CONSTEXPR_GLOBALS=1` in the server environment.
+   No attention backend and no `--enforce-eager` avoids it — the failing
+   kernel is the vision encoder's.
 
 ## 7. Pairing OCR + a language model
 
