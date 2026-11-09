@@ -327,6 +327,12 @@ toolkit's own ptxas. Documented in `docs/usage/troubleshooting.md`.
 - Scale-out pattern: **large DP/EP engine + NixlConnector/Mooncake for cross-node
   P/D disagg**, not a single 72-way TP. EPLB (Expert Parallel Load Balancer) matured
   v0.11–v0.19; Elastic EP (dynamic scale up/down) in v0.19 (#37131).
+- **Multi-node `--all2all-backend deepep_v2` on the `vllm/vllm-openai` v0.32.0 and
+  v0.33.0 images dies at startup**: log `Failed to get RDMA connection speed: [Errno 2] No such file
+  or directory: 'ibstat'`, then `ZeroDivisionError` in `get_theoretical_num_sms`
+  (#62677, open). DeepEP reads the RDMA rate from `ibstat` for the HCA named by
+  `EP_NIC_NAME` (default `mlx5_0`); the image ships no `ibstat`. Fix: build a derived
+  image with `infiniband-diags` and set `EP_NIC_NAME` to the fabric HCA.
 - **PCP/DCP (Prefill/Decode Context Parallel)** + **DBO (Dual-Batch Overlap)**
   framework being built out; see `docs/serving/expert_parallel_deployment.md`.
 
