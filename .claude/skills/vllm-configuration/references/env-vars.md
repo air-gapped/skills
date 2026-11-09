@@ -114,9 +114,13 @@ out of FlashInfer all-reduce.
 | `VLLM_SERVER_DEV_MODE` | `0` | Enables dev-only endpoints (`/reset_prefix_cache`, etc.). **Never set in production.** |
 | `VLLM_ALLOW_RUNTIME_LORA_UPDATING` | `0` | Allows runtime `load_lora_adapter` via admin endpoint |
 | `VLLM_CHAT_TEMPLATE_RENDER_TIMEOUT` | `30.0` (s) | v0.32.0+: chat-template render timeout (#50300 — template DoS fix); raise only for templates that legitimately render slowly |
+| `VLLM_MAX_MEDIA_REQUEST_DOWNLOAD_SIZE_MB` | `256` | v0.33.0+: total remote media bytes one request may download, retries included. Over budget → request rejected, error names the variable. `0` disables |
+| `VLLM_MAX_MEDIA_REQUEST_DECODE_BYTES` | `715827880` (~683 MiB) | v0.33.0+: aggregate decoded image / video-frame / audio bytes per request (images charged 4 bytes per pixel). `0` disables. Raise both for legitimate many-image or long-video requests; they close GHSA-5r3c-5x4v-8gjh (HIGH, `>= 0.6.0, < 0.33.0`) |
 | `VLLM_USE_RUST_FRONTEND` | `0` | Serve the OpenAI-compat API from the `vllm-rs` binary instead of the Python API-server process(es) |
 | `VLLM_USE_RUST_BENCH` | `0` | Opt in to the Rust `vllm bench serve` client; Python remains the default |
 | `VLLM_RUST_FRONTEND_PATH` | `auto` | Path to the `vllm-rs` binary. `auto` looks for it next to the installed `vllm` package |
+| `VLLM_HTTP_MAX_REQUEST_BODY_SIZE` | `33554432` (32 MiB) | v0.33.0+, **Rust frontend only**: largest accepted request body in bytes; `0` removes the limit. The Python frontend enforces none |
+| `VLLM_CHAT_TEMPLATE_FUEL` | `500000` | v0.33.0+, **Rust frontend only**: instruction budget for a request-supplied chat template (`--trust-request-chat-template`); `0` disables. The server's own template is unlimited |
 
 **The Rust frontend is opt-in and fails loudly, in two different directions.**
 Setting `VLLM_RUST_FRONTEND_PATH` *without* also setting `VLLM_USE_RUST_FRONTEND=1`
@@ -172,6 +176,7 @@ Belt-and-braces: set **both** `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1`,
 | `VLLM_LOGGING_STREAM` | `ext://sys.stdout` | Target stream |
 | `VLLM_LOGGING_CONFIG_PATH` | unset | Path to a JSON `dictConfig`; v0.31.0+ default for `--logging-config.pylogging_config_file` |
 | `VLLM_CONFIGURE_LOGGING` | `1` | Set `0` if the embedding host app owns logging config; v0.31.0+ default for `--logging-config.configure_logging` |
+| `VLLM_REQUEST_BODY_LOG_LEVEL` | `DEBUG` | v0.33.0+: level at which `--enable-log-requests` logs the request JSON body; an invalid level name disables body logging with one warning |
 | `VLLM_LOG_STATS_INTERVAL` | `10.0` (s) | Perf-stats cadence; `-1` to disable |
 | `VLLM_TRACE_FUNCTION` | `0` | Function-level tracing; very noisy, use only when debugging |
 
