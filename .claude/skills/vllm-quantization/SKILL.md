@@ -247,11 +247,14 @@ method still owns its already-quantized layers
 vllm serve amd/Qwen3.5-35B-A3B-MXFP4 --quantization-config.linear mxfp8
 ```
 
-**v0.32.0 can re-quantize already-quantized linear layers** at load time
-(dequantize, then apply the online target) — linear only, and only from a
-serialized ModelOpt MXFP8 source; other pairs raise
-([#55684](https://github.com/vllm-project/vllm/pull/55684)):
-`vllm serve <mxfp8-ckpt> --quantization-config.linear fp8_per_channel`.
+**Re-quantizing already-quantized layers at load time** (dequantize, then
+apply the online target) works for exactly these sources; other pairs raise:
+
+| Source layer | Since | Example |
+|---|---|---|
+| Serialized ModelOpt MXFP8 linear | v0.32.0 ([#55684](https://github.com/vllm-project/vllm/pull/55684)) | `--quantization-config.linear fp8_per_channel` |
+| Serialized NVFP4 MoE — compressed-tensors, ModelOpt or Quark | v0.33.0 ([#60276](https://github.com/vllm-project/vllm/pull/60276)) | `--quantization-config '{"targets":{"*mlp.experts*":"mxfp4"}}'` |
+
 Checkpoint exclusions are not honored here — exclude via `targets` / `ignore`.
 
 v0.31.0 removed Quark's silent online MXFP4 quantization
