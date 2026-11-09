@@ -2,9 +2,9 @@
 name: vllm-benchmarking
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
 description: |-
-  Run production vLLM benchmarks — `vllm bench` (serve, throughput, latency, sweep, startup, mm-processor), request-rate vs max-concurrency semantics, TTFT/TPOT/ITL/E2EL percentiles, goodput SLO measurement, prefix-cache workloads, air-gapped operation (HF_ENDPOINT, ModelScope, hf-mirror, offline cache). Methodology split — SLO health checks vs A/B change sweeps — plus pitfalls that produce misleading numbers (no warmup, wrong tokenizer, random-as-prod, `--request-rate inf` alone).
+  Run production vLLM benchmarks — `vllm bench` (serve, throughput, latency, sweep, startup, mm-processor, forward), request-rate vs max-concurrency semantics, TTFT/TPOT/ITL/E2EL percentiles, goodput SLO measurement, prefix-cache workloads, air-gapped operation (HF_ENDPOINT, ModelScope, hf-mirror, offline cache). Methodology split — SLO health checks vs A/B change sweeps — plus pitfalls that produce misleading numbers (no warmup, wrong tokenizer, random-as-prod, `--request-rate inf` alone).
 when_to_use: |-
-  Trigger on "vllm bench", "benchmark vllm", "load test vllm", "measure TTFT", "measure TPOT", "ITL", "P99 latency", "throughput test", "request rate sweep", "max-concurrency", "goodput", "bench serve", "bench throughput", "bench latency", "SLO test", "sharegpt dataset", "burstgpt", "vllm perf numbers", "compare two vllm configs", "tune request rate", "prove SLO", "prefix cache benchmark", "disagg benchmark". Also air-gapped benchmarking (HF_ENDPOINT, hf-mirror, ModelScope, HF_HUB_OFFLINE, pre-seeded cache). Also implicit contexts — "bench model X", "perf numbers for {model}", "audit benchmark", "deploy-memo perf", "spec-study performance" — any time producing defensible numbers or comparing two deployments. NOT for picking the knob that fixes a slow number (scheduler, MoE kernels, CUDA graphs, parallelism → `vllm-performance-tuning`; KV tiering → `vllm-caching`) or for benchmarking non-vLLM servers (→ `aiperf`).
+  Trigger on "vllm bench", "benchmark vllm", "load test vllm", "measure TTFT", "measure TPOT", "ITL", "P99 latency", "throughput test", "request rate sweep", "max-concurrency", "goodput", "bench serve", "bench throughput", "bench latency", "bench forward", "SLO test", "sharegpt dataset", "burstgpt", "vllm perf numbers", "compare two vllm configs", "tune request rate", "prove SLO", "prefix cache benchmark", "disagg benchmark". Also air-gapped benchmarking (HF_ENDPOINT, hf-mirror, ModelScope, HF_HUB_OFFLINE, pre-seeded cache). Also implicit contexts — "bench model X", "perf numbers for {model}", "audit benchmark", "deploy-memo perf", "spec-study performance" — any time producing defensible numbers or comparing two deployments. NOT for picking the knob that fixes a slow number (scheduler, MoE kernels, CUDA graphs, parallelism → `vllm-performance-tuning`; KV tiering → `vllm-caching`) or for benchmarking non-vLLM servers (→ `aiperf`).
 ---
 
 # vLLM benchmarking
@@ -41,8 +41,9 @@ pitfalls** below:
 | "Find best config under SLO" | `vllm bench sweep` | Parameter sweep + auto-tune. Finds max throughput subject to P99 < X ms. |
 | "Cold-start / container boot latency" | `vllm bench startup` | Time from process launch to first-token-ready. |
 | "Multimodal processor overhead" | `vllm bench mm-processor` | Image/video preprocessing cost before decode. |
+| "Forward time of one exact batch shape" (v0.33.0+) | `vllm bench forward` | Model forward as a CUDA graph. No server, scheduler, or sampling — a kernel/parallelism A/B, never a serving number. |
 
-Most production questions route to `vllm bench serve`. Reach for the others only when the question is specifically kernel-level (latency), offline-batch (throughput), or SLO auto-tuning (sweep).
+Most production questions route to `vllm bench serve`. Reach for the others only when the question is specifically kernel-level (latency, forward), offline-batch (throughput), or SLO auto-tuning (sweep).
 
 ## The two methodologies operators actually need
 

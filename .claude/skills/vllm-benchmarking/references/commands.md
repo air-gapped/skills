@@ -1,6 +1,6 @@
 # `vllm bench` command reference
 
-Load when configuring or debugging a specific bench subcommand. Covers flags, defaults, and gotchas for each of the six subcommands.
+Load when configuring or debugging a specific bench subcommand. Covers flags, defaults, and gotchas for each of the seven subcommands.
 
 ## Table of contents
 - [`vllm bench serve`](#vllm-bench-serve)
@@ -9,12 +9,13 @@ Load when configuring or debugging a specific bench subcommand. Covers flags, de
 - [`vllm bench sweep`](#vllm-bench-sweep)
 - [`vllm bench startup`](#vllm-bench-startup)
 - [`vllm bench mm-processor`](#vllm-bench-mm-processor)
+- [`vllm bench forward`](#vllm-bench-forward)
 
 ## `vllm bench serve`
 
 HTTP-level online serving benchmark. The one operators use most.
 
-**Which implementation runs (v0.27.0+).** A native Rust port of the benchmark client shipped in the `vllm-rs` binary (#48107, #48930), but **the Python implementation is still the default** — #50081 made Rust delegation opt-in after the two diverged on accepted arguments, underscore aliases, defaults, and help output (Python accepts `--result_filename`; Rust only `--result-filename`). Set `VLLM_USE_RUST_BENCH=1` to opt in; `vllm bench serve` then `execv`s the `vllm-rs` binary resolved from `VLLM_RUST_FRONTEND_PATH` (default `auto` = the binary packaged with vllm). Only `bench serve` delegates — the other five subcommands are Python either way. Treat the switch as a **re-baseline trigger**: do not compare Rust-client numbers against Python-client numbers in the same series.
+**Which implementation runs (v0.27.0+).** A native Rust port of the benchmark client shipped in the `vllm-rs` binary (#48107, #48930), but **the Python implementation is still the default** — #50081 made Rust delegation opt-in after the two diverged on accepted arguments, underscore aliases, defaults, and help output (Python accepts `--result_filename`; Rust only `--result-filename`). Set `VLLM_USE_RUST_BENCH=1` to opt in; `vllm bench serve` then `execv`s the `vllm-rs` binary resolved from `VLLM_RUST_FRONTEND_PATH` (default `auto` = the binary packaged with vllm). Only `bench serve` delegates — the other subcommands are Python either way. Treat the switch as a **re-baseline trigger**: do not compare Rust-client numbers against Python-client numbers in the same series.
 
 **Connection:**
 - `--base-url <url>` — full URL to the vLLM server. Overrides host/port.
@@ -98,3 +99,13 @@ Measures time from process launch to first-token-ready. Relevant for cold-start 
 ## `vllm bench mm-processor`
 
 Multimodal preprocessing latency (image/video/audio encoding before decode starts). Dataset-driven. Counts MM tokens per worker separately and aggregates max latency across workers.
+
+## `vllm bench forward`
+
+v0.33.0+. Times the model forward of an exact batch shape, captured as a one-shot CUDA graph. No server, no scheduler; sampling and CPU step overhead are not measured. CUDA only. Use it for a kernel, attention-backend or parallelism A/B at a fixed shape — never report it as a serving number.
+
+- `--case NAME=REQS` (repeatable) — `REQS` is a comma list of `[N*]Q[@K][c][:D]`: `N` requests, query length `Q`, KV length `K` including the query (default `Q`), `c` = chunked prefill (otherwise the prefix counts as a prefix-cache hit), `D` draft tokens. Examples: `decode=32*1@8192`, `prefill=8192`, `mix=8192,32*1@8192`, `verify=16*4@4096:3`. `--shapes <file>` reads cases from JSON or YAML.
+- Defaults: `--load-format dummy` (no real weights; MoE routing is then synthetic and balanced — load real weights when timing a MoE drafter), `--kv-len-jitter 0.5` (prefix lengths vary ±50%; `0` keeps exact lengths), `--iters 20 --samples 5`.
+- Multi-GPU (DP/TP/EP/PCP/PP): `torchrun --nproc-per-node=N -m vllm.entrypoints.cli.main bench forward ...`, one process per GPU. Reported latency is the maximum across ranks.
+- `--speculative-config` adds the drafter (MTP, EAGLE, DSpark, DFlash) to the timing, assuming every draft token is accepted; `--exclude-drafter` times the target only.
+- `--output-json <file>` — per-case `median_us`. Rerun any case that logs `unstable timing` (sample medians spread > 0.5%). `--profile-dir DIR` writes a Perfetto trace and per-kernel GPU time for each case; compare two runs with `python -m vllm.benchmarks.forward.profile A.kernels.json B.kernels.json`.
