@@ -69,6 +69,7 @@ commit body, not here.
 |---|---|
 | Fixed item | one line |
 | Pass summary | one line — date, blind baseline → final, comparator verdict, commit |
+| Kept iteration that made two changes | one line that says so — its score delta belongs to neither change (`confounded`), so the next pass re-tests each alone |
 | Discard ("tried X, rejected because Y") | in full — it is the re-proposal guard |
 
 Shape to copy:
