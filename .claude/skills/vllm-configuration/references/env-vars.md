@@ -49,7 +49,7 @@ only spelling every one of them accepts.
 | `VLLM_PORT` | unset (auto) | **Internal** base port; each worker takes an incremented port | Port conflicts / firewall rules |
 | `VLLM_ENGINE_READY_TIMEOUT_S` | `600` | Max time to wait for engine startup | Large models (70B+) on slow storage |
 | `VLLM_HTTP_TIMEOUT_KEEP_ALIVE` | `5` (s) | API server keep-alive | Tuning |
-| `VLLM_WORKER_MULTIPROC_METHOD` | `fork` | `fork` or `spawn` | Windows/macOS, Ray-controlled containers |
+| `VLLM_WORKER_MULTIPROC_METHOD` | `fork` as a library; the `vllm` CLI sets `spawn` when unset | `fork` or `spawn` | Forcing `fork` under `vllm serve`, or `spawn` when embedding vLLM |
 
 **Critical:** `VLLM_HOST_IP` / `VLLM_PORT` are **not** the API server host/port. Use `--host` / `--port` on the CLI for the OpenAI-compat server.
 
@@ -114,9 +114,9 @@ out of FlashInfer all-reduce.
 | Variable | Default | Purpose | Set when |
 |---|---|---|---|
 | `VLLM_DP_RANK` | `0` | Data-parallel rank | Multi-replica DP |
-| `VLLM_DP_RANK_LOCAL` | `-1` | Local DP rank within node | Debugging placement |
+| `VLLM_DP_RANK_LOCAL` | value of `VLLM_DP_RANK` | Local DP rank within node | Debugging placement |
 | `VLLM_DP_SIZE` | `1` | Total DP replicas | DP inference |
-| `VLLM_DP_MASTER_IP` | `""` | DP coordinator IP | Multi-node DP |
+| `VLLM_DP_MASTER_IP` | `127.0.0.1` | DP coordinator IP | Multi-node DP — the default only works single-node |
 | `VLLM_DP_MASTER_PORT` | `0` | DP coordinator port | Multi-node DP |
 | `VLLM_RAY_DP_PACK_STRATEGY` | `strict` | `strict` / `fill` / `span` — how Ray packs DP workers onto nodes | Ray-based DP deployments |
 
@@ -191,21 +191,21 @@ Belt-and-braces: set **both** `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1` 
 | `VLLM_LOGGING_CONFIG_PATH` | unset | Path to a JSON `dictConfig`; v0.31.0+ default for `--logging-config.pylogging_config_file` |
 | `VLLM_CONFIGURE_LOGGING` | `1` | Set `0` if the embedding host app owns logging config; v0.31.0+ default for `--logging-config.configure_logging` |
 | `VLLM_REQUEST_BODY_LOG_LEVEL` | `DEBUG` | v0.33.0+: level at which `--enable-log-requests` logs the request JSON body; an invalid level name disables body logging with one warning |
-| `VLLM_LOG_STATS_INTERVAL` | `10.0` (s) | Perf-stats cadence; `-1` to disable |
+| `VLLM_LOG_STATS_INTERVAL` | `10.0` (s) | Perf-stats cadence. A value ≤ 0 falls back to 10 s — to stop stats logging use `--disable-log-stats` |
 | `VLLM_TRACE_FUNCTION` | `0` | Function-level tracing; very noisy, use only when debugging |
 
 ## Compile / kernel tuning
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `VLLM_DISABLE_COMPILE_CACHE` | `False` | Force rebuild of torch.compile artifacts |
+| `VLLM_DISABLE_COMPILE_CACHE` | `0` | `1` forces a rebuild of torch.compile artifacts |
 | `VLLM_USE_AOT_COMPILE` | **on** (see below) | Ahead-of-time compile path |
 | `VLLM_USE_MEGA_AOT_ARTIFACT` | **on** (see below) | Single-file precompiled bundle |
 | `VLLM_TRITON_USE_TD` | unset (auto) | Tri-state override for the Triton tensor-descriptor path — unset lets the backend auto-select (currently XPU only), `1` forces on, `0` off. Renamed from `VLLM_TRITON_ATTN_USE_TD`, which is now warn-and-ignore ([PR #42436](https://github.com/vllm-project/vllm/pull/42436)) |
 | `VLLM_TARGET_DEVICE` | `cuda` | `cuda` / `cpu` / `tpu` / `xpu` / `rocm` |
 | `VLLM_MAIN_CUDA_VERSION` | `13.0` | CUDA version of precompiled wheels (bumped from 12.9 to 13.0 in 2026 wheels; follows PyTorch, overridable) |
 | `VLLM_USE_DEEP_GEMM` | `1` on Hopper+ | Enable DeepGEMM FP8 kernel path. See `vllm-nvidia-hardware` → `gemm-backends.md` |
-| `VLLM_USE_DEEP_GEMM_E8M0` | `0` | Pack FP8 scales as E8M0 (Hopper FP8 E4M3 only — faster, tiny accuracy cost) |
+| `VLLM_USE_DEEP_GEMM_E8M0` | `1` | Pack FP8 scales as E8M0 (Hopper FP8 E4M3 only — faster, tiny accuracy cost); set `0` to opt out |
 | `DG_JIT_CACHE_DIR` | `~/.cache/deep_gemm` | DeepGEMM JIT kernel cache. **Mount as PVC** — avoids per-pod warm-up tax (200-800 ms/shape) |
 
 **The two AOT vars are opt-*out* on any current image.** Their defaults are
@@ -222,7 +222,7 @@ to grep for; it arrives through torch.
 |---|---|---|---|
 | `VLLM_ALLOW_LONG_MAX_MODEL_LEN` | `0` | Set `1` to bypass `max_position_embeddings` sanity check | Usually indicates wrong rope scaling config; silent quality degradation |
 | `VLLM_ALLOW_INSECURE_SERIALIZATION` | `0` | Permits unsafe serialization formats on RPC wire | Code execution risk; never in multi-tenant |
-| `VLLM_SKIP_P2P_CHECK` | `0` | Skip peer-to-peer GPU access validation | May silently disable NVLink, performance cliff |
+| `VLLM_SKIP_P2P_CHECK` | `1` | Default trusts the driver's P2P report. Set `0` to make vLLM test GPU peer access itself | Leave at `1` unless custom all-reduce hangs (seen with 535-series drivers) — then set `0` |
 
 ## Table lookup tips
 
