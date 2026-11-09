@@ -214,7 +214,8 @@ budget the follow-up as a slow sweep rather than expecting a rich seam.
   there, but the ranking is built on the same proxy.
 
 ## Table of Contents
-- [Open](#open) — carried + new ceiling findings, author-judgment items
+- [Open](#open) — only what no agent in the session can obtain
+- [Decided](#decided)
 - [Resolved this pass (2026-11-09)](#resolved-this-pass-2026-11-09)
 - [Resolved — 2026-09-23d (Auto mode; philosophy removed)](#resolved--2026-09-23d-auto-mode-philosophy-removed)
 - [Resolved — 2026-09-23c (Δ0 defect ruling)](#resolved--2026-09-23c-δ0-defect-ruling)
@@ -235,6 +236,51 @@ budget the follow-up as a slow sweep rather than expecting a rich seam.
 
 ## Open
 
+- **Outcome evals cover Claude Code only — `--harness` is not built yet** (Dim 7;
+  `scripts/outcome-eval.py`; carried 2026-11-10). Every outcome number is Claude
+  Code plus a Claude model, while skill users also run other harnesses and
+  models, where skill loading, tool names and instruction-following differ. The
+  harness is chosen (see Decided). What remains is work, not a blocker, and is
+  kept here only until it is built, by the session that lands this branch: a
+  `--harness` option that runs the same `evals/evals.json` cases through the
+  `opencode-ci-harness` skill's isolated runner, reuses the case conversion and
+  the scoring, and reports one column per harness. Delete this item when it ships.
+
+## Decided
+
+- **Second outcome harness: OpenCode headless against an OpenAI-compatible
+  endpoint, through the `opencode-ci-harness` skill's isolated runner**
+  (2026-11-10). Reason: it runs an agent loop outside Claude Code, on a model
+  that need not be Claude, with its own profile isolation — the two axes the
+  current outcome numbers do not cover. Re-open if a case needs a tool that
+  runner cannot grant.
+- **Scorer ranking stability on close-quality skills: sweep not run**
+  (2026-11-10; was Open since 2026-08-20). Reason: its result would only reorder
+  a batch, and whether a pass helped is decided by the A/B comparator, not by
+  blind totals. Re-open if an ordering by blind total between skills within five
+  points of each other starts deciding something the comparator does not cover;
+  the harness is `evals/scorer-sweep.2026-08-20.json`, about 60 scorer runs.
+
+## Resolved this pass (2026-11-09)
+
+Freshen, fix, improve. Blind 81 → 80 (Sonnet 5.5 at both ends, on snapshots; inside the scorer's spread); comparators 3 of 3 for the final, medium confidence, slight margin; outcome 0.921 with the final vs 0.910 with the baseline vs 0.672 without (2 runs per case); cap reached at 10 iterations, 7 kept, 3 discarded, ceiling not mapped; baseline 69983940.
+
+- Fix: both weak cases of the benchmark (0.858 with, 0.656 without) were eval-side — eval 08 first assertion and eval 11 second assertion reworded, each re-run 0.67 → 1.00; no skill text changed.
+- Kept: rubric's Dim 10 "how to measure" names outcome mode.
+- Kept: an issue number stays in agent text only where the text has the agent act on the issue.
+- Kept: Files table drops the four rows the mode table carries.
+- Kept: backlog-format records a kept iteration that bundled two changes as confounded.
+- Kept: freshen probes rows marked `ignore-freshen`; the rubric's exclusion is scoped to legacy per-row files.
+- Kept: the per-member check for universal claims graduated from `lessons.md` into freshen F3.
+- Kept: `fleet-checks.md` table of contents.
+- After landing (2026-11-10): `probe-trigger.py` pin moved to `claude-sonnet-5-5`; `knowledge-claims.json` answers match the skill; eval 02 — third assertion fixed in the skill text, fifth assertion reworded; backlog admission limited to what no agent in the session can obtain, and this file's Open list re-sorted under it.
+- Fixed after the loop: `--probe-budget` flag with no dispatch, Fix step 1 without `--write-benchmark`, improve called "the default", results-log format without a lens column, benchmark metadata without resolved model ids, comparator example hard-coding x as A.
+- Discard: one sentence in SKILL.md §Improve saying every iteration is self-scored and ends in keep or discard, aimed at eval 02's third assertion (re-evaluate, then decide), which fails every run with and without the skill. After the edit two of three answers self-scored and said keep; the judge failed all three and the case went 0.73 → 0.67. That wording named the self-score without telling the agent to read the rubric. Superseded 2026-11-10: the failing runs had never opened `quality-rubric.md`; an intro that starts "Read `references/quality-rubric.md`, score all 10 dimensions against it" and forbids deciding on an estimate took the assertion to 3 of 3, against 0 of 3 on the old text in the same run. Guard that remains: a sentence about scoring that does not make the agent load the rubric changes nothing.
+- Discard: a hint line in `outcome-eval.py`'s weak-case list when an assertion fails every run in both arms. Replayed on the benchmark result it flagged both eval-side failures above, but it is additive, moved no rubric dimension and removed no defect (Δ0). The rule lives in `lessons.md`; re-propose with a case where its absence led to a wrong skill edit.
+- Discard: deleting the SKILL.md §Outcome sentence that says what a run prints at its end, kept at Δ0 as a duplicate of the `scripts.md` row. All three comparators listed the removal under the winning side's regressions; restored. A sentence that duplicates `scripts.md` is not for that reason deletable from SKILL.md.
+
+## Resolved — 2026-08-20 (scorer noise floor measured; moved out of Open 2026-11-10)
+
 - **(2026-08-20) The blind scorer's noise floor exceeds the loop's own keep
   threshold — measured, and SKILL.md amended.** 24 cells, 4 skills, n=3, via
   `claude -p --model M --effort E`. **No model tested holds within-cell spread
@@ -249,48 +295,6 @@ budget the follow-up as a slow sweep rather than expecting a rich seam.
   non-Opus models sat ~+5 above Opus in absolute level. Recorded in
   `references/blind-validation.md` §Measured scorer behaviour and
   `evals/scorer-sweep.2026-08-20.json`.
-
-  **Still open from this** (carried 2026-11-09)**:** ranking stability was only
-  shown on skills spanning 68–86. Whether it survives on skills closer together
-  in quality — the case that actually matters for batch ranking — is untested,
-  and n=3 is thin. Dim 7; `references/blind-validation.md` §Measured scorer
-  behaviour. **Blocked on:** a scorer sweep nobody has run or been asked to pay
-  for — at least four skills within five points of each other × three scorer
-  models × n≥5, with the harness in `evals/scorer-sweep.2026-08-20.json`: about
-  60 scorer runs, roughly \$70–160 at the per-run costs in `blind-validation.md`.
-  Spend of that size is an operator call. When approved: run it, write the
-  result into §Measured scorer behaviour, delete this item. Checked 2026-11-09:
-  no newer sweep file exists under `evals/`.
-
-- **(2026-10-03) Outcome evals cover Claude Code only.** (carried 2026-11-09;
-  checked that day: the repo has no runner for `evals.json` outside Claude Code
-  and no ruling on record) `scripts/outcome-eval.py`
-  drives `claude plugin eval`, so every outcome number is Claude Code plus a
-  Claude model. Several skill users run other harnesses (Codex, OpenCode) and
-  other models, where skill loading, tool names and instruction-following
-  differ. **Blocked on:** an operator decision on which harnesses and models
-  must pass, and a runner that executes the same `evals/evals.json` cases
-  outside Claude Code (headless OpenCode against an OpenAI-compatible endpoint
-  is the nearest existing path — the `opencode-ci-harness` skill). Unblocks
-  when both exist: add a `--harness` option that reuses the case conversion and
-  scoring and reports one column per harness.
-
-## Resolved this pass (2026-11-09)
-
-Freshen, fix, improve. Blind 81 → 80 (Sonnet 5.5 at both ends, on snapshots; inside the scorer's spread); comparators 3 of 3 for the final, medium confidence, slight margin; outcome 0.921 with the final vs 0.910 with the baseline vs 0.672 without (2 runs per case); cap reached at 10 iterations, 7 kept, 3 discarded, ceiling not mapped; baseline 69983940.
-
-- Fix: both weak cases of the benchmark (0.858 with, 0.656 without) were eval-side — eval 08 first assertion and eval 11 second assertion reworded, each re-run 0.67 → 1.00; no skill text changed.
-- Kept: rubric's Dim 10 "how to measure" names outcome mode.
-- Kept: an issue number stays in agent text only where the text has the agent act on the issue.
-- Kept: Files table drops the four rows the mode table carries.
-- Kept: backlog-format records a kept iteration that bundled two changes as confounded.
-- Kept: freshen probes rows marked `ignore-freshen`; the rubric's exclusion is scoped to legacy per-row files.
-- Kept: the per-member check for universal claims graduated from `lessons.md` into freshen F3.
-- Kept: `fleet-checks.md` table of contents.
-- Fixed after the loop: `--probe-budget` flag with no dispatch, Fix step 1 without `--write-benchmark`, improve called "the default", results-log format without a lens column, benchmark metadata without resolved model ids, comparator example hard-coding x as A.
-- Discard: one sentence in SKILL.md §Improve saying every iteration is self-scored and ends in keep or discard, aimed at eval 02's third assertion (re-evaluate, then decide), which fails every run with and without the skill. After the edit two of three answers self-scored and said keep; the judge failed all three and the case went 0.73 → 0.67. A wording change in SKILL.md does not move that assertion: it asks for a decision grounded in an observed result, and a single iteration on pasted text observes nothing. Re-try only together with a fixture the run can re-score.
-- Discard: a hint line in `outcome-eval.py`'s weak-case list when an assertion fails every run in both arms. Replayed on the benchmark result it flagged both eval-side failures above, but it is additive, moved no rubric dimension and removed no defect (Δ0). The rule lives in `lessons.md`; re-propose with a case where its absence led to a wrong skill edit.
-- Discard: deleting the SKILL.md §Outcome sentence that says what a run prints at its end, kept at Δ0 as a duplicate of the `scripts.md` row. All three comparators listed the removal under the winning side's regressions; restored. A sentence that duplicates `scripts.md` is not for that reason deletable from SKILL.md.
 
 ## Resolved — 2026-09-23d (Auto mode; philosophy removed)
 
