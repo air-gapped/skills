@@ -120,17 +120,34 @@ Nightly comparisons: vLLM vs TGI vs TRT-LLM vs LMDeploy. Useful for operators on
 
 ## DCGM pairing — minimum viable GPU-side metrics
 
-vLLM's metrics say nothing about the hardware. Every production deployment needs DCGM exporter stacked alongside. Minimum set:
+vLLM's metrics say nothing about the hardware. Every production deployment needs DCGM exporter stacked alongside. Minimum set (names as exported by dcgm-exporter ≤ 4.8.4; 4.9.0+ names in the rename table below):
 
 | DCGM metric | Why it matters | Pair with |
 |---|---|---|
 | `DCGM_FI_DEV_GPU_UTIL` | % time GPU is busy. **Coarse, can lie.** Can hit 100% under starvation | `num_requests_running` — if GPU_UTIL high but running drops, scheduler stuck |
 | `DCGM_FI_PROF_SM_OCCUPANCY` | **The real saturation signal** — resident warps / max | `iteration_tokens_total` histogram. If occupancy low while throughput OK, prefill-heavy; if occupancy low and throughput bad, stall |
-| `DCGM_FI_DEV_FB_USED` / `FB_FREE` | Framebuffer bytes used/free | `kv_cache_usage_perc`. Should track. Divergence = non-KV allocation (compile cache, CUDA graphs) |
+| `DCGM_FI_DEV_FB_USED` / `FB_FREE` | Framebuffer memory used/free, in MiB | `kv_cache_usage_perc`. Should track. Divergence = non-KV allocation (compile cache, CUDA graphs) |
 | `DCGM_FI_DEV_MEM_COPY_UTIL` | HBM bandwidth saturation | ITL tail. Decode is BW-bound — this metric is the ITL-regression leading indicator |
 | `DCGM_FI_DEV_GPU_TEMP` + `DCGM_FI_DEV_POWER_USAGE` | Temp + power | Thermal throttling appears in ITL tail fluctuation before anywhere else |
 | `DCGM_FI_PROF_NVLINK_RX_BYTES` / `TX_BYTES` | NVLink traffic | Multi-GPU TP — saturates before compute on MoE wide-EP |
 | `DCGM_FI_DEV_XID_ERRORS` | Gauge holding the last XID code, 0 = none. Not a counter | **Page on `!= 0`** — usually first sign of a dying GPU. `increase()` only works on the opt-in `DCGM_EXP_XID_ERRORS_TOTAL` |
+
+`DCGM_FI_PROF_SM_OCCUPANCY` and `DCGM_FI_PROF_NVLINK_*` are commented out in the exporter's default counters CSV — enable them in a custom CSV or the panels stay empty.
+
+**dcgm-exporter 4.9.0 renames its default metrics and changes units.** A panel or alert on the old name goes empty after the exporter upgrade, and a threshold written in % or MiB is wrong on the new series. Check what the endpoint exports (`curl -s <dcgm>:9400/metrics | grep -c GPU_UTIL_RATIO`) before writing queries:
+
+| ≤ 4.8.4 | 4.9.0+ | Unit change |
+|---|---|---|
+| `DCGM_FI_DEV_GPU_UTIL` | `DCGM_FI_DEV_GPU_UTIL_RATIO` | % → 0–1 |
+| `DCGM_FI_DEV_MEM_COPY_UTIL` | `DCGM_FI_DEV_MEMORY_UTIL_RATIO` | % → 0–1 |
+| `DCGM_FI_DEV_FB_USED` / `FB_FREE` | `DCGM_FI_DEV_FB_USED_BYTES` / `FB_FREE_BYTES` | MiB → bytes |
+| `DCGM_FI_DEV_GPU_TEMP` | `DCGM_FI_DEV_GPU_TEMP_CELSIUS` | — |
+| `DCGM_FI_DEV_POWER_USAGE` | `DCGM_FI_DEV_BOARD_POWER_WATTS` | — |
+| `DCGM_FI_DEV_XID_ERRORS` | `DCGM_FI_DEV_XID_ERROR` | — |
+| `DCGM_FI_PROF_SM_OCCUPANCY` | `DCGM_FI_PROF_SM_OCCUPANCY_RATIO` | — |
+| `DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL` | `DCGM_FI_DEV_NVLINK_THROUGHPUT_BYTES_PER_SECOND` | MB/s → bytes/s |
+
+4.9.0 also renames the driver-version label (`DCGM_FI_DRIVER_VERSION` → `DCGM_FI_SYSTEM_DRIVER_VERSION`) and changes the Helm values and config-file formats — read its upgrade checklist before bumping the chart.
 
 ### Deploy DCGM exporter
 
@@ -139,7 +156,7 @@ Kubernetes: `nvidia-dcgm-exporter` Helm chart, or the NVIDIA GPU Operator (bundl
 Compose:
 ```yaml
 dcgm-exporter:
-  image: nvcr.io/nvidia/k8s/dcgm-exporter:4.0.0-4.0.0-ubuntu22.04
+  image: nvcr.io/nvidia/k8s/dcgm-exporter:4.9.0   # 4.9.0+ exports the renamed metrics; pin <= 4.8.4 to keep the old names
   runtime: nvidia
   environment:
     DCGM_EXPORTER_INTERVAL: "30000"   # milliseconds — 30s. NOT 30 (that's 30ms, fills TSDB fast)
@@ -149,7 +166,7 @@ dcgm-exporter:
 
 ### Pairing dashboards
 
-- **Grafana dashboard 15117** (NVIDIA DCGM Exporter) — canonical GPU dashboard. Pairs cleanly side-by-side with vLLM's `grafana.json`.
+- **Grafana dashboard 15117** (NVIDIA DCGM Exporter) — canonical GPU dashboard. Pairs cleanly side-by-side with vLLM's `grafana.json`. On exporter 4.9.0+ import `grafana/dcgm-exporter-dashboard.json` from the exporter repo at the matching tag instead — it carries the renamed metrics and units.
 - **Grafana dashboard 12239** — alternative with more per-metric detail.
 
 ### Ebpfchirp incident reference

@@ -41,7 +41,7 @@ Full catalog with types, buckets, labels, and emission file:line anchors in `ref
 | 7 | **Corrupted logits** | `increase(vllm:corrupted_requests_total[5m])` | Page on **any** > 0 |
 | 8 | **Prefix-cache hit rate** | `rate(vllm:prefix_cache_hits_total[5m]) / rate(vllm:prefix_cache_queries_total[5m])` | Warn if WoW drops > 20% |
 | 9 | **Queue depth (for autoscaling)** | `vllm:num_requests_waiting` | KEDA trigger at 2–10 per replica |
-| 10 | **XID errors (DCGM side)** | `DCGM_FI_DEV_XID_ERRORS != 0` | Page. Gauge = last XID code, not a counter — never `rate()`/`increase()` it |
+| 10 | **XID errors (DCGM side)** | `DCGM_FI_DEV_XID_ERRORS != 0` (`DCGM_FI_DEV_XID_ERROR` on dcgm-exporter 4.9.0+) | Page. Gauge = last XID code, not a counter — never `rate()`/`increase()` it |
 
 Full PromQL with multi-window burn-rate templates, SLO calibration notes, and goodput approximation in `references/alerting.md`.
 
@@ -87,7 +87,7 @@ Protocol defaults to gRPC; HTTP/protobuf via `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL
 
 7. **KEDA threshold too low on `num_requests_waiting`.** Thresholds of 1–2 per replica cause scale thrashing. Production Stack default is 5; OpenShift example is 2. Pair with `cooldownPeriod: 360` — GPU pods take ~10 min to reach ready, reactive scaling fails.
 
-8. **`GPU_UTIL` is not a saturation or request-health signal.** It stays at 95%+ while requests starve. For saturation use `DCGM_FI_PROF_SM_OCCUPANCY`. When the CPU-side engine-core loop is descheduled (prefix-cache head-of-line blocking, too few vCPUs), no GPU-side metric shows it: the only signal is the TTFT histogram, so page on P99 TTFT and then check CPU throttling of the engine-core process. Incident detail in `references/dashboards.md`.
+8. **`GPU_UTIL` is not a saturation or request-health signal.** It stays at 95%+ while requests starve. For saturation use `DCGM_FI_PROF_SM_OCCUPANCY` (opt-in in the exporter's counters CSV). When the CPU-side engine-core loop is descheduled (prefix-cache head-of-line blocking, too few vCPUs), no GPU-side metric shows it: the only signal is the TTFT histogram, so page on P99 TTFT and then check CPU throttling of the engine-core process. Incident detail in `references/dashboards.md`.
 
 9. **Ray Serve deployments don't auto-expose `/metrics`.** `RayPrometheusStatLogger` must be wired explicitly, or Ray 2.51+ ingests vLLM metrics through Ray's own endpoint (disable with `log_engine_metrics: False` to avoid double-scraping).
 
@@ -128,6 +128,7 @@ Every name, label and release gate below is in `references/metrics-catalog.md`; 
 | `vllm:kv_offload_total_*` deprecated, observed only under `CPUOffloadingSpec` | Switch to the direction-split `kv_offload_{load,store}_*` set |
 | v0.31.0+: `nixl_num_failed_transfers` already includes notification failures | Never add `nixl_num_failed_notifications` to it |
 | v0.32.0+: `vllm:admission_rejections_total{reason}` counts frontend load shedding, which never reaches `num_requests_waiting` | Alert on any sustained rate |
+| dcgm-exporter 4.9.0 renames its default metrics and changes units (`GPU_UTIL` % → `GPU_UTIL_RATIO` 0–1, `FB_USED` MiB → `FB_USED_BYTES`, `XID_ERRORS` → `XID_ERROR`) | Rewrite DCGM panels, alerts and thresholds before upgrading the exporter — map in `references/dashboards.md` § DCGM pairing |
 | KV capacity as `num_gpu_blocks * block_size` overstates hybrid models | On v0.24.0+ read `kv_cache_size_tokens` from `vllm:cache_config_info` |
 | MFU on MLA models (DeepSeek-V2/V3/R1) before v0.24.0 overestimated KV bandwidth ~57× | Discard that MFU history |
 

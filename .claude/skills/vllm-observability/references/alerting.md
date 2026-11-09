@@ -263,7 +263,7 @@ Compare current hit rate to 7d ago (see PromQL template above). A cliff usually 
 
 ### Step 5 — GPU-side fault?
 
-If software metrics don't explain it:
+If software metrics don't explain it (names as exported by dcgm-exporter ≤ 4.8.4; 4.9.0+ renames them — map in `dashboards.md` § DCGM pairing):
 - `DCGM_FI_DEV_XID_ERRORS` — non-zero = the last XID code seen on that GPU (a gauge; it does not count). For counts enable the opt-in `DCGM_EXP_XID_ERRORS_TOTAL` counter in the exporter's CSV
 - `DCGM_FI_PROF_SM_OCCUPANCY` — if low while `num_requests_running` is high, scheduler stall (ebpf territory)
 - `DCGM_FI_DEV_GPU_TEMP` — thermal throttling shows up in ITL tail first
