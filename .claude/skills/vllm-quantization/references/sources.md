@@ -82,6 +82,7 @@ earlier passes that only chased issue states:
 | vLLM issue #40291 — Gemma-4-31B-IT-NVFP4 OOM on RTX 5090 | https://github.com/vllm-project/vllm/issues/40291 | 2026-11-09 | **not a bug (skill said open)** | CLOSED 2026-04-20 by the reporter: "not a bug in vllm", pointing at https://huggingface.co/nvidia/Gemma-4-31B-IT-NVFP4/discussions/3 ("Why is this 4bit version has a 32.7 GB size?", tensor types BF16 / F8_E4M3 / U8). |
 | vLLM issue #39133 — Gemma 4 INT4 KV sizing on 2×24 GB | https://github.com/vllm-project/vllm/issues/39133 | 2026-11-09 | **fixed** | CLOSED `COMPLETED` 2026-07-25. Maintainer breakdown (2026-07-05): the 25,200-token figure was a display artifact (blocks divided by KV-cache groups); `fp8_e5m2` rejection fixed by #45040; `fp8_e4m3` on SM 8.6 is a hardware limit (SM ≥ 8.9). |
 | vLLM issue #39004 — Qwen3.5-397B NVFP4 decode regression | https://github.com/vllm-project/vllm/issues/39004 | 2026-11-09 | **withdrawn** | CLOSED 2026-05-21 by its reporter with "not actual". Row deleted from troubleshooting.md. |
+| vLLM issue #37996 — Qwen3.5-397B GPTQ on ROCm | https://github.com/vllm-project/vllm/issues/37996 | 2026-11-09 | **resolved (skill said open)** | CLOSED `COMPLETED` 2026-07-23 by an AMD maintainer after a 2026-07-16 retest on `vllm/vllm-openai-rocm:v0.25.1` (gfx942) served both the AWQ and GPTQ-Int4 checkpoints without the symptom. No fix PR named. |
 
 ## Classification summary
 

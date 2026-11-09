@@ -30,7 +30,7 @@ Organised by symptom. Look up the symptom, read the issue, apply the workaround.
 | BF16 NVFP4 Marlin garbled on non-FP4 GPU | H100, older | [#34694](https://github.com/vllm-project/vllm/issues/34694) | Partial fix [PR #34577](https://github.com/vllm-project/vllm/pull/34577) v0.17; latent cases remain |
 | FP8 MLA KV gibberish from scale inconsistency | DeepSeek V3/V3.2, GLM-4.5/4.6/4.7, Kimi K2 | Fixed [PR #37054](https://github.com/vllm-project/vllm/pull/37054) (merged 2026-03-18) | v0.19 — **this is the same defect as the #38652 row above** |
 | Empty output FP8 + TP=2 Qwen3-8B | Qwen3-8B | [#36583](https://github.com/vllm-project/vllm/issues/36583) | Open |
-| GPTQ exclamation-point-only output | Qwen3.5 397B on ROCM | [#37996](https://github.com/vllm-project/vllm/issues/37996) | Open |
+| GPTQ exclamation-point-only output | Qwen3.5 397B on ROCm | [#37996](https://github.com/vllm-project/vllm/issues/37996) | Not reproduced on v0.25.1 (gfx942; AWQ and GPTQ-Int4 builds serve normally) — upgrade |
 | Marlin wrong first Harmony token | GPT-OSS-120B SM121 | [#37030](https://github.com/vllm-project/vllm/issues/37030) | Open; SM121 not production |
 | Repetition loops and long-context degradation; MTP acceptance near 0 % | MLA model on ROCm with `VLLM_ROCM_USE_AITER=1`, ≤ v0.32.x — `kv_b_proj` is re-quantized online by default whatever precision the checkpoint asked for | Fixed [PR #53123](https://github.com/vllm-project/vllm/pull/53123) (both defaults flipped off) | Upgrade to v0.33.0, or set `VLLM_ROCM_USE_AITER_FP8BMM=0 VLLM_ROCM_USE_AITER_FP4BMM=0` |
 | Non-deterministic degenerate output | Dynamic FP8 + LoRA-merged on B200 | [#39662](https://github.com/vllm-project/vllm/issues/39662) | Pin static FP8, or unmerge LoRA |
