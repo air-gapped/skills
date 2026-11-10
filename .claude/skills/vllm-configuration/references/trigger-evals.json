@@ -1,0 +1,212 @@
+[
+  {
+    "query": "what wins in vllm when the same option is set as a CLI flag, in the --config yaml and as a VLLM_ env var?",
+    "should_trigger": true,
+    "source": "description-mined: precedence",
+    "bucket": "explicit"
+  },
+  {
+    "query": "give me the env vars for vllm in an air-gapped cluster: HF_HUB_OFFLINE, HF_ENDPOINT to our internal mirror, anything else?",
+    "should_trigger": true,
+    "source": "description-mined: air-gap env vars",
+    "bucket": "explicit"
+  },
+  {
+    "query": "does VLLM_HOST_IP control which address the vllm API server binds to?",
+    "should_trigger": true,
+    "source": "body-mined: Networking env vars",
+    "bucket": "explicit"
+  },
+  {
+    "query": "how do I stop vllm from phoning home to stats.vllm.ai",
+    "should_trigger": true,
+    "source": "description-mined: usage-stats opt-out",
+    "bucket": "explicit"
+  },
+  {
+    "query": "convert this vllm serve command line into a yaml file for --config, including the --speculative-config JSON",
+    "should_trigger": true,
+    "source": "body-mined: YAML config file",
+    "bucket": "explicit"
+  },
+  {
+    "query": "VLLM_USE_MODELSCOPE=true but my LoRA adapter still downloads from huggingface, why",
+    "should_trigger": true,
+    "source": "body-mined: ModelScope LoRA routing",
+    "bucket": "explicit"
+  },
+  {
+    "query": "the inference server tries to reach huggingface.co every time it starts even though I gave it a local model directory, how do I make it stop",
+    "should_trigger": true,
+    "source": "everyday phrasing: offline revision check",
+    "bucket": "implicit"
+  },
+  {
+    "query": "we need to serve a gated Llama model on GPU nodes with no internet access. how do we get the weights and tokenizer in and make the server use them",
+    "should_trigger": true,
+    "source": "everyday phrasing: gated model offline",
+    "bucket": "implicit"
+  },
+  {
+    "query": "is it safe to let the model server run the custom python that ships inside a model repo? we pull models through an internal Artifactory proxy",
+    "should_trigger": true,
+    "source": "everyday phrasing: trust_remote_code",
+    "bucket": "implicit"
+  },
+  {
+    "query": "where should a setting like max context length live for our vllm fleet: the launch command, a file, or the container environment, and which one overrides which",
+    "should_trigger": true,
+    "source": "everyday phrasing: where settings live",
+    "bucket": "implicit"
+  },
+  {
+    "query": "how do we pin the exact model and tokenizer commit so a restart of the inference pod can't silently pick up a new upload",
+    "should_trigger": true,
+    "source": "everyday phrasing: revision pinning",
+    "bucket": "implicit"
+  },
+  {
+    "query": "set up a Hugging Face mirror inside the datacenter so the GPU servers can pull models without internet. what do the servers need set to use it",
+    "should_trigger": true,
+    "source": "everyday phrasing: internal HF mirror",
+    "bucket": "implicit"
+  },
+  {
+    "query": "audit model qwen3-coder-30b: cross-check the serve_args in its deploy-memo against prior configs and list any flag drift",
+    "should_trigger": true,
+    "source": "description-mined: per-model deploy recipe, implicit phrases only",
+    "bucket": "implicit"
+  },
+  {
+    "query": "write the deploy-memo for kimi-k2: fill in required_deploy with the serve args and the env config for the model",
+    "should_trigger": true,
+    "source": "description-mined: per-model deploy recipe, implicit phrases only",
+    "bucket": "implicit"
+  },
+  {
+    "query": "we're adding an open-weight model to the catalog and its deploy recipe needs the launch flags and the container environment written down. what belongs in each, and what must not be left at default",
+    "should_trigger": true,
+    "source": "everyday phrasing: per-model deploy recipe, no listed phrase",
+    "bucket": "implicit"
+  },
+  {
+    "query": "pod crashes at startup with `ValueError: VLLM_PORT 'tcp://10.43.0.12:8000' appears to be a URI` and we never set VLLM_PORT anywhere",
+    "should_trigger": true,
+    "source": "body-mined: Service-link env poisoning",
+    "bucket": "contextual"
+  },
+  {
+    "query": "vllm serve --config prod.yaml dies with `invalid loads value` on the line `allowed-origins: [https://app.example.com]`",
+    "should_trigger": true,
+    "source": "body-mined: YAML list gotcha",
+    "bucket": "contextual"
+  },
+  {
+    "query": "first boot in the isolated network fails with `OSError: We couldn't connect to 'https://huggingface.co' to load this file` although the weights are on the PVC",
+    "should_trigger": true,
+    "source": "body-mined: offline cache incomplete",
+    "bucket": "contextual"
+  },
+  {
+    "query": "after bumping the image the log says `Unknown vLLM environment variable detected: VLLM_RPC_TIMEOUT`. is something broken?",
+    "should_trigger": true,
+    "source": "body-mined: removed env vars",
+    "bucket": "contextual"
+  },
+  {
+    "query": "I'm editing models/glm-5.2/deploy-memo.md. serve_args has --max-model-len 131072 and --gpu-memory-utilization 0.92 but the env block is empty and the box has no internet. What env vars does this recipe need?",
+    "should_trigger": true,
+    "source": "mid-task: per-model deploy recipe with flag and env content",
+    "bucket": "contextual"
+  },
+  {
+    "query": "diffing two deploy recipes for the same model: one sets --served-model-name in serve_args, the other has served-model-name in a config yaml plus VLLM_LOGGING_LEVEL in env. Which values take effect if both are applied?",
+    "should_trigger": true,
+    "source": "mid-task: per-model deploy recipe, precedence",
+    "bucket": "contextual"
+  },
+  {
+    "query": "review the kimi-k2 manifest: liveness probe initialDelaySeconds and whether the LWS rolling update will work",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-deployment",
+    "bucket": "negative"
+  },
+  {
+    "query": "the pod takes 12 minutes to cold boot on every restart, how do I cut that down",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-deployment",
+    "bucket": "negative"
+  },
+  {
+    "query": "audit KV config for the long-context serve recipe: is kv_offloading_size a total across TP ranks or per GPU",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-caching, shared 'audit' phrase",
+    "bucket": "negative"
+  },
+  {
+    "query": "deploy-memo perf targets for the MoE model: throughput is too low on B200, should we run TP or EP",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-performance-tuning, shared 'deploy-memo' phrase",
+    "bucket": "negative"
+  },
+  {
+    "query": "measure TTFT and TPOT with vllm bench serve at request-rate 8 on a sharegpt dataset",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-benchmarking",
+    "bucket": "negative"
+  },
+  {
+    "query": "deploy-memo quant: pick NVFP4 or FP8 for the model on H200",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-quantization, shared 'deploy-memo' phrase",
+    "bucket": "negative"
+  },
+  {
+    "query": "audit tool parser for qwen3-coder: tool calls are not firing from Claude Code and finish_reason stays stop",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-tool-parsers, shared 'audit' phrase",
+    "bucket": "negative"
+  },
+  {
+    "query": "deploy-memo reasoning: reasoning_content is null on DeepSeek-R1 with thinking enabled",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-reasoning-parsers, shared 'deploy-memo' phrase",
+    "bucket": "negative"
+  },
+  {
+    "query": "audit chat template for GLM: enable_thinking in chat_template_kwargs is ignored",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-chat-templates, shared 'audit' phrase",
+    "bucket": "negative"
+  },
+  {
+    "query": "deploy-memo hardware: can 2x H200 run a 120B model at fp8 or do we need B200",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-nvidia-hardware, shared 'deploy-memo' phrase",
+    "bucket": "negative"
+  },
+  {
+    "query": "explain the difference between asyncio.gather and asyncio.wait",
+    "should_trigger": false,
+    "source": "generic",
+    "bucket": "negative"
+  },
+  {
+    "query": "helm values precedence: does --set override a -f values file, and how do I pass env vars to a subchart",
+    "should_trigger": false,
+    "source": "keyword-collision: precedence, env vars, yaml",
+    "bucket": "negative"
+  },
+  {
+    "query": "what environment variables does Ollama read to change where models are stored",
+    "should_trigger": false,
+    "source": "adjacent-domain decoy: another inference engine",
+    "bucket": "negative"
+  },
+  {
+    "query": "set up a PyPI mirror in Artifactory for an air-gapped build pipeline",
+    "should_trigger": false,
+    "source": "keyword-collision: Artifactory mirror, air-gapped",
+    "bucket": "negative"
+  }
+]
