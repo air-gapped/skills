@@ -5,7 +5,7 @@ Load when: operator is deploying an MoE model, hitting "Using default MoE config
 ## Contents
 
 - [`benchmark_moe.py` — fused-MoE kernel autotune](#benchmark_moepy--fused-moe-kernel-autotune) — CLI flags, output filename convention, runtime lookup path
-- [DeepEP all-to-all](#deepep-all-to-all) — HT / LL modes, backend selection, NVSHMEM tuning
+- [DeepEP all-to-all](#deepep-all-to-all) — HT / LL modes, backend selection, multi-node `deepep_v2` startup `ZeroDivisionError`, NVSHMEM tuning
 - [EPLB (Expert Parallel Load Balancer)](#eplb-expert-parallel-load-balancer)
 - [Published Wide-EP numbers](#published-wide-ep-numbers) — H200, GB200, LMSYS
 - [Parallelism decision matrix](#parallelism-decision-matrix) — activation density, concurrency crossover, MLA rule, DeepSeek-V3.2 warning, supported combos, PP rules
@@ -109,12 +109,25 @@ Repo: [github.com/deepseek-ai/DeepEP](https://github.com/deepseek-ai/DeepEP). vL
 | `moonep` | v0.31.0+. Balanced EP with dynamic redundant experts over NVLink | |
 | `deepep_high_throughput` | prefill, long ISL | needs compiled `deep_ep` package |
 | `deepep_low_latency` | decode, CUDA-graph-compatible | same |
+| `deepep_v2` | DeepEP v2 `ElasticBuffer` over NCCL GIN — one backend for prefill and decode | NCCL ≥ 2.30.4 at runtime; multi-node needs `ibstat` in the container — see the startup failure below |
 
 **Known hang (v0.9.2 only):** `dp=2, tp=8, ep=16` with DeepEP hung during warm-up ([#21306](https://github.com/vllm-project/vllm/issues/21306)); the reporter cleared it by changing the container environment, root cause never found. The old `naive` workaround no longer exists.
 
 **v0.30.0: DeepEP v2 combine overlaps the shared-expert FFN by default** ([#52781](https://github.com/vllm-project/vllm/pull/52781)). `finalize_async` now issues the combine on DeepEP's comm stream and joins via a device-side event instead of blocking the caller — DeepSeek-R1-class models with a shared expert saw 5-9% lower decode ITL in the PR's own A/B. **The release note's claimed `VLLM_DEEPEP_V2_COMBINE_OVERLAP=0` opt-out does not exist in the merged code** (verified: `vllm/model_executor/layers/fused_moe/prepare_finalize/deepep_v2.py` at v0.30.0 has no such env var read). Overlap is unconditional except under DBO (`dbo_enabled()`), which forces the synchronous path — that is currently the only way to disable it.
 
 **v0.32.0: DeepEP v2 auto-selects hybrid NVLink+RDMA mode by default** (`VLLM_DEEPEP_V2_ALLOW_HYBRID_MODE=1`, was `0`; #57991). Set `=0` to force NVLink-only when a multi-node regression appears after the upgrade.
+
+**Multi-node `deepep_v2` in hybrid mode fails at startup with `ZeroDivisionError` when DeepEP cannot read a link speed.** Hybrid mode is the default from v0.32.0 and opt-in (`VLLM_DEEPEP_V2_ALLOW_HYBRID_MODE=1`) on v0.27.0–v0.31.0; v0.33.0 and `main` still fail. An EP group inside one NVLink domain is not affected. Upstream report [#62677](https://github.com/vllm-project/vllm/issues/62677): open, no maintainer reply, fix PRs [#63588](https://github.com/vllm-project/vllm/pull/63588) and [#62695](https://github.com/vllm-project/vllm/pull/62695) unmerged (2026-11-10).
+
+| | |
+|---|---|
+| Symptom | after the checkpoint loads, each worker logs `Failed to get RDMA connection speed: [Errno 2] No such file or directory: 'ibstat'`, then `ZeroDivisionError: float division by zero` in `deep_ep/buffers/elastic.py` `get_theoretical_num_sms`; the server never becomes ready |
+| Cause | the `vllm/vllm-openai` v0.32.0 and v0.33.0 images contain no `ibstat`; DeepEP turns any failed speed probe into 0 GB/s and divides by it |
+| Check in the container before loading weights | `ibstat "${EP_NIC_NAME:-mlx5_0}" \| grep Rate:` and `nvidia-smi nvlink -s \| grep GB/s` must each print a line |
+| Fix | `apt-get install -y --no-install-recommends infiniband-diags` in a derived image, or at container start before `vllm serve` (needs root and an apt mirror) |
+| `ibstat` present, same traceback | DeepEP reads the CA named by `EP_NIC_NAME` (default `mlx5_0`); set it to a CA that `ibstat` lists with a `Rate:` line |
+| Log says `Failed to get NVLink connection speed` | same division; `nvidia-smi nvlink -s` printed no `Link N: <x> GB/s` line in the container |
+| Image cannot change | `VLLM_DEEPEP_V2_ALLOW_HYBRID_MODE=0` skips the division; the `Failed to get RDMA connection speed` line still prints and is harmless there. Transport changes — re-benchmark |
 
 **NVSHMEM + IB tuning** (two Azure `Standard_ND96isr_H100_v5` VMs, 8 processes each, from [Microsoft blog](https://techcommunity.microsoft.com/blog/azurehighperformancecomputingblog/achieving-optimal-performance-for-deepseek-expert-parallelism-deepep-on-azure/4414699)):
 
