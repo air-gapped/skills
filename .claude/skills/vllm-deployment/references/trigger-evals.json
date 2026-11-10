@@ -68,43 +68,151 @@
   {
     "query": "MTP1 working on Qwen3.6 \u2014 how do I add the spec-decode flag without restarting",
     "should_trigger": false,
-    "source": "spec-decode territory; vllm-speculative-decoding owns this",
+    "source": "sibling-skill: vllm-speculative-decoding; deployment-shaped wording (\"without restarting\") on a spec-decode flag question",
     "bucket": "negative"
   },
   {
     "query": "what's the right --kv-cache-dtype for fp8 on B200",
     "should_trigger": false,
-    "source": "vllm-quantization territory",
+    "source": "sibling-skill: vllm-quantization",
     "bucket": "negative"
   },
   {
     "query": "edit my chat_template.jinja to fix the tool_call dropping",
     "should_trigger": false,
-    "source": "jinja-expert / chat-template-fixer territory",
+    "source": "sibling-skill: vllm-chat-templates / jinja-expert",
     "bucket": "negative"
   },
   {
     "query": "tune fused-MoE kernel for compressed-tensors on Marlin",
     "should_trigger": false,
-    "source": "vllm-performance-tuning territory",
-    "bucket": "negative"
-  },
-  {
-    "query": "scout known issues for cyankiwi/Qwen3.6-35B-A3B-AWQ",
-    "should_trigger": false,
-    "source": "scout-known-bugs territory",
+    "source": "sibling-skill: vllm-performance-tuning",
     "bucket": "negative"
   },
   {
     "query": "rent a 4xH200 spot instance on Verda for the kimi audit",
     "should_trigger": false,
-    "source": "verda territory",
+    "source": "sibling-skill: verda",
     "bucket": "negative"
   },
   {
-    "query": "preflight reports TOKEN_ID_DIVERGES \u2014 is that bypass classifier reliable",
+    "query": "write a Kubernetes Deployment manifest for vllm serving one model on a single 8-GPU node",
+    "should_trigger": true,
+    "source": "description-mined: manifest authoring",
+    "bucket": "explicit"
+  },
+  {
+    "query": "use the vllm-deployment skill to review my docker compose for the two-container prefill/decode lab",
+    "should_trigger": true,
+    "source": "body-mined: decision guide, names the skill",
+    "bucket": "explicit"
+  },
+  {
+    "query": "LeaderWorkerSet or a StatefulSet for multi-node vllm serve across two 8-GPU nodes?",
+    "should_trigger": true,
+    "source": "body-mined: load-bearing fact 2",
+    "bucket": "explicit"
+  },
+  {
+    "query": "set up KEDA autoscaling for our vllm pods on queue depth",
+    "should_trigger": true,
+    "source": "description-mined: KEDA autoscaling",
+    "bucket": "explicit"
+  },
+  {
+    "query": "the model server pod keeps getting killed by the liveness probe while the weights are still loading",
+    "should_trigger": true,
+    "source": "everyday phrasing: probe tuning, no 'vllm' word",
+    "bucket": "implicit"
+  },
+  {
+    "query": "Qwen3.6 pod already has MTP spec decode on \u2014 how do I roll the deployment to the new image tag without restarting both replicas at once",
+    "should_trigger": true,
+    "source": "mirror of the spec-decode negative: a rollout question that mentions spec decode in passing",
+    "bucket": "implicit"
+  },
+  {
+    "query": "how do we push a new inference image without dropping the streams that are in flight",
+    "should_trigger": true,
+    "source": "everyday phrasing: rollout drain, no 'vllm' word",
+    "bucket": "implicit"
+  },
+  {
+    "query": "kubectl describe on the inference pod says `container has runAsNonRoot and image will run as root` \u2014 here is the Deployment yaml, what do I change",
+    "should_trigger": true,
+    "source": "everyday phrasing: body load-bearing fact 3, arrives with an error and a file",
+    "bucket": "contextual"
+  },
+  {
+    "query": "streaming completions through our OpenShift route cut off at exactly 60 seconds, ServingRuntime yaml attached",
+    "should_trigger": true,
+    "source": "body-mined: pitfall 6, arrives with a symptom and a file",
+    "bucket": "contextual"
+  },
+  {
+    "query": "acceptance rate on our EAGLE-3 draft fell to 40% at batch 32 \u2014 is speculative decoding still worth keeping on",
     "should_trigger": false,
-    "source": "preflight-internal / template-parser-tuning territory",
+    "source": "sibling-skill: vllm-speculative-decoding",
+    "bucket": "negative"
+  },
+  {
+    "query": "TTFT is terrible on 100k-token prompts \u2014 should we add LMCache CPU offload for the KV cache",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-caching",
+    "bucket": "negative"
+  },
+  {
+    "query": "throughput dropped 20% after the vllm upgrade, which scheduler knobs do I check first",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-performance-tuning",
+    "bucket": "negative"
+  },
+  {
+    "query": "vllm still calls huggingface.co on boot even though HF_HUB_OFFLINE=1 is set \u2014 which env var wins",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-configuration",
+    "bucket": "negative"
+  },
+  {
+    "query": "what should I alert on for vllm \u2014 TTFT p99 or num_requests_waiting",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-observability",
+    "bucket": "negative"
+  },
+  {
+    "query": "run a request-rate sweep with vllm bench serve to prove we hold the TTFT SLO",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-benchmarking",
+    "bucket": "negative"
+  },
+  {
+    "query": "B200 or H200 for a 400B MoE \u2014 how much HBM do we need per GPU",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-nvidia-hardware",
+    "bucket": "negative"
+  },
+  {
+    "query": "my Qwen isn't calling tools through the OpenAI SDK, finish_reason stays stop",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-tool-parsers",
+    "bucket": "negative"
+  },
+  {
+    "query": "ScaledObject cooldownPeriod is not scaling my Kafka consumer back to zero",
+    "should_trigger": false,
+    "source": "sibling-skill: keda (non-vLLM workload)",
+    "bucket": "negative"
+  },
+  {
+    "query": "write a Deployment and Service manifest for an nginx test app with a readiness probe",
+    "should_trigger": false,
+    "source": "keyword-collision: Kubernetes manifest, no model server",
+    "bucket": "negative"
+  },
+  {
+    "query": "write a python function that dedupes a list while keeping order",
+    "should_trigger": false,
+    "source": "generic",
     "bucket": "negative"
   }
 ]
