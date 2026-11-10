@@ -28,7 +28,7 @@ SKILL.md path, `--all`, or a glob (`'vllm-*'`). No mode → **Auto**. No target
 | `fix` | Runs the skill's eval cases, fixes what the failed answers show is missing | §Fix |
 | `improve` | Keep/discard loop on the 10-dimension rubric | `references/improve-loop.md`, `references/quality-rubric.md` |
 | `score` | Rubric score, no edits | §Score |
-| `freshen` | Verifies every `sources.md` row online, applies verified updates | `references/freshen-patterns.md` |
+| `freshen` | Follows the product: adds what changed, retires what it moved past | `references/freshen-patterns.md` |
 | `trigger` | Measures and tunes the description's trigger rate | `references/trigger-patterns.md` |
 | `outcome` | Runs the skill's eval cases with vs without it (`claude plugin eval`) | §Outcome |
 | `floor` | Measures what a bare model already knows about the subject | `references/floor-patterns.md` |
@@ -94,19 +94,23 @@ eval cases.
 
 ## Improve
 
-Read `references/quality-rubric.md`, score all 10 dimensions against it, apply
-ONE change, re-score cold, print both score tables and the decision: keep +3 or
-more; +1/+2 only when a second cold score confirms it or the change also
-simplifies; Δ0 only when it fixes a verifiable defect or simplifies; revert the
-rest. When the skill has eval cases, the keep is decided by a `--case` re-run
-against the old text (`outcome-eval.py --case <glob> --against HEAD`), and the
-rubric total only ranks what to try next. A total given without reading the
-rubric is an estimate: never decide on one. The score needs only the rubric and the text — a skill pasted inline is
-scored the same way, and the blind scorer and comparator, which run once per
-pass, never hold a decision open. Stop at 90+ with no dimension below 7, when
-the ceiling is mapped (`improve-loop.md` Phase 5), or after 10 iterations.
-Re-scoring an unchanged skill moves the total 2–3 points (up to 6), so +2 is
-noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
+1. Read `references/quality-rubric.md` and score all 10 dimensions against it.
+   A total given without reading the rubric is an estimate: never decide on one.
+   The score needs only the rubric and the text — a skill pasted inline is
+   scored the same way.
+2. Apply ONE change.
+3. Re-score cold; print both score tables and the decision.
+4. Decide. With eval cases: a `--case` re-run against the old text decides
+   (`outcome-eval.py --case <glob> --against HEAD`) and the rubric total only
+   ranks what to try next. Without: keep +3 or more; +1/+2 only when a second
+   cold score confirms it or the change also simplifies (re-scoring an unchanged
+   skill moves the total 2–3 points, up to 6); Δ0 only when it fixes a
+   verifiable defect or simplifies; revert the rest.
+5. Repeat from 2 until 90+ with no dimension below 7, the ceiling is mapped
+   (`improve-loop.md` Phase 5), or 10 iterations. The blind scorer and
+   comparator run once per pass and never hold a decision open.
+
+Phases, decision rules and stop conditions: `references/improve-loop.md`.
 
 - **One change per iteration.** State it in 10 words with one verb; an "and"
   means two iterations. A move that starts rewording prose is two changes. A
@@ -231,23 +235,24 @@ Sonnet judge, \$20 cap.
 ## Freshen
 
 Follow the product, in both directions. Read the releases between the version
-the skill states and the current one, and verify the `sources.md` rows in one
+the skill states and the current one, and verify every `sources.md` row in one
 batched sweep on a cheap helper (`web-searcher` for web/gh rows, `Explore` for
-local clones). Then, one verified finding at a time, all in ONE commit per skill
-whose body lists each finding with its source:
+local clones). Apply one verified finding at a time, each backed by the source
+that verified it:
 
 - **Add or correct** what an agent acts on: a wrong fact, a removed flag, a new
   failure with its fix. A new feature earns a line only when an agent would
   otherwise do the task wrong.
 - **Retire** what the product moved past (`scripts/retire-candidates.py
-  <skill-dir> --floor <oldest supported release>` lists where to look): a workaround for a fixed bug, a
-  feature that was superseded, a version gate below every supported release,
+  <skill-dir> --floor <oldest supported release>` lists where to look): a
+  workaround for a fixed bug, a feature that was superseded, a version gate below every supported release,
   news that became ordinary.
 
 A finding's URL, issue number and check date go in `sources.md`, not in the
-instruction text. End by writing the single `Freshened: <date>` header stamp; an unreachable row
-gets an inline exception note. A partial pass keeps the old stamp. Workflow F0–F6, probe templates and
-classification: `references/freshen-patterns.md`.
+instruction text. End by writing the single `Freshened: <date>` header stamp;
+an unreachable row gets an inline exception note. A partial pass keeps the old
+stamp. Commit once per skill, the body listing each finding. Workflow F0–F6,
+probe templates and classification: `references/freshen-patterns.md`.
 
 ## Trigger
 
@@ -270,8 +275,7 @@ list. `KNOWS` is a candidate, never a licence to cut; `CONFLICTS` never means
 the skill is wrong. `references/floor-patterns.md`.
 
 Probe the models the skill's users work with (`--models opus,fable`) and re-run
-on each model release: remove
-what the strongest now `KNOWS` (confirmed by eval cases where the skill has
+on each model release: remove what the strongest now `KNOWS` (confirmed by eval cases where the skill has
 them), and state every `CONFLICTS` claim more loudly.
 
 ## Ages
