@@ -247,7 +247,8 @@ Sonnet judge, \$20 cap.
 Follow the product, in both directions. Read the releases between the version
 the skill states and the current one, and verify the `sources.md` rows in one
 batched sweep on a cheap helper (`web-searcher` for web/gh rows, `Explore` for
-local clones). Then, one verified finding at a time:
+local clones). Then, one verified finding at a time, all in ONE commit per skill
+whose body lists each finding with its source:
 
 - **Add or correct** what an agent acts on: a wrong fact, a removed flag, a new
   failure with its fix. A new feature earns a line only when an agent would

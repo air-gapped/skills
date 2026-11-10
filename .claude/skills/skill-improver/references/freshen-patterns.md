@@ -123,7 +123,7 @@ Same atomicity rule as the improvement loop — one finding per iteration, diff 
 
 Verification-based decision rule:
 
-- **Verified source + ≤ equal complexity** → KEEP (update `Pinned:`/notes if relevant). Commit per §4 below.
+- **Verified source + ≤ equal complexity** → KEEP (update `Pinned:`/notes if relevant) and add its line to the pass's commit body (§4). Do not commit per finding.
 - **Unverified** (single unofficial source, probes ambiguous) → DISCARD. Do not guess.
 - **An addition that replaces nothing and names no failure an agent would hit** → DISCARD. The pass reports the skill's lines before → after.
 - **>20 added lines for one finding** → DISCARD and flag for human review in the summary.
@@ -401,35 +401,18 @@ Before bumping a pinned version:
 
 ## 4. Commit Message Format
 
-```
-freshen(<skill-name>): <one-line finding>
-
-Classification: <class>
-Source: <url>
-Before: <short quote or location>
-After:  <short quote or location>
-```
-
-Example:
+One commit per skill per pass, made after the stamp is written. Each finding is one line in the
+body, so a wrong one can be found and undone by hand:
 
 ```
-freshen(gh-cli): bump gh release-view flag requirement to v2.74
+freshen(<skill-name>): <n> findings to <upstream version>, stamp <date>
 
-Classification: version-drift
-Source: https://github.com/cli/cli/releases/tag/v2.74.0
-Before: SKILL.md L87 — "gh release view --json <fields>"
-After:  SKILL.md L87 — "gh release view <tag> --json <fields>" (tag now required)
+Rows probed: <n>. Exceptions: <n>, noted inline. Lines: <before> -> <after>.
+- <class>: <what changed, where> — <source URL or owner/repo#N>
+- superseded: <what was retired, where> — <release or PR that made it obsolete>
 ```
 
-For multi-ref findings, list each location in a bullet list under `Before:` / `After:`.
-
-Stamp commit (F6), last in the pass:
-
-```
-freshen(<skill-name>): stamp sources.md Freshened <date>
-
-Rows probed: <n>. Findings applied: <n> (one commit each). Exceptions: <n>, noted inline.
-```
+A pass over several skills makes one such commit per skill.
 
 ## 4b. Scaffolding Decay Probes (Boris alignment)
 
