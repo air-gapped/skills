@@ -8,7 +8,7 @@ Load when serving Qwen3-Omni with `/v1/realtime`, serving Qwen3-TTS via `/v1/aud
 
 1. **The turn-mode wire contract changed at v0.32.0** (#8339, table below). Match the client to the server version: a v0.30.0 client never sends `response.create`, so a v0.32.0 server commits the audio and stays silent.
 
-2. **`async_chunk` is allowed on v0.22.0+.** The default `qwen3_omni_moe.yaml` ships `async_chunk: true` and serves `/v1/realtime`; PR #3614 removed the handshake rejection. Only on v0.20.x and older does realtime need a stage config with `async_chunk` off (the server then answers `"unsupported"` at handshake).
+2. **`async_chunk` is allowed.** The default `qwen3_omni_moe.yaml` ships `async_chunk: true` and serves `/v1/realtime`.
 
 3. **Audio is headerless PCM16 mono** at the rate in the table. Stereo, the wrong rate, 24-bit or WAV-with-header → garbage or silence.
 
@@ -39,8 +39,6 @@ Published production numbers (v0.16 release): TTFP reduced 90%, RTF 0.22-0.45 on
 | Images | — | `conversation.item.create` with `input_image`, then `response.create` |
 | Function tools | — | `tools` in `session.update` or `response.create`; server needs `--enable-auto-tool-choice --tool-call-parser <name>`, else `invalid_request_error` |
 | Close | `session.close` | close the WebSocket (`session.close` is not a turn-mode event) |
-
-v0.22.0–v0.28.0 follow the v0.30.0 column with audio events named `response.audio.delta` / `response.audio.done`.
 
 Minimal v0.32.0 turn (client → server):
 

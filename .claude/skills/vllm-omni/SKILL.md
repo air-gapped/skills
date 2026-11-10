@@ -65,13 +65,12 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
 
 **Qwen3-Omni realtime + Qwen3-TTS** → `references/realtime-tts.md`
   - Turn-mode wire contract per version: v0.32.0 takes PCM16 mono 24 kHz and needs `response.create`; v0.30.0 takes 16 kHz and emits `transcription.*`
-  - `async_chunk` no longer blocks realtime (v0.22.0+)
   - Qwen3-TTS CustomVoice / VoiceDesign / Base modes, 12 Hz / 25 Hz tokenizers
   - Voice-upload surface (`name` + `consent` + audio ≤10 MB or a speaker embedding; persisted under `SPEAKER_SAMPLES_DIR`)
 
 ## The top operator mistakes this skill exists to prevent
 
-- **Old realtime advice: "turn `async_chunk` off for `/v1/realtime`"**. True only on **v0.20.x and older**, where the WebSocket rejected at connection when `async_chunk` was on. PR #3614 (v0.22.0) removed that gate and added streaming audio input under async-chunk. On v0.22.0+ realtime works with the default `vllm_omni/deploy/qwen3_omni_moe.yaml`, which ships `async_chunk: true`; `--no-async-chunk` / `--async-chunk` override the YAML (v0.28.0+). `qwen3_omni_moe_async_chunk.yaml` no longer exists — do not look for it.
+- **`async_chunk` and realtime**. Default `qwen3_omni_moe.yaml` ships `async_chunk: true` and serves `/v1/realtime`; do not turn it off for realtime. `--no-async-chunk` / `--async-chunk` override the YAML.
 
 - **Realtime client written for another server version**. v0.32.0 rewrote turn-mode `/v1/realtime` on the OpenAI Realtime GA event set (#8339). A client that worked on v0.30.0 hangs on v0.32.0, and the reverse writes silence:
 
@@ -83,7 +82,7 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
   | Transcript | `transcription.delta` / `.done` | `response.output_audio_transcript.delta` / `.done` |
   | Turn end | `response.output_audio.done` | `response.done` |
 
-  Before v0.30.0 the audio events were `response.audio.delta` / `.done` (#7339). Server VAD, tools and limits: `references/realtime-tts.md`.
+  Server VAD, tools and limits: `references/realtime-tts.md`.
 
 - **v0.30.0 config removals that fail at load.** `diffusion_batch_size` is gone — use `max_num_seqs` (#6484). Unknown diffusion config fields now raise with the field name and stage id instead of being silently dropped (#5172) — a stale or misspelled key that used to be ignored now stops the server. First-party Dynin-Omni and dots.tts support was removed (#7655).
 
