@@ -248,6 +248,8 @@ one, and verify the `sources.md` rows in one batched sweep on a cheap helper
 (`web-searcher` for web/gh rows, `Explore` for local clones). Change only what
 an agent acts on: a wrong fact, a removed flag, a new failure with its fix. A
 new feature earns a line only when an agent would otherwise do the task wrong.
+Apply one verified finding at a time; its URL, issue number and check date go in
+`sources.md`, not in the instruction text.
 End by writing the single `Freshened: <date>` header stamp; an unreachable row
 gets an inline exception note. A partial pass keeps the old stamp. Workflow F0–F6, probe templates and
 classification: `references/freshen-patterns.md`.
