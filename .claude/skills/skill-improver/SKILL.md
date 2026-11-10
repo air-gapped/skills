@@ -132,11 +132,12 @@ noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
 - **Run without pausing** between iterations; print status lines.
 - **State the spend before any fan-out** of subagents or `claude -p` probes:
   calls, model, rough dollars from `scripts/model-rates.json`, computed from
-  the real counts (queries × runs × measurements; agents × turns). Judgement —
-  what a skill should say, what to cut, how to restructure — runs on the
-  session's model; mechanical work (row probes, graders, scorers) runs on
-  `sonnet`. An agent costs turns × context: start from a candidate list, batch
-  probes into one command, commit once.
+  the real counts (queries × runs × measurements; agents × turns). Upkeep —
+  reading releases, checking sources, applying verified findings, grading —
+  runs on `sonnet`, or `haiku` where it is pure lookup. Spend the session's
+  model on what upkeep cannot do: restructuring a skill (`improve`) and judging
+  a disputed finding. An agent costs turns × context: start from a candidate
+  list, batch probes into one command, commit once.
 - **At most 20 subagents run at once, helpers included.** An agent that
   delegates holds `1 + helpers` slots; launch `20 // (1 + helpers)` and refill
   as each finishes.
@@ -268,9 +269,10 @@ first: on an encoded-preference skill a high floor is expected, not a delete
 list. `KNOWS` is a candidate, never a licence to cut; `CONFLICTS` never means
 the skill is wrong. `references/floor-patterns.md`.
 
-A new model release is the reason to re-run it: remove what the strongest
-model now `KNOWS` (confirmed by eval cases where the skill has them), and state
-every `CONFLICTS` claim more loudly.
+A skill exists to fill what the models its users work with do not know. Probe
+those models (`--models opus,fable`), and re-run on each model release: remove
+what the strongest now `KNOWS` (confirmed by eval cases where the skill has
+them), and state every `CONFLICTS` claim more loudly.
 
 ## Ages
 
