@@ -398,7 +398,7 @@ def main():
     ap.add_argument("--skill", required=True, help="skill name, dir, or SKILL.md path")
     ap.add_argument("--extract", action="store_true", help="(re)build the claim set")
     ap.add_argument("--max-claims", type=int, default=20)
-    ap.add_argument("--models", default="haiku,sonnet,opus")
+    ap.add_argument("--models", default="haiku")
     ap.add_argument("--efforts", default="", help="comma list, e.g. low,high")
     ap.add_argument("--grader-model", default="sonnet")
     ap.add_argument("--extractor-model", default=None)

@@ -269,15 +269,17 @@ should-not-trigger queries, test scores blinded, description ≤1024 characters.
 ## Floor
 
 `python3 ${CLAUDE_SKILL_DIR}/scripts/knowledge-floor.py --skill <name> [--extract]`
-(about \$6 for 20 claims on haiku, sonnet and opus);
+(the run prints its cost);
 fleet: `scripts/floor-fleet.py --root <dir>`. Read-only. Classify the skill
 first: on an encoded-preference skill a high floor is expected, not a delete
 list. `KNOWS` is a candidate, never a licence to cut; `CONFLICTS` never means
 the skill is wrong. `references/floor-patterns.md`.
 
-Probe the models the skill's users work with (`--models opus,fable`) and re-run
-on each model release: remove what the strongest now `KNOWS` (confirmed by eval cases where the skill has
-them), and state every `CONFLICTS` claim more loudly.
+The reference model is `haiku` (Haiku 5.5, the default): it stands in for the
+best open-weight models other users run the skills on. Remove only what it
+`KNOWS` (confirmed by eval cases where the skill has them); what a stronger
+model knows and `haiku` does not stays. State every `CONFLICTS` claim more
+loudly. Re-run on each model release.
 
 ## Ages
 

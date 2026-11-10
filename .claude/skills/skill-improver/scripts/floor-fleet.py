@@ -201,7 +201,7 @@ def main():
     ap = argparse.ArgumentParser(description=(__doc__ or "").split("\n")[0])
     ap.add_argument("--root", default=".claude/skills")
     ap.add_argument("--out", default=".floor-results")
-    ap.add_argument("--models", default="sonnet,opus")
+    ap.add_argument("--models", default="haiku")
     ap.add_argument("--max-claims", type=int, default=10)
     ap.add_argument("--timeout", type=int, default=240)
     ap.add_argument(

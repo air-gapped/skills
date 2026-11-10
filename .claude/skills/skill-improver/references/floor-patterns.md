@@ -24,7 +24,7 @@ Floor measures what a **bare** model (no skills, tools, web) knows about the ski
 ## Invocation
 
 - One skill: `python3 ${CLAUDE_SKILL_DIR}/scripts/knowledge-floor.py --skill <name> [--extract]`
-- Whole fleet: `python3 ${CLAUDE_SKILL_DIR}/scripts/floor-fleet.py --root <dir>` — writes each result as it lands (resumable); ranks by share of claims the strongest probed model already knows.
+- Whole fleet: `python3 ${CLAUDE_SKILL_DIR}/scripts/floor-fleet.py --root <dir>` — writes each result as it lands (resumable); ranks by share of claims the reference model already knows.
 
 ## The three buckets
 
@@ -43,7 +43,7 @@ Claims are extracted once to `<skill>/references/knowledge-claims.json` (cached,
 - Recall is not application: `KNOWS` is a candidate to confirm with an eval delta, never a licence to cut.
 - A conflict never means the skill is wrong: the skill is presumed correct, the model stale (`SKILL.md` §"Rules for every mode" (the skill outranks training data)). The grader prompt encodes this; do not weaken it.
 
-Re-run on each model release; the movement in `KNOWS` is the delete list.
+The reference model is `haiku` (the script default). It stands in for the open-weight models other users run; a claim only a stronger model knows is not a deletion candidate. Add `--models haiku,opus` to see the gap. Re-run on each model release; the movement in the reference model's `KNOWS` is the delete list.
 
 ## Floor results as a rubric input
 
