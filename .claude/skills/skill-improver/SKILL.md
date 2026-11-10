@@ -58,10 +58,9 @@ user-reported miss as a should-trigger query), `--against <git-ref>` (outcome).
    | `improve` | the skill has no eval cases, or `fix` left weak cases that only restructuring can address, or the user asks for it; and content changed since the last improve pass, a backlog blocker arrived, or no improve pass is on record |
    | `trigger` | description changed or trigger evals fail; never for `disable-model-invocation` |
 
-3. **Print the plan** — one line per step: run or skip, with the evidence. Size
-   it to the reason for the run and the usage and time the user has: one skill
-   needed for the work at hand gets a fast scoped pass, spare usage goes to the
-   most-used skills first. Run in table order. Nothing due is a valid result: say so and stop.
+3. **Print the plan** — one line per step: run or skip, with the evidence,
+   sized to the reason for the run and the usage and time the user has. Run in
+   table order. Nothing due is a valid result: say so and stop.
 4. **Report** what ran, what changed, the commits, what was skipped and why.
 
 ## Fix
@@ -115,18 +114,13 @@ noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
 - **Two lenses, never mixed in one hypothesis.** INV = how the agent works
   (procedure, tool use, done conditions, scripts). DOM = what a practitioner
   knows (facts, failure mechanisms, decision rules). `improve-loop.md` Phase 2.
-- **The backlog holds only what no agent in the session can obtain:** an
-  unreleased upstream version, hardware or an endpoint probed and unreachable, a
-  credential, a real-money purchase. A ruling, an unconfirmed report, usage cost
-  and effort are never filed (`references/backlog-format.md`). Before filing,
-  write the command that would unblock it; if it can run now, run it.
+- **The backlog holds only what no agent in the session can obtain**
+  (`references/backlog-format.md`); if the unblocking command can run now, run it.
 - **Read `references/lessons.md` in Phase 0; write at most one entry at the
   end.** Each kept change gets an attribution verdict in the landing commit
   (`improve-loop.md` Phase 7).
-- **Report size with every pass, in any mode:** lines before → after for
-  `SKILL.md` and for the skill directory. An addition replaces text, or it is a
-  failure an agent would otherwise hit, stated with its fix. Anything else is
-  cut before landing.
+- **Report lines before → after with every pass.** An addition replaces text
+  or states a failure an agent would otherwise hit; anything else is cut.
 - **A pass ends with work, not a report.** Done = every keep applied, blind
   score at baseline (on a snapshot, with the baseline commit recorded) and at
   stop, the A/B comparator verdict, an `outcome` run when the skill has eval
@@ -155,17 +149,11 @@ noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
 - **Preserve the author's domain knowledge.** Change how the skill teaches, not
   what it teaches.
 - **Write for the agent; history goes to `sources.md`.** `SKILL.md` and task
-  references state the current rule and the action. Where a fact came from, why
-  it changed and when it was checked go in `references/sources.md`; `SKILL.md`
-  carries one pointer to it. Keep a version in agent text only where the agent
-  compares against it ("on 0.7.0 every command fails — upgrade"), and an issue
-  number only where the text tells the agent to do something with the issue
-  (check that it is still open); a number that only says where a failure was
-  reported is a citation and moves.
-  **A known failure is agent text, never history:** the symptom, the affected
-  versions and the fix stay in `SKILL.md`/references even when the citation
-  lives in `sources.md` — an agent never loads `sources.md` mid-task.
-  Existing history is not a defect by itself; move it when it is in the diff.
+  references state the current rule and the action; where a fact came from and
+  when it was checked go in `references/sources.md`. Keep a version or issue
+  number in agent text only where the agent compares against it or acts on it.
+  **A known failure is agent text, never history:** its symptom, affected
+  versions and fix stay where the agent reads them.
 - **A failed measurement is NO SCORE, never 0.** A timed-out probe, a dead
   scorer, an errored eval run: exclude it from the denominator and say what is
   missing. An incomplete run is never compared with a complete one; a pass that
@@ -180,10 +168,9 @@ noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
 
 ## Fleet checks
 
-Seven parser-decidable checkers (`scripts/check-*.py`: shell and YAML fences,
-tables, links, advisory floors, expiring claims, issue states). Run them over
-the whole tree; each exits non-zero on findings and has `--selfcheck`. What each
-catches and which hits are expected: `references/fleet-checks.md`.
+Seven `scripts/check-*.py` checkers (fences, tables, links, advisory floors,
+expiring claims, issue states). Run them over the whole tree; what each catches
+and which hits are expected: `references/fleet-checks.md`.
 
 ## Blind validation
 
@@ -216,14 +203,11 @@ grader per assertion), runs each with and without the skill, and with
 about content; trigger mode measures triggering. Defaults: 3 runs, Sonnet,
 Sonnet judge, \$20 cap.
 
-- **Price it first:** \$0.10–0.30 per with-skill run and \$0.05–0.20 per without
-  (larger skills cost more), times cases × runs × arms; `--against` adds an arm.
-  The run ends by printing what it actually used: tokens per model (grader calls
-  excluded) and, on a subscription, the plan's 5-hour and weekly usage before and
-  after — read from the runs' own logs, whole percents.
-- **Read failures before concluding.** Three runs and a 2-of-3 judge vote are
-  noisy: a per-case difference of one run, or a total gap under ~0.15, is noise
-  until the failed answers are read and found worse.
+- **Price it first:** \$0.10–0.30 per with-skill run and \$0.05–0.20 per without,
+  times cases × runs × arms. The run ends by printing the tokens it used and,
+  on a subscription, the plan's usage before and after.
+- **Read failures before concluding.** A per-case difference of one run, or a
+  total gap under ~0.15, is noise until the failed answers are read.
 - **A skill that does not beat the without arm on a case** carries nothing the
   model lacks there — a deletion candidate, confirmed with `floor`.
 - `--write-benchmark` writes `evals/benchmark.plugin-eval.json`, which
@@ -253,7 +237,8 @@ whose body lists each finding with its source:
 - **Add or correct** what an agent acts on: a wrong fact, a removed flag, a new
   failure with its fix. A new feature earns a line only when an agent would
   otherwise do the task wrong.
-- **Retire** what the product moved past: a workaround for a fixed bug, a
+- **Retire** what the product moved past (`scripts/retire-candidates.py
+  <skill-dir> --floor <oldest supported release>` lists where to look): a workaround for a fixed bug, a
   feature that was superseded, a version gate below every supported release,
   news that became ordinary.
 
@@ -295,13 +280,9 @@ probes, scoring or edits. `cases` marked `!` = fewer than 8 eval cases; `open`
 
 ## Batch
 
-`scripts/scan-skills.sh` lists targets. Baseline-score each, run worst first,
-cap 5 iterations per skill. The batch is done when every listed skill has a
-summary row (skipped, crashed and capped included). With the `Workflow` tool
-opted in, use `scripts/batch-workflow.js`
-(`args: ["keda", "helm", ...]`); no agent there does git — commit per skill
-after review. Wave size: §Rules for every mode; a workflow also follows the
-workflow size guideline.
+`scripts/scan-skills.sh` lists targets; worst first, one worker per skill, a
+summary row for every listed skill. With the `Workflow` tool opted in:
+`scripts/batch-workflow.js` (`args: ["keda", "helm", ...]`), commit after review.
 
 ## Files beyond the mode table
 
