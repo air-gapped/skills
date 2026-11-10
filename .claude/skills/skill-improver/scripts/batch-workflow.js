@@ -217,7 +217,7 @@ function applyPrompt(s, recon) {
     '',
     'WORKSTREAM A — IMPROVE LOOP (rubric-driven), skill-improver methodology:',
     '- Run up to 5 keep/discard iterations. ONE ATOMIC change per iteration (single present-tense verb, no "and"; pure relocation is allowed but must not rewrite prose in the same step).',
-    '- After each change, cold-score the affected dimensions. KEEP if the total improves, or is equal but simpler. Otherwise REVERT that exact edit and log it as discard.',
+    '- After each change, cold-score the affected dimensions. KEEP at +3 or more, or when the total is equal and the skill is simpler; +1 or +2 is scorer noise and is kept only if it also simplifies. Otherwise REVERT that exact edit and log it as discard.',
     '- Prefer deletion/simplification over addition. Prioritize hypotheses that lift Boris caps (structural) over cosmetic dims.',
     '- Preserve the author intent and domain knowledge — improve HOW it teaches, not WHAT it teaches.',
     '- NEVER mutate an external-world claim (version, date, model name, API, flag, SHA) from memory — apply such changes ONLY when WORKSTREAM B freshen evidence (verified URL) backs them. The skill may postdate your knowledge cutoff. Lowering a version or moving a date backward is presumed training-data staleness: skip it unless the online evidence explicitly shows a real rollback.',
