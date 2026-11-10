@@ -23,20 +23,14 @@ file could not be read.
 Usage: frontmatter-lengths.py <path-to-SKILL.md> | --selfcheck
 """
 
-import re
+import os
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from skill_frontmatter import read_frontmatter  # noqa: E402
 
 CAP_COMBINED = 1536
 CAP_DESCRIPTION = 1024
-
-
-def field(fm: str, name: str) -> str | None:
-    # [\w-] not \w: YAML keys may contain hyphens (argument-hint, allowed-tools).
-    # With \w the lookahead misses them and the preceding field swallows the rest
-    # of the frontmatter — measured 2026-08-20 inflating a combined total by 99
-    # chars and inventing an overrun that did not exist.
-    m = re.search(rf"^{name}:\s*(.*?)(?=^[\w-]+:|\Z)", fm, re.S | re.M)
-    return m.group(1).strip() if m else None
 
 
 def selfcheck() -> int:
@@ -45,14 +39,31 @@ def selfcheck() -> int:
     import tempfile
     from pathlib import Path
 
-    def run(body: str | None) -> tuple[int, str]:
+    def run(body: str | None, env: dict | None = None) -> tuple[int, str]:
         path = Path(tempfile.mkdtemp(prefix="fm-lengths-")) / "SKILL.md"
         if body is not None:
             path.write_text(body, encoding="utf-8")
         p = subprocess.run(
-            [sys.executable, __file__, str(path)], capture_output=True, text=True
+            [sys.executable, __file__, str(path)],
+            capture_output=True,
+            text=True,
+            env=env,
         )
         return p.returncode, p.stdout + p.stderr
+
+    # The plant: block scalars measure as the loader reads them — indicator,
+    # indentation and folded line breaks are not characters of the value.
+    blocks = "---\nname: b\ndescription: |-\n  ab\n  cd\nwhen_to_use: >-\n  ef\n  gh\n---\n# b\n"
+    rc, out = run(blocks)
+    assert rc == 0 and "description: 5 chars" in out, (rc, out)
+    assert "description+when_to_use: 10 chars" in out, (rc, out)
+    # Same file with PyYAML unimportable: the fallback reader, same numbers.
+    shadow = Path(tempfile.mkdtemp(prefix="fm-lengths-noyaml-"))
+    (shadow / "yaml.py").write_text("raise ImportError('hidden for the selfcheck')\n")
+    rc, out = run(blocks, dict(os.environ, PYTHONPATH=str(shadow)))
+    assert rc == 0 and "WARNING: PyYAML not installed" in out, (rc, out)
+    assert "description: 5 chars" in out, (rc, out)
+    assert "description+when_to_use: 10 chars" in out, (rc, out)
 
     rc, out = run("---\nname: ok\ndescription: short\n---\n# ok\n")
     assert rc == 0 and "description: 5 chars" in out, (rc, out)
@@ -90,14 +101,19 @@ def main() -> int:
     # any field measures, so report it and stop rather than printing lengths the
     # loader will never use.
     parsed = None
+    fallback: dict = {}
     try:
         import yaml
     except ImportError:
         print(
             "WARNING: PyYAML not installed — cannot verify the frontmatter parses. "
-            "Lengths below are regex-derived and would look identical for a block "
-            "that Claude Code loads with every field dropped. `pip install pyyaml`."
+            "Lengths below come from the fallback reader and would look identical for "
+            "a block that Claude Code loads with every field dropped. `pip install pyyaml`."
         )
+        try:
+            fallback = read_frontmatter(text, use_yaml=False)
+        except ValueError:
+            fallback = {}
     else:
         try:
             parsed = yaml.safe_load(fm)
@@ -131,19 +147,16 @@ def main() -> int:
     def value_of(name: str) -> str | None:
         # Measure what the LOADER sees, not the raw block text. A `>-` folded
         # scalar spans many indented lines; YAML folds each newline+indent to a
-        # single space, so the regex capture is longer than the real string by
-        # ~2 chars per continuation line. Measured 2026-08-25 across 61 skills:
-        # the regex over-counts by up to 54 chars and invents a cap overrun on
-        # 15 skills that are in fact under it. That is the same defect class as
-        # the `[\w-]` bug noted on `field()` — a regex standing in for a parser
-        # — and it bites hardest exactly where it matters, on skills near the
-        # cap, where the fix an agent then applies is to delete real trigger
-        # phrases. Regex stays as the fallback for a missing PyYAML, which the
-        # warning above already flags as unverified.
-        if isinstance(parsed, dict):
-            v = parsed.get(name)
-            return None if v is None else str(v)
-        return field(fm, name)
+        # single space, so a capture of the raw block is longer than the real
+        # string by ~2 chars per continuation line. Measured 2026-08-25 across
+        # 61 skills: a regex over the block over-counted by up to 54 chars and
+        # invented a cap overrun on 15 skills that are in fact under it — and
+        # it bites hardest on skills near the cap, where the fix an agent then
+        # applies is to delete real trigger phrases. Without PyYAML the shared
+        # fallback reader applies the same scalar rules; the warning above
+        # still flags that the block's validity is unverified.
+        v = (parsed if isinstance(parsed, dict) else fallback).get(name)
+        return None if v is None else str(v)
 
     combined = 0
     for name in ("name", "description", "when_to_use"):

@@ -784,6 +784,11 @@ Catalogue lives here rather than in SKILL.md: progressive disclosure (Pattern 2.
 
 #### scripts/probe-trigger.py
 - Adapted from anthropics/skills `skill-creator/scripts/run_eval.py`.
+- Until 2026-11-10 its own regex reader matched `|` in a `|-` header and left the `-` in the value: 32 of 77 skills were probed with `-` and a newline in front of the description (`|+` and `>+` broke the same way). The reader now is `skill_frontmatter.py`.
+
+#### scripts/skill_frontmatter.py
+- Added 2026-11-10 after three scripts were found reading frontmatter three ways: `probe-trigger.py` as above; `bucket-evals.py` took only the `description:` line, so a block-scalar description (68 of 77 skills) reached the bucket classifier empty; `frontmatter-lengths.py` measured the raw block text when PyYAML was missing.
+- Fallback against PyYAML 6.0.3 on the 77 skills and 10 agent definitions of this repository: 0 fields read differently.
 
 #### scripts/check-* (not in the original file; added from docstrings)
 - check-expiring-claims: measured 2026-09-15: 37 future-dated claims, 2 worth acting on; example "2.11 goes EOL 2026-10-24 — roughly three months out" when the date was 5½ weeks away.

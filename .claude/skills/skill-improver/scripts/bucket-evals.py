@@ -42,6 +42,9 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from skill_frontmatter import read_frontmatter  # noqa: E402
+
 BUCKETS = ("explicit", "implicit", "contextual", "negative")
 POSITIVE_BUCKETS = ("explicit", "implicit", "contextual")
 
@@ -128,11 +131,12 @@ def purpose_of(skill_dir: Path) -> str:
     md = skill_dir / "SKILL.md"
     if not md.is_file():
         return skill_dir.name
-    text = md.read_text(errors="replace")[:4000]
-    for line in text.splitlines():
-        if line.startswith("description:"):
-            return line.split(":", 1)[1].strip().strip("'\"|>-").strip()[:300]
-    return skill_dir.name
+    try:
+        fm = read_frontmatter(md.read_text(errors="replace"))
+    except ValueError:
+        return skill_dir.name
+    # Folded to one line: a block-scalar description spans several.
+    return " ".join(str(fm.get("description") or skill_dir.name).split())[:300]
 
 
 def label_file(path: Path, relabel: bool, dry: bool) -> tuple[int, int]:

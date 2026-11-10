@@ -86,6 +86,9 @@ import uuid
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from skill_frontmatter import listing_description, read_frontmatter  # noqa: E402
+
 # Pinned, not inherited: a probe that runs on "whatever the session happened to
 # use" is not reproducible, and two arms compared across a model switch are not
 # comparable. See the module docstring for the measurement behind this choice.
@@ -124,35 +127,11 @@ def parse_skill_md(skill_dir: Path) -> tuple[str, str]:
     description includes any when_to_use field concatenated, since that is
     how Claude Code presents them in the listing (combined cap of 1,536 chars).
     """
-    text = (skill_dir / "SKILL.md").read_text()
-    fm_match = re.match(r"^---\n(.*?)\n---", text, re.DOTALL)
-    if not fm_match:
-        raise ValueError(f"No YAML frontmatter found in {skill_dir}/SKILL.md")
-    frontmatter = fm_match.group(1)
-
-    name = _yaml_scalar(frontmatter, "name") or skill_dir.name
-    description = _yaml_scalar(frontmatter, "description") or ""
-    when_to_use = _yaml_scalar(frontmatter, "when_to_use") or ""
-    if when_to_use:
-        description = f"{description.rstrip()} {when_to_use.lstrip()}".strip()
-    return name, description
-
-
-def _yaml_scalar(frontmatter: str, field: str) -> str | None:
-    """Pull a single YAML scalar by name. Handles `field: value`, `field: >-`,
-    and `field: |` block forms. Doesn't handle nested mappings."""
-    pat = rf"^{field}:\s*(>-|>|\|)?\s*(.*?)(?=\n[a-zA-Z_-]+:|\Z)"
-    m = re.search(pat, frontmatter, re.MULTILINE | re.DOTALL)
-    if not m:
-        return None
-    style, body = m.group(1), m.group(2)
-    if style in (">-", ">"):
-        return " ".join(
-            line.strip() for line in body.strip().splitlines() if line.strip()
-        )
-    if style == "|":
-        return "\n".join(line.strip() for line in body.strip().splitlines())
-    return body.strip().strip("'\"")
+    try:
+        fm = read_frontmatter((skill_dir / "SKILL.md").read_text())
+    except ValueError as e:
+        raise ValueError(f"{skill_dir}/SKILL.md: {e}") from e
+    return str(fm.get("name") or skill_dir.name), listing_description(fm).strip()
 
 
 def run_single_query(
@@ -669,6 +648,41 @@ def selfcheck() -> int:
     assert (s["passed"], s["failed"], s["unmeasured"]) == (2, 0, 2), s
     assert s["errors"] == 4 and s["complete"] is False, s
     assert s["error_sample"], s
+
+    # The description probed must be the one a YAML loader reads. The plant: a
+    # `|-` block scalar, which a reader that takes `|` and leaves the `-`
+    # returns with "-" in front.
+    blocks = {
+        "|-": "First line - dashed.\nSecond line.",
+        "|": "First line - dashed.\nSecond line.\n",
+        "|+": "First line - dashed.\nSecond line.\n",
+        ">-": "First line - dashed. Second line.",
+        ">": "First line - dashed. Second line.\n",
+        ">+": "First line - dashed. Second line.\n",
+    }
+    try:
+        import yaml
+    except ImportError:
+        yaml = None
+    for style, want in blocks.items():
+        plant = Path(tempfile.mkdtemp(prefix="sktrig-fm-")) / "planted-skill"
+        plant.mkdir()
+        block = (
+            f"name: planted-skill\ndescription: {style}\n"
+            "  First line - dashed.\n  Second line.\n"
+            f"when_to_use: {style}\n  When asked.\n"
+        )
+        (plant / "SKILL.md").write_text(f"---\n{block}---\n\n# Planted\n")
+        for use_yaml in (True, False):  # PyYAML, then the fallback reader
+            fm = read_frontmatter((plant / "SKILL.md").read_text(), use_yaml)
+            assert fm["description"] == want, (style, use_yaml, fm["description"])
+            if yaml:
+                loaded = yaml.safe_load(block)
+                assert fm["description"] == loaded["description"], (style, use_yaml)
+                assert fm["when_to_use"] == loaded["when_to_use"], (style, use_yaml)
+        got_name, got = parse_skill_md(plant)
+        assert got_name == "planted-skill", got_name
+        assert got == f"{want.rstrip()} When asked.", (style, got)
     print("selfcheck: all assertions passed")
     return 0
 
