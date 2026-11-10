@@ -31,8 +31,8 @@ export const meta = {
 // root); from anywhere else, pass baseDir. Bare names are resolved against
 // it, absolute dirs bypass it entirely.
 //
-// All agents inherit the main-loop model (the role the session model plays in
-// a solo run), except blind scorers: they run on the `sonnet` pin (agent
+// Recon (scoring, source probes) runs on sonnet; the apply stage, which
+// restructures the skill, inherits the main-loop model. Blind scorers: they run on the `sonnet` pin (agent
 // definition, or stated explicitly on the legacy path below), at the effort
 // references/blind-validation.md §Model selection describes — the session's
 // only when the session itself runs Sonnet. Within one batch run every blind
@@ -246,7 +246,7 @@ const results = await pipeline(
   SKILLS,
   async (skill) => {
     const [recon, baselineBlind] = await parallel([
-      () => agent(reconPrompt(skill), { label: `recon:${skill.name}`, phase: 'Recon', schema: RECON_SCHEMA }),
+      () => agent(reconPrompt(skill), { label: `recon:${skill.name}`, phase: 'Recon', model: 'sonnet', schema: RECON_SCHEMA }),
       () => blindAgent(skill, { label: `baseline-blind:${skill.name}`, phase: 'Baseline blind' }),
     ])
     log(`recon ${skill.name}: self=${recon?.self?.total ?? '?'} baselineBlind=${baselineBlind?.total ?? '?'} freshen=${(recon?.freshen || []).filter(f => f.verdict === 'stale' || f.verdict === 'deprecated').length} actionable`)
