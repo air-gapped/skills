@@ -43,9 +43,7 @@ the two-path tail, spawn a `general-purpose` agent with that prompt. With no
 subagent mechanism, run the combined prompt in a fresh session and feed back the
 result.
 
-**Sync rule:** the agent definition is the single canonical copy.
-`scripts/batch-workflow.js` `legacyBlindPrompt()` carries a self-contained
-fallback; update it in the same commit as any agent-definition change.
+The agent definition is the single canonical copy.
 
 ## Measured scorer behaviour (2026-08-20)
 
@@ -63,8 +61,7 @@ in `.claude/agents/blind-scorer.md` frontmatter) — Sonnet 5.5 on the Anthropic
 API since Claude Code v2.1.284; other providers and
 `ANTHROPIC_DEFAULT_SONNET_MODEL` can resolve it to an older Sonnet. **Omit
 `model` in the spawn call.** The pin lives in one place, so same-run consistency holds by
-construction. Exception: `batch-workflow.js` `legacyBlindPrompt()` runs without
-the agent definition, states the pin explicitly, and must change with it.
+construction.
 
 - The pin outranks `CLAUDE_CODE_SUBAGENT_MODEL` but **not**
   `CLAUDE_CODE_SUBAGENT_MODEL_FORCE`, which overrides agent-definition and
