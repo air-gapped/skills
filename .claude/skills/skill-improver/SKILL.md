@@ -132,10 +132,11 @@ noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
 - **Run without pausing** between iterations; print status lines.
 - **State the spend before any fan-out** of subagents or `claude -p` probes:
   calls, model, rough dollars from `scripts/model-rates.json`, computed from
-  the real counts (queries × runs × measurements; agents × turns). Per-skill
-  workers, graders and row probes run on `model: "sonnet"`; the session's model
-  orchestrates and runs `improve`. A worker costs turns × context: batch probes
-  into one command, run a commit sequence as one command.
+  the real counts (queries × runs × measurements; agents × turns). Judgement —
+  what a skill should say, what to cut, how to restructure — runs on the
+  session's model; mechanical work (row probes, graders, scorers) runs on
+  `sonnet`. An agent costs turns × context: start from a candidate list, batch
+  probes into one command, commit once.
 - **At most 20 subagents run at once, helpers included.** An agent that
   delegates holds `1 + helpers` slots; launch `20 // (1 + helpers)` and refill
   as each finishes.

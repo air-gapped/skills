@@ -28,7 +28,7 @@ without re-running the baseline scoring.
 ### The spend ceiling
 
 A measurement nobody asked for runs unprompted only when its computed cost is at most **$5 at list
-rates** (about 100 probe calls, or one Sonnet worker). Above that it is filed with its price, and the
+rates** (about 100 probe calls, or one short worker). Above that it is filed with its price, and the
 user decides. Compute the cost before deciding, never after: queries × runs × measurements, or
 agents × expected turns. A measurement the user asked for runs at whatever budget they set.
 
