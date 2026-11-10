@@ -2,10 +2,6 @@
 
 ## Open
 
-- **Trim `when_to_use` keyword list** (Dim 1/6) — `SKILL.md:6`, 1061 chars,
-  combined with `description` near the 1536 listing cap. Blocked on a `trigger`
-  run (`probe-trigger.py` on a `references/trigger-evals.json` set, none exists
-  yet): a cut cannot be shown not to lose recall without it.
 
 ## Resolved this pass (2026-10-18, improve, v0.32.0)
 
