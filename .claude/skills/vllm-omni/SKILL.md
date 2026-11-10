@@ -91,8 +91,6 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
 
 - **PCM format on `/v1/realtime`**. Send headerless **16-bit PCM mono** at the rate the server version expects (24 kHz on v0.32.0, 16 kHz through v0.30.0); output is 24 kHz PCM16. Stereo, the wrong rate, 24-bit, or WAV-with-header inputs produce garbage or silence. Client templates: v0.32.0 `examples/online_serving/realtime_web` (`--profile qwen3-turn`); through v0.30.0 `examples/online_serving/qwen3_omni/openai_realtime_client.py` (removed at v0.32.0).
 
-- **`guidance_scale=0` silently enabled CFG below v0.26.0**. `0.0` was the "unset" sentinel in `OmniDiffusionSamplingParams`, so an explicit `0` was replaced by the pipeline default (HunyuanImage-3.0: `5.0`, CFG on) — every pipeline, not one model. Fixed in v0.26.0 (#4999). On older builds omit the field instead of sending `0`. CFG still gates on `guidance_scale > 1.0`, so `0.5` disables it on every version.
-
 - **Prefix caching on a stage that emits latents**. Any stage with `engine_output_type: latent` (thinker stages producing hidden states) must set `enable_prefix_caching: false` on that stage (a flat per-stage key in the deploy YAML; the shipped Qwen3-Omni YAML sets it on every stage). Prefix cache reuses token-level blocks, which makes no sense for latent outputs — leaving it on surfaces as intermittent stale responses.
 
 - **`/v1/videos/sync` for long jobs**. The sync endpoint times out at `VIDEO_SYNC_TIMEOUT_S` — **600 s** by default, overridable with `VLLM_OMNI_VIDEO_SYNC_TIMEOUT` (v0.24.0+; a fixed 600 s before that) — and returns 504 past it. Long Wan2.2 / HunyuanVideo-1.5 jobs should use `POST /v1/videos` (async), then poll `GET /v1/videos/{id}` and fetch `/content`.

@@ -57,7 +57,7 @@ Non-OpenAI extensions:
 |---|---|---|
 | `negative_prompt` | string | CFG negative branch |
 | `num_inference_steps` | int 1-200 | Diffusion steps; omitted = model default |
-| `guidance_scale` | float 0-20 | CFG scale (>1.0 to enable). v0.26.0+: omitted = model default, `0` = off. Below v0.26.0 `0` was the "not provided" sentinel — omit the field instead |
+| `guidance_scale` | float 0-20 | CFG scale (>1.0 to enable). Omitted = model default, `0` = off |
 | `true_cfg_scale` | float 0-20 | Qwen-Image variant; ignored by models without it |
 | `flow_shift` | float | Scheduler sigma shift (flow-matching models) |
 | `seed` | int64 | Reproducibility |
