@@ -161,7 +161,7 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 ## Platform legend
 
 - **CUDA** — NVIDIA H100/A100/H200/Blackwell.
-- **ROCm** — AMD MI300 family. Wheel index is version-specific and moves: v0.30.0 uses `vllm==0.30.0+rocm723` from `https://wheels.vllm.ai/rocm/0.30.0/rocm723` (cp312 only; v0.24.0 used `rocm700`). Images live in the separate `vllm/vllm-omni-rocm` repo, which tops out at v0.30.0. For v0.32.0 only an unvalidated `0.32.0+rocm723` wheel exists — deploy the v0.30.0 pair.
+- **ROCm** — AMD MI300 family. Wheel index is version-specific and moves: v0.30.0 uses `vllm==0.30.0+rocm723` from `https://wheels.vllm.ai/rocm/0.30.0/rocm723` (cp312 only). Images live in the separate `vllm/vllm-omni-rocm` repo, which tops out at v0.30.0. For v0.32.0 only an unvalidated `0.32.0+rocm723` wheel exists — deploy the v0.30.0 pair.
 - **NPU** — Huawei Ascend 910B. Set `--dtype`, `--max-model-len`, `--served-model-name` in the stage YAML, not on the CLI: multi-stage deploys do not pass them through (#2898).
 - **XPU** — Intel Arc / Ponte Vecchio. Backend: XCCL / oneccl_bindings_for_pytorch.
 - **MUSA** — detected by `torchada.is_musa_platform()` (`vllm_omni/platforms/__init__.py`); upstream's list has no MUSA column, so no row claims it.
@@ -171,7 +171,7 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | Operator goal | Recommended model |
 |---|---|
 | Smallest image-gen footprint | `Tongyi-MAI/Z-Image-Turbo` (quickstart default) |
-| Best-quality open text-to-image | `black-forest-labs/FLUX.2-dev` (FP8) or `Qwen/Qwen-Image` (GGUF needs `vllm-gguf-plugin` on v0.26.0+) |
+| Best-quality open text-to-image | `black-forest-labs/FLUX.2-dev` (FP8) or `Qwen/Qwen-Image` (GGUF needs `vllm-gguf-plugin`) |
 | Image edit / inpaint | Qwen-Image-Edit-2511 or FLUX.1-Kontext-dev |
 | Short video (5-15s) | Wan2.2-T2V-A14B (A14B MoE) or LTX-2.3 distilled (`diffusers/LTX-2.3-Distilled-Diffusers`) |
 | Long video / talking head | HunyuanVideo-1.5, Wan2.2-S2V (speech-to-video) |

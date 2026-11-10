@@ -140,7 +140,7 @@ All nodes must see the same `--deploy-config` YAML (`--stage-configs-path` was r
 
 3. **Wrong `hf_config_name` for quantized multi-stage**: when a checkpoint has per-stage quant (modelopt FP8 multi-stage), `hf_config_name` must name the specific sub-config for each stage — otherwise talker/code2wav inherit thinker's quant wrongly. Symptoms: silent accuracy drop on one stage.
 
-4. **BAGEL YAML/docs mismatch (#2635)**: parallel-config field names in the official docs don't match the YAML shape that actually loads. Below v0.30.0 a wrong diffusion field (e.g. `tensor_parallel_size`) was silently dropped by `OmniDiffusionConfig.from_kwargs()`; on v0.30.0+ unknown diffusion fields raise with the field name and stage id (#5172). Cross-check against an existing known-good config in `vllm_omni/deploy/` before copy-paste.
+4. **BAGEL YAML/docs mismatch (#2635)**: parallel-config field names in the official docs don't match the YAML shape that actually loads. A wrong diffusion field (e.g. `tensor_parallel_size`) raises with the field name and stage id (#5172). Cross-check against an existing known-good config in `vllm_omni/deploy/` before copy-paste.
 
 5. **Global engine flags on GPU-sharing stages**: `--gpu-memory-utilization 0.85` on the CLI applies to every stage and oversubscribes a device that two stages share (Qwen3-Omni stages 1+2 on cuda:1). Use `--stage-overrides '{"1": {...}}'` or the YAML.
 

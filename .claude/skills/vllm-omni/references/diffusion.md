@@ -110,9 +110,9 @@ Supported formats (entry point `build_quant_config()`, `vllm_omni/quantization/f
 
 | Format | Targeted at | Source PR |
 |---|---|---|
-| FP8 | Flux family DiT | v0.16 #1640 |
-| INT8 | Z-Image, Qwen-Image DiT | v0.18 #1470 |
-| ~~GGUF~~ | **moved out of tree in v0.26.0** — install `vllm-project/vllm-gguf-plugin` | v0.16 #1755, removed by #4769 |
+| FP8 | Flux family DiT | #1640 |
+| INT8 | Z-Image, Qwen-Image DiT | #1470 |
+| GGUF | out of tree — install `vllm-project/vllm-gguf-plugin` | #4769 |
 | BitsAndBytes W4 (online) | diffusion transformers | v0.26.0 #5037 |
 | Transformer Engine FP8 (online) | FLUX.2-dev Mistral text encoder | v0.26.0 #5136 |
 | NVFP4, MXFP4 | via upstream vLLM registry | inherited |

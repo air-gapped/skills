@@ -92,11 +92,11 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
 
 - **Prefix caching on a stage that emits latents**. Any stage with `engine_output_type: latent` (thinker stages producing hidden states) must set `enable_prefix_caching: false` on that stage (a flat per-stage key in the deploy YAML; the shipped Qwen3-Omni YAML sets it on every stage). Prefix cache reuses token-level blocks, which makes no sense for latent outputs — leaving it on surfaces as intermittent stale responses.
 
-- **`/v1/videos/sync` for long jobs**. The sync endpoint times out at `VIDEO_SYNC_TIMEOUT_S` — **600 s** by default, overridable with `VLLM_OMNI_VIDEO_SYNC_TIMEOUT` (v0.24.0+; a fixed 600 s before that) — and returns 504 past it. Long Wan2.2 / HunyuanVideo-1.5 jobs should use `POST /v1/videos` (async), then poll `GET /v1/videos/{id}` and fetch `/content`.
+- **`/v1/videos/sync` for long jobs**. The sync endpoint times out at `VIDEO_SYNC_TIMEOUT_S` — **600 s** by default, overridable with `VLLM_OMNI_VIDEO_SYNC_TIMEOUT` — and returns 504 past it. Long Wan2.2 / HunyuanVideo-1.5 jobs should use `POST /v1/videos` (async), then poll `GET /v1/videos/{id}` and fetch `/content`.
 
 - **Orphan processes after a Wan2.2 crash** (#2768). Killing one worker leaves sibling stage processes alive. Launch in a process group and `kill -- -<PGID>` on failure, or run under `systemd` with `KillMode=control-group`. Keep this on current builds: the issue closed without a fix PR, after a fresh reproduction.
 
-- **Two v0.26.0 breaking changes that rename or remove things you may be using.** (1) **LTX pipeline registry names changed** (#5148): `LTX2Pipeline` is now the single one-stage entry for LTX-2 *and* LTX-2.3, T2V *and* I2V — checkpoint metadata picks the version, `image=` picks I2V. `LTX2ImageToVideoPipeline`, `LTX23Pipeline` and `LTX23ImageToVideoPipeline` were removed. On v0.32.0 the supported list names `LTX2TwoStagePipeline`, `LTX2DistilledOneStagePipeline`, `LTX2DistilledTwoStagePipeline` and `LTX2TextToAudioPipeline` (`LTX2DistilledPipeline` is still registered); the distilled rows cover LTX-2.3 and LTX-2.5 only, since `rootonchair/LTX-2-19b-distilled` was removed (#9065). Expect higher compute too: the official guidance recipe runs up to four transformer passes per denoise step (cond / uncond / STG perturbation / cross-modality). (2) **GGUF diffusion support moved out of tree** (#4769) to `vllm-project/vllm-gguf-plugin` — a GGUF DiT deployment now needs that plugin installed, and the in-core path is gone.
+- **LTX registry names and GGUF.** `LTX2Pipeline` is the single one-stage entry for LTX-2 and LTX-2.3, T2V and I2V (checkpoint metadata picks the version, `image=` picks I2V); `LTX2ImageToVideoPipeline`, `LTX23Pipeline` and `LTX23ImageToVideoPipeline` no longer resolve. Supported names on v0.32.0: `LTX2TwoStagePipeline`, `LTX2DistilledOneStagePipeline`, `LTX2DistilledTwoStagePipeline`, `LTX2TextToAudioPipeline` (`LTX2DistilledPipeline` is still registered); distilled rows cover LTX-2.3 and LTX-2.5 only (`rootonchair/LTX-2-19b-distilled` was removed, #9065). The official guidance recipe runs up to four transformer passes per denoise step. A GGUF DiT deployment needs `vllm-project/vllm-gguf-plugin`; the in-core path is gone.
 
 - **Assuming vllm-omni serves text-only models**. If the model has no multimodal output, use stock vLLM — vllm-omni adds overhead for features a text-only model won't exercise, and the community skill explicitly recommends against it. The decision rule: output modality is non-text OR the model name ends `-Omni`/`-Image`/`-TTS`/`-Video` → vllm-omni; otherwise stock vLLM.
 
@@ -119,7 +119,7 @@ uv pip install vllm==0.30.0+rocm723 \
 uv pip install vllm-omni==0.30.0
 ```
 
-Resulting CUDA stack (vLLM v0.32.0 `requirements/cuda.txt` + omni `requirements/common.txt`): PyTorch 2.13.0, FlashInfer 0.7.0.post1, torchvision 0.28.0, `transformers >= 5.16.1, < 5.20.0`, `diffusers==0.40.0`. Keep transformers inside the range of the omni version installed. Python 3.11–3.13 is declared; use 3.12 (quickstart default, and the ROCm wheel is cp312-only). A `vllm==0.32.0+rocm723` wheel exists at `https://wheels.vllm.ai/rocm/0.32.0/rocm723`, but upstream's install guide marks it unverified against the v0.32.0 source pin and there is no v0.32.0 ROCm image — treat ROCm on v0.32.0 as a test build. Docker model tags (`minimax-h3`, `qwen-image21`, `cosmos3`, …) and `nightly*` tags are not releases.
+Resulting CUDA stack (vLLM v0.32.0 `requirements/cuda.txt` + omni `requirements/common.txt`): PyTorch 2.13.0, FlashInfer 0.7.0.post1, torchvision 0.28.0, `transformers >= 5.16.1, < 5.20.0`, `diffusers==0.40.0`. Keep transformers inside the range of the omni version installed. Python 3.11–3.13 is declared; use 3.12 (quickstart default, and the ROCm wheel is cp312-only). A `vllm==0.32.0+rocm723` wheel exists but is unverified against the v0.32.0 source pin and there is no v0.32.0 ROCm image — treat it as a test build. Docker model tags (`minimax-h3`, `qwen-image21`, `cosmos3`, …) and `nightly*` tags are not releases.
 
 ### Serving canonical forms
 
@@ -173,7 +173,7 @@ vllm serve Wan-AI/Wan2.2-T2V-A14B-Diffusers --omni \
 | `/v1/realtime` input | PCM16 mono @ 24 kHz on v0.32.0; 16 kHz through v0.30.0 |
 | Qwen3-Omni audio output rate | 24 kHz |
 | Qwen3-TTS tokenizer rate | 12 Hz or 25 Hz |
-| `/v1/videos/sync` timeout | 600 s default; `VLLM_OMNI_VIDEO_SYNC_TIMEOUT` overrides (v0.24.0+) |
+| `/v1/videos/sync` timeout | 600 s default; `VLLM_OMNI_VIDEO_SYNC_TIMEOUT` overrides |
 | Voice upload size cap | 10 MB |
 | Paper claim | up to 91.4% JCT reduction vs "baseline" (unspecified) |
 

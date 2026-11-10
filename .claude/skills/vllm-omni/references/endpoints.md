@@ -29,7 +29,7 @@ Also registered, not detailed here: `/v1/chat/completions/batch` and `/v1/audio/
 | `/v1/realtime` | WebSocket | PCM16 realtime (Qwen3-Omni turn mode) |
 | `/v1/realtime?duplex=1`, `/v1/duplex` | WebSocket | Full-duplex session (duplex deployments only; `/v1/duplex` is an alias) |
 | `/health` | GET | `{"status":"healthy"}`; 503 `unhealthy` when no engine |
-| `/v1/models` | GET | List loaded models (diffusion too, since v0.14 #454) |
+| `/v1/models` | GET | List loaded models (diffusion too) |
 
 ## `/v1/images/generations`
 
