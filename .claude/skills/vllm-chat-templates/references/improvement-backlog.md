@@ -7,7 +7,12 @@ Append-only; carry open items forward with a `(carried <date>)` marker.
 
 (none)
 
-## Resolved this pass (2026-10-18)
+## Resolved this pass (2026-11-10)
+
+Trigger pass on `claude-sonnet-5-5`, 7 runs/query, 33 queries (19 should, 14 should-not, 11 of them sibling-skill territory): train 21/21, test 10/12 (should 5/7, should-not 5/5). No should-not query reached the 0.5 threshold. Converged at baseline; frontmatter unchanged at 1,492 chars.
+- Discard: collapsing near-synonyms in `when_to_use` — "chat template no effect", bare "tool_chat_template", "template resolution order" and "jinja check" removed together (−93 chars). Train 21/21 → 20/21: the SGLang-to-vLLM migration query with Jinja inline in Helm values fell 16/21 → 7/21 runs (N=7 and N=14 pooled); test stayed 10/12. Each phrase removed alone left that query at 9–10/14, so no single phrase carries it and the loss is cumulative. A bulk trim of the quoted trigger list needs that query re-probed at N≥14 before it is kept.
+
+## Resolved — 2026-10-18 (improve)
 
 Improve pass from 77e3c8f: blind baseline 77, self 77 → 82; final blind score and A/B comparator run by the operator. Cap reached (5 iterations, 0 discards — no ceiling mapped).
 - Kept: transformers pin and 5.15.0 security floor moved from SKILL.md to `debugging.md` Step 4 as a per-version action table.
