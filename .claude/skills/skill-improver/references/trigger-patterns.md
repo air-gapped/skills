@@ -263,7 +263,7 @@ Output is JSON: `train.summary` and `test.summary` each carry `{total, passed, f
 
 - **Read `summary.usage`, don't estimate.** Each run reports `requests`, `calls`, four token counts, `est_cost_usd`, `est_cost_per_call_usd`, `model_reported`. `run-cost.py` cannot see a probe sweep (killed runs write no transcript); this block is the only record.
 - **`model_reported` gates comparability.** A mismatch, or more than one value, prints a `warn:`; the arm must not be ranked against another.
-- **Size corpora for power, not budget.** 40 queries × 7 runs ≈ 280 calls ≈ $8 — affordable.
+- **Budget first.** A full set costs queries × 7 runs × every measurement taken: 36 queries with one candidate and its re-checks ran 574–700 calls, $13–20. Default is the symptom's queries plus ≤8 guards, about 100 calls (`SKILL.md` §Trigger).
 - **n=3 cannot support a keep/discard decision.** "Identical at n=3" is not evidence of equivalence (0.71 and 1.00 both land on 1.00 on that grid).
 - **Keep a sweep under an hour** — the prompt cache expires at 60 min; split long sweeps.
 - **Do not set `MAX_THINKING_TOKENS=0`** — at n=7 both firing queries fell 1.00 → 0.71 (margin vanishes while still passing 0.5).

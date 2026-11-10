@@ -52,7 +52,7 @@ user-reported miss as a should-trigger query), `--against <git-ref>` (outcome).
 
    | Step | Run when |
    |---|---|
-   | `freshen` | an upstream is newer than the skill states; or the last pass is old for this subject's pace; or a model or Claude Code release it depends on shipped |
+   | `freshen` | an upstream is newer than the skill states, or a model or Claude Code release it depends on shipped. Age alone is not a reason |
    | `floor` | fact-heavy skill, no floor run since the last model release |
    | `fix` | the skill has `evals/evals.json` and its content changed since the last outcome run |
    | `improve` | the skill has no eval cases, or `fix` left weak cases that only restructuring can address, or the user asks for it; and content changed since the last improve pass, a backlog blocker arrived, or no improve pass is on record |
@@ -97,8 +97,10 @@ Read `references/quality-rubric.md`, score all 10 dimensions against it, apply
 ONE change, re-score cold, print both score tables and the decision: keep +3 or
 more; +1/+2 only when a second cold score confirms it or the change also
 simplifies; Δ0 only when it fixes a verifiable defect or simplifies; revert the
-rest. A total given without reading the rubric is an estimate: never decide on
-one. The score needs only the rubric and the text — a skill pasted inline is
+rest. When the skill has eval cases, the keep is decided by a `--case` re-run
+against the old text (`outcome-eval.py --case <glob> --against HEAD`), and the
+rubric total only ranks what to try next. A total given without reading the
+rubric is an estimate: never decide on one. The score needs only the rubric and the text — a skill pasted inline is
 scored the same way, and the blind scorer and comparator, which run once per
 pass, never hold a decision open. Stop at 90+ with no dimension below 7, when
 the ceiling is mapped (`improve-loop.md` Phase 5), or after 10 iterations.
@@ -119,6 +121,10 @@ noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
 - **Read `references/lessons.md` in Phase 0; write at most one entry at the
   end.** Each kept change gets an attribution verdict in the landing commit
   (`improve-loop.md` Phase 7).
+- **Report size with every pass, in any mode:** lines before → after for
+  `SKILL.md` and for the skill directory. An addition replaces text, or it is a
+  failure an agent would otherwise hit, stated with its fix. Anything else is
+  cut before landing.
 - **A pass ends with work, not a report.** Done = every keep applied, blind
   score at baseline (on a snapshot, with the baseline commit recorded) and at
   stop, the A/B comparator verdict, an `outcome` run when the skill has eval
@@ -129,13 +135,14 @@ noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
 
 - **Run without pausing** between iterations; print status lines.
 - **State the spend before any fan-out** of subagents or `claude -p` probes:
-  calls, model, rough dollars from `scripts/model-rates.json`. Pin a cheap model
-  on mechanical work (graders, row probes).
-- **Size every fan-out to 20 concurrent subagents, helpers included.** An agent
-  that delegates holds `1 + helpers` slots. Launch `20 // (1 + helpers)` agents
-  (10 when each spawns one sweep), then one more as each finishes. Over the
-  limit a helper spawn is refused and its mechanical work runs on the agent's
-  own model.
+  calls, model, rough dollars from `scripts/model-rates.json`, computed from
+  the real counts (queries × runs × measurements; agents × turns). Per-skill
+  workers, graders and row probes run on `model: "sonnet"`; the session's model
+  orchestrates and runs `improve`. A worker costs turns × context: batch probes
+  into one command, run a commit sequence as one command.
+- **At most 20 subagents run at once, helpers included.** An agent that
+  delegates holds `1 + helpers` slots; launch `20 // (1 + helpers)` and refill
+  as each finishes.
 - **Git is the state.** Commit each kept change; `git diff` before reverting.
   Never `rm`: revert with git, put temp dirs and snapshots under a fresh
   `mktemp -d` and leave them.
@@ -171,19 +178,10 @@ noise. Phases, decision rules and stop conditions: `references/improve-loop.md`.
 
 ## Fleet checks
 
-Run each over the whole tree, not only the skill being edited. Each exits
-non-zero on findings and has `--selfcheck`. Read the non-findings column before
-acting; detail in `references/fleet-checks.md`.
-
-| Script | Catches | Expected non-findings |
-|---|---|---|
-| `check-shell-fences.py` | bash fences that do not parse; backslash-then-comment continuations | prompt transcriptions, placeholders |
-| `check-yaml-fences.py` | YAML fences that do not parse | Go/Jinja templates, placeholders |
-| `check-tables.py` | rows whose cell count disagrees with the header | none |
-| `check-links.py` | dead doc-host URLs, moved GitHub file paths | 403, 429 |
-| `check-advisory-floors.py` | a CVE floor still vulnerable or outside the advisory range (`--verify`) | per-minor backports, unbounded ranges, negative claims |
-| `check-expiring-claims.py` | content dated to become false, relative phrases beside a date | lifecycle tables of future EOL dates |
-| `check-issue-states.py` | closed issue called open, PR merge state misdescribed | deliberate "stale bot closed it, still live" wording |
+Seven parser-decidable checkers (`scripts/check-*.py`: shell and YAML fences,
+tables, links, advisory floors, expiring claims, issue states). Run them over
+the whole tree; each exits non-zero on findings and has `--selfcheck`. What each
+catches and which hits are expected: `references/fleet-checks.md`.
 
 ## Blind validation
 
@@ -244,18 +242,25 @@ Sonnet judge, \$20 cap.
 
 ## Freshen
 
-Verify **every** `sources.md` row — delegate rows to cheap subagents in one
-background wave (`web-searcher` for web/gh rows, `Explore` for local clones).
-Apply one verified finding at a time. End by writing the single
-`Freshened: <date>` header stamp; an unreachable row gets an inline exception
-note. A partial pass keeps the old stamp. Workflow F0–F6, probe templates and
+Run it when an upstream released, a claim was reported wrong, or the user asks.
+Read the release notes between the version the skill states and the current
+one, and verify the `sources.md` rows in one batched sweep on a cheap helper
+(`web-searcher` for web/gh rows, `Explore` for local clones). Change only what
+an agent acts on: a wrong fact, a removed flag, a new failure with its fix. A
+new feature earns a line only when an agent would otherwise do the task wrong.
+End by writing the single `Freshened: <date>` header stamp; an unreachable row
+gets an inline exception note. A partial pass keeps the old stamp. Workflow F0–F6, probe templates and
 classification: `references/freshen-patterns.md`.
 
 ## Trigger
 
-Metric: trigger rate on an eval set of should- and should-not-trigger queries,
-60/40 train/test, 7 runs per query, test scores blinded, description ≤1024
-characters. Probe: `scripts/probe-trigger.py`. Eval set:
+Run it on a named symptom: a reported miss or false trigger (`--missed`), a
+changed description, or failing trigger evals. With no symptom, check the
+listing caps (`scripts/frontmatter-lengths.py`) and stop. Measure the queries
+the symptom names plus at most 8 guard queries, 7 runs each — about 100 probe
+calls; the full eval set runs only on a budget the user sets. Print calls ×
+cost before the first probe. Metric: trigger rate on should- and
+should-not-trigger queries, test scores blinded, description ≤1024 characters. Probe: `scripts/probe-trigger.py`. Eval set:
 `<skill>/references/trigger-evals.json`, `[{"query", "should_trigger",
 "source", "bucket"}]`, buckets `explicit` / `implicit` / `contextual` /
 `negative`. Workflow T0–T7: `references/trigger-patterns.md`.
@@ -272,7 +277,8 @@ the skill is wrong. `references/floor-patterns.md`.
 ## Ages
 
 Run `scripts/staleness-report.py [<glob>|<root>]`, print its table verbatim,
-then one sentence naming the stalest bucket and the next `freshen` target. No
+then one sentence naming the stalest bucket. Age ranks nothing for `freshen`:
+an upstream release does. No
 probes, scoring or edits. `cases` marked `!` = fewer than 8 eval cases; `open`
 = backlog Open items — report it when the fleet total moved.
 

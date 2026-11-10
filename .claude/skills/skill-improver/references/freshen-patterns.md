@@ -124,6 +124,7 @@ Verification-based decision rule:
 
 - **Verified source + ≤ equal complexity** → KEEP (update `Pinned:`/notes if relevant). Commit per §4 below.
 - **Unverified** (single unofficial source, probes ambiguous) → DISCARD. Do not guess.
+- **An addition that replaces nothing and names no failure an agent would hit** → DISCARD. The pass reports the skill's lines before → after.
 - **>20 added lines for one finding** → DISCARD and flag for human review in the summary.
 - **Breaks self-consistency** (orphans a section, contradicts another part) → REVERT.
 

@@ -72,6 +72,8 @@ Apply exactly one change per iteration, diff minimal. Do NOT bundle improvements
 
 **Line-ceiling gate — applies before the decision rule.** If the file now exceeds **500 lines** (`quality-rubric.md` §Dim 2) *and* is longer than before, the change is a Dim 2 regression **regardless of total score**: DISCARD and log `discard (line ceiling)` with both counts. A change that keeps the file over 500 while removing lines is fine.
 
+**When the target has eval cases, they decide.** Re-run the cases the change could move with `outcome-eval.py <skill-dir> --case <glob> --against HEAD` before committing: keep when the new text beats the old on those cases, or holds them with fewer lines; discard otherwise. The rubric delta below then only ranks hypotheses. Without eval cases the rule below decides.
+
 **Decision rule:**
 - **Score improved by +3 or more** → KEEP, log `keep`; this is the new baseline. On every keep: commit (`SKILL.md` §"Rules for every mode"), or, when commits are not permitted, snapshot the kept file to scratch.
   **Anomaly gate (+5 or more):** presumed inflated. Do NOT rationalize the deltas. Open the rubric fresh, read the file as if new, score each dimension cold. If the cold total differs from the delta-math total by 2 or more either way, the cold score wins. Log both totals in the iteration row.
