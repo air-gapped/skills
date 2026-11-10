@@ -19,10 +19,18 @@ One entry per thing **no agent in this session can obtain**. Nothing else is fil
 | hardware or an endpoint that was probed and is not reachable | the probe that ran and what it returned |
 | a credential | which one, and the call that needs it |
 | a real-money purchase | what, and its price |
+| usage above the spend ceiling | the measurement, its computed cost (calls × rate, or agents × model), and what its result would change |
 
 Each entry: one-line title · dimension affected ("Dim 2", "Dim 6/8") · file:line or the file set
 that would change · the blocker · the command or purchase that unblocks it · enough context to act
 without re-running the baseline scoring.
+
+### The spend ceiling
+
+A measurement nobody asked for runs unprompted only when its computed cost is at most **$5 at list
+rates** (about 100 probe calls, or one Sonnet worker). Above that it is filed with its price, and the
+user decides. Compute the cost before deciding, never after: queries × runs × measurements, or
+agents × expected turns. A measurement the user asked for runs at whatever budget they set.
 
 ### The admission test: name the absent thing
 
@@ -36,7 +44,7 @@ Never filed — do the right-hand column in this pass:
 | "needs an operator decision / ruling" | decide with the best default, apply it, record the choice and its reason under `## Decided` |
 | "single reporter", "unconfirmed", "needs a second source" | read the cited code at the release tag. Confirmed in code: write it into the skill text, marked as an unconfirmed upstream report. File only a claim that reading cannot settle, naming the runtime fact that is missing |
 | "no fix PR" | run the three probes in `freshen-patterns.md` §3.0a first |
-| subscription-usage cost | state the spend and run it |
+| usage cost at or under the spend ceiling | state the spend and run it |
 | "large", "tedious", "out of this pass's scope", "more than one iteration" | do it; the one-change rule keeps score movement attributable, it is not a cap on how much a pass fixes |
 | "a live endpoint / real hardware / a test instance", not yet probed | probe the operator's environment: forwarded services and hosts entries, the device inventory, what monitoring already scrapes. Reachable: run the test |
 | "live-verify CLI subcommand X" | read X's source at the pinned tag; a thin wrapper (one API call, no branch on instance state) is settled by the code |

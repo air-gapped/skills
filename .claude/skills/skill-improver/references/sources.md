@@ -628,6 +628,9 @@ Claude Code v2.1.317 (2026-11-03): "Changed subagents and teammates on a differe
 #### Batch Mode — wave size
 Observed 2026-11-09 — 16 per-skill freshen agents launched in one wave, each briefed to delegate its row sweep to one Sonnet `web-searcher`: 32 slots wanted against a 20-concurrent-subagent limit. Exactly 12 of the 16 had the helper spawn refused ("concurrent subagent limit", "do not retry") and ran the whole sweep on the orchestrator's model. The earlier wording, "size fan-outs to 20 concurrent subagents", sat only in §Batch and did not say nested helpers count. Backs the SKILL.md §Rules bullet and the freshen-patterns Batch Mode list.
 
+#### backlog-format.md — the spend ceiling
+Observed 2026-11-10 — the admission rule's line "subscription-usage cost: state the spend and run it" had no upper bound. Applied to backlog items waiting on a trigger measurement, it started five per-skill trigger passes unprompted; the two that finished used 574 and 700 probe calls ($13.25 and $19.54) for one "no change" and one 237-character trim. The ceiling makes cost above $5 a valid blocker that carries its price.
+
 #### 4b. Scaffolding Decay Probes
 Boris Cherny (creator of Claude Code) on the bitter lesson: scaffolding gains "get wiped out by the next model. So it's almost better to just wait for the next one." Quote in mutations: "Removing something and getting equal results is a great outcome."
 
