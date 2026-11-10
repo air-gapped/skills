@@ -69,7 +69,7 @@ Upstream vLLM has **no** classifier-free guidance support — it's an AR framewo
 
 The arXiv paper describes a `prompt_expand_func` that duplicates the input prompt into a positive + negative pair, both run through AR concurrently, OmniConnector carries both KV caches to DiT, where `cfg_kv_collect_func` injects them as `cfg_text_past_key_values`. This means one API request → two AR forward-passes → one merged DiT forward (with CFG-parallel).
 
-**CFG-merged-batch TP**: — both CFG branches run in the same batch on the same TP group, instead of separate forwards. Cuts DiT wall-time by ~35% at the cost of 2× activation memory. Enabled automatically for BAGEL; opt-in for other models via stage config.
+**CFG-merged-batch TP** — both CFG branches run in the same batch on the same TP group, instead of separate forwards. Cuts DiT wall-time by ~35% at the cost of 2× activation memory. Enabled automatically for BAGEL; opt-in for other models via stage config.
 
 ## Sequence parallelism for DiT
 
