@@ -1,0 +1,36 @@
+[
+  {"query": "which --reasoning-parser do I pass for QwQ-32B on vllm serve?", "should_trigger": true, "source": "description-mined — CLI flag", "bucket": "explicit"},
+  {"query": "how do I register a custom ReasoningParser with --reasoning-parser-plugin without patching vllm", "should_trigger": true, "source": "body-mined — plugin path", "bucket": "explicit"},
+  {"query": "what does is_reasoning_end actually gate in vllm structured output?", "should_trigger": true, "source": "description-mined — contract method", "bucket": "explicit"},
+  {"query": "vllm reasoning_content is always null on DeepSeek-R1 even with the reasoning parser set", "should_trigger": true, "source": "description-mined — quoted symptom", "bucket": "explicit"},
+  {"query": "extract_reasoning_streaming returns None for some deltas in the hunyuan parser, is that expected?", "should_trigger": true, "source": "description-mined — contract method + stateful parser", "bucket": "explicit"},
+
+  {"query": "the model's thinking text is showing up inside the answer on our vllm endpoint, how do I get it split out", "should_trigger": true, "source": "everyday phrasing — reasoning leaked into content", "bucket": "implicit"},
+  {"query": "vllm returns an empty content string and the whole answer sits in the reasoning field when I turn thinking off", "should_trigger": true, "source": "everyday phrasing — content empty while reasoning filled", "bucket": "implicit"},
+  {"query": "Qwen3 on vllm spits junk before the JSON whenever I disable thinking and ask for json_object", "should_trigger": true, "source": "everyday phrasing — structured output with thinking disabled", "bucket": "implicit"},
+  {"query": "we're adding a new thinking model to our vllm fleet that wraps its chain of thought in its own markers, what do we have to build so clients get it separated", "should_trigger": true, "source": "everyday phrasing — adding a new reasoning model", "bucket": "implicit"},
+  {"query": "gpt-oss-120b on vllm: the analysis channel text is ending up in the final message", "should_trigger": true, "source": "description-mined — harmony channels", "bucket": "implicit"},
+  {"query": "audit reasoning config for the kimi-k2 serve recipe", "should_trigger": true, "source": "description-mined — implicit audit phrasing", "bucket": "implicit"},
+  {"query": "function calls stopped being returned as soon as we enabled thinking on the vllm server", "should_trigger": true, "source": "everyday phrasing — tool calls lost when reasoning is on", "bucket": "implicit"},
+
+  {"query": "this is what our vllm server returns for deepseek-r1-distill, what's wrong?\n{\"choices\":[{\"message\":{\"role\":\"assistant\",\"content\":\"Okay, the user wants the capital of France.\\n</think>\\n\\nParis.\",\"reasoning\":null}}]}", "should_trigger": true, "source": "body-mined — pasted response, pitfall 1 signature", "bucket": "contextual"},
+  {"query": "vllm serve moonshotai/Kimi-K2-Thinking --reasoning-parser kimi_k2 --tool-call-parser kimi_k2 --enable-auto-tool-choice\nmessage.tool_calls is null and the tool section text is all sitting in reasoning. what's going on?", "should_trigger": true, "source": "body-mined — pasted serve line, implicit reasoning end", "bucket": "contextual"},
+  {"query": "I'm streaming from vllm with granite-3.2 and the client prints 'Here is my thought process:' as normal content for the first few chunks before reasoning deltas start. bug in my client or the server?", "should_trigger": true, "source": "body-mined — mid-task streaming symptom, phrase markers", "bucket": "contextual"},
+  {"query": "in my_parser.py for our fine-tune, self.vocab.get('<|think|>') returns None and BaseThinkingReasoningParser raises at init. the marker tokenizes to 3 ids. how should I handle it?", "should_trigger": true, "source": "body-mined — mid-task authoring, multi-token delimiter", "bucket": "contextual"},
+  {"query": "filling in the deploy-memo for Hunyuan-A13B on vllm 0.33, draft the reasoning section: parser name, thinking toggle, known gotchas", "should_trigger": true, "source": "description-mined — deploy-memo reasoning, mid-task", "bucket": "contextual"},
+
+  {"query": "vllm ignores --chat-template and still renders the tokenizer's default template", "should_trigger": false, "source": "sibling-skill — vllm-chat-templates", "bucket": "negative"},
+  {"query": "enable_thinking in chat_template_kwargs is silently dropped, the rendered prompt still opens a think block. which vllm version fixed the allowlist?", "should_trigger": false, "source": "sibling-skill — vllm-chat-templates, shares the enable_thinking keyword", "bucket": "negative"},
+  {"query": "which tool_chat_template jinja file should I use for Llama 4 on vllm", "should_trigger": false, "source": "sibling-skill — vllm-chat-templates", "bucket": "negative"},
+  {"query": "my Qwen isn't calling tools on vllm, the <tool_call> block shows up as plain text in content", "should_trigger": false, "source": "sibling-skill — vllm-tool-parsers", "bucket": "negative"},
+  {"query": "pythonic or json --tool-call-parser for Llama 3.3 on vllm?", "should_trigger": false, "source": "sibling-skill — vllm-tool-parsers", "bucket": "negative"},
+  {"query": "streamed tool call arguments are missing the closing } at the end of the stream with the hermes parser", "should_trigger": false, "source": "sibling-skill — vllm-tool-parsers", "bucket": "negative"},
+  {"query": "can I change --max-model-len on a running vllm pod without restarting it?", "should_trigger": false, "source": "sibling-skill — vllm-deployment / vllm-configuration", "bucket": "negative"},
+  {"query": "where does HF_HUB_OFFLINE go for vllm, yaml config or env var, and which one wins", "should_trigger": false, "source": "sibling-skill — vllm-configuration", "bucket": "negative"},
+  {"query": "thinking models make our vllm TTFT look terrible in benchmarks, how do I measure time to first output token separately from the reasoning tokens", "should_trigger": false, "source": "sibling-skill — vllm-benchmarking / aiperf, shares the reasoning keyword", "bucket": "negative"},
+  {"query": "write a python regex that strips <think>...</think> blocks out of a jsonl dataset", "should_trigger": false, "source": "keyword-collision — think tags, no serving engine", "bucket": "negative"},
+  {"query": "ollama prints the deepseek-r1 thinking in the answer, how do I hide it", "should_trigger": false, "source": "adjacent-domain decoy — different engine", "bucket": "negative"},
+  {"query": "how do I set a thinking budget with the Anthropic Messages API", "should_trigger": false, "source": "keyword-collision — thinking, different API", "bucket": "negative"},
+  {"query": "write an argparse parser with two subcommands", "should_trigger": false, "source": "keyword-collision — parser", "bucket": "negative"},
+  {"query": "explain what chain-of-thought prompting is", "should_trigger": false, "source": "generic", "bucket": "negative"}
+]
