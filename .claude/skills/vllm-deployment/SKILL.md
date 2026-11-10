@@ -104,15 +104,11 @@ This skill owns the **pod/container/topology** layer. It does not own:
 
 ## Structure of this skill
 
-- **`references/pod-shape.md`** — complete annotated Deployment manifest; env vars catalogue; probes; compile-cache survival; serve-args review; parser-plugin ConfigMap mount; nodeSelector per SM generation; PVC vs ModelCar trade-off; image tag discipline; `vllm-openai` entrypoint contract.
-- **`references/multi-node.md`** — LWS vs KubeRay; `ray symmetric-run`; NCCL on k8s (shm, SR-IOV, RoCE, InfiniBand, `NCCL_SOCKET_IFNAME`/`NCCL_IB_HCA`); the in-repo `multi-node-serving.sh`/`run_cluster.sh`; known issue list.
-- **`references/ecosystem.md`** — llm-d, vllm-production-stack, AIBrix, NVIDIA Dynamo, KServe vLLM runtime, vllm-semantic-router, Agent Router (formerly Envoy AI Gateway) — what each one is, current version, when to pick.
-- **`references/routing.md`** — Gateway API Inference Extension (`InferencePool`, EPP), production-stack router, semantic-router, kgateway/Istio/NGF, OCP Route SSE timeout gotcha.
-- **`references/autoscaling.md`** — KEDA on `vllm:num_requests_waiting`, cooldown discipline (`cooldownPeriod: 360`), HPA with custom metrics, scale-to-zero, llm-d KEDA-on-EPP (WVA deprecated).
-- **`references/disagg.md`** — cross-pod PD with NixlConnector, Mooncake, LMCache, MORI-IO; Dynamo's relation to vLLM's own connectors; topology recipes.
-- **`references/openshift.md`** — RHAIIS, RHOAI ServingRuntime templates, SCC, arbitrary UID, Routes 60 s timeout, NVIDIA GPU Operator on OCP, user-workload monitoring, air-gapped (oc-mirror v2, IDMS, ModelCar).
-- **`references/docker-lab.md`** — `docker run` canonical flags, `--shm-size` vs `--ipc=host`, `--gpus`, MIG strings, Podman/podman-compose, rootless friction, 2-node disagg compose template.
-- **`references/upgrading.md`** — manifest- and rollout-affecting changes from v0.28.0 through v0.33.0; read before bumping the image tag.
+The decision guide above maps each situation to its file. Files without a row there:
+`references/autoscaling.md` (KEDA on `vllm:num_requests_waiting`, HPA, scale-to-zero),
+`references/upgrading.md` (manifest-affecting changes v0.28.0–v0.33.0; read before bumping the
+image tag), `references/pod-shape.md` (annotated manifest, env vars, probes, compile-cache
+survival, serve-args review, image tag discipline).
 
 ## The vLLM in-repo deployment artifacts (cheat sheet)
 

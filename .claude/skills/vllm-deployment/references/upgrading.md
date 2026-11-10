@@ -1,8 +1,7 @@
 # Upgrading a deployment through v0.33.0
 
-Upstream is at **v0.33.0** (2026-11-02), via v0.32.0 (2026-10-18), v0.31.0
-(2026-10-05), v0.30.0 (2026-09-22), v0.29.0 and v0.28.0. Changes that affect a deployment manifest or
-its rollout plan:
+Upstream is at **v0.33.0** (2026-11-02). Changes since v0.28.0 that affect a
+deployment manifest or its rollout plan:
 
 - **No CUDA 12.9 image at v0.33.0** (#62575): a manifest pinned to a `-cu129` or
   `-ubuntu2404` tag has no v0.33.0 tag to roll to and fails with
@@ -13,8 +12,7 @@ its rollout plan:
   `VLLM_USE_RAY_WRAPPED_PP_COMM` and `VLLM_USE_RAY_V2_EXECUTOR_BACKEND` went with
   the legacy compiled-graph executor. A manifest still setting them silently
   does nothing; `--distributed-executor-backend ray` always runs `RayExecutorV2`.
-- **`NixlConnector` requires NIXL ≥ 1.5** from v0.33.0 (#61032). Roll prefill
-  and decode pools to an image carrying it together — `references/disagg.md`.
+- **`NixlConnector` requires NIXL ≥ 1.5** from v0.33.0 — `references/disagg.md`.
 - **CORS is closed by default** (#61009, v0.32.0): `--allowed-origins` now
   defaults to `[]`, so a browser front end calling vLLM directly gets CORS
   errors after the upgrade. Set `--allowed-origins '["https://ui.example"]'`;

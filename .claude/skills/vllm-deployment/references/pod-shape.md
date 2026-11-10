@@ -233,7 +233,6 @@ implications:
 | `VLLM_DO_NOT_TRACK` | unset | Belt-and-braces with `VLLM_NO_USAGE_STATS` |
 | `VLLM_ENGINE_READY_TIMEOUT_S` | 600 | Raise if cold load > 10 min (405B FP8 from slow PVC) |
 | `VLLM_NCCL_SO_PATH` | auto | Only for custom NCCL builds |
-| `VLLM_USE_RAY_COMPILED_DAG_CHANNEL_TYPE` and the other `VLLM_USE_RAY_*` vars | removed (v0.33.0, #61712) | Delete from manifests — they have no effect |
 | `VLLM_CACHE_ROOT` | `~/.cache/vllm` | Arbitrary-UID images only — point at a mounted path (see §Compile-cache survival) |
 | `HF_HOME` | `~/.cache/huggingface` | Point at PVC mount for pre-warmed cache |
 | `HF_HUB_OFFLINE` | unset | Set `1` in air-gapped; see `vllm-configuration` skill |
@@ -355,9 +354,7 @@ Don't probe `/v1/models` — it is a router endpoint that requires the engine fu
   the EFA Mooncake build, for EFA-enabled EC2; `-x86_64-zstd` = zstd layers (≈7.7 GB vs
   9.7 GB for `-x86_64`; the runtime must support zstd). Every tag also exists as
   `vllm/vllm:<tag>`.
-- No CUDA 12.9 image from v0.33.0 (#62575): `-cu129` and `-ubuntu2404` tags end at
-  v0.32.0. A node whose driver predates CUDA 13 stays on `v0.32.0-cu129` until the
-  driver is upgraded.
+- No CUDA 12.9 image from v0.33.0: `references/upgrading.md`.
 - Red Hat image tags are independently versioned and trail upstream: `rhaii/vllm-cuda-rhel9:3.4.1` is upstream `v0.18.0`, `rhaiis/vllm-cuda-rhel9:3.3.0` is `v0.13.0`.
 
 ## Gotchas not yet covered
