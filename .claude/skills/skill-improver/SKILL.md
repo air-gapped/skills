@@ -33,7 +33,7 @@ SKILL.md path, `--all`, or a glob (`'vllm-*'`). No mode → **Auto**. No target
 | `outcome` | Runs the skill's eval cases with vs without it (`claude plugin eval`) | §Outcome |
 | `floor` | Measures what a bare model already knows about the subject | `references/floor-patterns.md` |
 | `ages` | Fleet table of verification age vs last change | §Ages |
-| `batch` | Runs one mode over many skills | §Batch |
+| `batch` | Runs `improve`, `freshen` or `trigger` over many skills | §Batch |
 
 Flags are mode-specific: `--iterations N` (improve),
 `--runs-per-query N`, `--missed "<query>"` (trigger; repeatable — seeds a
@@ -286,9 +286,13 @@ probes, scoring or edits. `cases` marked `!` = fewer than 8 eval cases; `open`
 
 ## Batch
 
-`scripts/scan-skills.sh` lists targets. Run one mode per skill, worst first, each
-skill in its own Sonnet worker, sized per §Rules for every mode. The batch is
-done when every listed skill has a summary row (skipped and crashed included).
+`scripts/scan-skills.sh` lists targets. Baseline-score each, run worst first,
+cap 5 iterations per skill. The batch is done when every listed skill has a
+summary row (skipped, crashed and capped included). With the `Workflow` tool
+opted in, use `scripts/batch-workflow.js`
+(`args: ["keda", "helm", ...]`); no agent there does git — commit per skill
+after review. Wave size: §Rules for every mode; a workflow also follows the
+workflow size guideline.
 
 ## Files beyond the mode table
 
