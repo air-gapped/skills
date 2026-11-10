@@ -99,8 +99,8 @@ An existing Open item whose blocker is still absent is carried with a `(carried 
 marker. One that fails the admission test is done, moved to `## Decided`, or deleted — never carried.
 
 **Keep the discards, drop the diary.** A discard rationale ("tried X, judged net-negative because
-Y") stays, under `## Discard guards`: a loop that cannot see it re-proposes X. What a past pass
-resolved is in git; delete those sections when rewriting the file.
+Y") stays, under `## Discard guards`: a loop that cannot see it re-proposes X. Before deleting a
+past pass's section, move every discard in it there. What the pass resolved is in git.
 
 Zero ceiling findings (converged cleanly at ≥90/100): still update the file — empty "Open" and
 record the final score under "Resolved this pass".

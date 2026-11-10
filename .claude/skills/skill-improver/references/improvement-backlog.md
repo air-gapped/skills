@@ -52,3 +52,20 @@ Open blockers, decisions, and rejected changes that must not be re-proposed. Pas
   blind agent shows the redundancy causing *behavioral* errors, not just
   rubric-cosmetic cost.
 
+## Discard guards — recovered from earlier passes
+
+Rejected changes recorded inside past passes' sections. Do not re-propose one unless a kept change has removed the reason it failed.
+
+- (2026-11-09) one sentence in SKILL.md §Improve saying every iteration is self-scored and ends in keep or discard, aimed at eval 02's third assertion (re-evaluate, then decide), which fails every run with and without the skill. After the edit two of three answers self-scored and said keep; the judge failed all three and the case went 0.73 → 0.67. That wording named the self-score without telling the agent to read the rubric. Superseded 2026-11-10: the failing runs had never opened `quality-rubric.md`; an intro that starts "Read `references/quality-rubric.md`, score all 10 dimensions against it" and forbids deciding on an estimate took the assertion to 3 of 3, against 0 of 3 on the old text in the same run. Guard that remains: a sentence about scoring that does not make the agent load the rubric changes nothing.
+- (2026-11-09) a hint line in `outcome-eval.py`'s weak-case list when an assertion fails every run in both arms. Replayed on the benchmark result it flagged both eval-side failures above, but it is additive, moved no rubric dimension and removed no defect (Δ0). The rule lives in `lessons.md`; re-propose with a case where its absence led to a wrong skill edit.
+- (2026-11-09) deleting the SKILL.md §Outcome sentence that says what a run prints at its end, kept at Δ0 as a duplicate of the `scripts.md` row. All three comparators listed the removal under the winning side's regressions; restored. A sentence that duplicates `scripts.md` is not for that reason deletable from SKILL.md.
+- (2026-09-23) judging freshen from history alone — every skill freshened a week earlier reads "not due"; misses all five real changes.
+- (2026-09-23) "releases since the last pass" — misses a pass that stamped a skill but left an old version in its body (helm v4.2.4, barman v0.14.0). Compare against the version the text states.
+- (2026-09-23) `floor` added to mode grammar/argument-hint — band-internal, additive (Open, above)
+- (2026-09-23) "binds blind scorers" → every subagent's version finding — band-internal, additive (Open, above)
+- (2026-09-01) extracting §A Measurement That Failed to a one-rule reference: Dim 2 band unchanged at 439 lines, a 16th reference for one rule is the too-granular failure, and the per-mode failure mechanisms land a hop from the rule they justify
+- (2026-07-24) `discard (noise)` — porting only the Dim 9 cap sentence into the blind prompt left the rest of the drift in place; Dim 8 stayed band-internal. Re-proposed at full scope as iter 4 → kept.
+- (2026-07-18) `discard (noise)`-status example row in rubric §Results Log Format — Dim 8 pinned by the then-open P0 chain; pure addition.
+- (2026-07-18) `discard (noise)` — P0-chain flatten +1 failed cold rescore against a *false* blocker (see incident below); re-proposed and kept as iter 5 under the buffer's new-evidence exemption.
+- (2026-08-15) **iter 8:** trimming the v2.1.105 boundary from trigger-patterns' T4 constraint as "provenance archaeology" — reverted: the version is the decision boundary for which cap applies, and trigger mode loads without the rubric. Shape guard: do not trim version markers from point-of-use constraints.
+- (2026-08-15) **iter 9:** rule-ceiling — invocation-fit self-record (moved to Open).
