@@ -23,8 +23,6 @@ Load when serving Qwen3-Omni with `/v1/realtime`, serving Qwen3-TTS via `/v1/aud
 vllm serve Qwen/Qwen3-Omni-30B-A3B-Instruct --omni --port 8091
 ```
 
-Published production numbers (v0.16 release): TTFP reduced 90%, RTF 0.22-0.45 on H100 TP2.
-
 ### Turn-mode wire contract by version
 
 | | v0.30.0 | v0.32.0 |
@@ -95,7 +93,7 @@ python examples/online_serving/qwen3_omni/openai_realtime_client.py \
 
 1. **`--trust-remote-code`** required — custom model code lives in the HF repo.
 2. **`--task-type`** must match the checkpoint variant: `CustomVoice`, `VoiceDesign`, or `Base`.
-3. **`--enforce-eager`** was mandatory on v0.18 (issue #2866: code2wav crashed with CUDA graphs enabled). **#2866 is CLOSED (2026-04-29)** and v0.20.0 adds TTS CUDA-graph capture + shared memory pools (release notes cite #2690/#2758/#2803) — drop `--enforce-eager` on v0.20.0+ to regain throughput.
+3. **`--enforce-eager`** is not needed: TTS CUDA-graph capture is on by default.
 4. **The default CUDA profile runs experimental Model Runner V2** since v0.30.0 (#7930); ROCm, NPU, XPU and MUSA overrides in `qwen3_tts.yaml` stay on V1. On a regression set `model_runner: v1` in the deploy YAML. Event-driven orchestration is the default for Qwen3-TTS on v0.30.0 (#7088) and for every pipeline on v0.32.0 (#8675); `VLLM_OMNI_EVENT_DRIVEN_ORCH=0` restores the legacy 1 ms poll loop.
 5. **Single-GPU option (v0.32.0):** `--deploy-config vllm_omni/deploy/qwen3_tts_fused_single_gpu.yaml` runs one stage whose Talker decodes PCM itself (no Code2Wav stage, #8259). Opt-in; the two-stage `qwen3_tts.yaml` stays the default.
 
@@ -108,8 +106,6 @@ python examples/online_serving/qwen3_omni/openai_realtime_client.py \
 | `Base` | `Qwen/Qwen3-TTS-*-Base` | Voice cloning from `ref_audio` sample |
 
 ### Serve commands per task type
-
-On v0.18 add `--enforce-eager` to each command (issue #2866); on v0.20.0+ it is no longer required (TTS CUDA-graph capture, release notes #2690/#2758/#2803).
 
 ```bash
 # CustomVoice (preset voices):
@@ -191,7 +187,7 @@ with client.audio.speech.with_streaming_response.create(
             f.write(chunk)
 ```
 
-Sporadic silence gaps in streamed Qwen3-TTS audio (#2562) have no upstream fix — the issue was closed for inactivity. v0.16 (#1438) made streaming first-class for Qwen3-TTS. Chunk cadence is per-sentence boundary for `/v1/audio/speech/stream` WebSocket, or per-codec-frame for `stream: true` + `stream_format: "audio"` + `response_format` `pcm`/`wav` on `/v1/audio/speech` (`stream: true` alone sends OpenAI `speech.audio.*` SSE events).
+Sporadic silence gaps in streamed Qwen3-TTS audio (#2562) have no upstream fix — the issue was closed for inactivity. Chunk cadence is per-sentence boundary for `/v1/audio/speech/stream` WebSocket, or per-codec-frame for `stream: true` + `stream_format: "audio"` + `response_format` `pcm`/`wav` on `/v1/audio/speech` (`stream: true` alone sends OpenAI `speech.audio.*` SSE events).
 
 ### Batch TTS
 
@@ -201,13 +197,13 @@ Useful for large synthesis runs that don't require interactive streaming.
 
 ## MiMo-Audio — related but different
 
-`XiaomiMiMo/MiMo-Audio-7B-Instruct` ships at RTF ~0.2 (11× baseline per v0.16). It's a general audio generation model — not purely TTS. Served via `/v1/audio/speech` but supports arbitrary-audio prompts.
+`XiaomiMiMo/MiMo-Audio-7B-Instruct` It's a general audio generation model — not purely TTS. Served via `/v1/audio/speech` but supports arbitrary-audio prompts.
 
 Known issue: `online_serving mimo_audio` has a bug (#2683). Verify with a simple prompt before trusting batch output.
 
 ## Voxtral TTS
 
-`mistralai/Voxtral-4B-TTS-2603` is Mistral's TTS entry. v0.18 addition. Active forum thread: [discuss.vllm.ai/t/2549](https://discuss.vllm.ai/t/issues-with-voxtral-models-and-omni/2549). Validate against the intended workload before committing — deployment maturity is still early.
+`mistralai/Voxtral-4B-TTS-2603` is Mistral's TTS entry. Active forum thread: [discuss.vllm.ai/t/2549](https://discuss.vllm.ai/t/issues-with-voxtral-models-and-omni/2549). Validate against the intended workload before committing — deployment maturity is still early.
 
 ## Stable-Audio-Open (music / SFX)
 

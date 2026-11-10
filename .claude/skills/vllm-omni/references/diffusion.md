@@ -67,9 +67,9 @@ Upstream vLLM has **no** classifier-free guidance support — it's an AR framewo
 
 ### Paper's prompt-expand flow
 
-The arXiv paper describes a `prompt_expand_func` that duplicates the input prompt into a positive + negative pair, both run through AR concurrently, OmniConnector carries both KV caches to DiT, where `cfg_kv_collect_func` injects them as `cfg_text_past_key_values`. This means one API request → two AR forward-passes → one merged DiT forward (with CFG-parallel v0.16 #1293).
+The arXiv paper describes a `prompt_expand_func` that duplicates the input prompt into a positive + negative pair, both run through AR concurrently, OmniConnector carries both KV caches to DiT, where `cfg_kv_collect_func` injects them as `cfg_text_past_key_values`. This means one API request → two AR forward-passes → one merged DiT forward (with CFG-parallel).
 
-v0.16 added **CFG-merged-batch TP** — both CFG branches run in the same batch on the same TP group, instead of separate forwards. Cuts DiT wall-time by ~35% at the cost of 2× activation memory. Enabled automatically for BAGEL; opt-in for other models via stage config.
+**CFG-merged-batch TP**: — both CFG branches run in the same batch on the same TP group, instead of separate forwards. Cuts DiT wall-time by ~35% at the cost of 2× activation memory. Enabled automatically for BAGEL; opt-in for other models via stage config.
 
 ## Sequence parallelism for DiT
 
@@ -86,16 +86,16 @@ Ulysses is usually faster; Ring handles longer sequences with less activation me
 
 Also available via env vars:
 
-- **Sage Attention** (v0.12 #243) — Triton-fused attention for DiT.
-- **Ring Attention** (v0.12 #273) — same as `--ring-degree`.
+- **Sage Attention** — Triton-fused attention for DiT.
+- **Ring Attention** — same as `--ring-degree`.
 
 ## Attention backends
 
-Selection is platform + model dependent. v0.14 defaults to **FA3** when the platform supports it (H100+); v0.14 added **ROCm AITER Flash Attention** (#941) for AMD; NPU uses **mindiesd** (shape issues on HunyuanVideo-1.5 #2880).
+Selection is platform + model dependent. Default is **FA3** when the platform supports it (H100+); AMD uses **ROCm AITER Flash Attention**; NPU uses **mindiesd** (shape issues on HunyuanVideo-1.5 #2880).
 
 The backend comes from the model default — normally don't override. To override DiT attention: `--diffusion-attention-backend <NAME>` (e.g. `FLASH_ATTN`, `TORCH_SDPA`) or env `DIFFUSION_ATTENTION_BACKEND`; per-role settings via `--diffusion-attention-config`. This does not touch AR-stage attention, which uses vLLM's own selector. `VLLM_ATTENTION_BACKEND` is not read by the diffusion path.
 
-## Quantization — unified framework (v0.18 #1764)
+## Quantization — unified framework
 
 Pass the config as JSON on the CLI:
 
@@ -129,7 +129,7 @@ cfg = build_quant_config({"transformer": {"method": "int8"}, "vae": None})
 
 ## LoRA
 
-DiT LoRA (PEFT-compatible) landed v0.14 #758. Pass per-request (`/v1/images/generations` body, or `extra_body.lora` on chat):
+DiT LoRA is PEFT-compatible. Pass per-request (`/v1/images/generations` body, or `extra_body.lora` on chat):
 
 ```json
 {
@@ -147,11 +147,11 @@ DiT LoRA (PEFT-compatible) landed v0.14 #758. Pass per-request (`/v1/images/gene
 
 At server start: `--lora-path <adapter-or-file...>` with `--lora-backend peft` (default; `--lora-scale` applies) or `--lora-backend distill`, which fuses few-step LoRA `.safetensors` files into the base weights for the server's lifetime (Wan2.2 MoE: high-noise file first, low-noise second). `--enable-lora --lora-modules` are upstream LLM-adapter flags, not the diffusion path.
 
-Combined with ComfyUI bridge (v0.18 #1596), ComfyUI-saved LoRAs load directly.
+Combined with ComfyUI bridge, ComfyUI-saved LoRAs load directly.
 
 ## DiT LoRA + Offload
 
-v0.14 #858 added **layerwise CPU offloading** for DiT — transformer blocks swap to/from CPU between timesteps. Saves ~40% VRAM at ~15% throughput cost. Enable on the CLI:
+**Layerwise CPU offloading** for DiT — transformer blocks swap to/from CPU between timesteps. Saves ~40% VRAM at ~15% throughput cost. Enable on the CLI:
 
 ```bash
 vllm serve Wan-AI/Wan2.2-T2V-A14B-Diffusers --omni \
@@ -175,13 +175,13 @@ RIFE-based temporal upsampling, enabled per-request:
 
 `exp=1`→2×, `exp=2`→4×, `exp=3`→8× frame rate.
 
-## verl RL / Flow-GRPO (v0.18)
+## verl RL / Flow-GRPO
 
 vllm-omni integrates with verl for E2E RL training on Qwen-Image via Flow-GRPO (#1646, #1593, #2005, #2217). Adds collective RPC support + async batching. Not a serving concern, but worth knowing: the same diffusion engine drives training feedback. For RL weight updates into a running server read `docs/user_guide/weight_transfer.md` (v0.32.0); the trainer side lives in the separate `verl-project/verl-omni` repo. There is no `docs/features/verl.md` at v0.30.0 or v0.32.0.
 
-## ComfyUI bridge (v0.16 #1113)
+## ComfyUI bridge
 
-vllm-omni can be the backend for ComfyUI's "Remote DiT" nodes. Boot the vllm-omni server normally, then point ComfyUI at `http://host:8091/v1/images/generations`. v0.18 #1596 added video + LoRA support to the bridge.
+vllm-omni can be the backend for ComfyUI's "Remote DiT" nodes. Boot the vllm-omni server normally, then point ComfyUI at `http://host:8091/v1/images/generations`. The bridge supports video and LoRA.
 
 ## Performance sanity check
 

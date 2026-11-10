@@ -35,7 +35,7 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `MingFlashOmniForConditionalGeneration` + `MingImagePipeline` | Ming-flash-omni-2.0 (omni-speech + imagegen<sup>1</sup>) | `Jonathan1909/Ming-flash-omni-2.0` | Y |  |  | Y |  |
 | `MammothModa2ForConditionalGeneration` | MammothModa2-Preview | `bytedance-research/MammothModa2-Preview` | Y | Y |  | Y | Preview model. |
 | `MammothModa2ForConditionalGeneration` | MammothModa2-Dev (AR-only image understanding) | `bytedance-research/MammothModa2-Dev` | Y |  |  |  |  |
-| `MiMoAudioModel` | MiMo-Audio-7B-Instruct | `XiaomiMiMo/MiMo-Audio-7B-Instruct` | Y | Y |  | Y | RTF ~0.2 (v0.16 notes). Wrong attention backend → noise output. #2683 root-caused in `stage_input_processors/mimo_audio.py`, fix unconfirmed. |
+| `MiMoAudioModel` | MiMo-Audio-7B-Instruct | `XiaomiMiMo/MiMo-Audio-7B-Instruct` | Y | Y |  | Y | Wrong attention backend → noise output. #2683 root-caused in `stage_input_processors/mimo_audio.py`, fix unconfirmed. |
 | `CovoAudioForConditionalGeneration` | Covo-Audio-Chat | `tencent/Covo-Audio-Chat` | Y |  |  | Y |  |
 | `MiniCPMO45OmniForConditionalGeneration` | MiniCPM-o 4.5 | `openbmb/MiniCPM-o-4_5` | Y |  | Y |  |  |
 | `PersonaPlexTalkerForConditionalGeneration` | PersonaPlex (full duplex, 24 kHz speech in/out over `/v1/realtime?duplex=1`) | `nvidia/personaplex-7b-v1` | Y |  |  |  | Deploy with `personaplex.yaml`. |
@@ -67,7 +67,7 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `StableDiffusion3Pipeline` | Stable-Diffusion-3 | `stabilityai/stable-diffusion-3.5-medium` | Y | Y |  | Y |  |
 | `Flux2KleinPipeline` | FLUX.2-klein | `black-forest-labs/FLUX.2-klein-4B`, `black-forest-labs/FLUX.2-klein-9B` | Y | Y | Y | Y |  |
 | `FluxKontextPipeline` | FLUX.1-Kontext-dev | `black-forest-labs/FLUX.1-Kontext-dev` | Y | Y |  | Y |  |
-| `FluxPipeline` | FLUX.1-dev | `black-forest-labs/FLUX.1-dev` | Y | Y |  | Y | Do not deploy the v0.19.0rc1 tag (T5 regression #2730, fixed v0.20.0). |
+| `FluxPipeline` | FLUX.1-dev | `black-forest-labs/FLUX.1-dev` | Y | Y |  | Y | |
 | `FluxPipeline` | FLUX.1-schnell | `black-forest-labs/FLUX.1-schnell` | Y | Y |  | Y |  |
 | `OmniGen2Pipeline` | OmniGen2 | `OmniGen2/OmniGen2` | Y | Y |  | Y |  |
 | `NextStep11Pipeline` | NextStep-1.1 | `stepfun-ai/NextStep-1.1` | Y | Y |  | Y |  |
@@ -124,7 +124,7 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `StableAudioPipeline` | Stable-Audio-Open | `stabilityai/stable-audio-open-1.0` | Y | Y |  | Y | Text-to-audio. |
 | `MiniMaxMusic3ForConditionalGeneration` | MiniMax Music 3 (text-to-music) | `MiniMaxAI/MiniMax-Music3` | Y |  |  | Y |  |
 | `Yue2ForCausalLM` | YuE2-3B (text-to-music with ABC plan) | `m-a-p/YuE2-3B` | Y |  |  | Y | Text-to-music through `/v1/audio/speech`. |
-| `Qwen3TTSForConditionalGeneration` | Qwen3-TTS-12Hz-1.7B-CustomVoice | `Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice` | Y |  |  | Y | `--task-type CustomVoice`, preset voices. All Qwen3-TTS: `--trust-remote-code`, 24 kHz out, RTF 0.22–0.45 (v0.16 notes). Streaming audio gaps #2562 closed for inactivity, not fixed. Startup `max_model_len` validation error in Code2Wav (#2595): fixed in v0.20.0; below it set `VLLM_ALLOW_LONG_MAX_MODEL_LEN=1`. |
+| `Qwen3TTSForConditionalGeneration` | Qwen3-TTS-12Hz-1.7B-CustomVoice | `Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice` | Y |  |  | Y | `--task-type CustomVoice`, preset voices. All Qwen3-TTS: `--trust-remote-code`, 24 kHz out. Streaming audio gaps #2562 closed for inactivity, not fixed. |
 | `Qwen3TTSForConditionalGeneration` | Qwen3-TTS-12Hz-1.7B-VoiceDesign | `Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign` | Y | Y | Y | Y | `--task-type VoiceDesign`, instruction-guided voice. |
 | `Qwen3TTSForConditionalGeneration` | Qwen3-TTS-12Hz-1.7B-Base | `Qwen/Qwen3-TTS-12Hz-1.7B-Base` | Y | Y | Y | Y | `--task-type Base`, cloning with `ref_audio`. `Qwen/Qwen3-TTS-12Hz-0.6B-Base` uses the same architecture but is not in the upstream list. |
 | `MingTTSForConditionalGeneration` | Ming-omni-tts dense 0.5B | `inclusionAI/Ming-omni-tts-0.5B` | Y |  |  | Y |  |
