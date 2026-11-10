@@ -269,8 +269,8 @@ first: on an encoded-preference skill a high floor is expected, not a delete
 list. `KNOWS` is a candidate, never a licence to cut; `CONFLICTS` never means
 the skill is wrong. `references/floor-patterns.md`.
 
-A skill exists to fill what the models its users work with do not know. Probe
-those models (`--models opus,fable`), and re-run on each model release: remove
+Probe the models the skill's users work with (`--models opus,fable`) and re-run
+on each model release: remove
 what the strongest now `KNOWS` (confirmed by eval cases where the skill has
 them), and state every `CONFLICTS` claim more loudly.
 

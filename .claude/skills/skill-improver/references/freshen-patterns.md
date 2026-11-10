@@ -91,7 +91,7 @@ Restamping an unprobed row disarms Dim 9's staleness cap. State in the summary t
 | `superseded` | Hypothesis: delete or shorten what the product moved past — a workaround for a bug since fixed, a feature replaced by another, a version gate below every supported release, a note on something now ordinary |
 | `unverifiable` | Leave unchanged; note the ambiguity in the log. **Gated — see below.** |
 
-Only drift, deprecation, new-feature, broken and superseded produce mutation hypotheses. Read the release notes for what they retire as closely as for what they add: a pass that only adds leaves the skill describing a product that no longer exists.
+Only drift, deprecation, new-feature, broken and superseded produce mutation hypotheses. Read the release notes for what they retire as well as for what they add.
 
 **Re-run every ABSENCE claim ("zero hits for X", "not documented", "no such flag before vN") against the snapshot it names.** An absence that was wrong never contradicts anything checkable; only a re-run catches it. When a row names a snapshot, probe **the snapshot**, not the branch tip: current-`main` evidence cannot separate "wrong then" from "changed since", and those want different fixes.
 
@@ -401,8 +401,7 @@ Before bumping a pinned version:
 
 ## 4. Commit Message Format
 
-One commit per skill per pass, made after the stamp is written. Each finding is one line in the
-body, so a wrong one can be found and undone by hand:
+One commit per skill per pass, after the stamp is written; one body line per finding:
 
 ```
 freshen(<skill-name>): <n> findings to <upstream version>, stamp <date>
