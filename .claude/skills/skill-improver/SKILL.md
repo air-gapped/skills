@@ -52,14 +52,16 @@ user-reported miss as a should-trigger query), `--against <git-ref>` (outcome).
 
    | Step | Run when |
    |---|---|
-   | `freshen` | an upstream is newer than the skill states, or a model or Claude Code release it depends on shipped. Age alone is not a reason |
-   | `floor` | fact-heavy skill, no floor run since the last model release |
+   | `freshen` | an upstream is newer than the skill states; the last pass is old for this product's pace; a model or Claude Code release it depends on shipped |
+   | `floor` | fact-heavy skill, no floor run since the last model release — then cut what the model now knows |
    | `fix` | the skill has `evals/evals.json` and its content changed since the last outcome run |
    | `improve` | the skill has no eval cases, or `fix` left weak cases that only restructuring can address, or the user asks for it; and content changed since the last improve pass, a backlog blocker arrived, or no improve pass is on record |
    | `trigger` | description changed or trigger evals fail; never for `disable-model-invocation` |
 
-3. **Print the plan** — one line per step: run or skip, with the evidence. Run in
-   table order. Nothing due is a valid result: say so and stop.
+3. **Print the plan** — one line per step: run or skip, with the evidence. Size
+   it to the reason for the run and the usage and time the user has: one skill
+   needed for the work at hand gets a fast scoped pass, spare usage goes to the
+   most-used skills first. Run in table order. Nothing due is a valid result: say so and stop.
 4. **Report** what ran, what changed, the commits, what was skipped and why.
 
 ## Fix
@@ -242,26 +244,29 @@ Sonnet judge, \$20 cap.
 
 ## Freshen
 
-Run it when an upstream released, a claim was reported wrong, or the user asks.
-Read the release notes between the version the skill states and the current
-one, and verify the `sources.md` rows in one batched sweep on a cheap helper
-(`web-searcher` for web/gh rows, `Explore` for local clones). Change only what
-an agent acts on: a wrong fact, a removed flag, a new failure with its fix. A
-new feature earns a line only when an agent would otherwise do the task wrong.
-Apply one verified finding at a time; its URL, issue number and check date go in
-`sources.md`, not in the instruction text.
-End by writing the single `Freshened: <date>` header stamp; an unreachable row
+Follow the product, in both directions. Read the releases between the version
+the skill states and the current one, and verify the `sources.md` rows in one
+batched sweep on a cheap helper (`web-searcher` for web/gh rows, `Explore` for
+local clones). Then, one verified finding at a time:
+
+- **Add or correct** what an agent acts on: a wrong fact, a removed flag, a new
+  failure with its fix. A new feature earns a line only when an agent would
+  otherwise do the task wrong.
+- **Retire** what the product moved past: a workaround for a fixed bug, a
+  feature that was superseded, a version gate below every supported release,
+  news that became ordinary.
+
+A finding's URL, issue number and check date go in `sources.md`, not in the
+instruction text. End by writing the single `Freshened: <date>` header stamp; an unreachable row
 gets an inline exception note. A partial pass keeps the old stamp. Workflow F0–F6, probe templates and
 classification: `references/freshen-patterns.md`.
 
 ## Trigger
 
-Run it on a named symptom: a reported miss or false trigger (`--missed`), a
-changed description, or failing trigger evals. With no symptom, check the
-listing caps (`scripts/frontmatter-lengths.py`) and stop. Measure the queries
-the symptom names plus at most 8 guard queries, 7 runs each — about 100 probe
-calls; the full eval set runs only on a budget the user sets. Print calls ×
-cost before the first probe. Metric: trigger rate on should- and
+Print calls × cost before the first probe and size the run to its reason: a
+reported miss or false trigger (`--missed`) measures those queries plus at most
+8 guard queries, 7 runs each, about 100 probe calls; the full eval set runs when
+the user asks for it or has usage to spend. Metric: trigger rate on should- and
 should-not-trigger queries, test scores blinded, description ≤1024 characters. Probe: `scripts/probe-trigger.py`. Eval set:
 `<skill>/references/trigger-evals.json`, `[{"query", "should_trigger",
 "source", "bucket"}]`, buckets `explicit` / `implicit` / `contextual` /
@@ -276,11 +281,14 @@ first: on an encoded-preference skill a high floor is expected, not a delete
 list. `KNOWS` is a candidate, never a licence to cut; `CONFLICTS` never means
 the skill is wrong. `references/floor-patterns.md`.
 
+A new model release is the reason to re-run it: remove what the strongest
+model now `KNOWS` (confirmed by eval cases where the skill has them), and state
+every `CONFLICTS` claim more loudly.
+
 ## Ages
 
 Run `scripts/staleness-report.py [<glob>|<root>]`, print its table verbatim,
-then one sentence naming the stalest bucket. Age ranks nothing for `freshen`:
-an upstream release does. No
+then one sentence naming the stalest bucket and the next `freshen` target. No
 probes, scoring or edits. `cases` marked `!` = fewer than 8 eval cases; `open`
 = backlog Open items — report it when the fleet total moved.
 

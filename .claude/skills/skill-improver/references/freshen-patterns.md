@@ -88,9 +88,10 @@ Restamping an unprobed row disarms Dim 9's staleness cap. State in the summary t
 | `deprecation` | Hypothesis: replace deprecated API / flag with current equivalent |
 | `new-feature` | Hypothesis: add a ≤3-line note IFF feature maps to an existing trigger phrase in the skill's `description` / `when_to_use` |
 | `broken` | Hypothesis: update or remove the ref |
+| `superseded` | Hypothesis: delete or shorten what the product moved past — a workaround for a bug since fixed, a feature replaced by another, a version gate below every supported release, a note on something now ordinary |
 | `unverifiable` | Leave unchanged; note the ambiguity in the log. **Gated — see below.** |
 
-Only drift, deprecation, new-feature and broken produce mutation hypotheses.
+Only drift, deprecation, new-feature, broken and superseded produce mutation hypotheses. Read the release notes for what they retire as closely as for what they add: a pass that only adds leaves the skill describing a product that no longer exists.
 
 **Re-run every ABSENCE claim ("zero hits for X", "not documented", "no such flag before vN") against the snapshot it names.** An absence that was wrong never contradicts anything checkable; only a re-run catches it. When a row names a snapshot, probe **the snapshot**, not the branch tip: current-`main` evidence cannot separate "wrong then" from "changed since", and those want different fixes.
 
