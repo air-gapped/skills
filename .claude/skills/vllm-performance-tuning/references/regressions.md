@@ -173,7 +173,7 @@ comparing to numbers taken before them.
 **v0.30.0 → v0.32.0:**
 
 - **Compile-pass sequence parallelism + AsyncTP removed** (#60517, v0.32.0). They were on by default at `-O2` for dense models with TP>1 (above a hidden-size threshold), so dense TP throughput can move across this upgrade with nothing changed. `pass_config` keys `enable_sp`, `fuse_gemm_comms`, `sp_min_token_num` now fail config validation — delete them. Model-level MoE SP is unaffected.
-- **DeepEP v2 auto-selects hybrid NVLink+RDMA by default** (#57991, v0.32.0); `VLLM_DEEPEP_V2_ALLOW_HYBRID_MODE=0` forces NVLink-only.
+- **DeepEP v2 auto-selects hybrid NVLink+RDMA by default** (#57991, v0.32.0); `VLLM_DEEPEP_V2_ALLOW_HYBRID_MODE=0` restores direct mode (RDMA straight to every off-node rank, no NVLink relay). Multi-node on the stock image fails at startup under the new default — `moe-and-ep.md` §DeepEP all-to-all.
 - **`--max-num-active-seqs`** (#56758, v0.31.0) caps RUNNING admission without shrinking `max_num_seqs`-sized runner buffers and graphs.
 - **`max_num_seqs` not a multiple of 8 hit a max-load throughput cliff before v0.31.0** (#57355) — on older builds round it to a multiple of 8.
 - **`VLLM_ENGINE_ITERATION_TIMEOUT_S` removed** (#59781, v0.32.0) — it was already dead; drop it from manifests.
