@@ -117,7 +117,7 @@ Only drift, deprecation, new-feature, broken and superseded produce mutation hyp
 
 ### Phase F4: Mutate (One Finding at a Time)
 
-Same atomicity rule as the improvement loop — one finding per iteration, diff minimal, cause attributable. Write the finding into the skill as the current rule and action. The verifying source URL, issue numbers, version history and check date go in that finding's `references/sources.md` row; the reasoning goes in the commit message. See `SKILL.md` §"Rules for every mode" (write for the agent).
+Same atomicity rule as the improvement loop — one finding per iteration, diff minimal, cause attributable. Write the finding into the skill as the current rule and action. The verifying source URL, issue numbers, version history and check date go in that finding's `references/sources.md` row; the reasoning goes in the commit message. See `SKILL.md` §"Rules for every mode" (the reader is an agent).
 
 ### Phase F5: Accept / Revert
 

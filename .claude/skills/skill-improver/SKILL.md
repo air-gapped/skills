@@ -154,8 +154,9 @@ Phases, decision rules and stop conditions: `references/improve-loop.md`.
   `references/improvement-patterns.md` §Pattern 6.1 reads it.
 - **Preserve the author's domain knowledge.** Change how the skill teaches, not
   what it teaches.
-- **Write for the agent; history goes to `sources.md`.** `SKILL.md` and task
-  references state the current rule and the action; where a fact came from and
+- **The reader is an agent.** Every line you write into a skill states what to
+  do or a fact the agent acts on, in the imperative. Leave out persuasion, how a
+  finding was made and what the text used to say; where a fact came from and
   when it was checked go in `references/sources.md`. Keep a version or issue
   number in agent text only where the agent compares against it or acts on it.
   **A known failure is agent text, never history:** its symptom, affected
