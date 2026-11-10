@@ -32,7 +32,6 @@ Source: ``vllm` repo: vllm/distributed/kv_transfer/`
 | **MooncakeConnector** | `mooncake/mooncake_connector.py` | Moonshot-originated; KV-store-first; RDMA (RoCE/IB) |
 | **LMCacheConnector** | `lmcache_connector.py` | UChicago LMCache; tiered (GPU → CPU → NVMe → remote) |
 | **MORI-IOConnector** | `moriio/moriio_connector.py` | AMD + Embedded LLM; network KV transfer |
-| ~~P2PNcclConnector~~ | removed in v0.24.0 (#44854) | Configs naming it fail at startup — move to NixlConnector |
 | **OffloadingConnector** | `offloading_connector.py` | CPU/GPU offload scheduler (not cross-pod) |
 | **HF3FSConnector** | `hf3fs/hf3fs_connector.py` | HuggingFace 3FS file-backed KV |
 

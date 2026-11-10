@@ -27,11 +27,8 @@ Ray on LWS is the alternative, for when `--distributed-executor-backend ray` is 
 - **LWS vLLM example (upstream LWS)**: https://github.com/kubernetes-sigs/lws/tree/main/docs/examples
 - **vLLM doc**: https://docs.vllm.ai/en/latest/deployment/frameworks/lws/
 - **In-repo Ray bootstrap script**: ``vllm` repo: examples/ray_serving/multi-node-serving.sh`
-  — **moved from `examples/online_serving/` at some point before v0.25.1.** The
-  old path 404s. Because this path is embedded in the container `command:` of
-  LWS manifests, a stale copy does not fail at apply time — it fails when the
-  pod starts, as a missing-file error from `bash`. Upstream's own
-  `docs/deployment/frameworks/lws.md` uses the new path; match it.
+  — the path is embedded in the container `command:` of LWS manifests, so a wrong
+  one fails at pod start, not at apply. Match upstream's `docs/deployment/frameworks/lws.md`.
 - **Docker-based Ray cluster helper**: ``vllm` repo: examples/ray_serving/run_cluster.sh` (reference for what `--network host --shm-size 10.24g --gpus all` should look like)
 
 LWS status: **v1.0.0** (2026-10-16) — GA; used by llm-d, vllm-production-stack, AIBrix. Upgrading to v1.0.0: a DisaggregatedSet created on v0.9.x must complete one template rollout on v0.10.x/v0.11.x first (v1.0.0 drops slice-less LWS support), and DisaggregatedSet roles without a `rollingUpdateConfiguration` now default to `maxSurge: 0, maxUnavailable: 1`. For crash-looping multi-node groups set `leaderWorkerTemplate.maxGroupRestarts` and `restartBackoff` (v1.0.0) so a bad model config stops recreating the group.

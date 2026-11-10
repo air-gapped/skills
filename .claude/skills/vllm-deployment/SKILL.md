@@ -31,9 +31,9 @@ This skill is a **pointer map**. It points to the canonical sources — in the v
 
 ## The three load-bearing facts
 
-1. **`/dev/shm` is the single most common cause of silent multi-GPU failure on k8s.** On vanilla k8s there is no `--ipc=host`. Without a shared-memory volume, `torch.distributed` segfaults on the first all-reduce of a TP>1 pod. Mount an `emptyDir` with `medium: Memory` and `sizeLimit: 10Gi` at `/dev/shm`. Documented in vLLM's own k8s guide — see ``vllm` repo: docs/deployment/k8s.md:211,291`. Since **v0.27.0 (#48879)** a pre-flight free-space check turns the *undersized* case into an actionable startup `RuntimeError` instead of a later crash — but the trap it replaces is worth knowing, because a 64 MiB `/dev/shm` is big enough to boot (see `references/pod-shape.md`).
+1. **`/dev/shm` is the single most common cause of silent multi-GPU failure on k8s.** On vanilla k8s there is no `--ipc=host`. Without a shared-memory volume, `torch.distributed` segfaults on the first all-reduce of a TP>1 pod. Mount an `emptyDir` with `medium: Memory` and `sizeLimit: 10Gi` at `/dev/shm`. Documented in vLLM's own k8s guide — see ``vllm` repo: docs/deployment/k8s.md:211,291`. A pre-flight free-space check fails an *undersized* mount at startup with an actionable `RuntimeError`; a 64 MiB `/dev/shm` still boots, so check the mount, not just the log (`references/pod-shape.md`).
 2. **Multi-node vLLM on k8s is LeaderWorkerSet, not a hand-built headless Service + StatefulSet.** Use LWS (`kubernetes-sigs/lws`) as the group primitive. From v0.24.0 the upstream recipe is multiprocessing: every pod runs `vllm serve … --nnodes $(LWS_GROUP_SIZE) --node-rank $(LWS_WORKER_INDEX) --master-addr $(LWS_LEADER_ADDRESS)`, workers add `--headless`. Ray is the alternative: `examples/ray_serving/multi-node-serving.sh` forms the cluster, then the leader runs `vllm serve --distributed-executor-backend ray`. Manifest: `references/multi-node.md`.
-3. **The upstream `vllm/vllm-openai` image runs as root by default.** On OpenShift (and any k8s cluster with a `restricted` PSA), that is a deploy-time failure. Fixed non-root UID on v0.22.0+: run the stock image as its built-in `vllm` user (`runAsUser: 2000`, `runAsGroup: 0`) and mount caches under `/home/vllm`, not `/root`. OpenShift arbitrary UID: use the Red Hat images (`registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1`; `rhaiis/vllm-cuda-rhel9:3.3.x` before the 3.4 rename), UID-agnostic by construction, or build upstream's `vllm-openai-nonroot` target. Tags older than v0.22.0: rebuild with `chgrp -R 0 /root /tmp && chmod -R g=u /root /tmp`.
+3. **The upstream `vllm/vllm-openai` image runs as root by default.** On OpenShift (and any k8s cluster with a `restricted` PSA), that is a deploy-time failure. Fixed non-root UID: run the stock image as its built-in `vllm` user (`runAsUser: 2000`, `runAsGroup: 0`) and mount caches under `/home/vllm`, not `/root`. OpenShift arbitrary UID: use the Red Hat images (`registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1`; `rhaiis/vllm-cuda-rhel9:3.3.x` before the 3.4 rename), UID-agnostic by construction, or build upstream's `vllm-openai-nonroot` target.
 
 ## Minimum viable pod shape
 
@@ -130,7 +130,7 @@ This skill owns the **pod/container/topology** layer. It does not own:
 | `examples/disaggregated/disaggregated_serving/` | PD-split proxy demos (XpYd, KV events, MoRI-IO proxy) |
 | `examples/disaggregated/{mooncake_connector,lmcache}/` | PD launchers (`run_mooncake_connector.sh`, `disagg_prefill_lmcache_v1/disagg_example_nixl.sh`) |
 | `vllm/envs.py` | Canonical env-var catalogue |
-| `vllm/distributed/kv_transfer/` | KV connector implementations (LMCache, Mooncake, MORI-IO, NIXL, HF3FS, Offloading, FlexKV) — P2P-NCCL was removed in v0.24.0 |
+| `vllm/distributed/kv_transfer/` | KV connector implementations (LMCache, Mooncake, MORI-IO, NIXL, HF3FS, Offloading, FlexKV) |
 | `vllm/entrypoints/serve/instrumentator/health.py` | `/health` endpoint (200 healthy, 503 EngineDeadError) |
 | `docker/Dockerfile{,.efa,.rocm,.rocm_72,.cpu,.xpu,.zen,.ppc64le,.s390x}` | Image variants |
 

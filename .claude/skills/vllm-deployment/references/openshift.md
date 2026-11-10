@@ -65,14 +65,14 @@ Default OCP policy is `restricted-v2`:
 |---|---|
 | RHAIIS | `restricted-v2` — works out of the box |
 | Upstream `vllm/vllm-openai` (default target) | `anyuid` (not ideal) |
-| Upstream `vllm-openai-nonroot` target (v0.22.0+, build it — no published tag) | `restricted-v2` |
+| Upstream `vllm-openai-nonroot` target (build it — no published tag) | `restricted-v2` |
 | Custom vLLM image | Build for arbitrary UID (`chgrp -R 0 /root /tmp && chmod -R g=u /root /tmp`) → `restricted-v2` |
 
 **Do NOT grant `privileged`.** GPU access is via NVIDIA device plugin (resource request), not host device mount. PSA guidance: https://connect.redhat.com/en/blog/important-openshift-changes-pod-security-standards
 
 ## The arbitrary-UID rebuild recipe
 
-From v0.22.0 (#40275) build upstream's own target instead of hand-rolling one:
+Build upstream's own target instead of hand-rolling one:
 
 ```bash
 docker build --target vllm-openai-nonroot -t <registry>/vllm-openai-nonroot:<pinned-tag> -f docker/Dockerfile .
@@ -82,24 +82,6 @@ It defaults to user `vllm` (UID 2000, GID 0) with a group-0-writable `/home/vllm
 its entrypoint handles a UID missing from `/etc/passwd`. Leave the UID to the SCC; the
 runtime UID must be in group 0. Mount model and cache volumes under `/home/vllm`
 (group-0-writable), not `/root`.
-
-For tags older than v0.22.0, rebuild `vllm/vllm-openai` yourself:
-
-```dockerfile
-FROM vllm/vllm-openai:<pinned-tag>
-
-# Make writable paths UID-agnostic (OCP random UID always has GID 0)
-RUN chgrp -R 0 /root /tmp /data 2>/dev/null || true && \
-    chmod -R g=u /root /tmp /data 2>/dev/null || true
-
-# Honor $HOME from OCP (random UID has no passwd entry)
-ENV HOME=/tmp
-ENV HF_HOME=/tmp/.cache/huggingface
-```
-
-Upstream issues behind the recipe (both closed; #31959 by the v0.22.0 non-root support):
-- https://github.com/vllm-project/vllm/issues/31959 — can't run as non-root
-- https://github.com/vllm-project/vllm/issues/15359 — v0.8.1 regression on non-root rebase
 
 OCP guide: https://cookbook.openshift.org/users-and-role-based-access-control/how-can-i-enable-an-image-to-run-as-a-set-user-id.html
 

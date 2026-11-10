@@ -102,7 +102,7 @@ spec:
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
           # NOTE: upstream vllm/vllm-openai runs as root (UID 0) by default.
-          # Non-root on v0.22.0+: the built-in `vllm` user below — then mount the
+          # Non-root: the built-in `vllm` user below — then mount the
           # cache volumes under /home/vllm, not /root. OpenShift: references/openshift.md.
           # runAsNonRoot: true
           # runAsUser: 2000
@@ -143,22 +143,12 @@ uncatchable `SIGBUS` that surfaces as an opaque `EngineDeadError: EngineCore enc
 an issue`. The pod serves text-only traffic fine and dies on multimodal traffic, because
 image payloads broadcast to the TP workers are what fill the ring buffer. Sizing math:
 `MessageQueue` allocates `max_chunk_bytes` (24 MiB) × `max_chunks` (10) ≈ **240 MiB** by
-default at TP ≥ 2 — already 3.75× the 64 MiB default. **vLLM ≥ v0.27.0 (#48879)** adds
-`check_shm_free_space()` in `vllm/distributed/device_communicators/shm_broadcast.py`,
-which fails fast with `Insufficient space in /dev/shm: N MiB required, M MiB free.` On
-older engines there is no such check — the delayed-SIGBUS shape above is what to expect.
+default at TP ≥ 2 — already 3.75× the 64 MiB default. `check_shm_free_space()` in
+`vllm/distributed/device_communicators/shm_broadcast.py` fails fast with
+`Insufficient space in /dev/shm: N MiB required, M MiB free.`
 **`--enable-shm-tensor-arena` (v0.32.0, opt-in in the code despite the release note
 calling it default-on)** reserves a further 8 × 256 MiB = **2 GiB** of `/dev/shm`
 (`ShmTensorArena`, same fail-fast check) — size the emptyDir ≥ 4 GiB before enabling it.
-
-### `resources.limits.memory` — only honoured from v0.27.0
-
-Before **v0.27.0 (#49966)** vLLM read *host* RAM inside a Pod and ignored the cgroup
-limit, so a container capped at `memory: 240Gi` on a 900 GiB node sized its host-memory
-decisions against the node. The reported symptom is a weight-loading heuristic firing on
-the wrong number — e.g. auto-prefetch disabled because "the checkpoint size exceeds 90%
-of available RAM" computed from host RAM. Set the limit anyway on older engines (the
-kernel still enforces it), but expect vLLM's own memory math to disagree with it.
 
 ### `VLLM_HOST_IP` via `status.podIP` (LOAD-BEARING on multi-node)
 
@@ -242,7 +232,6 @@ implications:
 | `VLLM_NO_USAGE_STATS` | unset | Always in regulated/air-gapped |
 | `VLLM_DO_NOT_TRACK` | unset | Belt-and-braces with `VLLM_NO_USAGE_STATS` |
 | `VLLM_ENGINE_READY_TIMEOUT_S` | 600 | Raise if cold load > 10 min (405B FP8 from slow PVC) |
-| `VLLM_RPC_TIMEOUT` | removed (v0.23.0, #44128) | Delete from manifests — it has no effect |
 | `VLLM_NCCL_SO_PATH` | auto | Only for custom NCCL builds |
 | `VLLM_USE_RAY_COMPILED_DAG_CHANNEL_TYPE` and the other `VLLM_USE_RAY_*` vars | removed (v0.33.0, #61712) | Delete from manifests — they have no effect |
 | `VLLM_CACHE_ROOT` | `~/.cache/vllm` | Arbitrary-UID images only — point at a mounted path (see §Compile-cache survival) |
@@ -374,7 +363,7 @@ Don't probe `/v1/models` — it is a router endpoint that requires the engine fu
 ## Gotchas not yet covered
 
 - **Istio sidecar + streaming**: the Envoy sidecar buffers SSE by default; streaming replies show up all-at-once. Either disable sidecar on the vLLM pod, or set `proxy.istio.io/config: { ... holdApplicationUntilProxyStarts: true }` and ensure streaming is not buffered.
-- **Pod Security Admission**: the upstream image defaults to root, which `restricted` rejects. On v0.22.0+ set `runAsNonRoot: true`, `runAsUser: 2000`, `runAsGroup: 0` and move the cache mounts to `/home/vllm/.cache`. On older tags run under `baseline`, use RHAIIS, or rebuild.
+- **Pod Security Admission**: the upstream image defaults to root, which `restricted` rejects. Set `runAsNonRoot: true`, `runAsUser: 2000`, `runAsGroup: 0` and move the cache mounts to `/home/vllm/.cache`.
 - **Termination grace period**: the grace alone drains nothing — vLLM aborts in-flight requests on SIGTERM unless `--shutdown-timeout N` (default `0`) is set. Pass `--shutdown-timeout 120` and `terminationGracePeriodSeconds` ≥ N + 30.
 - **CPU requests**: 16+ is sane for TP=8. Low CPU requests starve the Python engine and show up as mystery TPOT spikes under high concurrency.
 
