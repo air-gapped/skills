@@ -1,0 +1,218 @@
+[
+  {
+    "query": "what goes in --speculative-config to run eagle3 with a 3-token draft on vllm 0.33",
+    "should_trigger": true,
+    "source": "description-mined: --speculative-config, eagle3",
+    "bucket": "explicit"
+  },
+  {
+    "query": "set up vllm speculative decoding for Qwen3-32B, which method should I pick",
+    "should_trigger": true,
+    "source": "description-mined: method selection",
+    "bucket": "explicit"
+  },
+  {
+    "query": "is medusa still a valid speculative method in current vllm",
+    "should_trigger": true,
+    "source": "body-mined: method-selection table, removed methods",
+    "bucket": "explicit"
+  },
+  {
+    "query": "vllm:spec_decode_num_accepted_tokens is flat while spec_decode_num_drafts keeps climbing, what does that mean",
+    "should_trigger": true,
+    "source": "description-mined: acceptance metrics",
+    "bucket": "explicit"
+  },
+  {
+    "query": "how do I enable the deepseek_mtp heads in vllm and does it work with tensor parallel 4",
+    "should_trigger": true,
+    "source": "description-mined: MTP aliases",
+    "bucket": "explicit"
+  },
+  {
+    "query": "how do I get Arctic Inference into our vllm image so suffix decoding works",
+    "should_trigger": true,
+    "source": "body-mined: arctic-inference reference",
+    "bucket": "explicit"
+  },
+  {
+    "query": "single-user latency on our 70B is poor, can a small helper model guess tokens ahead so the big one generates faster",
+    "should_trigger": true,
+    "source": "everyday phrasing: draft model without the term",
+    "bucket": "implicit"
+  },
+  {
+    "query": "can we get more tokens/sec out of the coding assistant endpoint when only a handful of devs are on it",
+    "should_trigger": true,
+    "source": "description-mined: implicit list, low-concurrency framing",
+    "bucket": "implicit"
+  },
+  {
+    "query": "our agent loop keeps regenerating nearly identical file edits, is there a trick that exploits the repetition to make generation faster",
+    "should_trigger": true,
+    "source": "everyday phrasing: suffix / ngram without the term",
+    "bucket": "implicit"
+  },
+  {
+    "query": "we turned on the little predictor model next to the main one and throughput got worse at 64 concurrent requests, why",
+    "should_trigger": true,
+    "source": "everyday phrasing: high-batch regression without the term",
+    "bucket": "implicit"
+  },
+  {
+    "query": "is it worth training our own drafter head for the finetuned Llama or should we use a published one",
+    "should_trigger": true,
+    "source": "body-mined: training-data-recipes reference",
+    "bucket": "implicit"
+  },
+  {
+    "query": "how do I tell whether the tokens guessed ahead are actually being accepted by the main model",
+    "should_trigger": true,
+    "source": "everyday phrasing: acceptance rate without the term",
+    "bucket": "implicit"
+  },
+  {
+    "query": "the checkpoint ships built-in multi-token prediction heads, how do I make the inference server use them",
+    "should_trigger": true,
+    "source": "description-mined: MTP, no engine named",
+    "bucket": "implicit"
+  },
+  {
+    "query": "which lookahead method makes sense for a model with no trained head and no small sibling model",
+    "should_trigger": true,
+    "source": "everyday phrasing: method selection, ngram fallback",
+    "bucket": "implicit"
+  },
+  {
+    "query": "can I change how many tokens get drafted ahead on the running server without restarting it",
+    "should_trigger": true,
+    "source": "cross-skill pair: spec-dec setting phrased as a no-restart change",
+    "bucket": "implicit"
+  },
+  {
+    "query": "MTP1 working on Qwen3.6 — how do I add the spec-decode flag without restarting",
+    "should_trigger": true,
+    "source": "cross-skill case, verbatim from the vllm-deployment eval set where it is a negative",
+    "bucket": "contextual"
+  },
+  {
+    "query": "vllm serve dies at startup with RuntimeError: Model does not support EAGLE3 interface, the target is a finetuned Mistral, what now",
+    "should_trigger": true,
+    "source": "body-mined: SupportsEagle3 load error",
+    "bucket": "contextual"
+  },
+  {
+    "query": "here are our serve args: --model Qwen/Qwen3-32B --tensor-parallel-size 2 --speculative-config '{\"method\":\"draft_model\",\"model\":\"Qwen/Qwen3-0.6B\",\"num_speculative_tokens\":5}' — anything wrong before I roll it out?",
+    "should_trigger": true,
+    "source": "contextual: serve-args review with a spec-dec block",
+    "bucket": "contextual"
+  },
+  {
+    "query": "after moving the inference image to 0.33 the pod crashloops with a config validation error on method mlp_speculator",
+    "should_trigger": true,
+    "source": "body-mined: removed-method validation error, arrives as an upgrade failure",
+    "bucket": "contextual"
+  },
+  {
+    "query": "I'm writing the deploy memo for GLM-4.6 and need the speculative section: method, K, expected acceptance",
+    "should_trigger": true,
+    "source": "description-mined: deploy-memo speculative",
+    "bucket": "contextual"
+  },
+  {
+    "query": "Grafana shows acceptance length sliding from about 3 to about 2 since the code agents started hitting the endpoint, same eagle3 head as before",
+    "should_trigger": true,
+    "source": "body-mined: domain-mismatch acceptance drop, arrives as a dashboard observation",
+    "bucket": "contextual"
+  },
+  {
+    "query": "can I change --max-num-seqs or gpu-memory-utilization on a live vllm deployment without restarting the pod",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-deployment / vllm-configuration; mirror of the no-restart cross-skill case",
+    "bucket": "negative"
+  },
+  {
+    "query": "the readiness probe keeps killing the inference pod before the weights finish loading, what should initialDelaySeconds and failureThreshold be",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-deployment",
+    "bucket": "negative"
+  },
+  {
+    "query": "throughput at 64 concurrent is way under target, how should I set --max-num-batched-tokens and async scheduling",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-performance-tuning",
+    "bucket": "negative"
+  },
+  {
+    "query": "TTFT on 100k-token prompts is too slow, should we add LMCache CPU offload to the existing deploy",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-caching",
+    "bucket": "negative"
+  },
+  {
+    "query": "NVFP4 or FP8 for Qwen3 on H200, and which --quantization value loads it",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-quantization",
+    "bucket": "negative"
+  },
+  {
+    "query": "what should I alert on for vllm TTFT and request queue time in Prometheus",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-observability",
+    "bucket": "negative"
+  },
+  {
+    "query": "run a request-rate sweep with vllm bench serve and give me P99 TTFT and goodput",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-benchmarking",
+    "bucket": "negative"
+  },
+  {
+    "query": "my Qwen3 isn't calling tools through vllm, finish_reason comes back as stop",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-tool-parsers",
+    "bucket": "negative"
+  },
+  {
+    "query": "reasoning_content is null on DeepSeek-R1 even with --reasoning-parser set",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-reasoning-parsers",
+    "bucket": "negative"
+  },
+  {
+    "query": "the --chat-template flag seems to be ignored and enable_thinking isn't respected",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-chat-templates",
+    "bucket": "negative"
+  },
+  {
+    "query": "which wins, the vllm YAML config file or a CLI flag, and where does HF_HUB_OFFLINE go",
+    "should_trigger": false,
+    "source": "sibling-skill: vllm-configuration",
+    "bucket": "negative"
+  },
+  {
+    "query": "how do I check whether speculative execution mitigations are enabled on our GPU hosts",
+    "should_trigger": false,
+    "source": "keyword-collision: speculative (CPU side-channel mitigations)",
+    "bucket": "negative"
+  },
+  {
+    "query": "draft a model card README for our finetuned checkpoint",
+    "should_trigger": false,
+    "source": "keyword-collision: draft + model",
+    "bucket": "negative"
+  },
+  {
+    "query": "enable EAGLE speculative decoding in SGLang with --speculative-algorithm",
+    "should_trigger": false,
+    "source": "adjacent-domain decoy: same technique, different engine",
+    "bucket": "negative"
+  },
+  {
+    "query": "explain the difference between greedy and beam search decoding",
+    "should_trigger": false,
+    "source": "generic conversation",
+    "bucket": "negative"
+  }
+]

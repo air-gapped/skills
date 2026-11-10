@@ -105,7 +105,16 @@ with `git tag --contains <sha>` and the PR state; v0.33.0 is the newest release)
   with no merged config guard or per-tenant corpus isolation. When either
   merges into a release, state what that version rejects or isolates.
 
-## Resolved this pass (2026-10-18, improve)
+## Resolved this pass (2026-11-10, trigger)
+
+`claude-sonnet-5-5`, 7 runs per query, new 36-query `trigger-evals.json`:
+baseline train 21/22, test 14/14; all 15 negatives 0/7, the sibling-territory
+ones and the "without restarting" pair included — no cross-skill over-trigger.
+- Kept: `when_to_use` terms the `description` already states removed, and the
+  version-gate list cut from `description`. Listing 1521 → 1265 chars; train
+  21/22 and test 14/14 unchanged.
+
+## Resolved — 2026-10-18 (improve)
 
 Blind baseline 75 (snapshot of the v0.32.0 freshen); self cold 75 -> 81 over
 5 iterations, 4 kept; final blind score and A/B comparator run by the operator.
