@@ -100,7 +100,7 @@ May not handle every syntax yet — watch diffs the first time.
 ## `baml-cli check` / `optimize`
 
 - **`baml-cli check [--from PATH] [--no-version-check]`** — compile `baml_src/` and report errors and warnings without generating. Use it as the fast syntax gate.
-- **`baml-cli optimize`** — GEPA prompt optimization with a visualizer (0.215.0+).
+- **`baml-cli optimize --beta`** — GEPA prompt optimization against the function's tests (0.215.0+). Flags and workflow: `optimization.md`.
 
 `baml-cli` 0.226.x has no `grep`, `describe` or `run` subcommand. Those belong to the BAML v1 `baml` toolchain (SKILL.md §"First: BAML v0 or BAML v1?").
 

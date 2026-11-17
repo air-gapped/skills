@@ -1,59 +1,132 @@
 {
   "skill": "baml-expert",
-  "extracted": "2026-08-19",
+  "extracted": "2026-11-17",
   "extractor_model": "session-default",
-  "skill_md_sha": "b13324fff889",
-  "extraction_cost_usd": 0.1312,
+  "extractor_model_resolved": [
+    "claude-opus-5-5"
+  ],
+  "skill_md_sha": "496599f0b645",
+  "extraction_cost_usd": 0.2329,
   "claims": [
     {
       "id": 0,
-      "question": "Which BAML version first supports the `render_null_as` argument to `ctx.output_format`?",
+      "question": "In which baml-py version did the ctx.output_format render_null_as option become available?",
       "skill_answer": "0.223.0 (PR #3822)"
     },
     {
       "id": 1,
-      "question": "What relationship must hold between the `version` in a BAML generator block and the installed baml-py?",
-      "skill_answer": "They must match exactly, unless `--no-version-check` is passed."
-    },
-    {
-      "id": 2,
-      "question": "What are the exit codes of `baml-cli test`?",
-      "skill_answer": "0 pass, 1 fail, 2 human-eval-required, 3 cancelled, 4 no tests found."
-    },
-    {
-      "id": 3,
-      "question": "From which package is BAML's `ClientRegistry` imported in Python?",
-      "skill_answer": "baml_py, not baml_client."
-    },
-    {
-      "id": 4,
-      "question": "From which package is BAML's `TypeBuilder` imported in Python?",
-      "skill_answer": "baml_client.type_builder"
-    },
-    {
-      "id": 5,
-      "question": "Since which baml-py version does `baml-cli test` auto-load `.env`?",
-      "skill_answer": "0.214.0+"
-    },
-    {
-      "id": 6,
-      "question": "Since which baml-py version can per-call overrides be passed via `baml_options`?",
+      "question": "Since which BAML version can per-call overrides be passed via the baml_options argument?",
       "skill_answer": "0.216"
     },
     {
+      "id": 2,
+      "question": "From which BAML version does baml-cli test auto-load the .env file?",
+      "skill_answer": "0.214.0"
+    },
+    {
+      "id": 3,
+      "question": "Which BAML PR added support for optional arrays and maps such as string[]?",
+      "skill_answer": "#1251"
+    },
+    {
+      "id": 4,
+      "question": "What baml-cli flag skips the check that the generator version matches the installed baml-py version?",
+      "skill_answer": "--no-version-check"
+    },
+    {
+      "id": 5,
+      "question": "What baml-cli test exit code means human evaluation is required?",
+      "skill_answer": "2"
+    },
+    {
+      "id": 6,
+      "question": "What baml-cli test exit code means no tests were found?",
+      "skill_answer": "4"
+    },
+    {
       "id": 7,
-      "question": "Can BAML class fields and enums be optional arrays, e.g. `string[]?`?",
-      "skill_answer": "Yes; optional arrays and maps are supported (added in #1251)."
+      "question": "How does a BAML composite client resolve conflicting parent and child timeouts?",
+      "skill_answer": "The minimum of parent and child timeouts wins."
     },
     {
       "id": 8,
-      "question": "How must PDFs be supplied to BAML multimodal functions?",
-      "skill_answer": "Base64 only \u2014 no URL form, for any provider."
+      "question": "Which BAML provider string is used for generic OpenAI-compatible servers such as vLLM or LM Studio?",
+      "skill_answer": "openai-generic"
     },
     {
       "id": 9,
-      "question": "When composite BAML clients (fallback/round-robin) nest timeouts, which timeout applies?",
-      "skill_answer": "The minimum of parent and child timeouts."
+      "question": "What error does BAML raise for an unrecognized client provider string?",
+      "skill_answer": "Invalid client provider"
+    },
+    {
+      "id": 10,
+      "question": "Which Python package must Collector, ClientRegistry and AbortController be imported from in BAML?",
+      "skill_answer": "baml_py"
+    },
+    {
+      "id": 11,
+      "question": "Can a BAML Pdf media input be constructed from a URL?",
+      "skill_answer": "No; PDFs must be base64 (Pdf.from_base64)."
+    },
+    {
+      "id": 12,
+      "question": "When do int and float fields get values during BAML streaming?",
+      "skill_answer": "Only at the end; they are null until final."
+    },
+    {
+      "id": 13,
+      "question": "What attribute wraps a BAML field in StreamState with value and incomplete/complete state?",
+      "skill_answer": "@stream.with_state"
+    },
+    {
+      "id": 14,
+      "question": "What client option must be set to use cache_control role metadata with Anthropic in BAML?",
+      "skill_answer": "allowed_role_metadata [\"cache_control\"]"
+    },
+    {
+      "id": 15,
+      "question": "What does BAML's Anthropic adapter do with system messages after the first one?",
+      "skill_answer": "Casts them to assistant role."
+    },
+    {
+      "id": 16,
+      "question": "Which BAML provider does not support o1-mini, requiring the openai provider instead?",
+      "skill_answer": "openai-responses"
+    },
+    {
+      "id": 17,
+      "question": "Besides yaml and json, what serialization type does the BAML |format filter support?",
+      "skill_answer": "toon"
+    },
+    {
+      "id": 18,
+      "question": "Which baml-cli command and flag rewrites a function's prompt against its tests?",
+      "skill_answer": "baml-cli optimize --beta -f <Fn>"
+    },
+    {
+      "id": 19,
+      "question": "What is the current URL of the Boundary Studio web UI?",
+      "skill_answer": "studio.boundaryml.com (app.boundaryml.com is shut down)"
+    },
+    {
+      "id": 20,
+      "question": "Which environment variable truncates noisy BAML log payloads?",
+      "skill_answer": "BOUNDARY_MAX_LOG_CHUNK_CHARS"
+    },
+    {
+      "id": 21,
+      "question": "Which file at the project root marks a BAML v1 project rather than v0?",
+      "skill_answer": "baml.toml"
+    },
+    {
+      "id": 22,
+      "question": "What command installs the version-matched upstream agent skill in a BAML v1 project?",
+      "skill_answer": "baml agent install"
+    },
+    {
+      "id": 23,
+      "question": "In a BAML union type like int | string, how is the string \"1\" parsed?",
+      "skill_answer": "As int; unions are tried left-to-right."
     }
   ]
 }

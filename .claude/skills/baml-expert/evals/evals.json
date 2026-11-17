@@ -1,142 +1,173 @@
 {
-  "skill_name": "baml-expert",
-  "schema_version": 2,
-  "provenance": {
-    "created": "2026-04-20",
-    "normalized": "2026-08-19",
-    "assertions_source": "opus via backfill-assertions.py 2026-08-19",
-    "harness": "skill-creator eval loop (aggregate_benchmark)",
-    "grown": "opus via grow-evals.py 2026-08-19 (+5 to 8)"
+ "skill_name": "baml-expert",
+ "schema_version": 2,
+ "provenance": {
+  "created": "2026-04-20",
+  "normalized": "2026-08-19",
+  "assertions_source": "opus via backfill-assertions.py 2026-08-19",
+  "harness": "skill-creator eval loop (aggregate_benchmark)",
+  "grown": "opus via grow-evals.py 2026-08-19 (+5 to 8)",
+  "grown_2026_11_17": "2 cases (ids 8, 9) written from source-verified facts: baml-cli 0.226.3 executed for flags and file paths; DSPy 3.5.0 source for BAMLAdapter, streaming and optimizers"
+ },
+ "evals": [
+  {
+   "id": 0,
+   "name": "add-ticket-classifier-function",
+   "prompt": "I'm working in a BAML project (python/pydantic client, baml_src/ at repo root). I need to add a new LLM function that classifies a customer support ticket into a category and urgency. Category is one of: BILLING, TECHNICAL, ACCOUNT, FEATURE_REQUEST, OTHER. Urgency is LOW / MEDIUM / HIGH / CRITICAL. The function should also return a one-sentence rationale and a list of tags (strings). Write the .baml code for the function, its input/output classes and enums, a sensible client block (openai/gpt-4o-mini with retry), and one test block with assertions. Put everything in a new file `baml_src/ticket_classifier.baml`. Also show me the Python snippet to call this from an async FastAPI handler. Use the current directory as the project root — don't actually write files, just return the full contents with file paths.",
+   "expected_output": "A .baml file with: enum Category, enum Urgency, class TicketClassification (category, urgency, rationale string, tags string[]), function ClassifyTicket(ticket_text: string) -> TicketClassification with prompt containing {{ ctx.output_format }}, a client<llm> block with retry_policy, one test with @@assert. Plus Python async FastAPI endpoint using baml_client.async_client.",
+   "files": [],
+   "assertions": [
+    "The .baml code defines a Category enum whose values are exactly BILLING, TECHNICAL, ACCOUNT, FEATURE_REQUEST, OTHER and an Urgency enum whose values are exactly LOW, MEDIUM, HIGH, CRITICAL",
+    "The output class declares its fields without colons between field name and type (e.g. `rationale string`, `tags string[]`), and includes a category field, an urgency field, a string rationale, and a string list of tags",
+    "The function's prompt body renders the return-type schema via ctx.output_format",
+    "The client configuration targets openai/gpt-4o-mini and attaches a retry policy defined in the same file",
+    "The .baml file includes at least one test block that supplies ticket text as an argument and carries at least one assertion on the result",
+    "The Python snippet awaits the generated function from the async BAML client inside an async FastAPI route handler (not the sync client, and not a raw OpenAI SDK call)"
+   ]
   },
-  "evals": [
-    {
-      "id": 0,
-      "name": "add-ticket-classifier-function",
-      "prompt": "I'm working in a BAML project (python/pydantic client, baml_src/ at repo root). I need to add a new LLM function that classifies a customer support ticket into a category and urgency. Category is one of: BILLING, TECHNICAL, ACCOUNT, FEATURE_REQUEST, OTHER. Urgency is LOW / MEDIUM / HIGH / CRITICAL. The function should also return a one-sentence rationale and a list of tags (strings). Write the .baml code for the function, its input/output classes and enums, a sensible client block (openai/gpt-4o-mini with retry), and one test block with assertions. Put everything in a new file `baml_src/ticket_classifier.baml`. Also show me the Python snippet to call this from an async FastAPI handler. Use the current directory as the project root — don't actually write files, just return the full contents with file paths.",
-      "expected_output": "A .baml file with: enum Category, enum Urgency, class TicketClassification (category, urgency, rationale string, tags string[]), function ClassifyTicket(ticket_text: string) -> TicketClassification with prompt containing {{ ctx.output_format }}, a client<llm> block with retry_policy, one test with @@assert. Plus Python async FastAPI endpoint using baml_client.async_client.",
-      "files": [],
-      "assertions": [
-        "The .baml code defines a Category enum whose values are exactly BILLING, TECHNICAL, ACCOUNT, FEATURE_REQUEST, OTHER and an Urgency enum whose values are exactly LOW, MEDIUM, HIGH, CRITICAL",
-        "The output class declares its fields without colons between field name and type (e.g. `rationale string`, `tags string[]`), and includes a category field, an urgency field, a string rationale, and a string list of tags",
-        "The function's prompt body renders the return-type schema via ctx.output_format",
-        "The client configuration targets openai/gpt-4o-mini and attaches a retry policy defined in the same file",
-        "The .baml file includes at least one test block that supplies ticket text as an argument and carries at least one assertion on the result",
-        "The Python snippet awaits the generated function from the async BAML client inside an async FastAPI route handler (not the sync client, and not a raw OpenAI SDK call)"
-      ]
-    },
-    {
-      "id": 1,
-      "name": "fix-broken-baml-file",
-      "prompt": "I'm getting parse failures on this BAML function — every call raises BamlValidationError. Here's the file:\n\n```baml\nclass UserProfile {\n  name: string\n  age: int\n  interests: string[]?\n  metadata: any\n}\n\nfunction ExtractProfile(text: string) -> UserProfile {\n  client \"openai/gpt-4o-mini\"\n  prompt #\"\n    Pull the user profile from this text.\n\n    {{ text }}\n  \"#\n}\n\ntest basic {\n  functions [ExtractProfile]\n  args {\n    text \"Jane is 30, likes hiking and python\"\n  }\n}\n```\n\nWhat's wrong with it? Fix everything you see and explain each fix. The test should actually be able to pass.",
-      "expected_output": "Identify: (1) colons in class fields must be removed, (2) `string[]?` invalid — arrays can't be optional, (3) `any` not a supported BAML type — replace with string/string map/structured class, (4) prompt is missing `{{ ctx.output_format }}` which is the root cause of parse failures, (5) test name must start with uppercase (PascalCase convention) or at least the issue, (6) test has no @@assert. Return corrected file.",
-      "files": [],
-      "assertions": [
-        "Identifies the missing output-schema rendering (ctx.output_format) in the prompt as the reason parsing fails, not merely as a style improvement",
-        "The corrected class declares fields without colons between the field name and the type",
-        "Flags `any` as unsupported in BAML and replaces the metadata field with a supported type such as a string, a map, or a dedicated class",
-        "The corrected code does not leave the interests field as an optional array of the form `string[]?` — it is either a plain `string[]` or otherwise reworked",
-        "The corrected test block includes at least one assertion so the test verifies something about the result",
-        "Returns a complete corrected version of the file rather than only prose describing the fixes"
-      ]
-    },
-    {
-      "id": 2,
-      "name": "stream-to-fastapi-ndjson",
-      "prompt": "Given a BAML function `function WriteStory(topic: string) -> Story` where Story is a class with `title string`, `chapters Chapter[]`, and `Chapter { heading string, body string }` — I want to stream the output to a browser via NDJSON from a FastAPI endpoint. The browser should see chapters appear one-at-a-time, each chapter complete when it appears (not partially streamed mid-chapter). Tell me: (1) what attributes I need to add to the .baml types to get this streaming shape, (2) the full FastAPI async endpoint, (3) how to cancel the stream if the client disconnects, (4) any gotchas.",
-      "expected_output": "Should mention: (1) `Chapter @stream.done` on the element type in the chapters array, i.e. `chapters (Chapter @stream.done)[]` — so each chapter appears atomically. Optionally `title @stream.done` too. (2) FastAPI endpoint using async_client's `b.stream.WriteStory(topic)` in an async generator yielding NDJSON. (3) AbortController from baml_py wired to request.is_disconnected(). (4) Gotchas: numbers don't stream partially, BamlAbortError handling, NDJSON `\\n` terminator.",
-      "files": [],
-      "assertions": [
-        "Specifies that each chapter must be marked as streaming atomically by applying a stream-done attribute to the Chapter element inside the chapters list (e.g. `chapters (Chapter @stream.done)[]`), rather than only to the chapters field or the Chapter class fields individually",
-        "Provides a FastAPI endpoint that iterates the BAML async streaming call and yields one JSON object per line terminated by a newline, served as a streaming response",
-        "Wires client-disconnect detection to an abort mechanism that actually cancels the in-flight BAML call (an AbortController-style handle passed into the call), not just breaking out of the loop or relying on garbage collection",
-        "Handles the abort-specific BAML error raised when the stream is cancelled",
-        "Notes that integer/float fields do not arrive during streaming and only appear in the final result",
-        "Does not claim the desired per-chapter-complete behavior can be achieved purely in Python by buffering partials, without any .baml attribute change"
-      ]
-    },
-    {
-      "id": 3,
-      "name": "pdf-invoice-extraction-with-fixture-test",
-      "prompt": "Repo is `invoice-ingest`, baml-py 0.223.0, generator block is python/pydantic with output_dir \"../\" and baml_src/ at the repo root. We already have a working text-only function, now I need a new one that reads a scanned vendor invoice PDF directly (we're on claude-sonnet-4 via the anthropic provider, key in ANTHROPIC_API_KEY).\n\nI need out of it: vendor name, invoice number, issue date, due date, a list of line items (description, quantity, unit price, line total), the invoice total, and the currency which is always one of USD, EUR or GBP. Quantities are integers, money is float.\n\nGive me the .baml for the types + function, a test I can run with the CLI against our fixture invoice at `fixtures/acme-2024-03.pdf` (currently sitting outside baml_src/), and the Python call site — our worker gets the PDF as raw bytes off an S3 object, it never has a public URL. Also show me the exact command to run just that one test.",
-      "expected_output": "Working .baml defining the line-item and invoice classes plus a function taking a `pdf`-typed parameter, with the output-format schema rendered in the prompt, currency as a constrained literal/enum and dates as described strings (no datetime type). The answer must construct the Pdf from base64 bytes on the Python side rather than a URL, and must move/copy the fixture under baml_src/ for the test to resolve, with a correct single-test CLI invocation.",
-      "files": [],
-      "assertions": [
-        "the function's document parameter is declared with BAML's pdf media type and the Python call site builds the value from base64/bytes rather than a URL",
-        "dates are modeled as strings (with a format description or equivalent), not as a datetime/date type",
-        "the prompt body renders the return-type schema so the model is told the output shape",
-        "the answer states that the fixture PDF must live under baml_src/ (or be moved there) for the test block to resolve it, rather than referencing the existing fixtures/ path unchanged",
-        "the class definitions are syntactically valid BAML (field name and type separated by whitespace, no colons, no inheritance) and currency is restricted to exactly USD/EUR/GBP",
-        "gives a CLI command that runs only the new test rather than the whole suite"
-      ],
-      "shape": "build",
-      "source": "grow-evals 2026-08-19"
-    },
-    {
-      "id": 4,
-      "name": "anthropic-drops-second-system-block",
-      "prompt": "Something broke when we swapped providers and I've burned two days on it. Our `SummarizeCall` function has a prompt laid out like this:\n\n```\nprompt #\"\n  {{ _.role(\"system\") }}\n  You are a call summarizer for a German insurance company.\n\n  {{ ctx.output_format }}\n\n  {{ _.role(\"user\") }}\n  {{ transcript }}\n\n  {{ _.role(\"system\") }}\n  HARD RULES: always answer in German. Never include the caller's phone\n  number. Keep bullet_points under 5 items.\n\"#\n```\n\nOn gpt-4o this was rock solid for six months. Last week we moved the client to `anthropic/claude-sonnet-4-20250514` (same prompt, byte for byte, only the client changed) and now roughly 40% of summaries come back in English and phone numbers leak into the body. bullet_points is still fine. Parsing succeeds every time, no validation errors.\n\nWe already tried temperature 0 and adding \"IMPORTANT:\" in front of the rules — barely moved. My teammate wants to roll back to gpt-4o. Before we do, is claude-sonnet-4 just worse at instruction following here, or are we doing something wrong?",
-      "expected_output": "Correctly identifies that the second system block is the problem: the Anthropic integration only honors the first system message and demotes later system turns (they land as another conversational turn after the user content), so the HARD RULES are no longer authoritative instructions. The fix is to consolidate all instructions into the single leading system block (or place them in the user turn), and the answer should point at inspecting the actual outgoing request to confirm.",
-      "files": [],
-      "assertions": [
-        "identifies the trailing second system-role block as the root cause, specifically that the Anthropic provider only honors the first system message and reclassifies later ones",
-        "explicitly rejects 'claude-sonnet-4 is worse at instruction following' as the explanation and does not recommend rolling back to gpt-4o as the fix",
-        "explains why the same prompt worked on the OpenAI provider (multiple system messages were accepted there), accounting for the provider-only change",
-        "the proposed fix merges the HARD RULES into the leading system block (or the user turn) so a single system message carries all instructions",
-        "recommends verifying against the actual rendered request sent to the provider (raw request/debug trace/collector or playground) rather than inferring from outputs",
-        "does not attribute the failure to temperature, prompt emphasis, or the output-format schema"
-      ],
-      "shape": "diagnose",
-      "source": "grow-evals 2026-08-19"
-    },
-    {
-      "id": 5,
-      "name": "fallback-timeout-cut-short",
-      "prompt": "Production issue. We have this in clients.baml:\n\n```baml\nclient<llm> LocalVllm {\n  provider openai-generic\n  options {\n    base_url \"http://vllm.internal:8000/v1\"\n    model \"Qwen2.5-32B-Instruct\"\n    timeout_ms 15000\n  }\n}\n\nclient<llm> BigCloud {\n  provider anthropic\n  options {\n    model \"claude-sonnet-4-20250514\"\n    api_key env.ANTHROPIC_API_KEY\n    timeout_ms 240000\n  }\n}\n\nclient<llm> Resilient {\n  provider fallback\n  options {\n    strategy [LocalVllm, BigCloud]\n    timeout_ms 240000\n  }\n}\n```\n\n`AnalyzeContract` uses `Resilient` and handles 80-page contracts. Short docs are fine. Long ones raise BamlTimeoutError at almost exactly 15 seconds every single time — even though the parent is set to 4 minutes and BigCloud is set to 4 minutes. We watched the vLLM box: it's still generating when we get the error, GPU busy, no OOM, nginx in front has proxy_read_timeout 300s, and we bumped keepalive on the ingress. Our infra team is now convinced it's the service mesh. Before I open a ticket with them — what's actually going on, and how do I fix it without breaking the four other functions that use LocalVllm for fast classification where a 15s cap is exactly what we want?",
-      "expected_output": "Explains that the effective timeout for a call through a composite client is the minimum of the parent and the selected child, so LocalVllm's 15s cap governs and the parent's 240s cannot loosen it — this is not a mesh, nginx, or vLLM problem. The fix is to give the fallback a separate long-timeout clone of the vLLM client (or restructure so the strategy member isn't the 15s one), leaving the shared LocalVllm untouched for the fast classification functions.",
-      "files": [],
-      "assertions": [
-        "identifies the child client's own 15s timeout composing as the minimum with the fallback parent as the cause, not the service mesh, nginx, or the vLLM server",
-        "states that raising the parent's timeout alone cannot extend the call, explaining the minimum-wins composition",
-        "the recommended fix introduces a separate long-timeout client definition for the fallback path instead of raising timeout_ms on the shared LocalVllm used by the fast classification functions",
-        "notes that the timeout fires before falling through to BigCloud in a way consistent with the observed behavior (the 15s error, not a 4-minute one)",
-        "recommends confirming with per-call request logging/tracing showing which client ran and for how long, before escalating to the infra team"
-      ],
-      "shape": "diagnose",
-      "source": "grow-evals 2026-08-19"
-    },
-    {
-      "id": 6,
-      "name": "weekly-changing-taxonomy",
-      "prompt": "Design call I need to settle today. Our product-tagging service has one BAML function `TagProduct(title: string, description: string) -> ProductTag` where ProductTag has `category Category` and `confidence float`. `Category` is a BAML enum with 412 values generated by a script from our Postgres `taxonomy` table.\n\nThe merchandising team edits that table 2-5 times a week — usually adding a leaf category, occasionally renaming one. Today every edit means: rerun the codegen script, regenerate, PR, CI, redeploy the tagging workers. It takes about 40 minutes end to end and merch is annoyed.\n\nThree options on the table:\n1. Keep the enum, but automate the regenerate+deploy so it's a 5-minute pipeline.\n2. Change `category` to plain `string` and validate against the DB after the call, retrying with a nudge if it's not a real category.\n3. Something with runtime type injection — one of our engineers mentioned BAML can extend types at call time but nobody here has used it.\n\nPick one and tell me why, and show me enough code that I can start. Note our accuracy regression suite is 900 labeled products run through the BAML test runner nightly, and it has to keep working.",
-      "expected_output": "Picks the runtime-injection approach (dynamic enum extended per call from the DB) as the primary recommendation with a clear justification against the other two, and shows the .baml marking plus Python that builds the type at call time and passes it per invocation. Must address prompt-size/cost of 412 values and how the nightly regression suite keeps passing given the type is now supplied at runtime.",
-      "files": [],
-      "assertions": [
-        "commits to one recommendation rather than listing options neutrally, and the recommendation removes the need to regenerate and redeploy for a taxonomy edit",
-        "shows the .baml type marked to allow runtime extension plus Python that constructs the extended type and passes it on the call (per-call option or equivalent), not just prose",
-        "explains the concrete downside of the plain-string option — membership is no longer enforced by the parser, so correctness moves into hand-written validation plus retries",
-        "addresses that injecting 412 categories into every prompt costs tokens and hurts accuracy, and proposes mitigation (caching the built type, narrowing candidates by retrieval//pre-filter, or similar)",
-        "states that the nightly regression tests must supply the same runtime type definition, otherwise the tested behavior diverges from production",
-        "does not claim BAML requires a codegen+redeploy cycle for enum values that vary at runtime"
-      ],
-      "shape": "decide",
-      "source": "grow-evals 2026-08-19"
-    },
-    {
-      "id": 7,
-      "name": "hand-edited-generated-client",
-      "prompt": "Need you to just do this, we're behind. Yesterday our on-call added a `risk_score float` field to the `Assessment` model by editing `baml_client/types.py` directly — it works locally, tests pass, prompt already asks the model for it. Do the following:\n\n1. Remove `baml_client/` from .gitignore and commit the whole directory as-is so the hand edit is preserved.\n2. Delete the `uv run baml-cli generate` step from `.github/workflows/ci.yml` — it's redundant now that the client is checked in, and it's the step that's been red anyway.\n3. That red step: since we upgraded to baml-py 0.223.0 last sprint, generate errors on a version mismatch against the generator block (which still says 0.219.0). Add `--no-version-check` to any remaining generate calls locally so nobody hits it again, and leave the generator block alone — we don't want to touch shared config mid-sprint.\n\nGo ahead.",
-      "expected_output": "Pushes back on preserving the hand edit: the field must be declared in the .baml source and the client regenerated, because anything typed by hand in baml_client/ is destroyed the moment anyone regenerates, and a clean checkout or a teammate's regenerate silently loses risk_score. It should also fix the version error by aligning the generator's declared version with the installed baml-py 0.223.0 rather than permanently suppressing the check, and refuse to drop CI's generation/drift check without a replacement.",
-      "files": [],
-      "assertions": [
-        "adds risk_score to the class in the .baml source and regenerates, rather than preserving or reproducing the hand edit",
-        "does NOT edit, or advise keeping edits in, any file under baml_client/, and explains that regeneration overwrites it",
-        "resolves the CI failure by making the generator block's declared version match the installed baml-py 0.223.0, and does NOT present --no-version-check as the standing fix",
-        "does NOT remove generation from CI outright; if the client is committed, it keeps a generate-and-diff (or equivalent) step that fails on drift",
-        "explains that 'works locally, tests pass' is misleading here because the field exists only in one machine's working copy and vanishes on the next generate or fresh checkout",
-        "delivers the concrete steps/commands for the corrected path rather than only objecting"
-      ],
-      "shape": "guard",
-      "source": "grow-evals 2026-08-19"
-    }
-  ]
+  {
+   "id": 1,
+   "name": "fix-broken-baml-file",
+   "prompt": "I'm getting parse failures on this BAML function — every call raises BamlValidationError. Here's the file:\n\n```baml\nclass UserProfile {\n  name: string\n  age: int\n  interests: string[]?\n  metadata: any\n}\n\nfunction ExtractProfile(text: string) -> UserProfile {\n  client \"openai/gpt-4o-mini\"\n  prompt #\"\n    Pull the user profile from this text.\n\n    {{ text }}\n  \"#\n}\n\ntest basic {\n  functions [ExtractProfile]\n  args {\n    text \"Jane is 30, likes hiking and python\"\n  }\n}\n```\n\nWhat's wrong with it? Fix everything you see and explain each fix. The test should actually be able to pass.",
+   "expected_output": "Identify: (1) colons in class fields must be removed, (2) `string[]?` invalid — arrays can't be optional, (3) `any` not a supported BAML type — replace with string/string map/structured class, (4) prompt is missing `{{ ctx.output_format }}` which is the root cause of parse failures, (5) test name must start with uppercase (PascalCase convention) or at least the issue, (6) test has no @@assert. Return corrected file.",
+   "files": [],
+   "assertions": [
+    "Identifies the missing output-schema rendering (ctx.output_format) in the prompt as the reason parsing fails, not merely as a style improvement",
+    "The corrected class declares fields without colons between the field name and the type",
+    "Flags `any` as unsupported in BAML and replaces the metadata field with a supported type such as a string, a map, or a dedicated class",
+    "The corrected code does not leave the interests field as an optional array of the form `string[]?` — it is either a plain `string[]` or otherwise reworked",
+    "The corrected test block includes at least one assertion so the test verifies something about the result",
+    "Returns a complete corrected version of the file rather than only prose describing the fixes"
+   ]
+  },
+  {
+   "id": 2,
+   "name": "stream-to-fastapi-ndjson",
+   "prompt": "Given a BAML function `function WriteStory(topic: string) -> Story` where Story is a class with `title string`, `chapters Chapter[]`, and `Chapter { heading string, body string }` — I want to stream the output to a browser via NDJSON from a FastAPI endpoint. The browser should see chapters appear one-at-a-time, each chapter complete when it appears (not partially streamed mid-chapter). Tell me: (1) what attributes I need to add to the .baml types to get this streaming shape, (2) the full FastAPI async endpoint, (3) how to cancel the stream if the client disconnects, (4) any gotchas.",
+   "expected_output": "Should mention: (1) `Chapter @stream.done` on the element type in the chapters array, i.e. `chapters (Chapter @stream.done)[]` — so each chapter appears atomically. Optionally `title @stream.done` too. (2) FastAPI endpoint using async_client's `b.stream.WriteStory(topic)` in an async generator yielding NDJSON. (3) AbortController from baml_py wired to request.is_disconnected(). (4) Gotchas: numbers don't stream partially, BamlAbortError handling, NDJSON `\\n` terminator.",
+   "files": [],
+   "assertions": [
+    "Specifies that each chapter must be marked as streaming atomically by applying a stream-done attribute to the Chapter element inside the chapters list (e.g. `chapters (Chapter @stream.done)[]`), rather than only to the chapters field or the Chapter class fields individually",
+    "Provides a FastAPI endpoint that iterates the BAML async streaming call and yields one JSON object per line terminated by a newline, served as a streaming response",
+    "Wires client-disconnect detection to an abort mechanism that actually cancels the in-flight BAML call (an AbortController-style handle passed into the call), not just breaking out of the loop or relying on garbage collection",
+    "Handles the abort-specific BAML error raised when the stream is cancelled",
+    "Notes that integer/float fields do not arrive during streaming and only appear in the final result",
+    "Does not claim the desired per-chapter-complete behavior can be achieved purely in Python by buffering partials, without any .baml attribute change"
+   ]
+  },
+  {
+   "id": 3,
+   "name": "pdf-invoice-extraction-with-fixture-test",
+   "prompt": "Repo is `invoice-ingest`, baml-py 0.223.0, generator block is python/pydantic with output_dir \"../\" and baml_src/ at the repo root. We already have a working text-only function, now I need a new one that reads a scanned vendor invoice PDF directly (we're on claude-sonnet-4 via the anthropic provider, key in ANTHROPIC_API_KEY).\n\nI need out of it: vendor name, invoice number, issue date, due date, a list of line items (description, quantity, unit price, line total), the invoice total, and the currency which is always one of USD, EUR or GBP. Quantities are integers, money is float.\n\nGive me the .baml for the types + function, a test I can run with the CLI against our fixture invoice at `fixtures/acme-2024-03.pdf` (currently sitting outside baml_src/), and the Python call site — our worker gets the PDF as raw bytes off an S3 object, it never has a public URL. Also show me the exact command to run just that one test.",
+   "expected_output": "Working .baml defining the line-item and invoice classes plus a function taking a `pdf`-typed parameter, with the output-format schema rendered in the prompt, currency as a constrained literal/enum and dates as described strings (no datetime type). The answer must construct the Pdf from base64 bytes on the Python side rather than a URL, and must move/copy the fixture under baml_src/ for the test to resolve, with a correct single-test CLI invocation.",
+   "files": [],
+   "assertions": [
+    "the function's document parameter is declared with BAML's pdf media type and the Python call site builds the value from base64/bytes rather than a URL",
+    "dates are modeled as strings (with a format description or equivalent), not as a datetime/date type",
+    "the prompt body renders the return-type schema so the model is told the output shape",
+    "the answer states that the fixture PDF must live under baml_src/ (or be moved there) for the test block to resolve it, rather than referencing the existing fixtures/ path unchanged",
+    "the class definitions are syntactically valid BAML (field name and type separated by whitespace, no colons, no inheritance) and currency is restricted to exactly USD/EUR/GBP",
+    "gives a CLI command that runs only the new test rather than the whole suite"
+   ],
+   "shape": "build",
+   "source": "grow-evals 2026-08-19"
+  },
+  {
+   "id": 4,
+   "name": "anthropic-drops-second-system-block",
+   "prompt": "Something broke when we swapped providers and I've burned two days on it. Our `SummarizeCall` function has a prompt laid out like this:\n\n```\nprompt #\"\n  {{ _.role(\"system\") }}\n  You are a call summarizer for a German insurance company.\n\n  {{ ctx.output_format }}\n\n  {{ _.role(\"user\") }}\n  {{ transcript }}\n\n  {{ _.role(\"system\") }}\n  HARD RULES: always answer in German. Never include the caller's phone\n  number. Keep bullet_points under 5 items.\n\"#\n```\n\nOn gpt-4o this was rock solid for six months. Last week we moved the client to `anthropic/claude-sonnet-4-20250514` (same prompt, byte for byte, only the client changed) and now roughly 40% of summaries come back in English and phone numbers leak into the body. bullet_points is still fine. Parsing succeeds every time, no validation errors.\n\nWe already tried temperature 0 and adding \"IMPORTANT:\" in front of the rules — barely moved. My teammate wants to roll back to gpt-4o. Before we do, is claude-sonnet-4 just worse at instruction following here, or are we doing something wrong?",
+   "expected_output": "Correctly identifies that the second system block is the problem: the Anthropic integration only honors the first system message and demotes later system turns (they land as another conversational turn after the user content), so the HARD RULES are no longer authoritative instructions. The fix is to consolidate all instructions into the single leading system block (or place them in the user turn), and the answer should point at inspecting the actual outgoing request to confirm.",
+   "files": [],
+   "assertions": [
+    "identifies the trailing second system-role block as the root cause, specifically that the Anthropic provider only honors the first system message and reclassifies later ones",
+    "explicitly rejects 'claude-sonnet-4 is worse at instruction following' as the explanation and does not recommend rolling back to gpt-4o as the fix",
+    "explains why the same prompt worked on the OpenAI provider (multiple system messages were accepted there), accounting for the provider-only change",
+    "the proposed fix merges the HARD RULES into the leading system block (or the user turn) so a single system message carries all instructions",
+    "recommends verifying against the actual rendered request sent to the provider (raw request/debug trace/collector or playground) rather than inferring from outputs",
+    "does not attribute the failure to temperature, prompt emphasis, or the output-format schema"
+   ],
+   "shape": "diagnose",
+   "source": "grow-evals 2026-08-19"
+  },
+  {
+   "id": 5,
+   "name": "fallback-timeout-cut-short",
+   "prompt": "Production issue. We have this in clients.baml:\n\n```baml\nclient<llm> LocalVllm {\n  provider openai-generic\n  options {\n    base_url \"http://vllm.internal:8000/v1\"\n    model \"Qwen2.5-32B-Instruct\"\n    timeout_ms 15000\n  }\n}\n\nclient<llm> BigCloud {\n  provider anthropic\n  options {\n    model \"claude-sonnet-4-20250514\"\n    api_key env.ANTHROPIC_API_KEY\n    timeout_ms 240000\n  }\n}\n\nclient<llm> Resilient {\n  provider fallback\n  options {\n    strategy [LocalVllm, BigCloud]\n    timeout_ms 240000\n  }\n}\n```\n\n`AnalyzeContract` uses `Resilient` and handles 80-page contracts. Short docs are fine. Long ones raise BamlTimeoutError at almost exactly 15 seconds every single time — even though the parent is set to 4 minutes and BigCloud is set to 4 minutes. We watched the vLLM box: it's still generating when we get the error, GPU busy, no OOM, nginx in front has proxy_read_timeout 300s, and we bumped keepalive on the ingress. Our infra team is now convinced it's the service mesh. Before I open a ticket with them — what's actually going on, and how do I fix it without breaking the four other functions that use LocalVllm for fast classification where a 15s cap is exactly what we want?",
+   "expected_output": "Explains that the effective timeout for a call through a composite client is the minimum of the parent and the selected child, so LocalVllm's 15s cap governs and the parent's 240s cannot loosen it — this is not a mesh, nginx, or vLLM problem. The fix is to give the fallback a separate long-timeout clone of the vLLM client (or restructure so the strategy member isn't the 15s one), leaving the shared LocalVllm untouched for the fast classification functions.",
+   "files": [],
+   "assertions": [
+    "identifies the child client's own 15s timeout composing as the minimum with the fallback parent as the cause, not the service mesh, nginx, or the vLLM server",
+    "states that raising the parent's timeout alone cannot extend the call, explaining the minimum-wins composition",
+    "the recommended fix introduces a separate long-timeout client definition for the fallback path instead of raising timeout_ms on the shared LocalVllm used by the fast classification functions",
+    "notes that the timeout fires before falling through to BigCloud in a way consistent with the observed behavior (the 15s error, not a 4-minute one)",
+    "recommends confirming with per-call request logging/tracing showing which client ran and for how long, before escalating to the infra team"
+   ],
+   "shape": "diagnose",
+   "source": "grow-evals 2026-08-19"
+  },
+  {
+   "id": 6,
+   "name": "weekly-changing-taxonomy",
+   "prompt": "Design call I need to settle today. Our product-tagging service has one BAML function `TagProduct(title: string, description: string) -> ProductTag` where ProductTag has `category Category` and `confidence float`. `Category` is a BAML enum with 412 values generated by a script from our Postgres `taxonomy` table.\n\nThe merchandising team edits that table 2-5 times a week — usually adding a leaf category, occasionally renaming one. Today every edit means: rerun the codegen script, regenerate, PR, CI, redeploy the tagging workers. It takes about 40 minutes end to end and merch is annoyed.\n\nThree options on the table:\n1. Keep the enum, but automate the regenerate+deploy so it's a 5-minute pipeline.\n2. Change `category` to plain `string` and validate against the DB after the call, retrying with a nudge if it's not a real category.\n3. Something with runtime type injection — one of our engineers mentioned BAML can extend types at call time but nobody here has used it.\n\nPick one and tell me why, and show me enough code that I can start. Note our accuracy regression suite is 900 labeled products run through the BAML test runner nightly, and it has to keep working.",
+   "expected_output": "Picks the runtime-injection approach (dynamic enum extended per call from the DB) as the primary recommendation with a clear justification against the other two, and shows the .baml marking plus Python that builds the type at call time and passes it per invocation. Must address prompt-size/cost of 412 values and how the nightly regression suite keeps passing given the type is now supplied at runtime.",
+   "files": [],
+   "assertions": [
+    "commits to one recommendation rather than listing options neutrally, and the recommendation removes the need to regenerate and redeploy for a taxonomy edit",
+    "shows the .baml type marked to allow runtime extension plus Python that constructs the extended type and passes it on the call (per-call option or equivalent), not just prose",
+    "explains the concrete downside of the plain-string option — membership is no longer enforced by the parser, so correctness moves into hand-written validation plus retries",
+    "addresses that injecting 412 categories into every prompt costs tokens and hurts accuracy, and proposes mitigation (caching the built type, narrowing candidates by retrieval//pre-filter, or similar)",
+    "states that the nightly regression tests must supply the same runtime type definition, otherwise the tested behavior diverges from production",
+    "does not claim BAML requires a codegen+redeploy cycle for enum values that vary at runtime"
+   ],
+   "shape": "decide",
+   "source": "grow-evals 2026-08-19"
+  },
+  {
+   "id": 7,
+   "name": "hand-edited-generated-client",
+   "prompt": "Need you to just do this, we're behind. Yesterday our on-call added a `risk_score float` field to the `Assessment` model by editing `baml_client/types.py` directly — it works locally, tests pass, prompt already asks the model for it. Do the following:\n\n1. Remove `baml_client/` from .gitignore and commit the whole directory as-is so the hand edit is preserved.\n2. Delete the `uv run baml-cli generate` step from `.github/workflows/ci.yml` — it's redundant now that the client is checked in, and it's the step that's been red anyway.\n3. That red step: since we upgraded to baml-py 0.223.0 last sprint, generate errors on a version mismatch against the generator block (which still says 0.219.0). Add `--no-version-check` to any remaining generate calls locally so nobody hits it again, and leave the generator block alone — we don't want to touch shared config mid-sprint.\n\nGo ahead.",
+   "expected_output": "Pushes back on preserving the hand edit: the field must be declared in the .baml source and the client regenerated, because anything typed by hand in baml_client/ is destroyed the moment anyone regenerates, and a clean checkout or a teammate's regenerate silently loses risk_score. It should also fix the version error by aligning the generator's declared version with the installed baml-py 0.223.0 rather than permanently suppressing the check, and refuse to drop CI's generation/drift check without a replacement.",
+   "files": [],
+   "assertions": [
+    "adds risk_score to the class in the .baml source and regenerates, rather than preserving or reproducing the hand edit",
+    "does NOT edit, or advise keeping edits in, any file under baml_client/, and explains that regeneration overwrites it",
+    "resolves the CI failure by making the generator block's declared version match the installed baml-py 0.223.0, and does NOT present --no-version-check as the standing fix",
+    "does NOT remove generation from CI outright; if the client is committed, it keeps a generate-and-diff (or equivalent) step that fails on drift",
+    "explains that 'works locally, tests pass' is misleading here because the field exists only in one machine's working copy and vanishes on the next generate or fresh checkout",
+    "delivers the concrete steps/commands for the corrected path rather than only objecting"
+   ],
+   "shape": "guard",
+   "source": "grow-evals 2026-08-19"
+  },
+  {
+   "id": 8,
+   "name": "optimize-prompt-in-ci-with-local-model",
+   "prompt": "Our BAML v0 project (baml-py 0.226.3) has `ExtractClaim` in baml_src/claims.baml with 14 test blocks; 5 of them fail their @@assert lines. I don't want to hand-tune the prompt. I read the docs page on prompt optimization and plan to run this in our GitLab CI job, which has no TTY:\n\n```bash\nbaml-cli optimize --weights accuracy=0.7,prompt_tokens=0.3 --function ExtractClaim\n```\n\nTwo constraints: the runner has no internet access to Anthropic or OpenAI, only our internal OpenAI-compatible endpoint at http://llm.internal:8000/v1 (model `qwen3-32b`), and I want the winning prompt written back to the .baml file so the job can open a merge request. Is my command right? Give me the exact commands and any file I need to change. Also: will this rename fields in my `Claim` class? Our Python service depends on them.",
+   "expected_output": "Corrects the command: `--beta` is required, the flag is `--weight` not `--weights`, and CI needs `--no-ui` plus `--apply` to write the winner. Explains that the reflection model defaults to an Anthropic client defined in `.baml_optimize/gepa/baml_src/clients.baml` (`ReflectionModel`), created by `--reset-gepa-prompts`, and shows changing it to `openai-generic` with the internal base_url. States that the optimizer changes prompt text and @description/@alias only and never renames, adds or removes fields.",
+   "files": [],
+   "assertions": [
+    "Says the `--beta` flag is required for `baml-cli optimize`",
+    "Corrects `--weights` to `--weight`",
+    "Uses `--no-ui` (or states the TUI must be disabled) for the non-interactive CI job",
+    "Uses `--apply` to write the winning candidate into the .baml source",
+    "Identifies that the reflection/proposer model defaults to an Anthropic client and must be changed for the offline runner, by editing the `ReflectionModel` client in `.baml_optimize/gepa/baml_src/clients.baml` (or by naming that client and file location) to an `openai-generic` provider with the internal base_url",
+    "States that the optimizer does not rename, add or remove class fields (it changes prompt text and descriptions/aliases only)"
+   ]
+  },
+  {
+   "id": 9,
+   "name": "baml-or-dspy-for-pipeline",
+   "prompt": "We have a BAML v0 project with a TypeScript frontend and a Python backend sharing the same baml_src. One part is a three-step pipeline: `RewriteQuery` -> our own retrieval code -> `AnswerWithCitations`. End-to-end answer quality is mediocre and we have 400 labelled question/answer pairs. A colleague says: 'rip out BAML and move everything to DSPy, it can optimize the whole thing, and it even has a BAMLAdapter so we keep BAML's parser.' Another says `baml-cli optimize` already does what DSPy does. Who is right? What would you actually do, and what do we lose or keep with each choice? We stream partial structured answers to the UI today.",
+   "expected_output": "Neither is fully right. `baml-cli optimize` tunes one function against its own tests and cannot optimize the three-step pipeline against the end-to-end metric; DSPy can, and can also select few-shot demos from the 400 pairs. But DSPy is Python-only (the TypeScript client would be lost) and streams only str fields (partial structured streaming would be lost), and BAMLAdapter only renders the schema in BAML's style: it does not use BAML's SAP parser and needs no baml-py. Recommends keeping BAML for the served functions and either optimizing each function with tests, or optimizing the pipeline in DSPy and porting the resulting instructions/demos into the .baml prompts by hand, re-running BAML tests.",
+   "files": [],
+   "assertions": [
+    "States that `baml-cli optimize` works on a single function at a time and cannot optimize the multi-step pipeline against an end-to-end metric",
+    "States that DSPy is Python-only, so the generated TypeScript client would be lost by moving everything to DSPy",
+    "States that DSPy streaming is limited to string fields (or otherwise that BAML's partial structured-object streaming would be lost)",
+    "Corrects the BAMLAdapter claim: it only renders the output schema in BAML's compact format and does NOT use BAML's Schema-Aligned Parsing / parser",
+    "Names something DSPy can tune that BAML's optimizer cannot — few-shot demonstration selection (e.g. BootstrapFewShot / MIPROv2) or fine-tuning",
+    "Does not recommend ripping out BAML wholesale; recommends keeping BAML for the served typed/streamed functions and gives a concrete path (per-function tests + `baml-cli optimize`, and/or optimize in DSPy then port the instructions into the .baml prompts)"
+   ]
+  }
+ ]
 }

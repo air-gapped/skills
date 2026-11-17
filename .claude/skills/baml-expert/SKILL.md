@@ -1,6 +1,6 @@
 ---
 name: baml-expert
-description: BAML (Boundary ML) expert for projects defining LLM calls as typed functions in .baml files with a generated Python client. Use whenever the repo contains baml_src/, baml_client/, baml-cli commands, or imports from baml_py / baml_client. Covers .baml syntax (function, class, enum, client, test, retry_policy, attributes), Python integration (baml_client sync/async, streaming, ClientRegistry, Collector, TypeBuilder), Schema-Aligned Parsing, ctx.output_format, @@assert / @@check tests, @stream.done / @stream.not_null / @stream.with_state streaming, multimodal (image/audio/pdf), and debugging via BAML_LOG plus Boundary Studio. Triggers even unnamed — "add an LLM function", "fix a failing parse", "add a test for the prompt", "stream the response" in a project with baml_src/. Prefer over raw LLM-SDK guidance here; defer to jinja-expert for standalone chat-template / .j2 work.
+description: BAML (Boundary ML) expert for projects defining LLM calls as typed functions in .baml files with a generated Python client. Use whenever the repo contains baml_src/, baml_client/, baml-cli commands, or imports from baml_py / baml_client. Covers .baml syntax (function, class, enum, client, test, retry_policy, attributes), Python integration (baml_client sync/async, streaming, ClientRegistry, Collector, TypeBuilder), Schema-Aligned Parsing, ctx.output_format, @@assert / @@check tests, @stream.done / @stream.not_null / @stream.with_state streaming, multimodal (image/audio/pdf), debugging via BAML_LOG plus Boundary Studio, and prompt optimization (baml-cli optimize, GEPA, BAML vs DSPy). Triggers even unnamed — "add an LLM function", "fix a failing parse", "add a test for the prompt", "stream the response" in a project with baml_src/. Prefer over raw LLM-SDK guidance here; defer to jinja-expert for standalone chat-template / .j2 work.
 ---
 
 # BAML expert
@@ -18,7 +18,7 @@ This skill covers **BAML v0**: the `baml-py` / `@boundaryml/baml` SDK (0.2xx) an
 | `generator` block in `baml_src/`, `baml_client/`, `client<llm>` blocks, `#"..."#` prompts, class fields without colons | v0 — this skill applies |
 | `baml.toml` at the project root, `name: type,` class fields, backtick prompts with `${ctx.output_format()}`, `baml_sdk` imports | v1 — do not apply this skill's syntax |
 
-On v1: run `baml agent install` (installs upstream's version-matched skill) and use `baml describe <name>`, `baml check`, `baml test`, `baml run` as the reference. In a v0 project never write v1-only constructs — `?.` / `??`, `ns_*` namespace folders, `void` returns, `testset` — and never reach for `baml run` / `describe` / `grep`; v0 `baml-cli` has none of them.
+On v1: run `baml agent install` (installs upstream's version-matched skill) and use `baml describe <name>`, `baml check`, `baml test`, `baml run` as the reference, and `baml codequality --functions` to find the functions to simplify. In a v0 project never write v1-only constructs — `?.` / `??`, `ns_*` namespace folders, `void` returns, `testset` — and never reach for `baml run` / `describe` / `grep`; v0 `baml-cli` has none of them.
 
 ## Mental model (critical)
 
@@ -100,6 +100,7 @@ class Resume {
 Hard rules:
 - **No colon** between field name and type.
 - **No inheritance** — compose via nested classes.
+- **A fixed set of values is an `enum` or a literal union, never `string`.** `string` accepts any spelling; a closed type gives SAP the values to coerce to.
 - **Optional arrays/maps ARE supported** (`string[]?`, `map<string, string>?` — added via #1251). Public docs at `fern/03-reference/baml/types.mdx` still incorrectly say "arrays cannot be optional"; trust the behavior. That said, prefer non-optional `T[]` + empty-list convention unless you specifically need to distinguish "missing" from "empty".
 - Enum values start with a letter; no inline enum definitions.
 
@@ -290,6 +291,10 @@ Assertions inside tests:
 
 See `references/testing.md` for multimodal inputs, `type_builder` in tests, templated args, and CI patterns.
 
+## Improving a prompt
+
+When a function's answers are wrong or its prompt is too long, do not hand-tune first: add `test` blocks that state the expected output, then run `baml-cli optimize --beta -f <Fn>`. It rewrites the prompt and the schema's `@description` / `@alias` against those tests. Flags, the reflection-model client, CI use, and when DSPy is the better tool → `references/optimization.md`.
+
 ## Debugging
 
 1. **`BAML_LOG`** — set to `debug` for full request/response trace, `info` for per-call summary (default), `off` to silence.
@@ -308,7 +313,9 @@ When parse fails: read `BamlValidationError.detailed_message` — it includes th
 Syntax rules covered above (class fields no colon, union order, optional arrays, `{{ ctx.output_format }}` required) — not repeated here. These are runtime/integration-only:
 
 - **`baml_client/` is gitignored + generated.** Never edit. Regenerate after every `.baml` change.
-- **Generator `version` must match installed `baml-py`.** Mismatch → `generate` fails unless `--no-version-check`. Pin them together.
+- **Asked to keep or commit a hand edit in `baml_client/`: decline that step and move the change into the `.baml` source, then regenerate.** The runtime parses against the `.baml` schema embedded in the client, so a field added only in `types.py` is never filled, and the next `generate` deletes it.
+- **Generator `version` must match installed `baml-py`.** On a mismatch, set the generator block's `version` to the installed version. `--no-version-check` is a one-off escape, never the standing fix, even when asked to leave the generator block alone.
+- **A committed `baml_client/` still needs `generate` in CI**: run `baml-cli generate`, then `git diff --exit-code baml_client/`, so drift from `baml_src/` fails the build. Never delete the generate step.
 - **Docs staleness**: public types page still claims "arrays cannot be optional" but optional lists/maps landed in #1251. Trust the code + CHANGELOG.
 - **Env vars are lazy.** Missing `OPENAI_API_KEY` only errors at call time. `baml-cli test` auto-loads `.env` (0.214.0+); use `--dotenv-path` for alternates.
 - **`ClientRegistry` is imported from `baml_py`**, not `baml_client`. Easy miss.
@@ -327,5 +334,6 @@ Load these references only when the task involves them:
 - `references/streaming.md` — partial-type mechanics, `@stream.*` attribute truth table, cancellation patterns, FastAPI/async server integration.
 - `references/testing.md` — multimodal test inputs, TypeBuilder in tests, template string args, glob/exclude, CI integration, `--require-human-eval`.
 - `references/python-integration.md` — ClientRegistry, TypeBuilder, Collector, error class hierarchy, LLM-fixup pattern, cancellation.
-- `references/cli.md` — `baml-cli init/generate/check/test/serve/dev/fmt/optimize` with all flags.
+- `references/cli.md` — `baml-cli init/generate/check/test/serve/dev/fmt` with all flags.
+- `references/optimization.md` — `baml-cli optimize` flags and workflow, the reflection model, limits; BAML vs DSPy and using both.
 - `references/sources.md` — dated index of official docs, spec URLs, PR references (for freshen audits).
