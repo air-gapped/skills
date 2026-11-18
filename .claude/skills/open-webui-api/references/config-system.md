@@ -34,6 +34,15 @@ Removed at v0.13.4: `direct.enable`, `direct.integrations.enable` and the `featu
 - Not ConfigVars at all (env-only, restart to change): `WEBUI_SECRET_KEY`, `ENABLE_SCIM`/`SCIM_TOKEN`, `ENABLE_PASSWORD_AUTH`, `AUDIT_LOG_*`, `ENABLE_ADMIN_EXPORT`, `ENABLE_ADMIN_CHAT_ACCESS`, `CUSTOM_API_KEY_HEADER`, DB/Redis URLs.
 - Known 0.10.0-refactor regressions (rule these out when a config write appears not to apply): open-webui/open-webui#27061 (web-loader reads frozen env; closed "addressed in dev" with no release named — still suspect on 0.11.0), open-webui/open-webui#26761 (boolean DB values ignored), open-webui/open-webui#24743 (connections lost after restart), open-webui/open-webui#24346 (stale Redis overwrites imports).
 
+**Find env vars in a manifest that no longer do anything:** an env var is seed-only when its name is read by a variable on the right-hand side of a `DEFAULT_CONFIG` entry (and the key is not `oauth.*`). `scripts/seeded-env.py` lists them from the image's own `config.py`, without importing the app:
+
+```bash
+kubectl exec -i <pod> -- python3 - < scripts/seeded-env.py          # checks the pod's own env
+scripts/seeded-env.py <checkout>/backend/open_webui/config.py NAME1 NAME2   # checks named vars against a source tree
+```
+
+Each line printed is `ENV_NAME -> config.key`: compare the manifest value with that key in `configs/export`, then either delete the env var or keep it knowingly as the seed for an empty database.
+
 Operational rule: manage runtime config via API (`configs/import` in CI), reserve env for bootstrap + the env-only list.
 
 ## Two plugin kill switches that are not interchangeable
