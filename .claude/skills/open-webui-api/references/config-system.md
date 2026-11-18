@@ -2,7 +2,7 @@
 
 ## Storage model
 
-Since 0.10.0 config is per-key rows (`config` table: key TEXT PK, value JSON), dot-namespaced: `ui.default_models`, `openai.api_base_urls`, `auth.enable_api_keys`, `ldap.enable`, `rag.template`, … No published key registry — the authoritative list is a live `GET /api/v1/configs/export`, or the `DEFAULT_CONFIG` dict in `config.py` (468 keys at v0.13.4; there is no `ConfigVar` class in any version). There is no schema and no validation on import: an unknown or misspelled key is stored and never read.
+Since 0.10.0 config is per-key rows (`config` table: key TEXT PK, value JSON), dot-namespaced: `ui.default_models`, `openai.api_base_urls`, `auth.enable_api_keys`, `ldap.enable`, `rag.template`, … No published key registry — the authoritative list is a live `GET /api/v1/configs/export`, or the `DEFAULT_CONFIG` dict in `config.py` (468 keys at v0.13.4). Every key in `DEFAULT_CONFIG` is seeded from its env var on first start and read from the DB afterwards; an env var that is not in it is read from the environment on every start. The docs env reference (`docs.openwebui.com/reference/env-configuration/`) marks the same set per variable with "Persistence: This environment variable is a `ConfigVar` variable" — `ConfigVar` is a docs label only, no such class exists in the code. There is no schema and no validation on import: an unknown or misspelled key is stored and never read.
 
 ```bash
 curl $B/api/v1/configs/export -H "Authorization: Bearer $T" > config-backup.json   # ALL keys, flat
