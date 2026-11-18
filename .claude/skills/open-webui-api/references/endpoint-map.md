@@ -54,10 +54,10 @@ Derived from `backend/open_webui/main.py:785–829` at v0.11.0 (mounts; `814–8
 - v0.12.0+: `/auths/mfa/{status,challenge,enroll/start,enroll/confirm,verify,replace,recovery/codes,recover}` — TOTP enrolment and sign-in completion; the account-scoped ones need a human session JWT (`get_human_user` → API keys 403). `POST /users/{id}/sessions/revoke` [admin] — invalidates every JWT of the user, not its API key; refused (403) on the primary admin unless self.
 
 ### configs
-- `GET /configs/export` [admin] — flat dot-keyed dump of ALL config; `POST /configs/import` `{config:{...}}` — partial upsert
+- `GET /configs/export` [admin] — flat dot-keyed dump of ALL config; `POST /configs/import` `{config:{...}}` — partial upsert, no key validation; v0.12.0+ 403s for an API key when the payload has an `auth.mfa.*` key (`config-system.md`)
 - `GET /configs/namespace/{ns}` [admin]
 - `GET|POST /configs/connections`, `/configs/tool_servers` (+`/verify`), `/configs/terminal_servers` (+`/verify`), `/configs/code_execution`, `/configs/models`; `POST /configs/suggestions` [admin]. `/configs/banners`: **POST is [admin], GET is [user]** (`configs.py:840,859`).
-- `POST /configs/terminal_servers/{policy,lifecycle,refresh}` [admin] — server-side proxies that call an operator-supplied `{url}` with an operator-supplied bearer from inside the cluster (SSRF-shaped outbound surface). `refresh` with `reset: true` destroys running terminal sessions for a user or a whole policy.
+- `POST /configs/terminal_servers/{policy,lifecycle,refresh}` [admin] — **removed at v0.13.4** (Terminals 0.4.0 has no policies). Server-side proxies that call an operator-supplied `{url}` with an operator-supplied bearer from inside the cluster (SSRF-shaped outbound surface). `refresh` with `reset: true` destroys running terminal sessions for a user or a whole policy.
 - `POST /configs/oauth/clients/register` [admin] — RFC 7591 client registration toward OAuth-protected tool servers
 
 ### models (workspace presets)
@@ -81,8 +81,9 @@ Derived from `backend/open_webui/main.py:785–829` at v0.11.0 (mounts; `814–8
 Neither router appears elsewhere in this map; a config-backup or secret-audit script that follows only the sections above silently skips both.
 
 - `GET|POST /audio/config(/update)` [admin] (`audio.py:279,287`) — all TTS+STT settings **including engine API keys**; the update path reloads the faster-whisper model in-process (synchronous load on the pod).
-- `GET|POST /images/config(/update)` [admin] (`images.py:271,276`) — image-generation config **including `AUTOMATIC1111_API_AUTH` and ComfyUI base URLs/keys**; validates size/steps (400 on bad `IMAGE_SIZE`), calls `set_image_model()`, emits `EVENTS.CONFIG_UPDATED`.
-- `POST /images/verify` [admin] `{engine, url, key}` — reachability preflight before saving a broken image backend (v0.11.4+; the older `GET /images/config/url/verify` tested the *saved* config and is gone).
+- `GET|POST /images/config(/update)` [admin] (`images.py:271,276`) — through v0.13.3: image-generation config **including `AUTOMATIC1111_API_AUTH` and ComfyUI base URLs/keys**; validates size/steps (400 on bad `IMAGE_SIZE`), calls `set_image_model()`, emits `EVENTS.CONFIG_UPDATED`.
+- `POST /images/verify` [admin] `{engine, url, key}` — reachability preflight before saving a broken image backend (v0.11.4–v0.13.3; the older `GET /images/config/url/verify` tested the *saved* config and is gone).
+- **v0.13.4+ replaces the image config shape.** `GET /images/config` and `POST /images/config/update` carry `{ENABLE_IMAGE_GENERATION, ENABLE_IMAGE_PROMPT_GENERATION, ENABLE_IMAGE_EDIT, IMAGE_GENERATION_DEFAULT_MODEL, IMAGE_EDIT_DEFAULT_MODEL, IMAGE_CONNECTIONS: [{id, name, type, url, key, config}]}`; `IMAGE_CONNECTIONS` replaces the stored list and the two default models default to `''`, so always GET, modify, POST the whole object. **A ≤0.13.3 body (`IMAGE_GENERATION_ENGINE`, `IMAGE_SIZE`, …) returns 200 and deletes every image connection** — its old fields are ignored and the missing list is read as empty. Preflight is `POST /images/connections/verify` with one connection object (returns its models); `GET /images/connections/models` [admin] lists every model of the enabled connections, `GET /images/models` [user] those the caller may use. `/images/generations` and `/images/edit` reject a `model` that is not one of the caller's image models (a `<connection id>:<model id>` reference or a bare model id).
 
 ### functions / tools / pipelines
 - functions [all admin — arbitrary server-side Python]: `/functions/create` `{id,name,content,meta}`, `/id/{id}/toggle`, `/toggle/global`, `/sync`, valves

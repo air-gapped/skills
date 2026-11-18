@@ -2,7 +2,7 @@
 
 ## Storage model
 
-Since 0.10.0 config is per-key rows (`config` table: key TEXT PK, value JSON), dot-namespaced: `ui.default_models`, `openai.api_base_urls`, `auth.enable_api_keys`, `ldap.enable`, `rag.template`, … No published key registry — the authoritative list is a live `GET /api/v1/configs/export`, or the `DEFAULT_CONFIG` dict in `config.py` (439 keys at v0.13.0; there is no `ConfigVar` class in any version).
+Since 0.10.0 config is per-key rows (`config` table: key TEXT PK, value JSON), dot-namespaced: `ui.default_models`, `openai.api_base_urls`, `auth.enable_api_keys`, `ldap.enable`, `rag.template`, … No published key registry — the authoritative list is a live `GET /api/v1/configs/export`, or the `DEFAULT_CONFIG` dict in `config.py` (468 keys at v0.13.4; there is no `ConfigVar` class in any version). There is no schema and no validation on import: an unknown or misspelled key is stored and never read.
 
 ```bash
 curl $B/api/v1/configs/export -H "Authorization: Bearer $T" > config-backup.json   # ALL keys, flat
@@ -12,6 +12,19 @@ curl $B/api/v1/configs/namespace/ui -H "Authorization: Bearer $T"               
 ```
 
 A ≤0.9.x export (nested blob) cannot be imported into 0.10.x — no translation layer.
+
+**Replaying a full export with an API key fails on v0.12.0+.** If the payload contains any of `auth.mfa.enable`, `auth.mfa.allow_oauth_bypass`, `auth.mfa.allow_trusted_header_bypass` — every full export does — `configs/import` requires a human session JWT: an `sk-` key gets `403 A human administrator session is required to change MFA settings` and **no key is imported**. Strip them before importing from CI:
+
+```bash
+jq '{config: (.|with_entries(select(.key|startswith("auth.mfa.")|not)))}' config-backup.json \
+  | curl -X POST $B/api/v1/configs/import -H "Authorization: Bearer $T" -H "Content-Type: application/json" -d @-
+```
+
+Sent with a session JWT, a changed MFA value signs every user out; an invalid combination is a 409.
+
+**v0.13.4+: image backends are one key, `images.connections`** — a list of `{id, name, type, url, key, config}` with `type` in `openai | gemini | comfyui | automatic1111`. It is written once, at the first start on 0.13.4, from the old per-engine keys. After that the old keys (`image_generation.engine`, `.model`, `.size`, `.steps`, `.openai.*`, `.gemini.*`, `.comfyui.*`, `.automatic1111.*` and the `images.edit.*` equivalents) and their env vars (`IMAGE_GENERATION_ENGINE`, `IMAGES_OPENAI_API_BASE_URL`, `COMFYUI_BASE_URL`, …) are not read, so importing them — a ≤0.13.3 export included — returns 200 and changes nothing. Still live: `image_generation.enable`, `image_generation.prompt.enable`, `images.edit.enable`, plus the new `image_generation.default_model` and `images.edit.default_model` (value `<connection id>:<model id>`). Change backends with `POST /api/v1/images/config/update` (validates each connection, 400 on duplicate ids) or import `images.connections` whole; the export carries each connection's `key` in clear.
+
+Removed at v0.13.4: `direct.enable`, `direct.integrations.enable` and the `features.direct_tool_servers` permission (env `ENABLE_DIRECT_CONNECTIONS`, `ENABLE_DIRECT_INTEGRATIONS`, `USER_PERMISSIONS_FEATURES_DIRECT_TOOL_SERVERS`). Drop them from stored config files.
 
 ## PersistentConfig precedence (the #1 "env var ignored" mystery)
 

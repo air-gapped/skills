@@ -12,7 +12,7 @@ Target: operators who script Open WebUI (create users, reconcile model catalogs,
 
 ## Security floor: v0.12.2 published, latest release in practice
 
-**Run the latest release (v0.13.0 as of 2026-11-04); v0.12.2 is the published
+**Run the latest release (v0.13.4 as of 2026-11-18); v0.12.2 is the published
 floor.** Note what that means here: this file is grounded in **v0.11.0 source**,
 which is *below* the floor. The file:line claims still describe 0.11.0
 accurately; the instance you point them at should not be on it. The repository's
@@ -118,6 +118,7 @@ authenticating proxy does **not** cover most of it:
 
 - **HTML-200 trap**: the SPA catch-all serves `index.html` with HTTP 200 for any unknown path. A typo'd endpoint "succeeds" with HTML. Always check `Content-Type: application/json`.
 - **`/docs` and `/openapi.json` need `ENV=dev`** — the Docker image ships `ENV=prod`, so production instances return the SPA for both. Flipping to `dev` also skips the prod-only default `OLLAMA_BASE_URL` Docker rewrite — safe on external-connection setups, breaking on default-Ollama containers.
+- **`configs/import` has no schema and two silent traps.** Unknown keys are stored and ignored. On v0.12.0+ a payload containing any `auth.mfa.*` key — every full export — sent with an `sk-` key is a 403 and imports nothing: strip those keys first. On v0.13.4+ the old image keys (`image_generation.engine`, `.openai.*`, …) import with a 200 and do nothing; image backends live in `images.connections`, and a pre-0.13.4 body sent to `POST /images/config/update` deletes them all. Commands: `references/config-system.md`.
 - **PersistentConfig**: env vars seed the DB on first boot only; thereafter the DB value wins and env changes are silently ignored (`ENABLE_PERSISTENT_CONFIG=true` default). Exception: `oauth.*` stays env-driven unless `ENABLE_OAUTH_PERSISTENT_CONFIG=true`. With it on, provider settings saved through the API are used only from v0.13.0, and only after **every** worker restarts (providers load once per worker); before v0.13.0 the sign-in providers were built from env at import time whatever was saved. Change runtime config via the API, not the deployment env.
 - **Connection `api_type: "responses"` changes the whole wire contract**: Open WebUI converts requests to the Responses API. vLLM-recipe knobs like `chat_template_kwargs` get dropped by the upstream (LiteLLM `/v1/responses` drops them); use the Responses-native `reasoning: {"effort": ...}` param instead. Also: `convert_responses_result()` discards reasoning items for **non-streaming** API callers — test reasoning with `stream: true`.
 - **`custom_params` values must be JSON strings**, not nested objects: `{"custom_params": {"reasoning": "{\"effort\": \"medium\"}"}}`. The backend `json.loads`es strings; raw dicts work on the wire but render as `[object Object]` in the UI editor and get corrupted on UI save.
