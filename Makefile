@@ -4,7 +4,9 @@ SHELL := bash
 MAKEFLAGS += --warn-undefined-variables --no-builtin-rules
 .DEFAULT_GOAL := help
 
-.PHONY: scan gitleaks trufflehog lint ruff shellcheck readme hooks help
+.PHONY: scan gitleaks trufflehog lint ruff shellcheck readme stage hooks help
+
+SKILL ?=
 
 scan: gitleaks trufflehog ## Run all secret scanners
 
@@ -32,6 +34,18 @@ shellcheck: ## Lint all shell scripts
 
 readme: ## Regenerate skill table in README.md
 	python3 scripts/gen-skills-table.py
+
+stage: ## Format, stage and sync manifests before a commit: make stage SKILL="<name> [<name>...]"
+	@test -n "$(SKILL)" || { echo 'usage: make stage SKILL="<skill-dir-name> [<name>...]"'; exit 2; }
+	@for s in $(SKILL); do test -d ".claude/skills/$$s" || { echo "no such skill: $$s"; exit 2; }; done
+	@for s in $(SKILL); do \
+		ruff format ".claude/skills/$$s"; \
+		ruff check ".claude/skills/$$s"; \
+		git add ".claude/skills/$$s"; \
+	done
+	python3 scripts/gen-skills-table.py
+	python3 scripts/gen-plugin-manifests.py
+	git add .claude-plugin/marketplace.json README.md
 
 hooks: ## Install pre-commit hooks
 	pre-commit install
