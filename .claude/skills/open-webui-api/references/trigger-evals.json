@@ -1,0 +1,86 @@
+[
+  {
+    "query": "Write a script that creates 40 Open WebUI users from a CSV and puts each one in the right group, using the Open WebUI API.",
+    "should_trigger": true,
+    "source": "description-mined",
+    "bucket": "explicit"
+  },
+  {
+    "query": "How do I export the Open WebUI config and import it again on another instance with curl? I saw there is a configs/import endpoint.",
+    "should_trigger": true,
+    "source": "description-mined",
+    "bucket": "explicit"
+  },
+  {
+    "query": "We keep our model list in git. I want a CI job that makes our chat UI's model catalog match the file after every deploy. We run Open WebUI.",
+    "should_trigger": true,
+    "source": "generic",
+    "bucket": "implicit"
+  },
+  {
+    "query": "I changed RAG_TOP_K in the Helm values for our Open WebUI pod and restarted it, but the setting in the admin panel is still the old value. Why?",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "Our automation account gets a 403 from Open WebUI even though the API key is valid and the user is an admin. What should I check?",
+    "should_trigger": true,
+    "source": "description-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "My python script calls our Open WebUI at /api/v1/users/ and gets back an HTML page instead of JSON. Here is the code:\n\nr = requests.get(f'{BASE}/api/v1/users', headers=h)\nprint(r.text[:200])  # <!doctype html>",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "contextual"
+  },
+  {
+    "query": "I'm upgrading Open WebUI from 0.9 to 0.11 and my old provisioning script that sets access_control on models now makes everything public. What changed?",
+    "should_trigger": true,
+    "source": "description-mined",
+    "bucket": "contextual"
+  },
+  {
+    "query": "Add a step to this GitLab pipeline that sets the default user role and the banner text in Open WebUI after the helm upgrade finishes.",
+    "should_trigger": true,
+    "source": "generic",
+    "bucket": "contextual"
+  },
+  {
+    "query": "Open WebUI answers are slow when three pods run behind the ingress and websockets keep disconnecting. How do I set up Redis for it?",
+    "should_trigger": false,
+    "source": "sibling-skill",
+    "bucket": "negative"
+  },
+  {
+    "query": "Which embedding model and reranker should I configure in Open WebUI for Swedish documents, and what chunk size?",
+    "should_trigger": false,
+    "source": "sibling-skill",
+    "bucket": "negative"
+  },
+  {
+    "query": "How do I call the OpenAI chat completions API with streaming from Python?",
+    "should_trigger": false,
+    "source": "generic",
+    "bucket": "negative"
+  },
+  {
+    "query": "Write a Helm values file for LiteLLM with a Postgres database and two model deployments.",
+    "should_trigger": false,
+    "source": "adjacent-domain",
+    "bucket": "negative"
+  },
+  {
+    "query": "What is the difference between a REST API and GraphQL?",
+    "should_trigger": false,
+    "source": "generic",
+    "bucket": "negative"
+  },
+  {
+    "query": "In the Open WebUI chat window, how do I switch to dark mode and change the font size?",
+    "should_trigger": false,
+    "source": "keyword-collision",
+    "bucket": "negative"
+  }
+]

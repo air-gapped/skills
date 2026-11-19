@@ -58,10 +58,6 @@ Carries findings across skill-improver runs. Append-only history; do not drop pr
 _None._ Nothing here is waiting on an absent ruling, credential, release, or
 measurement nobody can run.
 
-## Unblocked — actionable
-
-- **Trigger-mode measurement still has not run.** Unchanged from the 2026-07-22 note — use `/skill-improver trigger open-webui-api`, not description guessing. The frontmatter is at 1533/1536 chars, so any trigger-mode mutation must trim before it adds.
-
 ## Decided — 2026-10-27
 
 - **Family-level-only coverage stays family-level.** The 11 `/knowledge/external/*`, 13 admin `functions` and 8 admin `pipelines` endpoints are not enumerated. Their payloads churn per release (0.12.x alone rewrote `functions.py` by ~150 lines), the router source at the running tag is the authority the skill already points to, and inlining 32 shapes would double `endpoint-map.md` for the least-scripted surfaces. Revisit only if a real task fails for lack of one.

@@ -1,0 +1,86 @@
+[
+  {
+    "query": "Migrate our databases from the Zalando postgres-operator to CloudNativePG.",
+    "should_trigger": true,
+    "source": "description-mined",
+    "bucket": "explicit"
+  },
+  {
+    "query": "Convert this acid.zalan.do postgresql manifest into a CNPG Cluster manifest and tell me which fields have no equivalent.",
+    "should_trigger": true,
+    "source": "description-mined",
+    "bucket": "explicit"
+  },
+  {
+    "query": "Is the Zalando postgres operator still maintained, or should we pick another Postgres operator for Kubernetes?",
+    "should_trigger": true,
+    "source": "description-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "We run Spilo-based Postgres on Kubernetes and want to replace it with something that has a future. The cluster has no internet access. Where do we start?",
+    "should_trigger": true,
+    "source": "generic",
+    "bucket": "implicit"
+  },
+  {
+    "query": "Can I just copy the data directory from our old operator's Postgres pod into the new operator's cluster to save time?",
+    "should_trigger": true,
+    "source": "generic",
+    "bucket": "implicit"
+  },
+  {
+    "query": "After pg_basebackup from the Spilo primary into the new CNPG cluster, Postgres logs 'collation version mismatch' for every database. Is the data safe?",
+    "should_trigger": true,
+    "source": "description-mined",
+    "bucket": "contextual"
+  },
+  {
+    "query": "pg_restore into CloudNativePG fails with: ERROR: schema \"metric_helpers\" does not exist. The dump came from our Zalando cluster.",
+    "should_trigger": true,
+    "source": "description-mined",
+    "bucket": "contextual"
+  },
+  {
+    "query": "We cut over yesterday and now two apps cannot connect: they still use the service name app-db and the secret postgres.app-db.credentials. What changed with the new operator?",
+    "should_trigger": true,
+    "source": "description-mined",
+    "bucket": "contextual"
+  },
+  {
+    "query": "Upgrade the Zalando postgres-operator from 1.14 to 2.0.",
+    "should_trigger": false,
+    "source": "sibling-skill",
+    "bucket": "negative"
+  },
+  {
+    "query": "Why did all my Spilo pods roll after I changed the operator Helm values?",
+    "should_trigger": false,
+    "source": "sibling-skill",
+    "bucket": "negative"
+  },
+  {
+    "query": "Tune the CloudNativePG cluster we already run: connection pooling and WAL settings for a write-heavy load.",
+    "should_trigger": false,
+    "source": "adjacent-domain",
+    "bucket": "negative"
+  },
+  {
+    "query": "Migrate our databases from the Crunchy PGO operator to StackGres.",
+    "should_trigger": false,
+    "source": "adjacent-domain",
+    "bucket": "negative"
+  },
+  {
+    "query": "Migrate this MySQL schema to PostgreSQL.",
+    "should_trigger": false,
+    "source": "keyword-collision",
+    "bucket": "negative"
+  },
+  {
+    "query": "Write an Alembic migration that adds a column to the users table.",
+    "should_trigger": false,
+    "source": "keyword-collision",
+    "bucket": "negative"
+  }
+]

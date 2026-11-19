@@ -1,0 +1,86 @@
+[
+  {
+    "query": "Upgrade the Zalando postgres-operator from 1.14 to 2.0 on our cluster. What do I need to watch out for?",
+    "should_trigger": true,
+    "source": "description-mined",
+    "bucket": "explicit"
+  },
+  {
+    "query": "What does kubernetes_use_configmaps do in the postgres-operator OperatorConfiguration and is it safe to switch?",
+    "should_trigger": true,
+    "source": "description-mined",
+    "bucket": "explicit"
+  },
+  {
+    "query": "After I bumped the Helm chart for our Postgres operator, all database pods restarted one after another. Why did that happen and how do I predict it next time?",
+    "should_trigger": true,
+    "source": "generic",
+    "bucket": "implicit"
+  },
+  {
+    "query": "I want to move one of our operator-managed Postgres clusters from version 15 to 17 without dumping and restoring. How?",
+    "should_trigger": true,
+    "source": "description-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "A node drain hangs forever because of a PodDisruptionBudget on a Postgres cluster created by the operator. How do I get the node drained safely?",
+    "should_trigger": true,
+    "source": "description-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "kubectl describe on our acid.zalan.do postgresql resource shows the annotation last-major-upgrade-failure. The cluster is still on the old version. What now?",
+    "should_trigger": true,
+    "source": "description-mined",
+    "bucket": "contextual"
+  },
+  {
+    "query": "The operator log is full of 'v1 Endpoints is deprecated in v1.33+' warnings since we upgraded Kubernetes. Here is the pod: postgres-operator-7d9f. Do I have to act?",
+    "should_trigger": true,
+    "source": "description-mined",
+    "bucket": "contextual"
+  },
+  {
+    "query": "This manifest gives 'unknown field spec.enableShmVolume' after the chart update:\n\napiVersion: acid.zalan.do/v1\nkind: postgresql\nmetadata:\n  name: app-db\nspec:\n  teamId: app\n  enableShmVolume: true",
+    "should_trigger": true,
+    "source": "generic",
+    "bucket": "contextual"
+  },
+  {
+    "query": "We want to leave the Zalando operator and move all our databases to CloudNativePG. Plan the migration.",
+    "should_trigger": false,
+    "source": "sibling-skill",
+    "bucket": "negative"
+  },
+  {
+    "query": "Convert this acid.zalan.do postgresql manifest into a CloudNativePG Cluster manifest.",
+    "should_trigger": false,
+    "source": "sibling-skill",
+    "bucket": "negative"
+  },
+  {
+    "query": "My CNPG replica will not bootstrap from the old Spilo primary, it fails on SSL.",
+    "should_trigger": false,
+    "source": "sibling-skill",
+    "bucket": "negative"
+  },
+  {
+    "query": "Write a SQL query that finds the ten largest tables in a Postgres database.",
+    "should_trigger": false,
+    "source": "keyword-collision",
+    "bucket": "negative"
+  },
+  {
+    "query": "How do I tune shared_buffers and work_mem on a bare-metal PostgreSQL server with 64 GB RAM?",
+    "should_trigger": false,
+    "source": "adjacent-domain",
+    "bucket": "negative"
+  },
+  {
+    "query": "Install the Crunchy Postgres operator with Helm.",
+    "should_trigger": false,
+    "source": "adjacent-domain",
+    "bucket": "negative"
+  }
+]

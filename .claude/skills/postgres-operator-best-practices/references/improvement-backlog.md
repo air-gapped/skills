@@ -9,14 +9,6 @@ measurement nobody can run.
 
 ## Unblocked — actionable
 
-- **No trigger-mode measurement yet** (Dim 1, empirical). The description and
-  `when_to_use` were written by hand and sized by inspection (1,515/1,536
-  chars), never measured. Run
-  `/skill-improver trigger postgres-operator-best-practices` for actual
-  fire/silence rates. This skill shares much of its trigger space with the
-  sibling `postgres-operator-cloudnative-pg-migration`, so the run has to test
-  both directions of confusion — this skill firing on migration queries and
-  vice versa — not just its own recall.
 - **Duplication between SKILL.md and `upgrade-v1-v2.md` is still the lowest
   dimension** (Dim 6). The final blind scorer of the 2026-08-25 pass scored
   Dim 6 **6/10** against a self-score of 8 — the largest self/blind gap in the

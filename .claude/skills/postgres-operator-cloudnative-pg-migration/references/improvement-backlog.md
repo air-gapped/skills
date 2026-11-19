@@ -25,13 +25,6 @@ measurement nobody can run.
   completeness point for four lines). Blocked on an eval benchmark that can
   show completeness held; the corpus has 8 cases but no with/without pair, so
   no `delta_pass_rate` is derivable today.
-- **Trigger mode not yet run** (Dim 1, empirical). Frontmatter measures 1,521
-  chars against the 1,536 listing cap — verified with a fixed measurement
-  script, see below — but fit is not fire rate. Run
-  `/skill-improver trigger postgres-operator-cloudnative-pg-migration`. Now
-  shares a trigger space with the sibling `postgres-operator-best-practices`,
-  so the run must test both directions of confusion, not just this skill's
-  recall.
 
 ## Resolved this pass — 2026-08-25 (freshen + improve)
 
