@@ -1,0 +1,69 @@
+{
+  "skill_name": "otel-collector-best-practices",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're moving our k8s cluster (RKE2, 5 nodes) off fluent-bit to the OpenTelemetry Collector. Plan is the official opentelemetry-collector helm chart, collector 0.162, running as a DaemonSet. It needs to ship all pod logs AND kubernetes events to Loki, and it must not lose logs if Loki is down for a couple of hours. Write the values.yaml.",
+      "expected_output": "A values.yaml for the opentelemetry-collector chart in daemonset mode with current component names, events collected without duplication (not the kubernetesEvents preset in daemonset mode), a persistent byte-sized exporter queue that blocks instead of dropping, file_log checkpoints, otlp_http to Loki's OTLP endpoint (no loki exporter), image.repository set.",
+      "files": [],
+      "assertions": [
+        "Runs the chart in daemonset mode (mode: daemonset)",
+        "Collects Kubernetes events WITHOUT relying on the kubernetesEvents preset inside the DaemonSet (uses kubernetesObjects with leader election in daemonset mode, or a separate single-replica Deployment/receiver with leader election), and explains why",
+        "Sends to Loki via the otlp_http/otlphttp exporter to Loki's native OTLP endpoint, not the removed `loki` exporter",
+        "Configures a persistent exporter queue (sending_queue.storage pointing at a file_storage extension on a hostPath)",
+        "Sizes the queue for a multi-hour outage explicitly (sizer: bytes with a byte queue_size, or an explicit calculation), not the 1000-request default",
+        "Sets block_on_overflow: true (or otherwise explicitly prevents the queue from dropping when full)",
+        "Sets retry_on_failure.max_elapsed_time to 0 or at least the outage length (default 300s would give up)",
+        "Persists file_log/filelog read offsets (storeCheckpoints: true or storage on the receiver)",
+        "Sets image.repository explicitly (the chart has no default)",
+        "Uses component names valid and current for 0.162 (e.g. file_log/otlp_http) or notes that old names are deprecated aliases"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "can you review this collector config before I roll it out? it's for otelcol-contrib 0.161\n\n```yaml\nreceivers:\n  filelog:\n    include: [/var/log/pods/*/*/*.log]\n  otlp:\n    protocols:\n      grpc:\n      http:\nprocessors:\n  batch:\n  k8sattributes:\n  memory_limiter:\n    limit_mib: 400\n  routing:\n    default_exporters: [otlphttp]\nexporters:\n  otlphttp:\n    endpoint: https://otel.example.internal:4318\n  loki:\n    endpoint: http://loki:3100/loki/api/v1/push\nservice:\n  pipelines:\n    logs:\n      receivers: [filelog, otlp]\n      processors: [batch, k8sattributes, memory_limiter]\n      exporters: [otlphttp, loki]\n```",
+      "expected_output": "A review that flags: loki exporter and routing processor no longer exist; processor order wrong (memory_limiter first, k8s_attributes before batch); old component names are deprecated aliases (file_log, otlp_http, k8s_attributes); otlp receiver binds to localhost by default so it is unreachable in a pod; filelog has no storage/start_at/container parsing; exporter queue defaults drop data; no self-monitoring.",
+      "files": [],
+      "assertions": [
+        "Flags that the `loki` exporter no longer exists in contrib 0.161 (removed in v0.131)",
+        "Flags that the `routing` processor no longer exists (removed, replaced by the routing connector)",
+        "Flags processor order: memory_limiter must be first",
+        "Flags that k8sattributes must run before batch",
+        "Flags that the otlp receiver binds to localhost by default (since v0.110) so it is unreachable from other pods unless bound to the pod IP",
+        "Flags filelog gaps: no storage/checkpoints and/or no container (CRI) parsing / start_at",
+        "Mentions that filelog/otlphttp/k8sattributes are deprecated aliases of file_log/otlp_http/k8s_attributes",
+        "Flags exporter sending_queue/retry defaults as a data-loss risk (queue drops when full and/or retry gives up after 5 min)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I added the journald receiver to our otel collector (contrib 0.162) and send it to VictoriaLogs over OTLP. In VictoriaLogs every journal row says 'missing _msg field', severity shows Unspecified, the number of streams is exploding, and some messages we see with journalctl on the host never show up. What's going on and how do I fix the config?",
+      "expected_output": "Explains: without convert_to_semantic_conventions the journal record is a body map (no message/severity mapping) \u2014 set convert_to_semantic_conventions: true; priority defaults to info so debug lines are dropped \u2014 set priority: debug; VictoriaLogs makes every resource attribute a stream field (process.pid after the conversion) \u2014 set VL-Stream-Fields header; uses otlp_http (protobuf).",
+      "files": [],
+      "assertions": [
+        "Recommends convert_to_semantic_conventions: true so MESSAGE becomes the body and PRIORITY the severity",
+        "Explains the journald receiver's default priority is info, dropping debug entries, and sets priority: debug",
+        "Explains VictoriaLogs turns every OTLP resource attribute into a stream field and sets the VL-Stream-Fields header to limit them",
+        "Identifies a per-process/per-record resource attribute (e.g. process.pid) as the stream-explosion source",
+        "Uses the otlp_http exporter (OTLP/HTTP protobuf) to VictoriaLogs' /insert/opentelemetry/v1/logs endpoint"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "We're on otelcol-contrib 0.140.0 in production (air-gapped site, configs use filelog, k8sattributes, transform, prometheusremotewrite, the prometheus exporter with add_metric_suffixes: false, and dashboards built on k8s.pod.labels.app). I want to jump to the latest release. What will break or change, and how should I run the upgrade?",
+      "expected_output": "Lists relevant breaking changes between 0.140 and 0.162: snake_case renames (aliases still work), transform/filter error_mode default now ignore, add_metric_suffixes deprecated \u2192 translation_strategy and ignored by the prometheus exporter since 0.154, k8s_attributes v1 conventions rename k8s.pod.labels.* \u2192 k8s.pod.label.*, resource_to_telemetry_conversion deprecated, security floors; procedure: read every release's notes, validate with the new binary, check dashboards, verify cosign signatures offline, pin and keep rollback.",
+      "files": [],
+      "assertions": [
+        "Explains the snake_case component renames (e.g. filelog\u2192file_log, k8sattributes\u2192k8s_attributes, prometheusremotewrite\u2192prometheus_remote_write) and that old names still work as deprecated aliases",
+        "Warns that transform/filter error_mode now defaults to ignore (errors skipped silently)",
+        "Explains add_metric_suffixes is deprecated in favour of translation_strategy and is ignored by the prometheus exporter (since ~v0.154), so metric names may change",
+        "Warns that k8s_attributes now emits k8s.pod.label.<k> instead of k8s.pod.labels.<k>, breaking dashboards on k8s.pod.labels.app, and offers the dual-emit feature gates",
+        "Mentions resource_to_telemetry_conversion deprecation or the k8s_attributes container.image.tag\u2192tags rename or another concrete semconv/attribute rename beyond the label one",
+        "Gives a security floor or names advisories fixed in the window (e.g. contrib \u2265 0.154/0.155)",
+        "Recommends validating the config with the new binary (otelcol validate) before rollout",
+        "Recommends reading the release notes of every intermediate release (many hops, two-week cadence)",
+        "Covers air-gap specifics: verifying cosign/Sigstore signatures (offline) and/or mirroring images"
+      ]
+    }
+  ]
+}

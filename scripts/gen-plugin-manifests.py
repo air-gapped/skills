@@ -605,13 +605,15 @@ GROUPS: dict[str, dict] = {
         # The metrics half (querying + upgrading Grafana Mimir, plus SNMP
         # hardware collection via snmp_exporter) and the logs half
         # (configuring the kube-logging logging-operator + exiting the
-        # frozen Rancher-bundled chart). Paired skills route to each other.
+        # frozen Rancher-bundled chart), plus the OpenTelemetry Collector that
+        # ships all three signals. Paired skills route to each other.
         "members": [
             "prometheus-mimir-grafana",
             "mimir-upgrade",
             "snmp-exporter",
             "logging-operator",
             "rancher-logging-exit",
+            "otel-collector-best-practices",
         ],
         "description": (
             "Observability suite — metrics: Prometheus, Grafana Mimir, and "
@@ -633,7 +635,10 @@ GROUPS: dict[str, dict] = {
             "never-walk-a-whole-enterprise-subtree rule, SNMPv2c/v3 auth, "
             "timeout math, Kubernetes Probe/ScrapeConfig deployment, local "
             "docker testing, worked device references for Dell iDRAC 9/10, "
-            "Cisco CBS/Catalyst, NVIDIA/Mellanox Onyx, Ubiquiti UniFi)."
+            "Cisco CBS/Catalyst, NVIDIA/Mellanox Onyx, Ubiquiti UniFi); "
+            "and collection: otel-collector-best-practices — OpenTelemetry "
+            "Collector configs, Helm chart and operator deployments, exporter "
+            "queues and data-loss traps, OTTL, upgrades and supply chain."
         ),
         "category": "observability",
         "tags": [
@@ -650,6 +655,8 @@ GROUPS: dict[str, dict] = {
             "rancher",
             "snmp",
             "snmp-exporter",
+            "opentelemetry",
+            "otel-collector",
             "network-monitoring",
             "slo",
             "sre",

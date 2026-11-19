@@ -1,0 +1,22 @@
+[
+  {"query": "we're replacing fluent-bit with the opentelemetry collector helm chart on our rke2 cluster, can you write the values.yaml so pod logs go to loki and nothing is lost if loki restarts", "should_trigger": true},
+  {"query": "our otelcol-contrib pods log 'Dropping data because sending_queue is full' every time victorialogs restarts. how big should the queue be and what settings do i change?", "should_trigger": true},
+  {"query": "k8s events show up 3 times in clickhouse since we deployed the otel collector daemonset with the kubernetesEvents preset. why?", "should_trigger": true},
+  {"query": "upgrading otelcol-contrib from 0.140 to 0.162 next week on an airgapped site — what breaks? we use filelog, transform and the prometheus exporter", "should_trigger": true},
+  {"query": "review my otel collector config.yaml before i roll it out, its in deploy/otel/config.yaml", "should_trigger": true},
+  {"query": "the journald receiver in our collector doesn't set severity and the message ends up as a map in the body. fix?", "should_trigger": true},
+  {"query": "how do I drop health-check spans and redact the Authorization header in the collector with OTTL? transform or filter processor?", "should_trigger": true},
+  {"query": "otelcol validate says 'unknown type: \"file_log\"' on our 0.140 image but the docs say file_log. which name is right?", "should_trigger": true},
+  {"query": "set up tail sampling across 3 collector gateway replicas behind a k8s service — currently traces arrive incomplete", "should_trigger": true},
+  {"query": "should we use the opentelemetry operator or just the collector helm chart for agent + gateway in prod? we don't need auto-instrumentation", "should_trigger": true},
+  {"query": "add OpenTelemetry tracing to my FastAPI app with the python SDK and export to localhost:4317", "should_trigger": false},
+  {"query": "write a PromQL alert for when a kube-prometheus-stack node exporter target is down for 5 minutes", "should_trigger": false},
+  {"query": "our fluent-bit daemonset skips long lines, how do I set Buffer_Max_Size in the fluent-bit config map?", "should_trigger": false},
+  {"query": "write a LogsQL query in VictoriaLogs that counts error lines per namespace over the last hour", "should_trigger": false},
+  {"query": "create a logging-operator Flow and Output so the payments namespace logs go to our syslog server", "should_trigger": false},
+  {"query": "add smartctl and ipmi_sensor inputs to telegraf.conf and send them to victoriametrics with remote write", "should_trigger": false},
+  {"query": "explain the OpenTelemetry semantic conventions for HTTP spans — which attributes should my Go service set?", "should_trigger": false},
+  {"query": "build a grafana dashboard panel showing pod restarts from kube-state-metrics", "should_trigger": false},
+  {"query": "datadog agent helm values to collect container logs from all namespaces except kube-system", "should_trigger": false},
+  {"query": "loki compactor retention is not deleting old chunks in our s3 bucket, what config is missing?", "should_trigger": false}
+]
