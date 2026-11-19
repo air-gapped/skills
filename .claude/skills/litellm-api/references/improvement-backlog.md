@@ -41,10 +41,6 @@ Carries ceiling findings across skill-improver runs. See skill-improver `referen
 - **Trim the SKILL.md budget section's overlap with `budgets-spend.md`** — Dim 6. The baseline blind scorer flagged that the budget bullets (SKILL.md §"Budget semantics") repeat #29066/#34492/#35076 at near-reference detail. Deliberately NOT applied this pass: budgets are the highest-risk area the skill covers, and the SKILL.md rules are the always-loaded operative layer — reducing them to pointers would make the most dangerous semantics load-on-demand only. Revisit only with evidence that the duplication misleads (e.g. the two copies drift).
 - **Frontmatter is 14 chars OVER the listing cutoff** (1,550/1,536 combined: description 797 + when_to_use 753), re-measured 2026-09-15 with `skill-improver/scripts/frontmatter-lengths.py`. **The previous note here claimed 6 chars of headroom, which was wrong in the unsafe direction** — an edit trusting it would have added text to a field that is already truncating. The tail of `when_to_use` (the NOT-for clause) is what gets cut, so any trigger addition must trade an existing phrase out, and a trim big enough to get under the cutoff should be verified by a trigger-mode run rather than by eye. Guard for future edits.
 
-## Unblocked — actionable
-
-- **Measure `delta_pass_rate`** — Dim 10 (capped at 8 unmeasured). Requires `evals/evals.json` + skill-creator's `aggregate_benchmark`. Flagged by the blind scorer as the binding cap.
-
 ## Resolved — 2026-09-15 (organization lifecycle, read out of the source)
 
 The research pass this item asked for, against v1.100.1. Everything below was

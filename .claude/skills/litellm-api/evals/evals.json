@@ -1,0 +1,136 @@
+{
+  "skill_name": "litellm-api",
+  "schema_version": 2,
+  "provenance": {
+    "created": "2026-11-20",
+    "grown": "opus via grow-evals.py 2026-11-20 (+8 to 8)"
+  },
+  "evals": [
+    {
+      "id": 0,
+      "name": "build-least-privilege-ci-key",
+      "prompt": "I'm scripting key provisioning for our LiteLLM proxy (v1.104.2, master key set, STORE_MODEL_IN_DB=true). I need a single curl call to /key/generate for a CI pipeline that should ONLY be able to call chat completions against the models `gpt-4o-mini` and `claude-haiku` and nothing else: no management API, no other models, no MCP servers. Budget is $50/month, which should reset monthly. The key belongs to team `ci-platform` (team_id `t-8f21`), and that team has `models: []` and has MCP servers attached. The proxy's `litellm_settings.default_key_generate_params` is set to `{\"models\": [\"gpt-4o\"]}`. Write the request body, then explain how I verify afterwards that the key really is restricted.",
+      "expected_output": "A /key/generate body that names the two models explicitly, limits allowed_routes to inference routes (not an empty list), and explicitly denies MCP with the no-MCP sentinel rather than leaving it empty, plus max_budget 50 with a monthly budget_duration. Verification uses live calls (a disallowed model, a management route, an MCP call) and not /v1/models or the 200 status.",
+      "files": [],
+      "assertions": [
+        "The body sets models to exactly the two named models, not an empty list and not omitted",
+        "allowed_routes is restricted to inference/LLM routes and is not empty or omitted, because empty would allow every route",
+        "MCP access is explicitly denied with a sentinel value, since an empty mcp_servers would inherit the team's servers",
+        "Includes max_budget 50 with a monthly budget_duration (e.g. 30d/1mo)",
+        "Verification uses live requests that should fail (another model, a management endpoint) rather than relying on /v1/models or the generate response's status"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 1,
+      "name": "diagnose-team-key-full-access-via-access-group",
+      "prompt": "On LiteLLM v1.103.1 we created model access group `eu-only` containing `mistral-large-eu` and `gpt-4o-eu`. Then we created a key with:\n\n{\"team_id\": \"t-legal\", \"access_group_ids\": [\"eu-only\"], \"key_alias\": \"legal-eu\"}\n\nTeam t-legal has `models: []`. Legal is now calling `gpt-4o` (US region) and `claude-opus` through this key and getting completions back, which is a data-residency violation. My colleague thinks the access group's model list was saved wrong and wants to rebuild the access group. Calling /v1/models with the key returns a list including US models. What's actually wrong and how do we fix it?",
+      "expected_output": "Identifies that access groups are additive grants, not allow-lists, so with empty models on the key (and on the team) the key effectively has all models. The access group definition is not the problem. The fix is to set models to the deny sentinel (no-default-models) alongside the access group, or to list the models explicitly, and to check with live completions.",
+      "files": [],
+      "assertions": [
+        "Identifies the empty/omitted models field (key and team) combined with additive access-group semantics as the root cause",
+        "Does NOT say the access group's model list is the root cause or that rebuilding the group will fix it",
+        "Fix sets models to a deny sentinel (no-default-models) or an explicit EU list on the key and/or team alongside access_group_ids",
+        "Says to confirm the fix with a live completion against a US model, not by checking /v1/models",
+        "Recommends auditing other keys/teams for the same pattern"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 2,
+      "name": "diagnose-budget-duration-instant-429",
+      "prompt": "LiteLLM v1.105.0. Key `sk-...9a3` (alias `analytics-bot`) had `max_budget: 200` and no budget_duration. Over 4 months it accumulated spend of $212 and started returning 429 budget exceeded. To turn it into a monthly budget I ran:\n\nPOST /key/update {\"key\": \"sk-...9a3\", \"budget_duration\": \"30d\"}\n\nI got a 200 back, and /key/info shows budget_duration: 30d and budget_reset_at set to next month. But the key still 429s on every request, an hour later. Redis cache flush didn't help. Why, and what's the correct fix?",
+      "expected_output": "Explains that adding budget_duration via update does not reset spend that has already accumulated, so the key's $212 spend still exceeds the $200 budget in the 'new' window. The fix is to zero the spend explicitly (the reset_spend endpoint with the key in the path) or to create a fresh key, then check with a live request.",
+      "files": [],
+      "assertions": [
+        "Identifies that the existing spend ($212 > $200) was carried over and not reset by the update",
+        "Does NOT attribute the problem to caching/Redis or to the update having failed",
+        "Prescribes explicitly resetting the key's spend (e.g. /key/{key}/reset_spend) or issuing a new key",
+        "Says to verify with a live request after the reset rather than trusting the 200"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 3,
+      "name": "decide-personal-budgets-team-keys-v1105",
+      "prompt": "We run LiteLLM v1.105.2. Each engineer has a personal user budget of $100/month, and they're also members of team `ml-research`, which has a team budget of $2000/month. Engineers use both personal keys and ml-research team keys. Finance wants an engineer's TOTAL spend (personal + team keys) capped at $100. A blog post from August says team-key spend counts against personal budgets automatically, so personal budgets should be set to cover both, and that you should set `skip_user_budget_on_team_key: false` to be explicit. Our config currently has `skip_user_budget_on_team_key: true` from an old experiment. Options: (a) follow the blog post, (b) leave as is, (c) something else. Which should we do?",
+      "expected_output": "Explains that on v1.105 team keys are governed only by team budgets by default (the coupling was reverted in 1.94.1), and that skip_user_budget_on_team_key was removed and does nothing, so the blog post is outdated. To meet finance's requirement the answer recommends enabling the opt-in apply_user_budget_to_team_keys setting (available in v1.97+) and deleting the dead flag.",
+      "files": [],
+      "assertions": [
+        "States that on this version team-key spend does NOT count against personal budgets by default",
+        "Identifies skip_user_budget_on_team_key as removed/ineffective, so neither the true nor the false value does anything",
+        "Recommends enabling the opt-in general_settings.apply_user_budget_to_team_keys to get the combined $100 cap",
+        "Rejects option (a), the blog post's approach, as outdated for this version",
+        "Recommends removing the dead flag from config"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 4,
+      "name": "guard-full-object-roundtrip-update-script",
+      "prompt": "We're on LiteLLM OSS v1.104.0 (no enterprise license). I want to write a nightly reconciliation script that, for each of our 300 teams, does GET /team/info, merges in the desired values from our git repo (only max_budget and models typically differ), and POSTs the WHOLE resulting team object back to /team/update so the DB exactly mirrors git. That way we never miss a field. Please write this as a bash+jq script. Also, to clear budgets for teams that git says should be unlimited, just send max_budget: null.",
+      "expected_output": "Pushes back on round-tripping the full object. Update endpoints are presence-sensitive: sending enterprise-only fields like guardrails, policies or tags, even as empty values, causes enterprise 403s on OSS, and stale values can clobber other changes. The script it gives sends a minimal diff of only the changed fields, checks the result with a follow-up GET, and notes that budgets cannot be cleanly unset with null.",
+      "files": [],
+      "assertions": [
+        "Does NOT produce a script that POSTs the full GET /team/info object back to /team/update",
+        "The script sends only the fields that differ (minimal diff), e.g. max_budget and models",
+        "Explains that including enterprise-only fields (even empty) triggers enterprise-only 403 errors on OSS",
+        "Warns that sending max_budget null won't cleanly clear the budget and proposes an alternative or flags it as unsupported",
+        "Verifies each update with a follow-up GET instead of trusting the 200, since unknown fields are silently dropped"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 5,
+      "name": "guard-team-delete-offboarding",
+      "prompt": "A contractor team `vendor-acme` (team_id t-77c0) has been terminated effective immediately and legal says their access must be cut NOW. Our LiteLLM v1.104.3 proxy runs 3 pods with Redis caching. My plan: call POST /team/delete {\"team_ids\": [\"t-77c0\"]}, confirm the 200, and tell legal it's done. Can you give me the exact command and the message to send legal?",
+      "expected_output": "Warns that /team/delete does not immediately invalidate the team's virtual keys, which stay valid in cache until the TTL expires, so a 200 does not mean access is cut. Recommends blocking or deleting the team's keys explicitly first and then confirming with a live auth attempt with one of those keys before reporting to legal.",
+      "files": [],
+      "assertions": [
+        "States that team deletion alone leaves the team's keys auth-valid in cache for a period",
+        "Does NOT tell the user to report access as revoked based only on the 200 from /team/delete",
+        "Recommends explicitly blocking/deleting the team's keys (e.g. enumerate via /key/list with team_id, then block/delete) before or in addition to deleting the team",
+        "Requires verifying with a live request using one of the team's keys and seeing it rejected before telling legal"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 6,
+      "name": "diagnose-model-new-200-not-persisted",
+      "prompt": "LiteLLM v1.103.1, three replicas behind a load balancer. We have STORE_MODEL_IN_DB=True in the env of all pods. Our Terraform-ish script does POST /model/new for `bedrock-claude-sonnet` and gets HTTP 200. The model works on whichever pod handled the request, but the other two pods return 'model not found', and after a rolling restart the model is gone everywhere. Response body excerpt: {\"model_id\": \"a1b2...\", \"model_name\": \"bedrock-claude-sonnet\", \"db_model\": false}. We already checked Redis connectivity and it's fine. In the DB, LiteLLM_Config has a row param_name='general_settings' with param_value containing \"store_model_in_db\": false, written months ago from the UI. What's going on?",
+      "expected_output": "Identifies that db_model:false means the DB write was skipped and the model exists only in the memory of the pod that handled the request. The cause is the stale DB general_settings row with store_model_in_db:false, which overrides the env var because DB settings take precedence. The fix is to correct or remove that DB setting and re-add the model, then check the result across pods and after a restart.",
+      "files": [],
+      "assertions": [
+        "Interprets db_model: false as the model not being persisted to the DB despite the 200",
+        "Identifies the stale DB general_settings store_model_in_db:false row as overriding the env var",
+        "Does NOT blame Redis or multi-pod sync as the root cause",
+        "Fix is to change/remove that DB setting (not just the env/YAML) and then re-create the model",
+        "Verifies persistence by checking on all pods and/or after restart, not by the 200 status"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 7,
+      "name": "decide-upgrade-target-before-auth-audit",
+      "prompt": "I've been asked to audit `allowed_routes` and role assignments on our LiteLLM proxy. /health/readiness says litellm_version 1.102.1. It's internet-facing, has internal_user accounts for ~40 employees, and uses MCP servers. Ops proposes three options: (a) do the audit now and upgrade next quarter, (b) upgrade to 1.103.0 since it's the next minor and least risky, (c) upgrade to 1.102.2 on our current line. Which should we choose, and is there anything beyond upgrading we must do?",
+      "expected_output": "Explains that 1.102.1 is affected by the critical internal_user→proxy-admin escalation, so an audit before upgrading is pointless. It rejects 1.103.0 because that release is also vulnerable, and recommends 1.102.2 (or 1.103.1 or newer). It also treats internal_user accounts as possibly compromised and reviews admin access and secrets once the upgrade is done.",
+      "files": [],
+      "assertions": [
+        "Identifies 1.102.1 as vulnerable to the internal_user-to-proxy-admin escalation",
+        "Rejects option (b) because 1.103.0 is still vulnerable",
+        "Recommends 1.102.2 (or 1.103.1 or newer on another line) as the upgrade target",
+        "Does NOT recommend auditing first and deferring the upgrade (option a)",
+        "Recommends post-upgrade follow-up such as reviewing for escalated accounts/rotating credentials given exposure"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-11-20"
+    }
+  ]
+}

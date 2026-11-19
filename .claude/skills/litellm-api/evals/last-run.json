@@ -1,0 +1,89 @@
+{
+  "date": "2026-11-20",
+  "content_hash": "e3a4b6d08495d1e6",
+  "cases": [
+    "00-build-least-privilege-ci-key",
+    "01-diagnose-team-key-full-access-via-access-group",
+    "02-diagnose-budget-duration-instant-429",
+    "03-decide-personal-budgets-team-keys-v1105",
+    "04-guard-full-object-roundtrip-update-script",
+    "05-guard-team-delete-offboarding",
+    "06-diagnose-model-new-200-not-persisted",
+    "07-decide-upgrade-target-before-auth-audit"
+  ],
+  "runs_per_case": 3,
+  "model": "sonnet",
+  "models_resolved": [
+    "claude-sonnet-5-5"
+  ],
+  "judge_model": "haiku",
+  "with_skill": 0.9187,
+  "without_skill": 0.6896,
+  "without_from": "this run",
+  "baselines": {
+    "00-build-least-privilege-ci-key": {
+      "score": 0.8,
+      "id": "cdc18df9a962",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "01-diagnose-team-key-full-access-via-access-group": {
+      "score": 0.5333,
+      "id": "b4bb19fe2171",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "02-diagnose-budget-duration-instant-429": {
+      "score": 0.9167,
+      "id": "5b7fce08c80b",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "03-decide-personal-budgets-team-keys-v1105": {
+      "score": 0.0667,
+      "id": "8ef1b7612855",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "04-guard-full-object-roundtrip-update-script": {
+      "score": 0.7333,
+      "id": "9e64fc49d19e",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "05-guard-team-delete-offboarding": {
+      "score": 1.0,
+      "id": "adba83d69500",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "06-diagnose-model-new-200-not-persisted": {
+      "score": 1.0,
+      "id": "aac2cb7c84d6",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "07-decide-upgrade-target-before-auth-audit": {
+      "score": 0.4667,
+      "id": "8b1ec0254082",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    }
+  }
+}
