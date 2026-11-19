@@ -45,5 +45,6 @@ Measured, not documented upstream:
 | Events during a DaemonSet rollout (Lease handover) never arrived | k8s events vs VictoriaLogs, 2026-10-03 21:33 UTC |
 | `file_log` + container operator delivers a 40 KiB line as one row; Fluent Bit (`Skip_Long_Lines On`) dropped it | test pod |
 | `syslog` receiver: raw line stays in the body; `VL-Msg-Field: message` gave the raw body as `_msg` on 2 of 10 records; `transform` into the body fixed it (21 of 21) | `logger --rfc3164` over UDP, otelcol-contrib 0.160.0 → VictoriaLogs 1.52, 2026-10-11 |
+| HPE iLO 4 2.82 sends RFC5424, ASRock Rack ROMED8-2T BMC sends RFC3164; RFC5424 lines on an RFC3164 receiver stored raw with severity Unspecified; second receiver on port 1514 parsed them; logger tests sent during the rev 4 roll lost | otelcol-contrib 0.160.0 → VictoriaLogs 1.53, Cilium BGP `Local`, 2026-11-19 |
 | `externalTrafficPolicy: Cluster` on the syslog LoadBalancer: `net.peer.ip` was a node IP on 4 of 10 lines; `Local`: 20 of 20 real | same test, Cilium BGP LoadBalancer |
 | 1000-request queue ≈ 3 min of downtime at ~12 lines/s per node | arithmetic from batch defaults and measured volume |

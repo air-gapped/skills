@@ -96,6 +96,18 @@ Checked against contrib v0.162.0 component READMEs and pkg/ottl docs,
   - The images run as non-root: listen on a port above 1024 (e.g. 5514) and
     map 514 → 5514 in the Service. Run it as a Deployment with ≥ 2 replicas;
     it holds no state.
+  - **One `protocol` per receiver, and devices differ:** HPE iLO 4 sends
+    RFC5424 (`<134>1 2026-11-19T16:31:48Z host …`), ASRock/AMI MegaRAC BMCs
+    send RFC3164 (`<134>Nov 19 16:31:48 host app[pid]: …`). A line in the
+    other format is kept raw (`on_error: send`): in the backend it has no
+    `hostname`/`appname` and severity `Unspecified` — query for that after
+    adding a device. Fix: a second receiver on its own port (`protocol:
+    rfc5424`) and point those devices at it; one port is possible with
+    `udp_log` + a `router` operator on `^<\d+>1 ` into two `syslog_parser`s
+    (untested).
+  - With `externalTrafficPolicy: Local` on a BGP-advertised VIP, the VIP
+    moves with the pods: UDP sent during a redeploy is lost for a few
+    seconds while the router's ECMP routes catch up.
 - Dedup: `log_dedup` (alpha), `interval` 10s, adds `log_count` and first/last
   timestamps.
 - Logs with an empty body (some programs print blank lines, e.g. Ceph
