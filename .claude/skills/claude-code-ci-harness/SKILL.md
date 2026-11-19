@@ -1,13 +1,13 @@
 ---
 name: claude-code-ci-harness
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
-description: |-
+description: >-
   Run Claude Code headlessly as an isolated CI harness against any Anthropic
   Messages-compatible endpoint (local engine, gateway or hosted API) or a
   Claude subscription token. Covers credential
   isolation, stream-json transcripts, tool-call assertions, multi-turn
   scenarios, and endpoint/model compatibility diagnosis.
-when_to_use: |-
+when_to_use: >-
   Use for Claude Code CI harnesses, headless Claude Code tests, testing an
   endpoint through /v1/messages, Claude Code tool-call regressions,
   chat-template or tool-call parser testing, stream-json transcripts, model
