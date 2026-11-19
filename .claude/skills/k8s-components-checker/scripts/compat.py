@@ -734,6 +734,24 @@ def unknown_inputs(a, comps):
     return bad
 
 
+# Upstream publishes no k8s range, so a missing window is the expected state, not drift.
+NO_PUBLISHED_WINDOW = {
+    "traefik": "upstream publishes no k8s matrix; floor is implicit in the CRD/API versions (compat/traefik.md)",
+    "tetragon": "upstream publishes no k8s matrix; the kernel axis decides (compat/tetragon.md)",
+    "ceph": "k8s axis comes through Rook; check the rook line instead (compat/ceph.md)",
+    "zalando-postgres-operator": "floor only: k8s 1.27+, no ceiling (README support table; compat/zalando-postgres-operator.md)",
+}
+
+
+def compat_doc(name):
+    """compat/ file name for a component; three registry names differ from their doc."""
+    return {
+        "gitlab-chart": "gitlab",
+        "mimir-chart": "mimir",
+        "openebs-lvm-localpv": "openebs",
+    }.get(name, name) + ".md"
+
+
 def cmd_check(a):
     d = json.loads(GEN.read_text())
     comps, e = d["components"], d["edges"]
@@ -877,10 +895,13 @@ def cmd_check(a):
                 )
             continue
         w = e.get("k8s_windows", {}).get(name, {}).get(ln)
+        if (not w or not w.get("k8s")) and name in NO_PUBLISHED_WINDOW:
+            say("INFO", f"{name} {ln}: {NO_PUBLISHED_WINDOW[name]}")
+            continue
         if not w or not w.get("k8s"):
             say(
                 "WARN",
-                f"{name} {ln}: no machine-read k8s window — read compat/{name}.md",
+                f"{name} {ln}: no machine-read k8s window — read compat/{compat_doc(name)}",
             )
             continue
         lo, hi = w["k8s"]
@@ -896,6 +917,11 @@ def cmd_check(a):
 
 
 def selfcheck():
+    for name in COMPONENTS:
+        assert (GEN.parent / compat_doc(name)).exists(), f"no compat doc for {name}"
+    assert set(NO_PUBLISHED_WINDOW) <= set(COMPONENTS), (
+        "NO_PUBLISHED_WINDOW names a removed component"
+    )
     assert vkey("v2.15.0-alpha1") < vkey("v2.15.2") < vkey("v2.15.99")
     assert vkey("v1.33.13+rke2r1") < vkey("v1.33.13+rke2r2") < vkey("v1.33.14+rke2r1")
     assert vkey("v1.37.0-rc1+rke2r1") < vkey("v1.37.0+rke2r1")

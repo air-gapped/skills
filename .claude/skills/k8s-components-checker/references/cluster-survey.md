@@ -116,6 +116,27 @@ Map chart-name → registry component:
 | `gpu-operator` | NVIDIA GPU Operator |
 | `gitlab` | GitLab |
 
+**Every release's own k8s gate — run this on every survey, not only for
+registry components.** Rancher Cluster Tools (rancher-monitoring,
+rancher-backup, rancher-logging and their `-crd` charts) carry their limit
+in the `catalog.cattle.io/kube-version` annotation. Plain charts use
+`kubeVersion:`. Neither shows in `helm list`. A Rancher annotation that
+excludes the target is a `✗ blocker`: Rancher marks the app unsupported even
+though plain `helm` installs it. On a lab cluster in October 2026 this caught
+rancher-monitoring and rancher-backup `< 1.36.0-0`. The registry tracks only
+rancher-logging.
+
+```bash
+helm list -A -o json | jq -r '.[] | "\(.namespace) \(.name)"' | while read ns n; do
+  s=$(kubectl -n "$ns" get secret -l owner=helm,name="$n",status=deployed -o name | head -1)
+  [ -n "$s" ] && kubectl -n "$ns" get "$s" -o jsonpath='{.data.release}' | base64 -d | base64 -d | gunzip \
+    | jq -r --arg n "$n" '"\($n)\t\(.chart.metadata.version)\tkubeVersion=\(.chart.metadata.kubeVersion // "-")\tcattle=\(.chart.metadata.annotations["catalog.cattle.io/kube-version"] // "-")"'
+done | column -t
+```
+
+Compare every non-`-` constraint against the target minor (`1.36` fails
+`< 1.36.0-0`).
+
 ### 2c. Pod-label fallback
 
 For components installed without Helm and without registered CRDs:
@@ -177,6 +198,16 @@ kubectl get --raw "/api/v1/namespaces/kube-system/${APISERVER_POD#pod/}/proxy/me
   prometheus scraping the apiserver's mTLS endpoint with a configured token).
 - On HA control planes (multiple apiservers), poll each pod; counters are
   per-process.
+- **Rancher-proxied kubeconfig** (server URL `.../k8s/clusters/<id>`): the
+  pod-proxy call fails with `Unauthorized` or `BadRequest`, even for
+  cluster-admin. Read the scraped series from the cluster's Prometheus or
+  VictoriaMetrics instead. A range query also survives apiserver restarts
+  inside the retention window:
+
+  ```promql
+  max by (group, version, resource, removed_release) (
+    max_over_time(apiserver_requested_deprecated_apis[30d]))
+  ```
 
 **Interpreting hits:** each line includes labels naming the deprecated
 `group/version/resource` and the `removed_release` minor:
