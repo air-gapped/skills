@@ -1,8 +1,8 @@
 # Backend notes
 
 What the backend does with OTLP decides how collector data looks there.
-Checked 2026-10 against VictoriaMetrics v1.153, VictoriaLogs v1.53,
-VictoriaTraces v0.12, contrib v0.162.0.
+Checked 2026-11 against VictoriaMetrics v1.156, VictoriaLogs v1.54,
+VictoriaTraces v0.13, contrib v0.165.1.
 
 ## VictoriaLogs
 
@@ -14,16 +14,19 @@ VictoriaTraces v0.12, contrib v0.162.0.
   `VL-Stream-Fields: k8s.namespace.name,k8s.pod.name,k8s.container.name`;
   otherwise per-pod/per-process resource attributes (`k8s.pod.uid`,
   `process.pid`) explode the stream count.
-- Message field: the OTLP body becomes `_msg`. Records with no body get
-  VictoriaLogs' placeholder text `missing _msg field; see …`.
-  `VL-Msg-Field` takes a **comma-separated list; the first non-empty field
-  wins** — `VL-Msg-Field: _msg,object.note` keeps pod-log bodies and gives
-  Kubernetes events (whose text is `object.note`) a message.
-- **List `_msg` first in `VL-Msg-Field`.** The rename does not remove the
-  body: with `VL-Msg-Field: message` and a non-empty body, the record holds
-  two `_msg` fields, and VictoriaLogs showed the raw body on 2 of 10 records
-  (v1.52, `syslog` receiver). To promote an attribute over a non-empty body,
-  move it into the body in the collector (`transform`) instead.
+- Message field: `VL-Msg-Field` takes a **comma-separated list; the first
+  non-empty field wins**. Records with no message get the placeholder text
+  `missing _msg field; see …`. Where the OTLP body goes changed in v1.54.0,
+  and the right header depends on the version — **check it before upgrading
+  VictoriaLogs**:
+
+  | VictoriaLogs | Body stored as | Pod logs + Kubernetes events (`object.note`) | Attribute over a non-empty body |
+  |---|---|---|---|
+  | < v1.54.0 | `_msg` | `VL-Msg-Field: _msg,object.note` | not possible: `VL-Msg-Field: message` gives two `_msg` fields and either may win; move the text into the body (`transform`) |
+  | ≥ v1.54.0 | `body` (`_msg` only via the header, default `body`) | `VL-Msg-Field: body,object.note` | `VL-Msg-Field: message,body` |
+
+  A `_msg,object.note` header kept across the upgrade to v1.54 leaves every
+  pod log without a message: `_msg` no longer exists at ingest.
 - `VL-Ignore-Fields` drops noisy fields (e.g. `log.file.path`).
 - Multi-tenancy by `AccountID`/`ProjectID` headers; default tenant `0:0`.
   Queries without the headers see only `0:0`.
@@ -45,7 +48,8 @@ VictoriaTraces v0.12, contrib v0.162.0.
 ## VictoriaTraces
 
 - `/insert/opentelemetry/v1/traces` on :10428 (HTTP); OTLP gRPC only with
-  `-otlpGRPCListenAddr=:4317`. Jaeger query API; 7-day default retention.
+  `-otlpGRPCListenAddr=:4317`, plaintext from v0.13 unless `-otlpGRPC.tls` is
+  set (the `otlp_grpc` exporter then needs `tls.insecure: true`). Jaeger query API; 7-day default retention.
 
 ## Grafana Mimir (remote write / OTLP)
 

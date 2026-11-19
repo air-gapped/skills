@@ -115,9 +115,15 @@ extensions:
   `min_size` 8192, `sizer` items/bytes, `partition.metadata_keys`). Several
   contrib exporters dropped their own `batcher` field for it.
 - Use one or the other, **never both** on a pipeline (double batching).
+  Since v0.165 the collector warns at startup when a pipeline has both; the
+  check does not look across connectors.
 - `queue_batch` (renamed from `queuebatch` in v0.162) can deadlock on
   partition eviction with `num_consumers: 1` and `metadata_keys` set (open
-  core issue #16076).
+  core issue #16076). Its queue and batch metrics are `otelcol_processor_*`
+  (v0.165), so alerts on `otelcol_exporter_queue_*` do not cover it.
+- Partitioned batching (`metadata_keys`) below v0.164 can mix tenants' data
+  on key collisions (GHSA-cx3c-rmcx-ff35): use ≥ v0.164 for multi-tenant
+  batching.
 - Batch after `memory_limiter` and after sampling/filtering — batching should
   happen after any drops.
 
@@ -125,14 +131,17 @@ extensions:
 
 - `memory_limiter` first in every pipeline. Above the soft limit
   (`limit_mib − spike_limit_mib`) it refuses data with retryable errors;
-  above the hard limit it also forces GC. Data is lost if the component
+  above the hard limit it also forces GC (`garbage_collector.enabled: false`
+  turns that off, v0.165+). Data is lost if the component
   before it cannot retry.
 - In containers use `limit_percentage` (e.g. 80) and `spike_limit_percentage`
   (e.g. 20–25), `check_interval: 1s`. RSS runs ~50 MiB above `limit_mib`.
 - Set `GOMEMLIMIT` to ~80 % of the container memory limit (Helm chart:
   `useGOMEMLIMIT: true`). The alpha `cgroup_runtime` extension sets it from
   cgroups with a 0.9 default ratio — that conflicts with the 80 % advice;
-  choose one.
+  choose one. The operator (≥ v0.161) stops injecting `GOMEMLIMIT` /
+  `GOMAXPROCS` when the config enables `cgroup_runtime`; the Helm chart does
+  not.
 - A `memory_limiter` *extension* (beta, usable as HTTP/gRPC middleware)
   exists and may eventually replace the processor.
 - No official CPU/memory-per-throughput table exists; measure.

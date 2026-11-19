@@ -1,13 +1,13 @@
 # Collector on Kubernetes
 
-Checked against Helm chart `opentelemetry-collector` 0.175.0 (appVersion
-0.161.0), operator v0.160.0, contrib v0.162.0, 2026-10.
+Checked against Helm chart `opentelemetry-collector` 0.180.0 (default image
+v0.163.2), operator v0.163.0, contrib v0.165.1, 2026-11.
 
 ## Contents
 - Helm chart or operator
 - Chart presets
 - Chart gotchas
-- Chart upgrade notes (0.157 → 0.175)
+- Chart upgrade notes (0.157 → 0.180)
 - k8s_attributes
 - file_log for pod logs
 - Cluster-wide receivers and leader election
@@ -85,14 +85,15 @@ receiver next to a preset — the preset already renders it.
   `useGOMEMLIMIT: true`.
 - The chart runs as root only when `storeCheckpoints` is on and
   `securityContext` is empty.
-- A node whose name is all digits fails (`host.name must be string`,
-  helm#2250); null `host.name` and `k8s.node.name` in the resource config.
+- Below chart 0.178.0 a node whose name is all digits fails
+  (`host.name must be string`, helm#2250); upgrade, or null `host.name` and
+  `k8s.node.name` in the resource config.
 - `rewriteDeprecatedComponentNames: true` (default) rewrites old component
   names; set `false` with images older than the renames.
 - `extraEnvs`/`extraEnvsFrom` are templated since 0.171.1 — escape literal
   `{{ }}`.
 
-## Chart upgrade notes (0.157 → 0.175)
+## Chart upgrade notes (0.157 → 0.180)
 
 | Chart | Change |
 |---|---|
@@ -103,6 +104,9 @@ receiver next to a preset — the preset already renders it.
 | 0.170.0 | `kubernetesEvents.useK8sEventsReceiver` added (default false, will flip) |
 | 0.171.0 | exporters `otlp_grpc` / `otlp_http` (collector ≥ 0.144) |
 | 0.174.0 | appVersion 0.161.0 |
+| 0.178.0 | resource attributes move to `telemetry.resourceAttributes.{default,extra}`; a map under `config.service.telemetry.resource` still works but is deprecated. Turn a default off with `enabled: false` |
+| 0.179.0 | `kubernetesAttributes` preset extracts `container.image.tags` (a list) instead of `container.image.tag`: needs collector ≥ 0.152 with `EmitV1K8sConventions` (default from 0.161); update queries |
+| 0.180.0 | `rewriteDeprecatedComponentNames` also renames `hostmetrics` → `host_metrics`: set it `false` on images older than v0.151.0. `presets.hostMetrics.hardenedMode` mounts only /proc and /sys and disables the filesystem scraper |
 
 ## k8s_attributes
 

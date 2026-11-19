@@ -1,8 +1,8 @@
 # Security, supply chain, upgrades
 
-Checked 2026-10-04: GitHub security advisories for collector, contrib,
+Checked 2026-11-19: GitHub security advisories for collector, contrib,
 releases, operator and helm-charts; opentelemetry.io security docs; releases
-repo at v0.162.0.
+repo at v0.165.0.
 
 ## Contents
 - Advisories and upgrade floors
@@ -12,7 +12,7 @@ repo at v0.162.0.
 - Upgrade procedure
 - Air-gapped sites
 
-## Advisories and upgrade floors (2025-01 → 2026-10)
+## Advisories and upgrade floors (2025-01 → 2026-11)
 
 | Advisory | Component | Severity | Fixed in |
 |---|---|---|---|
@@ -22,9 +22,15 @@ repo at v0.162.0.
 | GHSA-4jvg-4jfx-fmhc / CVE-2026-47256 | `sentry` exporter path traversal | medium | contrib 0.154.0 |
 | GHSA-w5cv-pw74-4rxc / CVE-2026-55701 | `github` receiver ignores `required_headers` | medium | contrib 0.151.0 |
 | GHSA-cxh2-4639-vmc5 / CVE-2026-47701 | operator Target Allocator reads arbitrary files via ServiceMonitor `bearerTokenFile` | high | operator 0.152.0 |
+| GHSA-vf52-ppm4-c35w | core `confighttp` / `configgrpc`: unbounded zstd window, remote memory-exhaustion DoS on any OTLP receiver | high | collector v0.165.0 (config modules 1.71.0) |
+| GHSA-p4gc-7pgp-f452 | operator: `k8s_cluster` receiver in an `OpenTelemetryCollector` gives a namespace user cluster-wide read via the generated ClusterRole | high | operator 0.152.0 |
+| GHSA-cx3c-rmcx-ff35 | core `exporterhelper` partitioned batching mixes tenants' data on metadata key collisions (≥ 0.147) | medium | collector v0.164.0 |
+| GHSA-xcv6-86p2-hfq3 | core `configtls` keeps trusting a removed client CA after the file is recreated | medium | collector v0.158.0 (configtls 1.64.0) |
+| GHSA-6qvg-78vr-vgm7 | `yang_grpc` receiver allowlist and rate limit bypassed for streaming RPCs | medium | contrib 0.163.0 |
+| GHSA-xpvr-wrwx-rm99 | `oidc` extension `public_keys_file` symlink rotation leaves revoked keys valid until restart | medium | contrib 0.160.0 |
 
-Floors: **contrib ≥ 0.155.0**, **operator ≥ 0.152.0**. No 2025–2026
-advisories for core, the releases repo or the Helm charts. Security fixes are
+Floors: **collector and contrib ≥ 0.165.0** (zstd DoS), **operator ≥
+0.152.0**. No advisories for the releases repo or the Helm charts. Security fixes are
 promised within 30 days of disclosure (5 business days for CVSS ≥ 9.0).
 
 ## Hardening

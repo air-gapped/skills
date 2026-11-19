@@ -1,6 +1,6 @@
 # Components: names, removals, stability, distributions
 
-Checked against core and contrib v0.162.0. A component's name, stability and
+Checked against core v0.165.0 and contrib v0.165.1. A component's name, stability and
 presence in a distribution change between releases — re-check on the version
 you run (`otelcol components` lists what a binary contains).
 
@@ -26,6 +26,7 @@ name fails to start the collector — so match names to the version.
 | v0.155–v0.162 | `cumulativetodelta` → `cumulative_to_delta`, `deltatocumulative` → `delta_to_cumulative`, `deltatorate`, `sqlquery`, `azuremonitor`, `windowsperfcounters`, `icmpcheckreceiver` → `icmp_check`, `awss3`, `grafanacloud` |
 | version not recorded | `logdedup` → `log_dedup` |
 | core v0.162 | processor `queuebatch` → `queue_batch` (**breaking**, no alias noted) |
+| v0.163–v0.164 | `sqlserver` → `sql_server`, extension `googleclientauth` → `google_client_auth` (aliases kept) |
 
 - Unchanged names: `otlp` (receiver), `transform`, `filter`, `attributes`,
   `prometheus`, `kafka`, `syslog`, `zipkin`, `journald`, `tail_sampling`,
@@ -48,11 +49,11 @@ name fails to start the collector — so match names to the version.
 | JMX receiver | removed | v0.157 | — |
 | `kafkatopics_observer` | removed | v0.159 | `kafka` receiver |
 | `mezmo` exporter, `wavefront` receiver | removed | v0.161, v0.162 | — |
-| `signalfx` receiver | deprecated | v0.146 | OTLP receiver |
+| `signalfx` receiver | removed | v0.165 (deprecated v0.146) | OTLP receiver |
 | `resource_detection` detector `k8snode` | deprecated | v0.154 | `k8s_api` |
 | Jaeger exporter | removed (earlier) | — | Jaeger accepts OTLP |
 
-## Stability levels (v0.162.0)
+## Stability levels (v0.165)
 
 Alpha and development components may change config or behaviour in any minor
 release; prefer stable/beta in production paths.
@@ -64,9 +65,11 @@ release; prefer stable/beta in production paths.
 | `prometheus` receiver, `prometheus` and `prometheus_remote_write` exporters | beta |
 | `file_log`, `k8s_objects`, `file_storage` | beta |
 | `batch`, `memory_limiter` processors | beta (not deprecated) |
+| `queue_batch` processor | beta (v0.165) |
 | `transform` | beta; `filter` alpha (traces/metrics/logs) |
 | `clickhouse` exporter | beta traces/logs, alpha metrics |
-| `elasticsearch` exporter | beta traces/logs, development metrics |
+| `elasticsearch` exporter | beta traces/logs/metrics (metrics beta since v0.164) |
+| `adaptive_tail_sampling` | alpha, in contrib since v0.163 |
 | `tail_sampling`, `probabilistic_sampler` (traces), `cumulative_to_delta`, `resource_detection`, `redaction` (traces) | beta |
 | `routing` connector, `span_metrics`, `service_graph`, `delta_to_cumulative`, `log_dedup`, `journald`, `syslog`/`awss3` exporters, `k8s_events`, `k8s_leader_elector`, `tlscheck`, `systemd`, OpAMP supervisor/extension | alpha |
 | `chrony` receiver | beta |

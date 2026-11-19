@@ -36,8 +36,8 @@ Checked against contrib v0.162.0 component READMEs and pkg/ottl docs,
   `ParseELF`, `ParseLEEF`. JSON body pattern:
   `merge_maps(log.cache, ParseJSON(log.body), "upsert") where IsMatch(log.body, "^\\{")`.
 - Performance: transform is stateless and scales horizontally; use `where`
-  and `conditions`; `flatten_data` copies resource and scope per record and is
-  costly.
+  and `conditions`; `flatten: {log: true}` copies resource and scope per
+  record and is costly (`flatten_data` was removed in v0.165).
 - `filter` (alpha): conditions are ORed; a match **drops**. A `metric.*`
   condition drops the whole metric; a `datapoint.*` condition drops matching
   points (the metric goes when none remain). Dropping all span events keeps
@@ -117,7 +117,16 @@ Checked against contrib v0.162.0 component READMEs and pkg/ottl docs,
   `prometheus` exporter ignores `add_metric_suffixes` since v0.154.
   `resource_to_telemetry_conversion` is deprecated (v0.160) for
   `resource_constant_labels`. `PermissiveLabelSanitization` is on by default
-  since v0.162 (opt out: `--feature-gates=-pkg.translator.prometheus.PermissiveLabelSanitization`).
+  since v0.162 and cannot be turned off from v0.164: remove
+  `-pkg.translator.prometheus.PermissiveLabelSanitization` from
+  `--feature-gates`, or the collector fails to start.
+- Removed feature gates fail startup when still named in `--feature-gates`:
+  check the list on every upgrade (v0.164 removed `ottl.set.allowNil` and
+  `processor.filter.defaultErrorModeIgnore`; their behaviour is now
+  permanent).
+- From v0.165 the `prometheus` receiver keeps `__scheme__` and
+  `__metrics_path__` as datapoint attributes: new labels on every scraped
+  series.
   The remote-write exporter/receiver need Prometheus ≥ 3.8.0 (RW 2.0 rc.4).
 - Naming: unit `By` → `_bytes`, `{packets}` dropped, gauge with unit `1` →
   `_ratio`, monotonic sums get `_total`.

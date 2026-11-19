@@ -23,8 +23,8 @@ memory is often written for a collector that no longer exists. This skill
 carries what changed, the defaults that silently lose or duplicate data, and
 a working order for writing and verifying a config.
 
-Facts here were checked against collector v0.162.0 (2026-09-29) and Helm
-chart 0.175.0 (2026-10-01). For anything version-bound, check the installed
+Facts here were checked against collector v0.165.0 (contrib v0.165.1,
+2026-11-09) and Helm chart 0.180.0 (2026-11-18). For anything version-bound, check the installed
 version first and the release notes of every hop since; see
 `references/sources.md` for where each fact came from.
 
