@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-19",
+  "content_hash": "1dc93266ebf2e647",
+  "cases": [
+    "00-gha-nightly-three-target-matrix"
+  ],
+  "runs_per_case": 3,
+  "model": "sonnet",
+  "with_skill": 0.9444,
+  "without_skill": 0.4444
+}
