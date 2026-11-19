@@ -68,6 +68,9 @@ repos:
         entry: bash scripts/prose-reminder.sh
         language: system
         pass_filenames: false
+        # pre-commit hides the output of a hook that passes; this one always
+        # passes, so without verbose its text is never printed.
+        verbose: true
         # Counts added lines and asks the question; never blocks, never tries to
         # decide which lines are bad. A signature list only catches shapes
         # someone already noticed, and the author is reading the diff anyway --
