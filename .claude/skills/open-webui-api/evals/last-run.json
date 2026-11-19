@@ -1,6 +1,6 @@
 {
   "date": "2026-11-20",
-  "content_hash": "304d4950b76f01a0",
+  "content_hash": "622703e7126a2452",
   "cases": [
     "02-config-as-code"
   ],
@@ -10,7 +10,7 @@
     "claude-sonnet-5-5"
   ],
   "judge_model": "haiku",
-  "with_skill": 0.7619,
+  "with_skill": 0.8571,
   "without_skill": 0.5714,
   "without_from": "stored",
   "baselines": {

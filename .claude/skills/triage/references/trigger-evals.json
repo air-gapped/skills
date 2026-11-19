@@ -36,7 +36,7 @@
     "bucket": "contextual"
   },
   {
-    "query": "Here is a SARIF file from CodeQL with 140 results for our payments service. I have two engineers for one sprint. Which ones should they fix?",
+    "query": "results.sarif in this repo has 140 CodeQL results for our payments service. I have two engineers for one sprint. Which ones should they fix?",
     "should_trigger": true,
     "source": "generic",
     "bucket": "contextual"
