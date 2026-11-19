@@ -82,6 +82,13 @@ repos:
         language: system
         files: ^\.claude/skills/.+/references/improvement-backlog\.md$
         stages: [pre-commit]
+      - id: narration-gate
+        name: narration gate (skill text states what to do, not how it was checked)
+        entry: python3 scripts/narration-gate.py
+        language: system
+        pass_filenames: false
+        files: ^\.claude/skills/.+\.md$
+        stages: [pre-commit]
       - id: readme-skills-table
         name: README skill table in sync
         entry: python3 scripts/gen-skills-table.py
