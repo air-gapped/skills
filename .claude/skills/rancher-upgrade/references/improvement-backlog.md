@@ -163,16 +163,6 @@ changes that actually landed.
   in this file record both as non-events on the operator's own clusters, so there is no observed
   failure to write up. Needs either a field occurrence or the author's own procedure.
 
-## Unblocked — actionable
-
-- **Dim 10 hard cap at 8 — the skill has never been measured against a no-skill baseline.**
-  (new 2026-07-25) The Negative-Transfer Gate caps Dim 10 at 8 while `delta_pass_rate` is
-  unmeasured, and it is currently the single binding constraint on the total. Not applicable in one
-  iteration: needs an author-written `evals/evals.json` (realistic upgrade-planning prompts with
-  assertions), then `python -m scripts.aggregate_benchmark` from the official skill-creator plugin.
-  Worth ~+2 if the delta is positive — and a genuine finding either way, given SkillLens measured
-  25% of skills as net-harmful.
-
 ## Resolved — 2026-07-25 (improve + freshen · blind 76 → 84 → re-scored after 2 further fixes · 14 iterations, 0 discards)
 
 **Improve (defects the blind baseline caught that the self-score missed):**
