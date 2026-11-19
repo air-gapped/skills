@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-20",
+  "content_hash": "ab75d169cfbb0bd3",
+  "cases": [
+    "03-trigger-fix-empirically"
+  ],
+  "runs_per_case": 3,
+  "model": "sonnet",
+  "models_resolved": [
+    "claude-sonnet-5-5"
+  ],
+  "judge_model": "haiku",
+  "with_skill": 1.0,
+  "without_skill": 0.6,
+  "without_from": "this run",
+  "baselines": {
+    "03-trigger-fix-empirically": {
+      "score": 0.6,
+      "id": "a97f1a58c11b",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    }
+  }
+}

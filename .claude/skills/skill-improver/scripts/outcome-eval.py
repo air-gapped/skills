@@ -15,7 +15,7 @@ measurement is about the skill's content, not its triggering (trigger mode
 measures that). `--natural` drops the line.
 
     outcome-eval.py <skill-dir> [--against REF|DIR] [--runs 3] [--case GLOB]
-        [--model sonnet] [--judge-model sonnet] [--max-cost-usd 20]
+        [--model sonnet] [--judge-model haiku] [--with-only] [--max-cost-usd 20]
         [--write-benchmark] [--natural]
     outcome-eval.py --selfcheck
 
@@ -33,6 +33,7 @@ Dim 10 gate.
 
 import argparse
 import fnmatch
+import hashlib
 import json
 import shutil
 import statistics as st
@@ -214,9 +215,37 @@ def usage_text(tokens: dict, windows: list, missing: int) -> str:
     return "\n".join(lines)
 
 
-def weak_cases(result: dict, evals: list, floor: float = 0.7) -> list[str]:
+def case_key(e: dict) -> str:
+    return f"{e['id']:02d}-{e['name']}"
+
+
+def baseline_id(e: dict, model: str, judge: str) -> str:
+    """Changes whenever a stored without-skill score for this case stops being
+    comparable: the case text, the answering model or the judge changed."""
+    blob = json.dumps([e, model, judge], sort_keys=True)
+    return hashlib.sha256(blob.encode()).hexdigest()[:12]
+
+
+def stored_baselines(
+    stamp: dict, evals: list, model: str, judge: str
+) -> tuple[dict, list]:
+    """({case: stored entry}, [cases with no usable stored score])."""
+    have, missing = {}, []
+    for e in evals:
+        b = (stamp.get("baselines") or {}).get(case_key(e))
+        if b and b.get("id") == baseline_id(e, model, judge):
+            have[case_key(e)] = b
+        else:
+            missing.append(case_key(e))
+    return have, missing
+
+
+def weak_cases(
+    result: dict, evals: list, floor: float = 0.7, stored: dict | None = None
+) -> list[str]:
     """Cases where the skill loses to the without arm or scores under `floor`,
-    with each failing assertion and how many runs failed it."""
+    with each failing assertion and how many runs failed it. `stored` supplies
+    without-skill scores when this run had no without arm."""
     texts = {f"{e['id']:02d}-{e['name']}": e["assertions"] for e in evals}
     out = []
     for c in result["cases"]:
@@ -230,6 +259,8 @@ def weak_cases(result: dict, evals: list, floor: float = 0.7) -> list[str]:
             return st.mean(sc) if sc else None
 
         w, wo = mean("with"), mean("without")
+        if wo is None and stored and c["name"] in stored:
+            wo = stored[c["name"]]["score"]
         if w is None or not (w < floor or (wo is not None and w < wo)):
             continue
         fails: dict = {}
@@ -430,6 +461,21 @@ def selfcheck() -> int:
         and "not comparable" in text
         and "1 run log(s) missing" in text
     ), text
+    # A stored without-skill score is reused only for the same case text, model
+    # and judge; a reworded case or another judge must be measured again.
+    e1, e2 = (
+        {"id": 1, "name": "a", "prompt": "p"},
+        {"id": 2, "name": "b", "prompt": "q"},
+    )
+    stamp = {
+        "baselines": {"01-a": {"score": 0.5, "id": baseline_id(e1, "sonnet", "haiku")}}
+    }
+    have, missing = stored_baselines(stamp, [e1, e2], "sonnet", "haiku")
+    assert list(have) == ["01-a"] and missing == ["02-b"], (have, missing)
+    assert stored_baselines(stamp, [e1], "sonnet", "sonnet")[1] == ["01-a"]
+    assert stored_baselines(stamp, [dict(e1, prompt="x")], "sonnet", "haiku")[1] == [
+        "01-a"
+    ]
     print("selfcheck: all assertions passed")
     return 0
 
@@ -441,7 +487,14 @@ def main() -> int:
     ap.add_argument("--runs", type=int, default=3)
     ap.add_argument("--case", help="comma-separated globs over NN-name, e.g. 03-*,06-*")
     ap.add_argument("--model", default="sonnet")
-    ap.add_argument("--judge-model", default="sonnet")
+    ap.add_argument("--judge-model", default="haiku")
+    ap.add_argument(
+        "--with-only",
+        action="store_true",
+        help="Run only the with-skill arm and compare with the without-skill "
+        "scores stored in evals/last-run.json. Refused when a selected case has "
+        "no stored score for this model, judge and case text.",
+    )
     ap.add_argument("--max-cost-usd", type=float, default=20)
     ap.add_argument("-j", "--jobs", type=int, default=4)
     ap.add_argument("--natural", action="store_true")
@@ -466,15 +519,36 @@ def main() -> int:
         ]
         if not evals:
             ap.error(f"--case {a.case!r} matches no case in evals.json")
+    stamp_path = skill / "evals" / "last-run.json"
+    try:
+        stamp = json.loads(stamp_path.read_text())
+    except (OSError, ValueError):
+        stamp = {}
+    stored: dict = {}
+    if a.with_only and (a.write_benchmark or a.against):
+        ap.error("--with-only measures one arm; drop --write-benchmark and --against")
+    if a.with_only:
+        stored, missing = stored_baselines(stamp, evals, a.model, a.judge_model)
+        if missing:
+            ap.error(
+                "--with-only: no stored without-skill score for "
+                + ", ".join(missing)
+                + f" (model {a.model}, judge {a.judge_model}). Run these cases "
+                "once without --with-only."
+            )
     work = Path(tempfile.mkdtemp(prefix=f"outcome-eval-{name}-results."))
     main_res = run(
         build_plugin(skill, evals, name, a.natural),
         work / "current.json",
         a,
-        "with-without",
+        "none" if a.with_only else "with-without",
     )
+    if a.with_only:
+        without = {k: [(b["score"], 0.0, False)] for k, b in stored.items()}
+    else:
+        without = run_scores(main_res, "without")
     cols = {
-        "without": run_scores(main_res, "without"),
+        "stored" if a.with_only else "without": without,
         "current": run_scores(main_res, "with"),
     }
     cost = main_res["costUsd"]
@@ -510,14 +584,35 @@ def main() -> int:
         results.append(ref_res)
         cost += ref_res["costUsd"]
     text, means = summarize(cols)
+    means["without"] = means.pop("stored") if a.with_only else means["without"]
     print(text)
-    weak = weak_cases(main_res, evals)
+    weak = weak_cases(main_res, evals, stored=stored)
     if weak:
         print(f"\nweak cases (answers and grader evidence: {work}/current.json):")
         print("\n".join(weak))
     print(f"API-price estimate ${cost:.2f}; raw results in {work}")
     usage = run_usage(results)
     print(usage_text(*usage))
+    resolved = sorted(usage[0])
+    baselines = dict(stamp.get("baselines") or {})
+    if a.with_only:
+        were = sorted({m for b in stored.values() for m in b.get("models", [])})
+        if were and were != resolved:
+            print(
+                f"warning: stored without-skill scores were measured on {were}, this "
+                f"run answered on {resolved}. Run once without --with-only before "
+                "trusting the comparison."
+            )
+    else:
+        for e in evals:
+            sc = [s for s, _, _ in without.get(case_key(e), []) if s is not None]
+            if sc:
+                baselines[case_key(e)] = {
+                    "score": round(st.mean(sc), 4),
+                    "id": baseline_id(e, a.model, a.judge_model),
+                    "models": resolved,
+                    "date": date.today().isoformat(),
+                }
     if means["current"] is not None and means["without"] is not None:
         # Every measured run leaves a stamp tied to the content it ran against,
         # so a later check can tell whether the skill changed since.
@@ -526,11 +621,15 @@ def main() -> int:
                 {
                     "date": date.today().isoformat(),
                     "content_hash": content_hash(skill),
-                    "cases": [f"{e['id']:02d}-{e['name']}" for e in evals],
+                    "cases": [case_key(e) for e in evals],
                     "runs_per_case": a.runs,
                     "model": a.model,
+                    "models_resolved": resolved,
+                    "judge_model": a.judge_model,
                     "with_skill": round(means["current"], 4),
                     "without_skill": round(means["without"], 4),
+                    "without_from": "stored" if a.with_only else "this run",
+                    "baselines": baselines,
                 },
                 indent=2,
             )

@@ -1,12 +1,26 @@
 {
-  "date": "2026-11-19",
+  "date": "2026-11-20",
   "content_hash": "304d4950b76f01a0",
   "cases": [
-    "05-analytics-token-401",
-    "06-okta-automation-credential-model"
+    "02-config-as-code"
   ],
   "runs_per_case": 3,
   "model": "sonnet",
-  "with_skill": 0.7778,
-  "without_skill": 0.5278
+  "models_resolved": [
+    "claude-sonnet-5-5"
+  ],
+  "judge_model": "haiku",
+  "with_skill": 0.7619,
+  "without_skill": 0.5714,
+  "without_from": "stored",
+  "baselines": {
+    "02-config-as-code": {
+      "score": 0.5714,
+      "id": "596471cb008a",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    }
+  }
 }

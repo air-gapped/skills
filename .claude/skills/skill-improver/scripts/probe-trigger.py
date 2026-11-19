@@ -443,19 +443,18 @@ def stratified_split(
     return train, test
 
 
-def score_set(
+def collect_runs(
     items: list[dict],
     skill_name: str,
     description: str,
     runs_per_query: int,
-    trigger_threshold: float,
     timeout: int,
     num_workers: int,
     model: str | None,
-) -> dict:
-    # Per query: list of (triggered, timed_out, usage) tuples, one per run.
+) -> dict[str, list[tuple[bool, bool, dict]]]:
+    """Probe each query `runs_per_query` times. Per query: a list of
+    (triggered, unmeasured, usage) tuples, one per run."""
     runs_by_query: dict[str, list[tuple[bool, bool, dict]]] = {}
-    by_query: dict[str, dict] = {}
     with ProcessPoolExecutor(max_workers=num_workers) as ex:
         futs = {}
         for item in items:
@@ -470,9 +469,7 @@ def score_set(
                 )
                 futs[fut] = item
         for fut in as_completed(futs):
-            item = futs[fut]
-            q = item["query"]
-            by_query[q] = item
+            q = futs[fut]["query"]
             runs_by_query.setdefault(q, [])
             try:
                 runs_by_query[q].append(fut.result())
@@ -481,6 +478,49 @@ def score_set(
                 # (timed_out=True) rather than a confident non-trigger.
                 print(f"warn: query failed: {e}", file=sys.stderr)
                 runs_by_query[q].append((False, True, {"error": str(e)[:200]}))
+    return runs_by_query
+
+
+def undecided(runs_by_query: dict, min_runs: int) -> list[str]:
+    """Queries a first look did not settle: the measured runs disagree, or
+    fewer than `min_runs` of them were measured."""
+    out = []
+    for q, runs in runs_by_query.items():
+        hits = [t for t, unmeasured, _ in runs if not unmeasured]
+        if len(hits) < min_runs or len(set(hits)) > 1:
+            out.append(q)
+    return out
+
+
+def score_set(
+    items: list[dict],
+    skill_name: str,
+    description: str,
+    runs_per_query: int,
+    trigger_threshold: float,
+    timeout: int,
+    num_workers: int,
+    model: str | None,
+    first_look: int = 0,
+) -> dict:
+    """`first_look` > 0: probe every query that many times, then give only the
+    undecided ones the remaining runs up to `runs_per_query`."""
+    by_query = {item["query"]: item for item in items}
+    args = (skill_name, description)
+    if 0 < first_look < runs_per_query:
+        runs_by_query = collect_runs(
+            items, *args, first_look, timeout, num_workers, model
+        )
+        again = [by_query[q] for q in undecided(runs_by_query, first_look)]
+        more = collect_runs(
+            again, *args, runs_per_query - first_look, timeout, num_workers, model
+        )
+        for q, runs in more.items():
+            runs_by_query[q].extend(runs)
+    else:
+        runs_by_query = collect_runs(
+            items, *args, runs_per_query, timeout, num_workers, model
+        )
 
     results = []
     total_timeouts = 0
@@ -713,6 +753,17 @@ def selfcheck() -> int:
     assert charge_budget(ledger, "2026-01-01", 200, 300) == (False, 200)
     assert charge_budget(ledger, "2026-01-01", 100, 300) == (True, 200)
     assert charge_budget(ledger, "2026-01-02", 300, 300) == (True, 0)
+    assert charge_budget(ledger, "2026-01-02", -100, 300) == (True, 300)  # refund
+
+    # A first look settles a query only when every measured run agrees.
+    yes, no, lost = (True, False, {}), (False, False, {}), (False, True, {"error": "x"})
+    looked = {
+        "all": [yes] * 3,
+        "none": [no] * 3,
+        "split": [yes, no, no],
+        "short": [yes, yes, lost],
+    }
+    assert undecided(looked, 3) == ["split", "short"], undecided(looked, 3)
     print("selfcheck: all assertions passed")
     return 0
 
@@ -729,6 +780,14 @@ def main():
         help="Override description (defaults to SKILL.md frontmatter)",
     )
     p.add_argument("--runs-per-query", type=int, default=7)
+    p.add_argument(
+        "--first-look",
+        type=int,
+        default=3,
+        help="Probe every query this many times first; only queries whose runs "
+        "disagree get the rest up to --runs-per-query (default: 3). 0 gives every "
+        "query the full count.",
+    )
     p.add_argument("--trigger-threshold", type=float, default=0.5)
     p.add_argument(
         "--timeout",
@@ -782,9 +841,10 @@ def main():
         train, test = items, []
 
     planned = len(items) * args.runs_per_query
+    ledger, today = ledger_dir() / f"{name}.json", time.strftime("%Y-%m-%d")
     allowed, used = charge_budget(
-        ledger_dir() / f"{name}.json",
-        time.strftime("%Y-%m-%d"),
+        ledger,
+        today,
         planned,
         args.max_calls_per_day,
     )
@@ -813,6 +873,7 @@ def main():
         args.timeout,
         args.num_workers,
         args.model,
+        args.first_look,
     )
     test_out = (
         score_set(
@@ -824,10 +885,15 @@ def main():
             args.timeout,
             args.num_workers,
             args.model,
+            args.first_look,
         )
         if test
         else None
     )
+    # The budget was charged for the most this run could use; put back what the
+    # first look saved.
+    actual = sum(o["summary"]["usage"]["calls"] for o in (train_out, test_out) if o)
+    charge_budget(ledger, today, actual - planned, args.max_calls_per_day)
 
     output = {
         "skill_name": name,

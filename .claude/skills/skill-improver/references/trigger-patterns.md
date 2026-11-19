@@ -220,6 +220,7 @@ Before saving, each class must have ≥3. If user-reported failures are all shou
 | Knob | Default | When to change |
 |---|---|---|
 | `--runs-per-query` | 7 | 7 is the decision floor (§Pattern T4 noise rule). Lower only for a throwaway first sighting-pass. |
+| `--first-look` | 3 | Every query gets 3 runs; only a query whose runs disagree gets the rest up to `--runs-per-query`. A query that fires 3 of 3 or 0 of 3 is settled. Set 0 to give every query the full count. |
 | `--trigger-threshold` | 0.5 | 0.34 counts any single trigger (lenient); 0.67 requires strong consistency. |
 | `--num-workers` | 6 | Lower on rate limits; each worker spawns a `claude -p` subprocess. |
 | `--timeout` | 180 (s) | Only caps a hung call; a high value has no downside. Timed-out runs surface as a `warn:` line; an all-positives-0.0 result emits a "probe isn't measuring" warning. Lower only if calls are reliably fast. |

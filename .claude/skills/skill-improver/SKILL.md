@@ -208,7 +208,9 @@ It converts `<skill>/evals/evals.json` into `claude plugin eval` cases (one
 grader per assertion), runs each with and without the skill, and with
 `--against` the other version too. Prompts force invocation, so the number is
 about content; trigger mode measures triggering. Defaults: 3 runs, Sonnet,
-Sonnet judge, \$20 cap.
+Haiku judge, \$20 cap. After an edit, re-check with `--with-only`: it runs only
+the with-skill arm and compares with the without-skill scores stored in
+`evals/last-run.json`, and refuses when a case has none for this model and judge.
 
 - **Price it first:** \$0.10–0.30 per with-skill run and \$0.05–0.20 per without,
   times cases × runs × arms. The run ends by printing the tokens it used and,
