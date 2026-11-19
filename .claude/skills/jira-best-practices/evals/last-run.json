@@ -1,0 +1,89 @@
+{
+  "date": "2026-11-20",
+  "content_hash": "fa812d5747a3adc1",
+  "cases": [
+    "00-build-dc-migration-issue-set",
+    "01-diagnose-reports-count-reopened-as-resolved",
+    "02-decide-ops-team-hierarchy-feature-level",
+    "03-guard-translate-german-statuses",
+    "04-diagnose-epic-children-missing-from-roadmap",
+    "05-build-lean-create-screen-for-it-requests",
+    "06-guard-automation-to-fix-stale-reports",
+    "07-decide-epic-vs-component-for-recurring-security"
+  ],
+  "runs_per_case": 3,
+  "model": "sonnet",
+  "models_resolved": [
+    "claude-sonnet-5-5"
+  ],
+  "judge_model": "haiku",
+  "with_skill": 0.9264,
+  "without_skill": 0.7083,
+  "without_from": "this run",
+  "baselines": {
+    "00-build-dc-migration-issue-set": {
+      "score": 0.3333,
+      "id": "c88ee787adc6",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "01-diagnose-reports-count-reopened-as-resolved": {
+      "score": 0.9333,
+      "id": "555721a65596",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "02-decide-ops-team-hierarchy-feature-level": {
+      "score": 0.7333,
+      "id": "4d2f2c540de2",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "03-guard-translate-german-statuses": {
+      "score": 0.2667,
+      "id": "3c04f7942604",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "04-diagnose-epic-children-missing-from-roadmap": {
+      "score": 1.0,
+      "id": "2a4f89f80748",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "05-build-lean-create-screen-for-it-requests": {
+      "score": 0.8667,
+      "id": "885a3da59f66",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "06-guard-automation-to-fix-stale-reports": {
+      "score": 0.5333,
+      "id": "8f610d7702ef",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "07-decide-epic-vs-component-for-recurring-security": {
+      "score": 1.0,
+      "id": "d3316976a304",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    }
+  }
+}

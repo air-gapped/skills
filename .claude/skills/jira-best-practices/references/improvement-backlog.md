@@ -18,10 +18,6 @@ Cosmetic-only notes (NOT attempted-and-blocked — future-cosmetic, content is c
 - `hierarchy.md` (exactly 100 lines, at the rubric's >100-line TOC threshold) has no in-file TOC. Add one if it grows past 100 lines.
 - `sources.md` and `work-modeling.md` cite `autoresearch/results/...` provenance paths that exist only in the authoring repo (final 2026-08-18 blind docked Dim 8 for it). Harmless pointer on other installs; convert to plain-text provenance notes if it ever bites.
 
-## Unblocked — actionable
-
-- **Dim 10 unmeasured cap (both 2026-08-18 blind scorers' #1 finding).** No `evals/evals.json`, no `benchmark.json` → Negative-Transfer Gate caps Dim 10 at 8. Blocked in-loop: building an outcome eval set + running the skill-creator with/without benchmark is multi-file work plus external runs. Action: author `evals/evals.json` (task-outcome assertions, not trigger cases — `trigger-evals.json` covers triggering only), then measure `delta_pass_rate`.
-
 ## Resolved this pass — 2026-08-18 (`/skill-improver improve, freshen`)
 
 - **Freshen (F0–F6, ~13 probes, 0 unverifiable):** DC state re-stamped to 2026-08 (11.3.10 latest, 11.3 still the newest line, 10.3→2026-12-05); mcp-atlassian ~72→~98 tools at v0.23.0; in-scope new-feature note for `jira_get_project_epic_hierarchy` + `jira_get_cross_project_dependencies` (#1286). Re-affirmed fresh: JPOSERVER-4430 (still Closed/Not-a-bug via public REST), `jira_batch_create_issues` epic-link silent-drop (schema on main unchanged post-v0.23.0), DC EOL milestones, docs URL. 7 sources.md rows stamped 2026-08-18.

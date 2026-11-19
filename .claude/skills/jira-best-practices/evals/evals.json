@@ -1,0 +1,139 @@
+{
+  "skill_name": "jira-best-practices",
+  "schema_version": 2,
+  "provenance": {
+    "created": "2026-11-20",
+    "grown": "opus via grow-evals.py 2026-11-20 (+8 to 8)"
+  },
+  "evals": [
+    {
+      "id": 0,
+      "name": "build-dc-migration-issue-set",
+      "prompt": "We're on Jira Data Center 11.3.8, project key NETOPS (Kanban, no sprints, issue types: Epic, Task, Sub-task, Bug). Over the next ~8 weeks we must move 42 Linux hosts from RHEL 8 to RHEL 9. Context we already have from a pre-assessment spreadsheet: 6 hosts run the legacy Oracle 19c client that isn't certified on RHEL 9 yet (vendor answer pending); all 42 depend on a new Satellite content view for RHEL 9 that doesn't exist yet; 30 hosts are stateless web/app nodes spread across 3 datacenters (DC-A 12, DC-B 10, DC-C 8); 6 are clustered PostgreSQL nodes (2 clusters of 3); 4 hosts were already rebuilt on RHEL 9 last quarter. Each host upgrade is the same ~12 routine steps (snapshot, leapp preupgrade, fix inhibitors, leapp upgrade, reboot, smoke test, etc.). I want to use the mcp-atlassian server to create this in Jira. Give me the exact issue set (types, summaries, parent, links) and the order of tool calls you would run.",
+      "expected_output": "A correct answer proposes one epic with a Phase-0 assessment/prep task, a single gating task for the Satellite content view, a blocker task for the Oracle client certification, wave tasks grouped by datacenter/failure domain and PostgreSQL cluster (not 42 per-host tickets), and a verify/close-out task, with per-host steps as checklists and nothing for the 4 already-done hosts. It sequences creation multi-pass (epic, batch children, link to epic separately, then blocks links) with a deterministic label and search-before-create for idempotency.",
+      "files": [],
+      "assertions": [
+        "Does NOT create one issue per host (no ~38–42 per-host tickets); hosts are grouped into wave/batch issues by datacenter or cluster",
+        "Models the Satellite RHEL 9 content view as a single gating task that blocks the waves via issue links, not as 42 separate links or a buried checklist line",
+        "Treats the 6 Oracle-client hosts as blocked by a separate prerequisite/blocker issue rather than scheduling them in a normal wave",
+        "Creates no issues for the 4 hosts already on RHEL 9",
+        "Includes explicit prep/assessment and verification/close-out children under the epic",
+        "Tool-call sequence sets epic membership and blocks links in separate calls after batch creation (not inline in the batch create) and includes an idempotency guard such as a label plus search-before-create"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 1,
+      "name": "diagnose-reports-count-reopened-as-resolved",
+      "prompt": "Jira DC 10.3.19, project SUPPORTDESK. Our monthly dashboard gadget 'Created vs Resolved' and a filter `project = SUPPORTDESK AND resolution is EMPTY` disagree badly with what's on the board: about 140 issues currently sitting in the 'In Progress' column don't appear in the unresolved filter, and the resolved count is inflated. My manager thinks the Lucene index is corrupt and wants me to schedule a full re-index during business hours tomorrow (takes ~3h on our instance, locks the UI). Workflow: To Do → In Progress → Resolved → Closed, with a 'Reopen' transition from Resolved and Closed back to In Progress. Resolution is set by a screen on the 'Resolve' transition. Last month we added the Resolution field to the Edit screen so agents could 'fix wrong resolutions'. What's actually wrong and what should we do?",
+      "expected_output": "A correct answer identifies that the Reopen transition does not clear Resolution (and Resolution on the Edit screen lets it be set on open issues), so reopened In Progress items still carry a resolution and are counted as resolved — not index corruption. It recommends adding a clear-resolution post-function on Reopen, removing Resolution from Edit, and a one-off bulk fix of the affected issues, rather than a business-hours re-index.",
+      "files": [],
+      "assertions": [
+        "Identifies the root cause as Resolution remaining set on reopened/open issues (Reopen not clearing it and/or Resolution on the Edit screen), not index corruption",
+        "Recommends a post-function (or equivalent) on the Reopen transition that clears Resolution",
+        "Recommends removing Resolution from the Edit screen so it is only set on closing transitions",
+        "Provides a way to find and fix the ~140 existing affected issues (e.g. a JQL like resolution is not EMPTY AND statusCategory != Done, then bulk correction)",
+        "Does NOT endorse the 3-hour business-hours full re-index as the fix"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 2,
+      "name": "decide-ops-team-hierarchy-feature-level",
+      "prompt": "I run the facilities & building-systems team (9 people) at a hospital. Our Jira DC 11.3 admin wants to set up our new project. The PMO uses Advanced Roadmaps with this hierarchy across the org: Initiative → Epic → Story/Task → Sub-task. My team lead insists we need a custom level BETWEEN Epic and Task called 'Work Package' because our projects (e.g. 'Replace Ward 4 HVAC', ~4 months) have phases like design, procurement, install, commissioning, each with 5–20 tasks. Alternative proposals on the table: (a) add the Work Package level between Epic and Task, (b) make each phase its own Epic and use the Initiative level for the overall project, (c) keep one Epic per project and use a 'Phase' select field or component on Tasks. We do not do sprints. Which should we pick and why?",
+      "expected_output": "A correct answer explains that Jira cannot natively insert a level between Epic and Story/Task, so (a) is not achievable as described, and weighs (b) versus (c) on whether phases are independently tracked/closed deliverables and on cross-team reporting needs. It gives a clear recommendation (typically (c) for lean simplicity, or (b) if phases are months-long and closed independently), framed for a Kanban, no-sprint team.",
+      "files": [],
+      "assertions": [
+        "States that a custom level cannot be inserted between Epic and Story/Task in Jira (levels can only be added above Epic via Advanced Roadmaps)",
+        "Makes a single clear recommendation between (b) and (c) with a justification tied to the team's situation",
+        "Treats phase-level categorisation as achievable with a field/component or with epics-under-an-initiative, rather than a new issue type level",
+        "Does not introduce sprints, story points, or velocity for this facilities team",
+        "Keeps the org's existing PMO hierarchy intact rather than proposing to redesign it"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 3,
+      "name": "guard-translate-german-statuses",
+      "prompt": "Our Jira DC 11.3 instance is shared by our Munich and Toronto offices. Munich's projects use statuses like 'Offen', 'In Arbeit', 'Erledigt' and German issue summaries/descriptions. Toronto's automation rules and dashboards keep breaking on Munich projects because the JQL says `status = \"Done\"` and the Slack-notification rule matches on status name 'In Progress'. Please use mcp-atlassian to (1) rename all the German statuses to English, and (2) run through the ~3,200 open Munich issues and translate their summaries and descriptions to English with jira_update_issue so everything is consistent. I've got admin rights and a PAT ready.",
+      "expected_output": "A correct answer declines to bulk-translate issue content and does not rename Munich's statuses, explaining that the breakage comes from matching localized names. It fixes the real cause by rewriting JQL and automation to use language-independent keys (statusCategory, status IDs, cf[NNNNN]) and, where canonical strings are needed, a service account with a fixed profile language.",
+      "files": [],
+      "assertions": [
+        "Does NOT perform or plan a bulk rewrite/translation of the 3,200 issues' summaries or descriptions",
+        "Does NOT recommend renaming the Munich team's German statuses as the fix",
+        "Rewrites the failing JQL to a language-independent form such as statusCategory = Done or status IDs",
+        "Fixes the automation/notification rule to match on status category or ID rather than the localized name",
+        "Explains that REST/automation output depends on the authenticating/triggering user's language and suggests a service account with a set profile language for canonical strings"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 4,
+      "name": "diagnose-epic-children-missing-from-roadmap",
+      "prompt": "Jira DC 11.3.10 with Advanced Roadmaps (bundled). Hierarchy configured: Initiative → Epic → Story/Task/Bug → Sub-task. I wrote a script with mcp-atlassian that created 60 Stories and attached them to their Epics by setting the Parent Link custom field (cf[10600]) via jira_update_issue. In the Advanced Roadmaps plan the Stories show nested under the right Epics. But on the Scrum board, the Epics panel shows 0 issues for each Epic, the epic progress bars are empty, and `\"Epic Link\" = PAY-12` returns nothing. A colleague says the board's filter must be excluding Stories and wants to change the board filter to `project in (PAY, LEDGER)` with no other clauses. What's going on and how do I fix it?",
+      "expected_output": "A correct answer identifies that on DC, Epic Link and Parent Link are separate independent fields: the Story→Epic relationship that boards and epic panels use is Epic Link, while Parent Link is the Advanced Roadmaps field for levels above Epic, so the script set the wrong field. The fix is to set Epic Link (e.g. jira_link_to_epic) for the 60 stories, not to change the board filter.",
+      "files": [],
+      "assertions": [
+        "Identifies that Epic Link and Parent Link are distinct fields on Data Center and the script set Parent Link instead of Epic Link",
+        "Explains that boards/epic panels and the Epic Link JQL rely on Epic Link, which is why the stories don't appear there",
+        "Recommends re-linking the 60 stories via Epic Link (e.g. a link-to-epic operation), ideally scripted and verifiable via JQL",
+        "Rejects the board-filter change as not the root cause",
+        "Notes Parent Link is meant for the level above Epic (e.g. Epic → Initiative) in this hierarchy"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 5,
+      "name": "build-lean-create-screen-for-it-requests",
+      "prompt": "Jira DC 10.3.24. Project ITREQ (Business/Jira Core project, Kanban). Issue types: Task, Sub-task. The Create screen currently has 23 fields: Summary, Issue Type, Reporter, Description, Priority, Due Date, Components, Labels, Assignee, Affects Version, Fix Version, Environment, Story Points, Sprint, Epic Link, Original Estimate, Cost Centre (custom, required, global context, used by Finance monthly report), Requesting Department (custom, required, global context, nobody can name who uses it), Location (custom, optional), Asset Tag (custom, optional, used by an automation rule that links CMDB assets), Business Justification (custom, required), Approval Manager (user picker, required — approvals happen by email anyway), Attachment. Requesters complain it takes 5 minutes and they type 'n/a' everywhere. Design the new setup: which fields stay on Create, which move to Edit/View only, which become optional or get deleted, and the exact admin steps on DC to do it.",
+      "expected_output": "A correct answer produces a short Create screen (roughly Summary, Description, maybe Due Date/Location/Asset Tag/Attachment, Cost Centre if Finance truly needs it at creation), removes dev-only fields (Story Points, Sprint, Fix/Affects Version, Epic Link, Environment) from this non-software project, and makes unowned required fields optional or deleted. It gives DC admin steps using a screen scheme with a separate Create screen and a field configuration change to make fields optional before removing them from Create.",
+      "files": [],
+      "assertions": [
+        "Removes software-only fields (Story Points, Sprint, Fix/Affects Version, Epic Link) from this non-software project's screens",
+        "Makes the Create screen materially shorter than the Edit/View screen via a screen scheme mapping Create to its own screen",
+        "Changes Requesting Department and Approval Manager away from required (optional or removed), justified by no owner/no use",
+        "Keeps fields that have a demonstrated use (Cost Centre for Finance reporting, Asset Tag for the automation) available rather than deleting them",
+        "Addresses that a required field must be made optional in the field configuration (or defaulted) before it can be removed from the Create screen"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 6,
+      "name": "guard-automation-to-fix-stale-reports",
+      "prompt": "Jira DC 11.3. My 4 project managers each maintain an Excel status report every Friday by exporting issues and adding RAG colours and comments. Leadership complains the reports contradict each other and the board. I want you to write me an Automation for Jira rule set: on 'Issue updated' (any field) in all 14 projects, post a comment summarising the change, re-calculate a 'RAG Status' custom field on the issue AND its parent epic and initiative, and email the PM. Then a scheduled rule every Friday 06:00 exports all issues to CSV and emails it to the PMs so they can keep building their Excel reports faster. Just give me the rule JSON/config.",
+      "expected_output": "A correct answer pushes back on both parts: an 'Issue updated'-any-field trigger across 14 projects that edits the issue and its parents will chain-fire and spam, and automating CSV export just entrenches the off-Jira status report that causes the contradictions. It proposes instead a live dashboard off shared filters as the single source of truth, plus at most a few scoped, filtered, well-named rules (e.g. RAG roll-up on specific field changes or a scheduled roll-up).",
+      "files": [],
+      "assertions": [
+        "Does NOT deliver the any-field 'Issue updated' rule across all 14 projects that edits the issue and its parents as specified",
+        "Explains the chain-firing/notification-spam risk of updating parent issues from a generic update trigger",
+        "Identifies the Excel/CSV status reporting outside Jira as the cause of contradictory reports rather than speeding it up",
+        "Recommends live dashboards built on shared filters as the replacement for the Friday reports",
+        "Any rule it does propose is scoped to specific projects and triggers/conditions and filtered early, rather than a broad generic trigger"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 7,
+      "name": "decide-epic-vs-component-for-recurring-security",
+      "prompt": "Our platform team (Jira DC 11.3, project PLAT, Scrum, 2-week sprints) has an Epic called 'Security Hardening' (PLAT-88) created in 2023. It has 214 child stories/tasks, 190 Done, 24 open, and it never closes because new CVE remediation and hardening tasks keep arriving every month. Our PI planning report shows it at 89% forever and execs ask why it's never finished. Separately, this quarter we have a concrete project: 'Migrate all services to mTLS via Istio' (~10 weeks, ~12 items). Options people have raised: (1) leave PLAT-88 as is and add the mTLS work under it, (2) close PLAT-88, use a 'security' component/label for ongoing hardening work, and create a new Epic just for the mTLS migration, (3) create a new Epic per quarter, 'Security Hardening Q4 2026', etc. Which do you recommend? And the 24 open children — what happens to them?",
+      "expected_output": "A correct answer recognises PLAT-88 as a never-closing epic that should become a label/component for ongoing work, and recommends a separate bounded epic for the mTLS migration (option 2, possibly noting quarterly epics as a defensible alternative only if they truly close). It gives a concrete plan for the 24 open children: re-categorise them with the component/label, remove or move their epic link, and close PLAT-88 with an appropriate resolution.",
+      "files": [],
+      "assertions": [
+        "Recommends not putting the bounded mTLS migration under the perpetual PLAT-88 epic",
+        "Recommends a label or component (rather than an epic) for the ongoing, never-ending hardening stream",
+        "Creates or recommends a separate epic for the mTLS migration that will close when the work is done",
+        "Gives a concrete disposition for the 24 open children (e.g. tag with the component/label and unlink or move them) before closing PLAT-88",
+        "Does NOT recommend deleting PLAT-88 or its 190 completed children (history is preserved by closing, not deleting)"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-11-20"
+    }
+  ]
+}
