@@ -96,6 +96,28 @@ from skill_frontmatter import listing_description, read_frontmatter  # noqa: E40
 DEFAULT_MODEL = "claude-sonnet-5-5"
 
 
+DEFAULT_MAX_CALLS_PER_DAY = 300
+
+
+def ledger_dir() -> Path:
+    cache = os.environ.get("XDG_CACHE_HOME") or str(Path.home() / ".cache")
+    return Path(cache) / "skill-improver" / "probe-ledger"
+
+
+def charge_budget(ledger: Path, day: str, planned: int, cap: int) -> tuple[bool, int]:
+    """Add `planned` calls to today's count for one skill unless that passes
+    `cap`. Returns (allowed, calls already used today)."""
+    try:
+        used = int(json.loads(ledger.read_text()).get(day, 0))
+    except (OSError, ValueError):
+        used = 0
+    if used + planned > cap:
+        return False, used
+    ledger.parent.mkdir(parents=True, exist_ok=True)
+    ledger.write_text(json.dumps({day: used + planned}))
+    return True, used
+
+
 def _model_rate(model: str | None) -> dict | None:
     """Per-MTok input/output list price for `model`, or None if unknown.
 
@@ -683,6 +705,14 @@ def selfcheck() -> int:
         got_name, got = parse_skill_md(plant)
         assert got_name == "planted-skill", got_name
         assert got == f"{want.rstrip()} When asked.", (style, got)
+
+    # The daily cap counts across runs, not per run: two runs that each fit
+    # must not both pass when their sum does not.
+    ledger = Path(tempfile.mkdtemp(prefix="sktrig-ledger-")) / "stub-skill.json"
+    assert charge_budget(ledger, "2026-01-01", 200, 300) == (True, 0)
+    assert charge_budget(ledger, "2026-01-01", 200, 300) == (False, 200)
+    assert charge_budget(ledger, "2026-01-01", 100, 300) == (True, 200)
+    assert charge_budget(ledger, "2026-01-02", 300, 300) == (True, 0)
     print("selfcheck: all assertions passed")
     return 0
 
@@ -726,6 +756,14 @@ def main():
         "measured; Haiku under-fires on contextual queries. Do not interleave "
         "models in one sweep -- each switch forks the cache prefix.",
     )
+    p.add_argument(
+        "--max-calls-per-day",
+        type=int,
+        default=DEFAULT_MAX_CALLS_PER_DAY,
+        help="Refuse the run when this skill's `claude -p` calls today, plus this "
+        f"run's queries x runs, would pass this number (default: {DEFAULT_MAX_CALLS_PER_DAY}). "
+        "Raise it only for a spend the user has agreed to.",
+    )
     p.add_argument("--verbose", action="store_true")
     args = p.parse_args()
 
@@ -742,6 +780,23 @@ def main():
         train, test = stratified_split(items, args.holdout, args.seed)
     else:
         train, test = items, []
+
+    planned = len(items) * args.runs_per_query
+    allowed, used = charge_budget(
+        ledger_dir() / f"{name}.json",
+        time.strftime("%Y-%m-%d"),
+        planned,
+        args.max_calls_per_day,
+    )
+    if not allowed:
+        print(
+            f"error: this run plans {planned} calls ({len(items)} queries x "
+            f"{args.runs_per_query} runs); {name} has used {used} today and the cap "
+            f"is {args.max_calls_per_day}. Probe only the disputed queries (a smaller "
+            "--eval-set), or pass --max-calls-per-day with a number the user agreed to.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
 
     if args.verbose:
         print(

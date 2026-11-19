@@ -224,6 +224,7 @@ Before saving, each class must have ≥3. If user-reported failures are all shou
 | `--num-workers` | 6 | Lower on rate limits; each worker spawns a `claude -p` subprocess. |
 | `--timeout` | 180 (s) | Only caps a hung call; a high value has no downside. Timed-out runs surface as a `warn:` line; an all-positives-0.0 result emits a "probe isn't measuring" warning. Lower only if calls are reliably fast. |
 | `--holdout` | 0.0 | Set 0.4 for train/test split. |
+| `--max-calls-per-day` | 300 | The script counts each skill's calls per day and exits 2 when a run would pass the cap. On a refusal, probe only the disputed queries. Raise the number only for a spend the user agreed to. |
 | `--model` | `claude-sonnet-5-5` | Pinned, not inherited (§Which model to probe with). Override only to answer "does it fire on the model *I* run", never mid-sweep. |
 
 ### Calling the probe
