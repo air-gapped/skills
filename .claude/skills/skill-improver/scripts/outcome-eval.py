@@ -42,6 +42,9 @@ import tempfile
 from datetime import date
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from skill_content import content_hash  # noqa: E402
+
 HEAD = "---\nmax_turns: 20\ntimeout_seconds: 600\nallowed_tools: [Read, Glob, Grep, Skill]\n---\n\n"
 
 
@@ -515,6 +518,25 @@ def main() -> int:
     print(f"API-price estimate ${cost:.2f}; raw results in {work}")
     usage = run_usage(results)
     print(usage_text(*usage))
+    if means["current"] is not None and means["without"] is not None:
+        # Every measured run leaves a stamp tied to the content it ran against,
+        # so a later check can tell whether the skill changed since.
+        (skill / "evals" / "last-run.json").write_text(
+            json.dumps(
+                {
+                    "date": date.today().isoformat(),
+                    "content_hash": content_hash(skill),
+                    "cases": [f"{e['id']:02d}-{e['name']}" for e in evals],
+                    "runs_per_case": a.runs,
+                    "model": a.model,
+                    "with_skill": round(means["current"], 4),
+                    "without_skill": round(means["without"], 4),
+                },
+                indent=2,
+            )
+            + "\n"
+        )
+        print("wrote evals/last-run.json")
     if (
         a.write_benchmark
         and means["current"] is not None

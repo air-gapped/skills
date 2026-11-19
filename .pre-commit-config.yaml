@@ -34,6 +34,13 @@ repos:
         pass_filenames: false
         always_run: true
         stages: [pre-push]
+      - id: eval-gate
+        name: eval gate (a changed skill with eval cases was measured)
+        entry: python3 scripts/eval-gate.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
       - id: ruff
         name: ruff check
         entry: ruff check

@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-19",
+  "content_hash": "d76a23a05100b0ee",
+  "cases": [
+    "02-config-as-code"
+  ],
+  "runs_per_case": 3,
+  "model": "sonnet",
+  "with_skill": 0.8571,
+  "without_skill": 0.5714
+}

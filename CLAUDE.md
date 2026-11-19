@@ -37,6 +37,16 @@ git commit
 the plugin manifest. A hook that fails prints what to fix; fix it, run
 `make stage` again and commit again.
 
+A push is refused when a skill with `evals/evals.json` has changed text and no
+eval run on that text. Run the cases the change touches; the run writes
+`evals/last-run.json`, which is committed with the change:
+
+```bash
+python3 .claude/skills/skill-improver/scripts/outcome-eval.py .claude/skills/<name> --case '<NN-glob>'
+```
+
+About $2 per case. State the spend before running.
+
 ## Rules for scoring, freshening, evals and backlogs
 
 `.claude/skills/skill-improver/SKILL.md` and its `references/`.
