@@ -76,6 +76,12 @@ repos:
         # `improve` mode, so manual edits reach main without ever meeting it.
         files: ^\.claude/skills/.+\.md$
         stages: [pre-commit]
+      - id: backlog-gate
+        name: backlog gate (no parked work, named blockers, guards kept)
+        entry: python3 scripts/backlog-gate.py
+        language: system
+        files: ^\.claude/skills/.+/references/improvement-backlog\.md$
+        stages: [pre-commit]
       - id: readme-skills-table
         name: README skill table in sync
         entry: python3 scripts/gen-skills-table.py

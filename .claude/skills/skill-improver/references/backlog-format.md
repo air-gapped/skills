@@ -22,8 +22,11 @@ One entry per thing **no agent in this session can obtain**. Nothing else is fil
 | usage above the spend ceiling | the measurement, its computed cost (calls × rate, or agents × model), and what its result would change |
 
 Each entry: one-line title · dimension affected ("Dim 2", "Dim 6/8") · file:line or the file set
-that would change · the blocker · the command or purchase that unblocks it · enough context to act
-without re-running the baseline scoring.
+that would change · a line starting `Blocker:` that names the absent thing · the command or purchase
+that unblocks it · enough context to act without re-running the baseline scoring.
+
+A repo may gate commits on this: a new Open entry with no `Blocker:` line, a new entry under an
+`## Unblocked` heading, or fewer discard-guard entries than before each fail the commit.
 
 ### The spend ceiling
 
