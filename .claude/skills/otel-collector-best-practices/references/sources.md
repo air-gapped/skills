@@ -28,6 +28,8 @@ on every collector minor you deploy.
 | VictoriaLogs data-ingestion docs | github.com/VictoriaMetrics/VictoriaLogs `docs/victorialogs/data-ingestion/` | v1.53.0-8 | OTLP endpoint, VL-Stream-Fields, VL-Msg-Field list, protobuf only |
 | VictoriaMetrics OpenTelemetry/Prometheus integration docs | github.com/VictoriaMetrics/VictoriaMetrics `docs/victoriametrics/integrations/` | v1.153.0 | OTLP no gRPC (#10345), native histograms → vmrange, no RW 2.0 |
 | Grafana Mimir HTTP API / out-of-order docs | https://grafana.com/docs/mimir/latest/references/http-api/ | 2026-10-03 | X-Scope-OrgID, out-of-order rejection |
+| syslog receiver README + metadata.yaml | contrib `receiver/syslogreceiver/` | main `117c830` (2026-10-17) | beta, contrib only, protocols, `on_error` default `send`, `add_attributes` |
+| VictoriaLogs OTLP ingest source | github.com/VictoriaMetrics/VictoriaLogs `app/vlinsert/opentelemetry/opentelemetry.go`, `lib/logstorage/rows.go` (`RenameField`) | `94be0e7` (2026-10-02) | `VL-Msg-Field` renames the first non-empty listed field without removing the body's `_msg` |
 | ClickHouse exporter README | contrib `exporter/clickhouseexporter/README.md` | v0.162.0 | what an otlp_http lab cannot test |
 
 ## Field observations (RKE2 test cluster, 2026-10-03)
@@ -41,4 +43,6 @@ Measured, not documented upstream:
 | Kubernetes events have no body; VictoriaLogs stores its placeholder until `VL-Msg-Field: _msg,object.note` | otelcol-k8s 0.160.0 → VictoriaLogs 1.52 |
 | Events during a DaemonSet rollout (Lease handover) never arrived | k8s events vs VictoriaLogs, 2026-10-03 21:33 UTC |
 | `file_log` + container operator delivers a 40 KiB line as one row; Fluent Bit (`Skip_Long_Lines On`) dropped it | test pod |
+| `syslog` receiver: raw line stays in the body; `VL-Msg-Field: message` gave the raw body as `_msg` on 2 of 10 records; `transform` into the body fixed it (21 of 21) | `logger --rfc3164` over UDP, otelcol-contrib 0.160.0 → VictoriaLogs 1.52, 2026-10-11 |
+| `externalTrafficPolicy: Cluster` on the syslog LoadBalancer: `net.peer.ip` was a node IP on 4 of 10 lines; `Local`: 20 of 20 real | same test, Cilium BGP LoadBalancer |
 | 1000-request queue ≈ 3 min of downtime at ~12 lines/s per node | arithmetic from batch defaults and measured volume |

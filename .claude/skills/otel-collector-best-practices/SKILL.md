@@ -94,6 +94,7 @@ Work through these in order. Each step names the trap it prevents.
 | Same Prometheus scrape config on several replicas | duplicate/out-of-order samples | shard, or Target Allocator |
 | Tail sampling / span metrics / service graph behind a plain load balancer | partial traces, wrong aggregates | `load_balancing` exporter tier (traceID / service key) in front |
 | `k8s_attributes` after `batch` | `connection` pod association fails | `k8s_attributes` before batching |
+| `syslog` receiver body | the body keeps the raw line with the syslog header; the text is in `attributes.message` | `transform`: `set(log.body, log.attributes["message"])`, then delete the attribute (`references/processing.md`) |
 | Removing a Helm chart default by deleting the key | the chart default stays | set the key to `null` |
 | A component before `memory_limiter` that cannot retry | its data is lost when the limiter refuses | `memory_limiter` first |
 

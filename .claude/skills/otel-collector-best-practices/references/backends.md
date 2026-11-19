@@ -19,6 +19,11 @@ VictoriaTraces v0.12, contrib v0.162.0.
   `VL-Msg-Field` takes a **comma-separated list; the first non-empty field
   wins** — `VL-Msg-Field: _msg,object.note` keeps pod-log bodies and gives
   Kubernetes events (whose text is `object.note`) a message.
+- **List `_msg` first in `VL-Msg-Field`.** The rename does not remove the
+  body: with `VL-Msg-Field: message` and a non-empty body, the record holds
+  two `_msg` fields, and VictoriaLogs showed the raw body on 2 of 10 records
+  (v1.52, `syslog` receiver). To promote an attribute over a non-empty body,
+  move it into the body in the collector (`transform`) instead.
 - `VL-Ignore-Fields` drops noisy fields (e.g. `log.file.path`).
 - Multi-tenancy by `AccountID`/`ProjectID` headers; default tenant `0:0`.
   Queries without the headers see only `0:0`.

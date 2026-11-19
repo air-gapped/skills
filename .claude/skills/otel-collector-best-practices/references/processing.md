@@ -69,6 +69,33 @@ Checked against contrib v0.162.0 component READMEs and pkg/ottl docs,
     (`journald._SYSTEMD_UNIT` vs `_SYSTEMD_UNIT`), so queries do not carry
     over between the two paths.
   - `storage` persists the journal cursor; `start_at: end` default.
+- `syslog` receiver (beta, **`otelcol-contrib` only** — not in `otelcol-k8s`):
+  the usual way to take logs from devices outside the cluster (BMCs,
+  switches, appliances).
+  - `protocol: rfc3164` or `rfc5424` (`none`, experimental, keeps the text
+    unparsed); `udp` or `tcp` (TLS on TCP). `on_error` defaults to `send`, so
+    a line that does not parse arrives with its raw text as the body.
+  - Parsed fields land in **attributes**: `message`, `hostname`, `appname`,
+    `facility`, `priority`, plus severity. **The body keeps the raw line**
+    (`<172>Oct 11 09:42:27 host app: text`), so a backend that shows the
+    body shows the header too. Move the text into the body:
+
+    ```yaml
+    transform/syslog_body:
+      log_statements:
+        - statements:
+            - set(log.body, log.attributes["message"]) where log.attributes["message"] != nil
+            - delete_key(log.attributes, "message")
+    ```
+
+  - `add_attributes: true` adds `net.peer.ip` (the sender). Behind a
+    LoadBalancer Service with `externalTrafficPolicy: Cluster`, forwarded
+    packets are SNATed and `net.peer.ip` becomes a node IP; `Local` keeps
+    the real sender. The `hostname` field is the sender's own claim either
+    way.
+  - The images run as non-root: listen on a port above 1024 (e.g. 5514) and
+    map 514 → 5514 in the Service. Run it as a Deployment with ≥ 2 replicas;
+    it holds no state.
 - Dedup: `log_dedup` (alpha), `interval` 10s, adds `log_count` and first/last
   timestamps.
 - Logs with an empty body (some programs print blank lines, e.g. Ceph
