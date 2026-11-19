@@ -229,14 +229,14 @@ repo-level `pushed_at` check: two sibling skills on the same upstream had
   lines. The hold still covers phase-core text: per-phase checkpoint
   schemas and commands, and every phase procedure.)**
 
-## Unblocked — actionable
+## Discard guards — do not re-propose
 
-- **Add a `when_to_use` field (Dim 1).** The 447-char `description` carries the
-  four primary triggers; secondary phrasings ("false positive review",
-  "scanner noise", "dedupe vulns", "rank by exploitability") would lift Dim 1
-  recall. NOT applied: additive change, low ROI against the current score; do
-  it on a trigger-mode pass (`/skill-improver trigger triage`) which measures
-  trigger rate empirically rather than guessing phrasings.
+- Discard (2026-11-20): adding a `when_to_use` field with scanner format names
+  (SARIF, CodeQL, Semgrep, Trivy) and secondary phrasings. Trigger set went
+  11/14 to 10/14: no gain on the question it targeted, and a threat-model
+  question began to fire. The description already fires on scanner output named
+  by file path.
+
 ## Resolved — 2026-07-05 (improve, operator feedback)
 
 Applied FEEDBACK-impact-on-asset.md §1 in 7 kept iterations (self 79→85,
