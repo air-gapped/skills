@@ -109,7 +109,8 @@ authenticating proxy does **not** cover most of it:
 |---|---|
 | Find an endpoint, check required role | `references/endpoint-map.md` |
 | User/group lifecycle, model GitOps (`models/sync`), knowledge upload pipeline, backups | `references/admin-workflows.md` (verified curl sequences) |
-| Config-as-code, PersistentConfig precedence, connections, per-model request params | `references/config-system.md` |
+| Config-as-code, applying config from a CI pipeline (import + verify), PersistentConfig precedence, connections, per-model request params | `references/config-system.md` |
+| Which credential a CI job uses (API key vs password sign-in, OIDC sites) | `references/admin-workflows.md` |
 | "Worked before upgrade, broken now" | `references/breaking-changes.md` |
 | IdP provisioning (SCIM), audit/event webhooks | `references/events-scim.md` |
 | Verify a claim / freshen | `references/sources.md` |

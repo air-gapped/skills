@@ -6,7 +6,7 @@ Payload shapes read from source; sequences marked ⚡ were additionally executed
 
 ## Bootstrapping a token on an SSO-only instance ⚡
 
-The common hardened deployment — `ENABLE_LOGIN_FORM=False` + OIDC signup, with `ENABLE_API_KEYS` left at its default `false` — has **no API-reachable way to obtain a token**: `/auths/signin` is unusable without a password, and `/auths/api_key` is gated off. Automation has to mint a JWT out-of-band using the instance's own signing key.
+The common hardened deployment — `ENABLE_LOGIN_FORM=False` + OIDC signup, with `ENABLE_API_KEYS` left at its default `false` — has **no API-reachable way to obtain a token**: `/auths/api_key` is gated off, and a password sign-in needs a local password account (see "Credential for a CI pipeline" below; `ENABLE_LOGIN_FORM=False` alone does not block it). Automation has to mint a JWT out-of-band using the instance's own signing key.
 
 `WEBUI_SECRET_KEY` is generated on first boot into `${BACKEND_DIR}/.webui_secret_key` (`start.sh:32-50`) and exported only into the *app* process — a fresh `kubectl exec`/`docker exec` does **not** inherit it, so read the file explicitly or the import aborts with "WEBUI_SECRET_KEY is not set".
 
@@ -32,6 +32,13 @@ curl -s -H "Authorization: Bearer $T" $B/api/v1/auths/ | jq -e .role   # expect 
 ```
 
 Cleaner long-term alternative: set `ENABLE_API_KEYS=true` and grant the `features.api_keys` permission to a dedicated non-admin service account, then scope it with `API_KEYS_ALLOWED_ENDPOINTS`. The minted-JWT route is for bootstrap and break-glass, not steady-state automation.
+
+## Credential for a CI pipeline
+
+- **API key path.** An `sk-` key is accepted only when config key `auth.enable_api_keys` is true (env `ENABLE_API_KEYS`, default false, seed-only; with it off every key, an admin's included, gets 403). Non-admins also need `features.api_keys` (env `USER_PERMISSIONS_FEATURES_API_KEYS`, default false); admins skip that check. A group can grant `features.api_keys`, so audit group permissions too. The owning account mints the key: `POST /api/v1/auths/api_key`, read back with `GET`. Enabling `ENABLE_API_KEYS` does not give ordinary users keys. With `API_KEYS_ALLOWED_ENDPOINTS` restrictions on, add `/api/v1/configs` to the allowed list or the import returns 403.
+- **Session token path.** `POST /api/v1/auths/signin` (email + password) returns a JWT that expires after `JWT_EXPIRES_IN` (`auth.jwt_expiry`, default `4w`), so a job signs in on every run. Use it to mint the key once, or when API keys must stay off.
+- **OIDC sites: a local password account coexists with OIDC users.** `ENABLE_PASSWORD_AUTH` (env only, default true, read every start): when false, `POST /auths/signin` returns 403, so it must stay true for this route. `ENABLE_LOGIN_FORM` (`ui.enable_login_form`): when false it only hides the UI form and blocks signup; the signin endpoint does not check it.
+- **Creating the account.** New install: `WEBUI_ADMIN_EMAIL`/`WEBUI_ADMIN_PASSWORD` create an admin at first start only while the user table is empty (`create_admin_user`). Existing install: an admin calls `POST /api/v1/auths/add` with role `admin`.
 
 ## User lifecycle
 

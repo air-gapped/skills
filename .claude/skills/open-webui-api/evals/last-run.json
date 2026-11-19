@@ -1,11 +1,12 @@
 {
   "date": "2026-11-19",
-  "content_hash": "d76a23a05100b0ee",
+  "content_hash": "07698943e1875524",
   "cases": [
-    "02-config-as-code"
+    "02-config-as-code",
+    "06-okta-automation-credential-model"
   ],
   "runs_per_case": 3,
   "model": "sonnet",
-  "with_skill": 0.8571,
-  "without_skill": 0.5714
+  "with_skill": 0.873,
+  "without_skill": 0.5913
 }

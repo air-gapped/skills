@@ -26,6 +26,22 @@ Sent with a session JWT, a changed MFA value signs every user out; an invalid co
 
 Removed at v0.13.4: `direct.enable`, `direct.integrations.enable` and the `features.direct_tool_servers` permission (env `ENABLE_DIRECT_CONNECTIONS`, `ENABLE_DIRECT_INTEGRATIONS`, `USER_PERMISSIONS_FEATURES_DIRECT_TOOL_SERVERS`). Drop them from stored config files.
 
+## Applying config from CI (Helm rollout, git-owned keys)
+
+Keep a flat JSON file of only the keys git owns; import it after `helm upgrade --wait`. Import is a partial upsert, returns the full config, and does not validate key names, so verify the response.
+
+```bash
+jq --arg key "$LITELLM_KEY" '{config: (. + {"openai.api_keys": [$key]})}' config/owui.json \
+  | curl -fsS -X POST "$OWUI_URL/api/v1/configs/import" -H "Authorization: Bearer $OWUI_ADMIN_API_KEY" \
+      -H "Content-Type: application/json" -d @- > applied.json
+jq -e --slurpfile want config/owui.json '. as $got | $want[0] | to_entries | all(.value == $got[.key])' applied.json
+```
+
+- A failed verify means a misspelled key or a key that is not read (see the traps above). Inject secrets with `jq --arg` at apply time, never into the committed file.
+- Keep out of the file: `auth.mfa.*` (403, nothing applied), `oauth.*` (env-driven; leave in Helm values), env-only settings (DB URL, secret key, audit, logging).
+- `ENABLE_PERSISTENT_CONFIG=false` is the alternative (env always wins) but loses UI edits at restart and cannot manage keys that have no env var. Prefer import.
+- Credential for the pipeline: `references/admin-workflows.md` section "Credential for a CI pipeline".
+
 ## PersistentConfig precedence (the #1 "env var ignored" mystery)
 
 - Env vars only populate defaults; at first boot every key is seeded into the DB. **From then on the DB wins and env changes are silently ignored** (`ENABLE_PERSISTENT_CONFIG=true`, the default).
