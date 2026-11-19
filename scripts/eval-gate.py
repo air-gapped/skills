@@ -101,8 +101,8 @@ def main(argv):
                 f"eval gate: {name} changed and {why}.\n"
                 f"  Run the cases this change touches, then commit {rel}/evals/last-run.json:\n"
                 f"    python3 {IMPROVER}/outcome-eval.py {rel} --case '<NN-glob>,<NN-glob>'\n"
-                f"  Case names: {rel}/evals/evals.json. State the spend first: about\n"
-                "  $2 per case at the default 3 runs. Read the weak cases it lists\n"
+                f"  Case names: {rel}/evals/evals.json. A case is about $2 at\n"
+                "  API prices (plan quota on a subscription). Read the weak cases it lists\n"
                 "  and fix what they show before pushing.",
                 file=sys.stderr,
             )

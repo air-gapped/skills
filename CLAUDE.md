@@ -45,7 +45,8 @@ eval run on that text. Run the cases the change touches; the run writes
 python3 .claude/skills/skill-improver/scripts/outcome-eval.py .claude/skills/<name> --case '<NN-glob>'
 ```
 
-About $2 per case. State the spend before running.
+A case is about $2 at API prices; on a subscription it uses plan quota, not
+money. State the number of cases before running.
 
 ## Rules for scoring, freshening, evals and backlogs
 
