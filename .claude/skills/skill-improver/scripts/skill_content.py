@@ -36,15 +36,21 @@ def _digest(rows: list[tuple[str, str]]) -> str:
 
 def content_hash(skill_dir: Path) -> str:
     """Hash of the skill's content as it is on disk."""
-    rels = sorted(
-        p.relative_to(skill_dir).as_posix()
-        for p in skill_dir.rglob("*")
-        if p.is_file() and _counts(p.relative_to(skill_dir).as_posix())
-    )
+    skill_dir = skill_dir.resolve()
+    # Only what git tracks or would track: an ignored cache or results folder
+    # is not in any commit, so counting it would never match content_hash_at().
+    listed = subprocess.run(
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+        capture_output=True,
+        text=True,
+        cwd=skill_dir,
+        check=True,
+    ).stdout.split("\0")
+    rels = sorted(r for r in listed if r and (skill_dir / r).is_file() and _counts(r))
     # git names each file's content, so the result matches content_hash_at().
     out = subprocess.run(
         ["git", "hash-object", "--stdin-paths"],
-        input="".join(f"{skill_dir.resolve() / r}\n" for r in rels),
+        input="".join(f"{skill_dir / r}\n" for r in rels),
         capture_output=True,
         text=True,
         check=True,

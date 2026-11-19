@@ -1,6 +1,6 @@
 {
   "date": "2026-11-20",
-  "content_hash": "ab75d169cfbb0bd3",
+  "content_hash": "b7325359f96519a2",
   "cases": [
     "03-trigger-fix-empirically"
   ],
@@ -12,7 +12,7 @@
   "judge_model": "haiku",
   "with_skill": 1.0,
   "without_skill": 0.6,
-  "without_from": "this run",
+  "without_from": "stored",
   "baselines": {
     "03-trigger-fix-empirically": {
       "score": 0.6,
