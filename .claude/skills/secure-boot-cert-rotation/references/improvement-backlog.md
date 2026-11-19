@@ -30,11 +30,6 @@ None.
   `benchmark.json`, so net value over no-skill is unmeasured. Highest-value remaining action per two
   independent blind scorers. Needs an eval set (audit-triage cases across the three surfaces) and a
   with-skill/without-skill `delta_pass_rate`, not more prose.
-- **Dim 7 (Resource Quality) — the audit greps are scriptable and repeated in three files.** The same
-  `mokutil`/`efi-readvar` verdict logic appears in SKILL.md, `linux-bare-metal.md`, and `harvester-vms.md`.
-  A bundled `scripts/audit-secureboot.sh` emitting NEEDS UPDATE / GOOD per host would remove the duplication
-  and raise actionability. Deferred: worth doing only if the shell stays genuinely portable across the
-  Dell/whitebox/guest split rather than growing per-surface branches.
 
 ## Ceiling analysis (2026-08-18) — read this before starting another improve loop
 

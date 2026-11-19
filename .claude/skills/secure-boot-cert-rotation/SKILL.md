@@ -81,12 +81,12 @@ UPDATE* if `db` has the 2011 Microsoft UEFI CA but not `Microsoft UEFI CA 2023`;
 present.
 
 ```bash
-# Linux host or in-guest:
-sudo mokutil --sb-state                                              # Secure Boot on?
-sudo mokutil --kek | grep -i "KEK 2K CA 2023"                       # 2023 KEK present?
-sudo mokutil --db  | grep -iE "Microsoft UEFI CA 2023|Windows UEFI CA 2023"
-sudo efi-readvar -v db | grep -i 2023                               # efitools alternative
+# Linux host or in-guest: prints each certificate and a verdict; exit 0 GOOD, 1 NEEDS UPDATE, 2 unreadable
+scripts/audit-secureboot.sh
+# A host the script cannot be copied to: dump there, judge here
+mokutil --kek > kek.txt; mokutil --db > db.txt      # then: scripts/audit-secureboot.sh --from <dir>
 ```
+The individual `mokutil` / `efi-readvar` commands: `references/linux-bare-metal.md` § Audit.
 Dell out-of-band: `racadm ... bioscert view --all` or Redfish `GET /redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases`.
 Harvester VMs: first find which VMs even *use* Secure Boot (`kubectl ... efi.secureBoot`) — many don't, and
 those are moot. Exact commands per reference.
