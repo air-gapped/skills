@@ -41,6 +41,13 @@ repos:
         pass_filenames: false
         always_run: true
         stages: [pre-push]
+      - id: count-gate
+        name: count gate (README and GitHub description state the real skill count)
+        entry: python3 scripts/count-gate.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
       - id: ruff
         name: ruff check
         entry: ruff check
