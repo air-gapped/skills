@@ -1,0 +1,138 @@
+{
+  "skill_name": "litellm-valkey",
+  "schema_version": 2,
+  "provenance": {
+    "created": "2026-11-20",
+    "grown": "opus via grow-evals.py 2026-11-20 (+8 to 8)"
+  },
+  "evals": [
+    {
+      "id": 0,
+      "name": "build-sentinel-coordination-config-two-proxies",
+      "prompt": "We run two separate LiteLLM proxy deployments (prod-chat and prod-batch), each 4 replicas, on LiteLLM v1.104.2. Both must share one Valkey 8.0 Sentinel setup: sentinels at valkey-sentinel-0/1/2.data.svc:26379, master set name 'litellm-master', logical DB 0 only (ops won't give us more DBs). Data nodes need a password from secret env VALKEY_PASSWORD; the sentinels themselves have no auth. We also want a plain-Redis response cache on a separate standalone Valkey at valkey-cache.data.svc:6379. Requirements: rate limits and budgets must be fleet-wide per deployment, a Valkey outage must not let budget spend run unchecked, and key revocation must take effect on all pods promptly. Write the config.yaml general_settings/litellm_settings sections for prod-chat and say exactly what differs for prod-batch, plus how to verify after rollout that each pod is really coordinating.",
+      "expected_output": "Produces a coordination_redis block using Sentinel nodes + service_name with data-node password, a distinct namespace per deployment since both share DB 0, fail-closed budget enforcement, Redis auth cache, and a separate cache_params for the response cache. Verification uses the coordination settings endpoint source field plus a cross-pod load test, not /cache/ping.",
+      "files": [],
+      "assertions": [
+        "The config points coordination at the Sentinel set via an explicit general_settings.coordination_redis block with the three sentinel nodes and the 'litellm-master' service name",
+        "The two deployments get different coordination namespaces (prod-batch differs at least in the namespace value) because they share one logical DB",
+        "The data-node password is set from VALKEY_PASSWORD and no sentinel password is configured (or it is explicitly left out because sentinels have no auth)",
+        "Budget enforcement is configured to fail closed on Redis failure and the Redis-backed auth cache is enabled for prompt revocation",
+        "Verification checks which coordination source won via the coordination settings endpoint (expecting the explicit block) and/or a load test showing ~1x limits, and does NOT treat a successful /cache/ping as proof of coordination"
+      ],
+      "shape": "build",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 1,
+      "name": "diagnose-env-only-redis-old-version",
+      "prompt": "LiteLLM proxy v1.97.3, Helm, 6 replicas. Key sk-team-a has rpm_limit: 100. Our load test at 400 RPM spread across pods gets essentially zero 429s; at 700 RPM we start seeing some. Redis is definitely up: every pod has REDIS_HOST=redis-master.infra.svc, REDIS_PORT=6379, REDIS_PASSWORD set, and `redis-cli -h redis-master.infra.svc ping` from inside a pod returns PONG. Our config.yaml has no cache section at all (we turned off response caching last month to save memory — removed `cache: true` and cache_params) and no coordination_redis block. Logs show nothing at error level. Network team insists it's Redis latency. What's going on and what's the fix?",
+      "expected_output": "Identifies that on versions before v1.101.0 the REDIS_* env fallback only runs on the cache: true branch, so removing the response cache left coordination with no source and every pod enforces 100 RPM independently (~6x). Fix is an explicit coordination_redis block (or upgrade), verified by the settings endpoint and a load test.",
+      "files": [],
+      "assertions": [
+        "Identifies the root cause as coordination never being wired (per-pod in-memory limits) because cache: true was removed, not Redis latency or connectivity",
+        "Connects the observed ~600 RPM ceiling to 6 pods each enforcing the 100 RPM limit independently",
+        "Explains that on this version REDIS_* env vars alone without cache: true do not activate shared coordination",
+        "Recommends adding an explicit general_settings.coordination_redis block pointing at redis-master (or re-enabling a Redis cache / upgrading to a version where env fallback works without cache) as the fix",
+        "Recommends verifying via the coordination settings endpoint source field and/or rerunning the load test to see 429s near 100 RPM"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 2,
+      "name": "diagnose-ui-db-block-overrides-gitops",
+      "prompt": "LiteLLM v1.99.1, 3 pods, config managed by ArgoCD. Last week we migrated coordination from the old Redis (redis-old.infra:6379) to Valkey Sentinel by changing general_settings.coordination_redis in config.yaml to sentinel_nodes/service_name. ArgoCD shows synced, pods restarted, the rendered ConfigMap inside the pods has the new Sentinel block. But redis-old still shows ~3 connected clients per pod and keys like `{api_key:sk-...}:requests` keep appearing on it, and nothing on Valkey. Someone mentioned they 'tested the Redis connection in the admin UI' back in September. We're about to decommission redis-old on Friday. Why are pods still using it?",
+      "expected_output": "Diagnoses that a coordination_redis block saved via the Admin UI is persisted in the DB and applied after config.yaml, silently overriding the GitOps config. Fix is to remove/update the DB-persisted block, restart, and re-check the settings endpoint before decommissioning.",
+      "files": [],
+      "assertions": [
+        "Identifies a DB-persisted coordination_redis setting saved through the Admin UI as overriding the config.yaml block",
+        "Does not blame ArgoCD sync, the ConfigMap, or Sentinel connectivity as the root cause",
+        "Recommends removing or updating the DB-stored coordination setting (via UI/API) and restarting pods so the config value takes effect",
+        "Recommends confirming via the coordination settings endpoint / boot logs and Valkey key activity that pods now coordinate through Valkey",
+        "Advises NOT decommissioning redis-old until coordination is confirmed on Valkey, since doing so would silently drop the fleet to per-pod enforcement"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 3,
+      "name": "diagnose-circuit-breaker-coupled-outage",
+      "prompt": "LiteLLM v1.102.0, 5 pods, litellm_settings: cache: true, cache_params: {type: redis, host: redis.infra, port: 6379}, no coordination_redis block. Every few hours we get ~1 minute windows where (a) per-key rpm limits stop being enforced — clients burst far above limit, and (b) team budgets overshoot. Redis INFO shows no restarts, latency p99 2ms. In those windows we do see a spike of large response-cache writes (some cached responses are 8–15 MB long-context completions) timing out. Grafana shows no Redis errors on the rate limiter itself. Explain the mechanism and give the fix.",
+      "expected_output": "Explains that coordination borrows the response-cache client and shares its circuit breaker, so a handful of failed big cache writes trip the breaker and coordination fast-fails to per-pod for ~60s. Fix: give coordination its own Redis/client via coordination_redis, address large cache writes, enable fail-closed modes and alert on degradation logs.",
+      "files": [],
+      "assertions": [
+        "Identifies that coordination is borrowing the response-cache Redis client because no separate coordination source is configured",
+        "Explains that failures of response-cache operations trip a shared circuit breaker that also short-circuits rate-limit and budget operations for roughly 60 seconds",
+        "Recommends separating coordination onto its own client/Redis via a general_settings.coordination_redis block",
+        "Recommends reducing or excluding the oversized response-cache writes (or otherwise preventing the cache-op failures) as a complementary fix",
+        "Recommends fail-closed budget (and, on this version or newer, rate-limit) enforcement or alerting on degradation log strings so the windows are not silent"
+      ],
+      "shape": "diagnose",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 4,
+      "name": "decide-cluster-vs-sentinel-for-coordination",
+      "prompt": "We're standing up LiteLLM v1.106.4 with 8 replicas, peak ~3k RPM total, with key/user/team rate limits and team budgets that map to real invoiced money. Platform team offers two managed Valkey 8 options: (A) a 3-shard Valkey Cluster (6 nodes), or (B) a single primary + 2 replicas behind 3 Sentinels. They lean toward Cluster 'because it scales'. Coordination keyspace is small (well under 1 GB). Which should LiteLLM coordination use, and why? Give a recommendation, not a survey.",
+      "expected_output": "Recommends Sentinel (B) because the workload doesn't need sharding and Cluster mode degrades limiter semantics (non-atomic cross-slot checks with best-effort refunds, SCAN paths returning empty, version probe issues). Notes the Sentinel wiring and fail-closed settings.",
+      "files": [],
+      "assertions": [
+        "Recommends the Sentinel option (B) over Cluster for coordination",
+        "Justifies the choice by Cluster changing correctness semantics: the multi-descriptor rate-limit check is no longer atomic across key/user/team and can drift counters on partial failures",
+        "Mentions at least one other Cluster-specific degradation (e.g. SCAN-based paths silently returning nothing or per-node version probing issues)",
+        "Argues that ~3k RPM and a sub-GB keyspace do not need sharding, so Cluster's scaling benefit is irrelevant",
+        "Specifies wiring via coordination_redis with sentinel_nodes and service_name and recommends fail-closed budget enforcement given real money"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 5,
+      "name": "decide-fail-closed-rate-limits",
+      "prompt": "We operate LiteLLM v1.105.2 for internal developer tooling: 4 pods, coordination via a coordination_redis block to a single standalone Redis (no HA, ops won't fund Sentinel this quarter). Rate limits protect an upstream Azure OpenAI deployment with a hard 30k TPM quota shared by everyone; budgets are soft showback only, no invoicing. Product owner asks: should we turn on fail_closed_rate_limit_enforcement and fail_closed_budget_enforcement? Their worry is that a Redis blip would 503 every developer. Recommend a setting for each and justify.",
+      "expected_output": "Gives a reasoned per-flag recommendation: weighs that fail-open rate limits mean 4x the TPM against a hard upstream quota (which upstream will 429 anyway) vs fail-closed causing total outage on a single non-HA Redis; budgets are showback so fail-open is acceptable there. Any defensible choice must show the trade-off and mitigation (alerting, HA later).",
+      "files": [],
+      "assertions": [
+        "Gives an explicit recommendation for each of the two flags separately rather than one blanket answer",
+        "Recognizes that with a single non-HA Redis, fail-closed rate limiting turns any Redis outage into a full 503 outage for all users",
+        "Recognizes that fail-open rate limiting lets the 4 pods each enforce limits independently (up to ~4x) during Redis failure, and relates this to the hard upstream Azure quota",
+        "Recommends leaving budget enforcement fail-open (or states it is low-stakes) because budgets are showback only, not invoiced",
+        "Recommends alerting on the silent-degradation log strings regardless of the chosen setting"
+      ],
+      "shape": "decide",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 6,
+      "name": "guard-flushall-to-fix-budget-errors",
+      "prompt": "Urgent: on our LiteLLM v1.103.1 prod fleet (6 pods), several team keys are getting BudgetExceededError even though /key/info and /team/info show spend at ~40% of max_budget. Last time this happened someone ran `curl -X POST https://llm.internal/cache/flushall -H 'Authorization: Bearer $MASTER'` and it fixed it. Our response cache uses cache: true with cache_params type redis on redis-shared.infra:6379 (no coordination_redis block), and that Redis instance is also used by our billing-events service. Just give me the exact command to run it again and a cron to do it nightly so this stops paging us.",
+      "expected_output": "Pushes back: /cache/flushall wipes the borrowed coordination state (rate-limit counters, spend counters/buffer, locks) and the co-tenant billing service's data; a nightly cron makes it routine. Identifies known Redis spend-counter drift as the cause and offers targeted remediation (delete specific drifted spend keys, separate coordination Redis, upgrade check).",
+      "files": [],
+      "assertions": [
+        "Does NOT provide a nightly cron for /cache/flushall and does NOT recommend running flushall on this shared instance as-is",
+        "Explains that because coordination borrows the cache client, flushall also wipes rate-limit counters, spend counters/buffer and locks, not just cached responses",
+        "Flags that flushing would also destroy the co-tenant billing-events service's data on the same Redis",
+        "Identifies Redis-side spend counter drift/inflation (a known LiteLLM issue) as the likely cause of false BudgetExceededError",
+        "Offers a safer alternative such as targeted deletion of the affected teams' spend counter keys and/or moving coordination to its own namespaced Redis and checking the deployed version for fixes"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-11-20"
+    },
+    {
+      "id": 7,
+      "name": "guard-shrink-socket-timeout-env",
+      "prompt": "Our LiteLLM v1.104.0 proxy (5 pods) stalls request handling for several seconds whenever our Redis primary fails over. I want to fix it quickly by setting REDIS_SOCKET_TIMEOUT=0.05 and REDIS_CONNECTION_POOL_KWARGS='{\"max_connections\": 20}' in the Helm values env block, then deleting the coordination_redis block from config.yaml so everything picks up those env vars uniformly. Please write the Helm values diff for me.",
+      "expected_output": "Pushes back: both env knobs are effectively no-ops on the main client, and removing coordination_redis drops the explicit loud-failing coordination source (env-only coordination is unprefixed and stays per-pod if the boot ping fails). Suggests working alternatives like cache_params.max_connections and keeping the block, and Sentinel/HA for failover.",
+      "files": [],
+      "assertions": [
+        "Does NOT recommend removing the coordination_redis block from config.yaml",
+        "Explains that REDIS_SOCKET_TIMEOUT does not take effect on the main Redis client (its constructor default wins), so it will not fix the stall",
+        "Explains that REDIS_CONNECTION_POOL_KWARGS is dropped and has no effect, pointing to a working knob such as cache_params.max_connections",
+        "Explains a risk of env-only coordination, such as a pod staying per-pod after a failed boot ping or losing the namespace prefix",
+        "Proposes an alternative path for failover stalls, such as keeping the explicit block and using Sentinel-based coordination or settings in the block itself"
+      ],
+      "shape": "guard",
+      "source": "grow-evals 2026-11-20"
+    }
+  ]
+}

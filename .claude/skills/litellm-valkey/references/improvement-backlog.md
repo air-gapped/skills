@@ -10,10 +10,6 @@ Carries ceiling findings across skill-improver runs. See skill-improver `referen
 
 - **Frontmatter headroom is 10 chars** (1,526/1,536 combined) — any future trigger addition must trade an existing phrase out or the NOT-for scope guard silently truncates. Not actionable now; guard for future edits (blind-final finding).
 
-## Unblocked — actionable
-
-- **Measure `delta_pass_rate`** — Dim 10 (capped at 8 unmeasured). Requires building `evals/evals.json` and running skill-creator's `aggregate_benchmark` with/without the skill — multi-file, author-decision scope. Flagged by both blind scorers.
-
 ## Resolved this pass — 2026-07-30
 
 Initial improve run on the day the skill was authored. Self-score 77 → 87 (cold rescore), 7 kept / 2 discarded iterations:

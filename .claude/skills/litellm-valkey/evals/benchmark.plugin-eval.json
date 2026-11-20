@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "tool": "claude plugin eval via outcome-eval.py",
+    "date": "2026-11-20",
+    "model": "sonnet",
+    "models_resolved": [
+      "claude-sonnet-5-5"
+    ],
+    "judge_model": "haiku",
+    "runs_per_case": 3,
+    "cases": 8,
+    "forced_invocation": true
+  },
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.9583
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.625
+      }
+    }
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "date": "2026-11-20",
+  "content_hash": "b5984566a08963be",
+  "cases": [
+    "00-build-sentinel-coordination-config-two-proxies",
+    "01-diagnose-env-only-redis-old-version",
+    "02-diagnose-ui-db-block-overrides-gitops",
+    "03-diagnose-circuit-breaker-coupled-outage",
+    "04-decide-cluster-vs-sentinel-for-coordination",
+    "05-decide-fail-closed-rate-limits",
+    "06-guard-flushall-to-fix-budget-errors",
+    "07-guard-shrink-socket-timeout-env"
+  ],
+  "runs_per_case": 3,
+  "model": "sonnet",
+  "models_resolved": [
+    "claude-sonnet-5-5"
+  ],
+  "judge_model": "haiku",
+  "with_skill": 0.9583,
+  "without_skill": 0.625,
+  "without_from": "this run",
+  "baselines": {
+    "00-build-sentinel-coordination-config-two-proxies": {
+      "score": 0.4667,
+      "id": "79bf6c14f58a",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "01-diagnose-env-only-redis-old-version": {
+      "score": 1.0,
+      "id": "1200634bdfeb",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "02-diagnose-ui-db-block-overrides-gitops": {
+      "score": 0.6667,
+      "id": "b8185a1b5294",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "03-diagnose-circuit-breaker-coupled-outage": {
+      "score": 0.6,
+      "id": "ecf1bda2e6c7",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "04-decide-cluster-vs-sentinel-for-coordination": {
+      "score": 0.7333,
+      "id": "6eed4b6f5494",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "05-decide-fail-closed-rate-limits": {
+      "score": 0.6,
+      "id": "9da4f7dc75d7",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "06-guard-flushall-to-fix-budget-errors": {
+      "score": 0.6667,
+      "id": "fbcd07bd951f",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "07-guard-shrink-socket-timeout-env": {
+      "score": 0.2667,
+      "id": "e3a165245100",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    }
+  }
+}
