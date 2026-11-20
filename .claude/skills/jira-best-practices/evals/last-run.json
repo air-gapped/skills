@@ -2,14 +2,7 @@
   "date": "2026-11-20",
   "content_hash": "fa812d5747a3adc1",
   "cases": [
-    "00-build-dc-migration-issue-set",
-    "01-diagnose-reports-count-reopened-as-resolved",
-    "02-decide-ops-team-hierarchy-feature-level",
-    "03-guard-translate-german-statuses",
-    "04-diagnose-epic-children-missing-from-roadmap",
-    "05-build-lean-create-screen-for-it-requests",
-    "06-guard-automation-to-fix-stale-reports",
-    "07-decide-epic-vs-component-for-recurring-security"
+    "06-guard-automation-to-fix-stale-reports"
   ],
   "runs_per_case": 3,
   "model": "sonnet",
@@ -17,8 +10,11 @@
     "claude-sonnet-5-5"
   ],
   "judge_model": "haiku",
-  "with_skill": 0.9264,
-  "without_skill": 0.7083,
+  "judges": {
+    "06-guard-automation-to-fix-stale-reports": "sonnet"
+  },
+  "with_skill": 0.9333,
+  "without_skill": 0.6,
   "without_from": "this run",
   "baselines": {
     "00-build-dc-migration-issue-set": {
@@ -70,8 +66,9 @@
       "date": "2026-11-20"
     },
     "06-guard-automation-to-fix-stale-reports": {
-      "score": 0.5333,
-      "id": "8f610d7702ef",
+      "score": 0.6,
+      "id": "e79ffb526400",
+      "judge": "sonnet",
       "models": [
         "claude-sonnet-5-5"
       ],

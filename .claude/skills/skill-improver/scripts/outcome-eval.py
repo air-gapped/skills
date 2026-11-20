@@ -15,7 +15,7 @@ measurement is about the skill's content, not its triggering (trigger mode
 measures that). `--natural` drops the line.
 
     outcome-eval.py <skill-dir> [--against REF|DIR] [--runs 3] [--case GLOB]
-        [--model sonnet] [--judge-model haiku] [--with-only] [--max-cost-usd 20]
+        [--model sonnet] [--judge-model M] [--with-only] [--max-cost-usd 20]
         [--write-benchmark] [--natural]
     outcome-eval.py --selfcheck
 
@@ -238,6 +238,26 @@ def stored_baselines(
         else:
             missing.append(case_key(e))
     return have, missing
+
+
+def weak_names(
+    result: dict, floor: float = 0.7, stored: dict | None = None
+) -> list[str]:
+    """Names of cases where the skill scores under `floor` or below the
+    without-skill score (measured, else stored)."""
+    out = []
+    for c in result["cases"]:
+        means = {}
+        for arm in ("with", "without"):
+            sc = [s for s, _, _ in run_scores({"cases": [c]}, arm).get(c["name"], [])]
+            sc = [s for s in sc if s is not None]
+            means[arm] = st.mean(sc) if sc else None
+        w, wo = means["with"], means["without"]
+        if wo is None and stored and c["name"] in stored:
+            wo = stored[c["name"]]["score"]
+        if w is not None and (w < floor or (wo is not None and w < wo)):
+            out.append(c["name"])
+    return out
 
 
 def weak_cases(
@@ -476,6 +496,36 @@ def selfcheck() -> int:
     assert stored_baselines(stamp, [dict(e1, prompt="x")], "sonnet", "haiku")[1] == [
         "01-a"
     ]
+
+    # A case is doubted when the skill scores low or below the other arm,
+    # measured or stored; a strong case is left alone.
+    def arm(*scores):
+        return [
+            {"graders": [{"name": "a0", "passed": s}], "costUsd": 0} for s in scores
+        ]
+
+    doubt = {
+        "cases": [
+            {
+                "name": "low",
+                "arms": {"with": arm(True, False, False), "without": arm(False)},
+            },
+            {
+                "name": "loses",
+                "arms": {"with": arm(True, True, False), "without": arm(True)},
+            },
+            {
+                "name": "fine",
+                "arms": {"with": arm(True, True, True), "without": arm(False)},
+            },
+            {"name": "one-arm", "arms": {"with": arm(True, True, True)}},
+        ]
+    }
+    assert weak_names(doubt) == ["low", "loses"], weak_names(doubt)
+    assert weak_names(doubt, floor=0.5, stored={"one-arm": {"score": 1.0}}) == [
+        "low",
+        "loses",
+    ]
     print("selfcheck: all assertions passed")
     return 0
 
@@ -487,13 +537,23 @@ def main() -> int:
     ap.add_argument("--runs", type=int, default=3)
     ap.add_argument("--case", help="comma-separated globs over NN-name, e.g. 03-*,06-*")
     ap.add_argument("--model", default="sonnet")
-    ap.add_argument("--judge-model", default="haiku")
+    ap.add_argument(
+        "--judge-model",
+        help="Default: sonnet with --write-benchmark, else haiku. A haiku-judged "
+        "case that comes out weak is run again under sonnet, which decides it.",
+    )
     ap.add_argument(
         "--with-only",
         action="store_true",
         help="Run only the with-skill arm and compare with the without-skill "
         "scores stored in evals/last-run.json. Refused when a selected case has "
         "no stored score for this model, judge and case text.",
+    )
+    ap.add_argument(
+        "--weak-floor",
+        type=float,
+        default=0.7,
+        help="A case scoring under this with the skill counts as weak (default 0.7).",
     )
     ap.add_argument("--max-cost-usd", type=float, default=20)
     ap.add_argument("-j", "--jobs", type=int, default=4)
@@ -505,6 +565,8 @@ def main() -> int:
         return selfcheck()
     if not a.skill:
         ap.error("skill directory required")
+    if not a.judge_model:
+        a.judge_model = "sonnet" if a.write_benchmark else "haiku"
     skill = a.skill.resolve()
     name = skill.name
     evals = json.loads((skill / "evals" / "evals.json").read_text())["evals"]
@@ -533,8 +595,9 @@ def main() -> int:
             ap.error(
                 "--with-only: no stored without-skill score for "
                 + ", ".join(missing)
-                + f" (model {a.model}, judge {a.judge_model}). Run these cases "
-                "once without --with-only."
+                + f" (model {a.model}, judge {a.judge_model}; a case decided by "
+                "the sonnet judge is not reused under haiku). Run these cases once "
+                "without --with-only."
             )
     work = Path(tempfile.mkdtemp(prefix=f"outcome-eval-{name}-results."))
     main_res = run(
@@ -543,16 +606,37 @@ def main() -> int:
         a,
         "none" if a.with_only else "with-without",
     )
-    if a.with_only:
-        without = {k: [(b["score"], 0.0, False)] for k, b in stored.items()}
-    else:
-        without = run_scores(main_res, "without")
+    cost = main_res["costUsd"]
+    results = [main_res]
+    judges = {case_key(e): a.judge_model for e in evals}
+    doubted = (
+        weak_names(main_res, a.weak_floor, stored) if a.judge_model == "haiku" else []
+    )
+    if doubted:
+        # The cheap judge fails long answers that meet a check. A weak case is
+        # run again, both arms, and the sonnet-judged result replaces it.
+        print(f"second opinion (sonnet judge) on: {', '.join(doubted)}")
+        again = run(
+            build_plugin(
+                skill, [e for e in evals if case_key(e) in doubted], name, a.natural
+            ),
+            work / "second-opinion.json",
+            argparse.Namespace(**{**vars(a), "judge_model": "sonnet"}),
+            "with-without",
+        )
+        redone = {c["name"]: c for c in again["cases"]}
+        main_res["cases"] = [redone.get(c["name"], c) for c in main_res["cases"]]
+        judges.update(dict.fromkeys(redone, "sonnet"))
+        cost += again["costUsd"]
+        results.append(again)
+    without = run_scores(main_res, "without")  # every case measured in this run
+    measured = set(without)
+    for k, b in stored.items():
+        without.setdefault(k, [(b["score"], 0.0, False)])
     cols = {
         "stored" if a.with_only else "without": without,
         "current": run_scores(main_res, "with"),
     }
-    cost = main_res["costUsd"]
-    results = [main_res]
     if a.against:
         other = Path(a.against)
         if not other.is_dir():
@@ -586,7 +670,7 @@ def main() -> int:
     text, means = summarize(cols)
     means["without"] = means.pop("stored") if a.with_only else means["without"]
     print(text)
-    weak = weak_cases(main_res, evals, stored=stored)
+    weak = weak_cases(main_res, evals, a.weak_floor, stored)
     if weak:
         print(f"\nweak cases (answers and grader evidence: {work}/current.json):")
         print("\n".join(weak))
@@ -603,16 +687,17 @@ def main() -> int:
                 f"run answered on {resolved}. Run once without --with-only before "
                 "trusting the comparison."
             )
-    else:
-        for e in evals:
-            sc = [s for s, _, _ in without.get(case_key(e), []) if s is not None]
-            if sc:
-                baselines[case_key(e)] = {
-                    "score": round(st.mean(sc), 4),
-                    "id": baseline_id(e, a.model, a.judge_model),
-                    "models": resolved,
-                    "date": date.today().isoformat(),
-                }
+    for e in evals:
+        k = case_key(e)
+        sc = [s for s, _, _ in without.get(k, []) if s is not None]
+        if k in measured and sc:
+            baselines[k] = {
+                "score": round(st.mean(sc), 4),
+                "id": baseline_id(e, a.model, judges[k]),
+                "judge": judges[k],
+                "models": resolved,
+                "date": date.today().isoformat(),
+            }
     if means["current"] is not None and means["without"] is not None:
         # Every measured run leaves a stamp tied to the content it ran against,
         # so a later check can tell whether the skill changed since.
@@ -626,6 +711,7 @@ def main() -> int:
                     "model": a.model,
                     "models_resolved": resolved,
                     "judge_model": a.judge_model,
+                    "judges": judges,
                     "with_skill": round(means["current"], 4),
                     "without_skill": round(means["without"], 4),
                     "without_from": "stored" if a.with_only else "this run",
