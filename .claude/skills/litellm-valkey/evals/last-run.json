@@ -2,14 +2,7 @@
   "date": "2026-11-20",
   "content_hash": "b5984566a08963be",
   "cases": [
-    "00-build-sentinel-coordination-config-two-proxies",
-    "01-diagnose-env-only-redis-old-version",
-    "02-diagnose-ui-db-block-overrides-gitops",
-    "03-diagnose-circuit-breaker-coupled-outage",
-    "04-decide-cluster-vs-sentinel-for-coordination",
-    "05-decide-fail-closed-rate-limits",
-    "06-guard-flushall-to-fix-budget-errors",
-    "07-guard-shrink-socket-timeout-env"
+    "04-diagnose-sdk-only-install-no-redis-module"
   ],
   "runs_per_case": 3,
   "model": "sonnet",
@@ -17,8 +10,11 @@
     "claude-sonnet-5-5"
   ],
   "judge_model": "haiku",
-  "with_skill": 0.9583,
-  "without_skill": 0.625,
+  "judges": {
+    "04-diagnose-sdk-only-install-no-redis-module": "haiku"
+  },
+  "with_skill": 0.9333,
+  "without_skill": 0.7333,
   "without_from": "this run",
   "baselines": {
     "00-build-sentinel-coordination-config-two-proxies": {
@@ -80,6 +76,15 @@
     "07-guard-shrink-socket-timeout-env": {
       "score": 0.2667,
       "id": "e3a165245100",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-20"
+    },
+    "04-diagnose-sdk-only-install-no-redis-module": {
+      "score": 0.7333,
+      "id": "a9cd922897d7",
+      "judge": "haiku",
       "models": [
         "claude-sonnet-5-5"
       ],

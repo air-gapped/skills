@@ -9,12 +9,13 @@
     "judge_model": "haiku",
     "runs_per_case": 3,
     "cases": 8,
-    "forced_invocation": true
+    "forced_invocation": true,
+    "note": "case 04 replaced and measured separately 2026-11-20; means recomputed from the per-case scores"
   },
   "run_summary": {
     "with_skill": {
       "pass_rate": {
-        "mean": 0.9583
+        "mean": 0.95
       }
     },
     "without_skill": {

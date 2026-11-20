@@ -72,19 +72,19 @@
     },
     {
       "id": 4,
-      "name": "decide-cluster-vs-sentinel-for-coordination",
-      "prompt": "We're standing up LiteLLM v1.106.4 with 8 replicas, peak ~3k RPM total, with key/user/team rate limits and team budgets that map to real invoiced money. Platform team offers two managed Valkey 8 options: (A) a 3-shard Valkey Cluster (6 nodes), or (B) a single primary + 2 replicas behind 3 Sentinels. They lean toward Cluster 'because it scales'. Coordination keyspace is small (well under 1 GB). Which should LiteLLM coordination use, and why? Give a recommendation, not a survey.",
-      "expected_output": "Recommends Sentinel (B) because the workload doesn't need sharding and Cluster mode degrades limiter semantics (non-atomic cross-slot checks with best-effort refunds, SCAN paths returning empty, version probe issues). Notes the Sentinel wiring and fail-closed settings.",
+      "name": "diagnose-sdk-only-install-no-redis-module",
+      "prompt": "We built a slim internal image for a batch job that uses the LiteLLM Python SDK directly (no proxy): `pip install litellm==1.104.2` on python:3.12-slim and nothing else. The job sets `litellm.cache = litellm.Cache(type=\"redis\", host=os.environ[\"REDIS_HOST\"], port=6379)` and crashes at startup with `ModuleNotFoundError: No module named 'redis'`. The exact same code runs fine inside our LiteLLM proxy image. One colleague says the PyPI release is broken and we should pin an older litellm. Another says just add a bare `redis` line to requirements.txt. Separately, the platform team injects a shared ConfigMap with several REDIS_* variables (REDIS_SSL, REDIS_SSL_CERT_REQS, REDIS_SOCKET_CONNECT_TIMEOUT) into every workload and wants to know whether the batch job will honor all of them once the import works. What is going on, what goes in requirements.txt, and what do we tell the platform team?",
+      "expected_output": "redis-py is not a declared dependency of litellm; it comes in transitively with the proxy extras, which is why the proxy image has it and the SDK-only image does not. Add redis-py explicitly and pinned. Which REDIS_* variables are honored is derived from the installed redis-py at import time, so it depends on that version; verify rather than assume.",
       "files": [],
       "assertions": [
-        "Recommends the Sentinel option (B) over Cluster for coordination",
-        "Justifies the choice by Cluster changing correctness semantics: the multi-descriptor rate-limit check is no longer atomic across key/user/team and can drift counters on partial failures",
-        "Mentions at least one other Cluster-specific degradation (e.g. SCAN-based paths silently returning nothing or per-node version probing issues)",
-        "Argues that ~3k RPM and a sub-GB keyspace do not need sharding, so Cluster's scaling benefit is irrelevant",
-        "Specifies wiring via coordination_redis with sentinel_nodes and service_name and recommends fail-closed budget enforcement given real money"
+        "Explains that redis-py is not a declared dependency of the litellm package and arrives only transitively with the proxy extras, which is why the proxy image works and the SDK-only install does not",
+        "Does NOT recommend pinning or downgrading to an older litellm release as the fix",
+        "Recommends adding redis-py to requirements explicitly with a pinned version rather than a bare unpinned line",
+        "Tells the platform team that the set of REDIS_* variables that take effect is derived from the installed redis-py version at import time, so it can differ between images or change when redis-py is bumped",
+        "Recommends verifying after the change (for example importing and pinging Redis, or checking which variables took effect) rather than assuming the ConfigMap is honored"
       ],
-      "shape": "decide",
-      "source": "grow-evals 2026-11-20"
+      "shape": "diagnose",
+      "source": "hand-written 2026-11-20, replaces a Cluster-or-Sentinel choice case"
     },
     {
       "id": 5,
