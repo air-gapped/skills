@@ -1,0 +1,110 @@
+[
+  {
+    "query": "lmcache standalone image is up but vllm can't connect, which port and flags does the zmq side need",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "explicit"
+  },
+  {
+    "query": "LMCacheMPConnector throws 'only works without hybrid kv cache manager', do i really need --disable-hybrid-kv-cache-manager",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "explicit"
+  },
+  {
+    "query": "three vllm pods on one gpu node should share one kv cache in cpu ram, how do i set that up",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "want to offload kv for a gemma 4 / qwen3.5 hybrid model into a separate cache process, what versions do i need",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "added the cpu kv cache sidecar and ttft got worse than before, hit rate looks fine",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "this daemonset's pods crash with cuda init errors on the cpu-only nodes, pasted manifest below",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "contextual"
+  },
+  {
+    "query": "bumped vllm to nightly and now ImportError cannot import name ParallelStrategy, image was fine yesterday",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "contextual"
+  },
+  {
+    "query": "how much cpu ram should i give a redis cache for my web app's sessions",
+    "should_trigger": false,
+    "source": "generic",
+    "bucket": "negative"
+  },
+  {
+    "query": "my gpu pod keeps getting oom killed, how do i read the cuda out of memory message",
+    "should_trigger": false,
+    "source": "keyword-collision",
+    "bucket": "negative"
+  },
+  {
+    "query": "what is zmq pub/sub vs dealer/router in python, example please",
+    "should_trigger": false,
+    "source": "keyword-collision",
+    "bucket": "negative"
+  },
+  {
+    "query": "sglang --hicache-storage-backend mooncake with write_through_selective, what do the flags mean",
+    "should_trigger": false,
+    "source": "sibling:sglang-hicache",
+    "bucket": "negative"
+  },
+  {
+    "query": "hicache page_first layout and prefetch policy timeout, which should i pick for 8 gpus",
+    "should_trigger": false,
+    "source": "sibling:sglang-hicache",
+    "bucket": "negative"
+  },
+  {
+    "query": "how big should --kv-offloading-size be for tp4 with native cpu offload",
+    "should_trigger": false,
+    "source": "sibling:vllm-caching",
+    "bucket": "negative"
+  },
+  {
+    "query": "kv cache sizing for long context concurrency, gpu_memory_utilization and fp8 kv dtype",
+    "should_trigger": false,
+    "source": "sibling:vllm-caching",
+    "bucket": "negative"
+  },
+  {
+    "query": "nixl_agent fetch_remote_metadata hangs, listener never starts",
+    "should_trigger": false,
+    "source": "sibling:nvidia-nixl",
+    "bucket": "negative"
+  },
+  {
+    "query": "NIXL_ERR_REMOTE_DISCONNECT on the first transfer and the ucx_tls setting, what is right",
+    "should_trigger": false,
+    "source": "sibling:nvidia-nixl",
+    "bucket": "negative"
+  },
+  {
+    "query": "vllm pod takes 12 minutes to boot and the liveness probe kills it, tune initialDelaySeconds and failureThreshold",
+    "should_trigger": false,
+    "source": "sibling:vllm-deployment",
+    "bucket": "negative"
+  },
+  {
+    "query": "keep torch inductor and triton caches across pod restarts for vllm, which paths to mount",
+    "should_trigger": false,
+    "source": "sibling:vllm-deployment",
+    "bucket": "negative"
+  }
+]

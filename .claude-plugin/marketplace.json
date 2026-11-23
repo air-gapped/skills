@@ -253,7 +253,7 @@
       "name": "inference-cache",
       "source": "./",
       "description": "Inference KV-cache and transport suite — LMCache multiprocess (MP) standalone-server mode (DaemonSet + Deployment K8s pattern, ZMQ connector, L1 + L2 NIXL/POSIX/GDS/HF3FS/fs/s3/mooncake adapters) and NVIDIA NIXL transfer library (UCX/GDS/Mooncake/libfabric/HF3FS/S3 plugins, agent API, telemetry) used by Dynamo/vLLM/SGLang. Pairs with the vllm-caching skill in the `vllm` suite and sglang-hicache in the `sglang` suite.",
-      "version": "0.20261027.52",
+      "version": "0.20261123.53",
       "author": {
         "name": "Jörgen"
       },
@@ -412,7 +412,7 @@
       "name": "litellm",
       "source": "./",
       "description": "LiteLLM proxy operator suite — multi-pod Redis/Valkey coordination (the silent per-pod-fallback failure mode, the 4-way coordination-Redis resolution order incl. the undocumented general_settings.coordination_redis block since v1.93.0, Sentinel/Cluster support matrix with fix versions, per-pod-vs-shared truth table with real staleness bounds, no-op documented knobs, open-issue catalog) and the management REST API (447-path control plane, ~63% undocumented; the four 'empty means unlimited' footguns, budget semantics traps, presence-sensitive updates that trigger spurious enterprise 403s, config-vs-DB precedence, recon-first protocol via GET /routes).",
-      "version": "0.20261123.47",
+      "version": "0.20261123.48",
       "author": {
         "name": "Jörgen"
       },
@@ -781,8 +781,8 @@
     {
       "name": "openshell-best-practices",
       "source": "./",
-      "description": "Run NVIDIA OpenShell 0.1.x",
-      "version": "0.20261103.15",
+      "description": "Run NVIDIA OpenShell, the sandboxed runtime for AI agents: gateway and supervisor, network policy, providers and credentials, Helm deployment with Agent Sandbox, OIDC, and air-gapped operation",
+      "version": "0.20261123.16",
       "author": {
         "name": "Jörgen"
       },

@@ -1,0 +1,110 @@
+[
+  {
+    "query": "litellm /key/generate with models [] , does that mean no models or every model?",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "explicit"
+  },
+  {
+    "query": "litellm: i added budget_duration to an existing team and it 429s immediately even though the window is fresh",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "explicit"
+  },
+  {
+    "query": "created an api key on our llm gateway without listing models and it can call every model we serve",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "i updated the team via the api, got 200, nothing changed, i think i typo'd a field name",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "deleted a team yesterday but its keys still authenticate on the proxy",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "my reconcile script posts guardrails: [] to /team/update and gets 'only available for LiteLLM Enterprise users', body below",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "contextual"
+  },
+  {
+    "query": "non-admin /key/update returns 403 and i only included allowed_routes unchanged, same body works for the admin key",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "contextual"
+  },
+  {
+    "query": "how do i budget gpu hours across teams for training runs",
+    "should_trigger": false,
+    "source": "keyword-collision",
+    "bucket": "negative"
+  },
+  {
+    "query": "what's a good rate limiting algorithm for my own rest api, token bucket vs sliding window",
+    "should_trigger": false,
+    "source": "generic",
+    "bucket": "negative"
+  },
+  {
+    "query": "how do i call litellm.completion from python with streaming and a fallback model",
+    "should_trigger": false,
+    "source": "keyword-collision",
+    "bucket": "negative"
+  },
+  {
+    "query": "litellm rate limits not enforced across pods, each pod seems to keep its own counter",
+    "should_trigger": false,
+    "source": "sibling:litellm-valkey",
+    "bucket": "negative"
+  },
+  {
+    "query": "REDIS_SENTINEL_NODES for litellm in helm, coordination_redis config",
+    "should_trigger": false,
+    "source": "sibling:litellm-valkey",
+    "bucket": "negative"
+  },
+  {
+    "query": "open webui api returns html and 403 with a valid api key, ENABLE_API_KEYS",
+    "should_trigger": false,
+    "source": "sibling:open-webui-api",
+    "bucket": "negative"
+  },
+  {
+    "query": "script that creates open webui groups and sets permissions via the api",
+    "should_trigger": false,
+    "source": "sibling:open-webui-api",
+    "bucket": "negative"
+  },
+  {
+    "query": "point claude code at a local model with ANTHROPIC_BASE_URL, count_tokens fails",
+    "should_trigger": false,
+    "source": "sibling:messages-api",
+    "bucket": "negative"
+  },
+  {
+    "query": "stop_reason mapping and thinking signatures for vllm /v1/messages",
+    "should_trigger": false,
+    "source": "sibling:messages-api",
+    "bucket": "negative"
+  },
+  {
+    "query": "reasoning_content vs reasoning field in chat completions on vllm and sglang",
+    "should_trigger": false,
+    "source": "sibling:chat-completions-api",
+    "bucket": "negative"
+  },
+  {
+    "query": "assemble streamed tool_call deltas and finish_reason in chat completions sse",
+    "should_trigger": false,
+    "source": "sibling:chat-completions-api",
+    "bucket": "negative"
+  }
+]

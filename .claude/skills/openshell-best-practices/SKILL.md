@@ -1,37 +1,15 @@
 ---
 name: openshell-best-practices
 description: >-
-  Run NVIDIA OpenShell 0.1.x — the sandboxed runtime for autonomous AI agents (gateway,
-  per-sandbox supervisor, Landlock/seccomp/netns isolation, L7 network policy, credential
-  placeholders via providers/profiles) — the way current practitioners do. Core knowledge: the
-  0.1.0 breaking cutover and which 0.0.x patterns are now wrong (inference.local, built-in
-  profiles, --from Dockerfile builds, community base image, config v1); local gateway installs
-  (RPM/deb/brew/snap, clean reinstall from 0.0.x); Kubernetes Helm deployment with Agent Sandbox,
-  ingress without Gateway API, OIDC/Keycloak, gatewayConfig vs deprecated server.* aliases, HA;
-  agent images and session model (detach, exec, device-code logins); providers, binaries real
-  paths, policy approval and its limits; air-gap operation (mirrors, telemetry, supervisor CAs,
-  RFC 1918 destinations and allowed_ips, 198.18 stand-in DNS, corporate proxy); rarely used
-  gateway, policy, profile and sandbox settings; automation; and a gotcha list with issues.
-when_to_use: >-
-  Use whenever the user mentions OpenShell, `openshell` CLI commands (sandbox create/connect/exec,
-  gateway add/login, provider/profile, policy, rule approve, term), `openshell-gateway`,
-  gateway.toml, the OpenShell Helm chart (`oci://ghcr.io/nvidia/openshell/helm-chart`,
-  `openshell-workspace`), Agent Sandbox (`agents.x-k8s.io`, `sandbox.yaml`) as OpenShell's
-  prerequisite, or running Claude Code / Codex / OpenCode / Pi / herdr inside OpenShell
-  sandboxes. Also trigger on symptoms: sandbox stuck ConfigurationInvalid or
-  ProvisioningTimedOut, `NET:OPEN ... DENIED`, `credential_endpoint_mismatch`, `invalid token:
-  ExpiredSignature` in the TUI, gateway refusing to start after 0.1.6, Docker Desktop supervisor
-  never ready, Landlock/seccomp probe failures, OAuth callback to 127.0.0.1 failing inside a
-  sandbox, a connection "allowed" then rejected (`resolves to internal address`, `internal IP
-  without allowed_ips`, `ssrf`), `Could not resolve host` or `198.18.x.x` addresses inside a
-  sandbox, `request_authority_mismatch`, an internal LiteLLM/mirror/Git server unreachable
-  despite a rebuilt CA, and on planning questions ("should we run agents in OpenShell",
-  "upgrade OpenShell", "air-gapped OpenShell", "OpenShell with Keycloak", "what does setting X
-  do"). Prefer upstream's `openshell-cli` /
-  `debug-openshell-cluster` / `generate-sandbox-policy` skills for exhaustive flag references and
-  policy generation; this skill is the decisions, deployment patterns and current gotchas. Do
-  NOT trigger for NemoClaw-only questions (it pins OpenShell 0.0.116), unrelated "OpenShift",
-  or generic container sandboxes (E2B, Daytona, Docker sandboxes) with no OpenShell context.
+  Run NVIDIA OpenShell, the sandboxed runtime for AI agents: gateway and
+  supervisor, network policy, providers and credentials, Helm deployment with
+  Agent Sandbox, OIDC, and air-gapped operation. Use whenever the user mentions
+  OpenShell, the `openshell` CLI or gateway, gateway.toml, Agent Sandbox
+  (`agents.x-k8s.io`), or running Claude Code / Codex / OpenCode in OpenShell
+  sandboxes; and on sandbox symptoms such as stuck ConfigurationInvalid or
+  ProvisioningTimedOut, `NET:OPEN ... DENIED`, `credential_endpoint_mismatch`,
+  `resolves to internal address`, or `198.18.x.x` addresses. Not for OpenShift
+  or other container sandboxes.
 ---
 
 # OpenShell best practices (0.1.x)

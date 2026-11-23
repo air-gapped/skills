@@ -1,10 +1,15 @@
 ---
 name: lmcache-mp
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
-description: |-
-  LMCache multiprocess (MP) mode — standalone LMCache server in its own pod/process that vLLM connects to over ZMQ. Gives process isolation, no GIL contention on the inference path, one cache shared by multiple vLLM pods per node, and CPU-memory scaling independent of GPU memory. Covers the `LMCacheMPConnector` path (vs the in-process `LMCacheConnectorV1`), the DaemonSet+Deployment K8s pattern and LMCache Operator, the L1 (CPU DRAM) + L2 (NIXL, fs, mooncake_store, s3, Redis) cascade, the `lmcache/standalone` + `lmcache/vllm-openai` image pair, hybrid-attention model support (Gemma 3/4, Qwen3.5/3.6 GDN, DeepSeek-V4-Flash, GLM 5.x, MiniMax-M3) via `SupportsHMA`, and the production gotchas (`--no-enable-prefix-caching`, vLLM/lmcache version pins, object-group separation, cache_salt fallback bug).
-when_to_use: |-
-  Trigger on "LMCache MP", "LMCacheMPConnector", "LMCache standalone", "lmcache server", "lmcache daemon", "lmcache pod", "lmcache daemonset", "ZMQ kv connector", "lmcache shared across pods", "separate cache process", "lmcache nixl_store", "lmcache mooncake adapter", "L1+L2 cache", "lmcache GIL contention", "LMCacheConnectorV1 vs LMCacheMPConnector", "lmcache:standalone image", or any troubleshooting of LMCacheMP deployments — whenever LMCache runs as its own pod/process rather than in-process. For native vLLM CPU offload without a separate pod (`--kv-offloading-size` / OffloadingConnector), defer to `vllm-caching`. For NIXL transport-layer details under the `nixl_store` backend, defer to `nvidia-nixl`. For SGLang's equivalent (HiCache), see `sglang-hicache`.
+description: >-
+  LMCache multiprocess (MP) mode: LMCache as its own pod or process that vLLM
+  reaches over ZMQ (`LMCacheMPConnector`), one cache shared by several vLLM pods
+  per node. Covers the DaemonSet+Deployment pattern and LMCache Operator, the L1
+  CPU + L2 (NIXL, fs, mooncake, s3, Redis) cascade, the `lmcache/standalone`
+  image, hybrid-attention models, and production gotchas. Use when LMCache runs
+  as a separate server, daemon or daemonset, or for LMCacheMPConnector vs
+  LMCacheConnectorV1. In-process vLLM CPU offload: `vllm-caching`; NIXL
+  transport: `nvidia-nixl`; SGLang: `sglang-hicache`.
 ---
 
 # LMCache multiprocess (MP) mode

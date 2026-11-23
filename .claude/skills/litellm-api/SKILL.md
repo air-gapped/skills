@@ -1,9 +1,15 @@
 ---
 name: litellm-api
-description: |-
-  Administer a LiteLLM proxy via its management REST API (keys, teams, users, orgs, models, budgets, spend) — a 447-path control plane where ~63% of paths are undocumented, 91 are hidden from /openapi.json, and the OpenAPI schema documents wrong field names. Centerpiece: four "empty means UNLIMITED" footguns (`models: []`, `allowed_routes: []`, additive access groups, team-member `[]`) where the natural reading is the opposite. Covers the real auth model (no-master-key = fully open, admin-viewer default-allow on GETs, /v1/mcp/* RBAC bypass), budget semantics (can't unset, update≠reset, the team-key-vs-personal-budget rule that was reverted in v1.94.1), presence-sensitive updates that trigger spurious enterprise 403s, config-vs-DB precedence, and lazy-loaded families that 404 until warmed.
-when_to_use: |-
-  Trigger on "litellm api", "litellm management api", "/key/generate", "/team/new", "/user/new", "litellm virtual key", "litellm budget", "max_budget", "budget_duration", "litellm spend", "model access group", "no-default-models", "team_member_permissions", "STORE_MODEL_IN_DB", "litellm openapi", "litellm enterprise 403", "allowed_routes", or any task scripting a LiteLLM proxy (provision keys/teams/users, reconcile models, read usage) rather than clicking the Admin UI. Also on symptoms: "key can access everything", "budget never resets", "update returns 200 but nothing changed", "deleted team's keys still work". NOT for the inference endpoints (chat-completions-api / messages-api / responses-api) or Redis/multi-pod coordination (litellm-valkey).
+description: >-
+  Script a LiteLLM proxy through its management REST API: keys, teams, users,
+  orgs, models, budgets, spend. Most paths are undocumented and the OpenAPI
+  field names are wrong. Covers the "empty means UNLIMITED" footguns (`models:
+  []`, `allowed_routes: []`), the real auth model, budgets that cannot be unset
+  or reset by an update, and updates that return 200 but change nothing. Use for
+  /key/generate, /team/new, /user/new, virtual keys, max_budget,
+  budget_duration, spend, model access groups, or symptoms like "key can access
+  everything", "budget never resets", "deleted team's keys still work". Not for
+  inference endpoints or multi-pod Redis (litellm-valkey).
 ---
 
 # LiteLLM proxy management API — operator reference

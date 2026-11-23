@@ -1,0 +1,110 @@
+[
+  {
+    "query": "openshell sandbox sits in ProvisioningTimedOut on our k8s cluster, what do i check first",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "explicit"
+  },
+  {
+    "query": "what's the exact openshell policy update syntax to let one binary reach github, keep getting flag errors",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "explicit"
+  },
+  {
+    "query": "agent in the sandbox says internal git server 'resolves to internal address' even though the policy allows that host",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "inside the agent sandbox every hostname resolves to 198.18.something and short names don't resolve at all",
+    "should_trigger": true,
+    "source": "everyday",
+    "bucket": "implicit"
+  },
+  {
+    "query": "an old guide told me to build my agent sandbox with --from ./Dockerfile, the flag is rejected on the version i just installed",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "here's my gateway.toml with version = 1 and compute_drivers, gateway won't start after the upgrade",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "contextual"
+  },
+  {
+    "query": "left the term ui open overnight and now it just shows invalid token: ExpiredSignature, login is fine in the cli",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "contextual"
+  },
+  {
+    "query": "difference between openshift routes and kubernetes ingress, which one should i use",
+    "should_trigger": false,
+    "source": "keyword-collision",
+    "bucket": "negative"
+  },
+  {
+    "query": "best way to run untrusted code from my chatbot, e2b or a plain docker sandbox?",
+    "should_trigger": false,
+    "source": "generic",
+    "bucket": "negative"
+  },
+  {
+    "query": "how do i write a seccomp filter in c that blocks execve but allows everything else",
+    "should_trigger": false,
+    "source": "keyword-collision",
+    "bucket": "negative"
+  },
+  {
+    "query": "run claude -p headless in CI against my local vllm /v1/messages endpoint and assert the tool calls in the stream-json transcript",
+    "should_trigger": false,
+    "source": "sibling:claude-code-ci-harness",
+    "bucket": "negative"
+  },
+  {
+    "query": "claude code tool-call regression test with a qwen model behind a messages-compatible gateway, how do i isolate credentials",
+    "should_trigger": false,
+    "source": "sibling:claude-code-ci-harness",
+    "bucket": "negative"
+  },
+  {
+    "query": "run opencode headless with an isolated profile against my openai-compatible endpoint and dump the ndjson transcript",
+    "should_trigger": false,
+    "source": "sibling:opencode-ci-harness",
+    "bucket": "negative"
+  },
+  {
+    "query": "repro a multi-step tool calling failure of my model with opencode run, i want a scripted scenario",
+    "should_trigger": false,
+    "source": "sibling:opencode-ci-harness",
+    "bucket": "negative"
+  },
+  {
+    "query": "before we adopt this log shipper in a disconnected network, does it phone home or download anything at runtime?",
+    "should_trigger": false,
+    "source": "sibling:airgap-vetting",
+    "bucket": "negative"
+  },
+  {
+    "query": "is this open source tool really self-hostable or just a wrapper around their hosted api, need a go/no-go",
+    "should_trigger": false,
+    "source": "sibling:airgap-vetting",
+    "bucket": "negative"
+  },
+  {
+    "query": "my values.yaml key is silently ignored after a chart bump, how do i three-way merge my values onto the new version",
+    "should_trigger": false,
+    "source": "sibling:helm",
+    "bucket": "negative"
+  },
+  {
+    "query": "write a values.schema.json and helm-docs setup for my own chart",
+    "should_trigger": false,
+    "source": "sibling:helm",
+    "bucket": "negative"
+  }
+]
