@@ -1,5 +1,6 @@
 ---
 name: traefik-hardening
+disable-model-invocation: true
 description: |-
   Harden a Traefik 2.x/3.x reverse proxy against abusive or unwanted traffic — per-identity rate + concurrency limiting, IP allowlisting, request-body buffering, middleware chaining, keying limits on a JWT claim/header instead of raw source IP, air-gapped plugin loading (localPlugins/WASM), and detection/response via access logs. Covers the 2.x→3.x middleware deltas (IPWhiteList→IPAllowList, Redis-backed distributed RateLimit, status-based Retry), the single-leader-counting trap, and where Traefik's job ends and the app/backend must take over.
 when_to_use: |-

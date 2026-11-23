@@ -1,5 +1,6 @@
 ---
 name: rancher-upgrade
+disable-model-invocation: true
 description: >-
   Plan and sequence COMMUNITY-edition Rancher upgrades across air-gapped multi-cluster fleets — a
   management/"hosting" Rancher cluster plus the downstream RKE2/K3s clusters it provisions. Covers the community

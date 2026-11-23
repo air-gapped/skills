@@ -1,5 +1,6 @@
 ---
 name: openshift-app
+disable-model-invocation: true
 description: >-
   Package applications for OpenShift deployment: container images (UBI, arbitrary
   UID, multi-stage builds), packaging formats (Helm, Kustomize, Operators, OLM v1),

@@ -1,5 +1,6 @@
 ---
 name: postgres-operator-cloudnative-pg-migration
+disable-model-invocation: true
 description: >-
   Migrate PostgreSQL clusters from the Zalando postgres-operator
   (acid.zalan.do `postgresql` CRs, Spilo/Patroni, WAL-G) to CloudNativePG

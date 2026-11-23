@@ -1,5 +1,6 @@
 ---
 name: k8s-components-checker
+disable-model-invocation: true
 description: >-
   Survey an RKE2 community cluster against an embedded compatibility registry of
   20 stack components and produce a verdict for upgrade-readiness, drift-review,
