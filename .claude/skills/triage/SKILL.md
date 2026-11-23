@@ -1,5 +1,6 @@
 ---
 name: triage
+disable-model-invocation: true
 description: >-
   [3/4 defending-code] Triage a batch of raw security findings. Third step of
   the find-and-fix loop (/threat-model -> /vuln-scan -> /triage -> /patch);

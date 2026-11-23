@@ -1,5 +1,6 @@
 ---
 name: threat-model
+disable-model-invocation: true
 description: >-
   [1/4 defending-code] Build a threat model for a target codebase. Optional
   first step of the find-and-fix loop (/threat-model -> /vuln-scan -> /triage

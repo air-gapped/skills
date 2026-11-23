@@ -1,5 +1,6 @@
 ---
 name: patch
+disable-model-invocation: true
 description: >-
   [4/4 defending-code] Generate candidate fixes for verified security
   findings. Last step of the find-and-fix loop (/threat-model -> /vuln-scan ->

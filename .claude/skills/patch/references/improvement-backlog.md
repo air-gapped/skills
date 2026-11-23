@@ -107,13 +107,12 @@ four; each skill's own delegated surface still needs its own check.
 
 ## Open
 
-- **Add a `when_to_use` field (Dim 1).** Description is 836 chars, so 700 of
-  the 1536-char listing budget is unused; symptom triggers ("draft a fix for",
-  "remediate") would lift recall. **Blocked on:** a `trigger`-mode run
-  (`probe-trigger.py` baseline and after) — a description change without
-  trigger numbers is unverified, and freshen produces none.
-
 ## Decided — do not re-propose
+
+- (2026-11-23) The four defending-code skills are a fixed-order pipeline and
+  run slash-only (`disable-model-invocation: true`). Do not add trigger
+  phrases or a `when_to_use` field: the description is not in the listing.
+  Re-open only if the pipeline goes back to automatic invocation.
 
 - **SKILL.md 549 lines (49 over the 500 soft cap) — Dim 2.** (carried
   2026-07-05; grew 529 → 549 with the fix_priority + asset/condition

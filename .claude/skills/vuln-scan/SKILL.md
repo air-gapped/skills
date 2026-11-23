@@ -1,5 +1,6 @@
 ---
 name: vuln-scan
+disable-model-invocation: true
 description: >-
   [2/4 defending-code] Static source-code vulnerability scan. Second step of
   the find-and-fix loop (/threat-model -> /vuln-scan -> /triage -> /patch),
