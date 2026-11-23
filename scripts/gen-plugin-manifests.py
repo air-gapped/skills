@@ -253,12 +253,16 @@ GROUPS: dict[str, dict] = {
     },
     "vllm": {
         "glob": "vllm-*",
+        # Not vllm-* by name, but it is the HuggingFace snapshot preflight
+        # vLLM and sglang read (config, tokenizer, chat template).
+        "members": ["transformers-config-tokenizers-expert"],
         "description": (
             "vLLM operator reference suite — deployment, configuration, "
             "quantization, caching, KV, tool parsers, reasoning parsers, "
             "chat templates, benchmarking, performance tuning, "
             "observability, omni, input modalities, speculative decoding, "
-            "NVIDIA hardware, and a Gemma 4 31B operating-point serve recipe."
+            "NVIDIA hardware, a Gemma 4 31B operating-point serve recipe, and "
+            "HuggingFace transformers config/tokenizer preflight."
         ),
         "category": "inference",
         "tags": [
@@ -540,13 +544,11 @@ GROUPS: dict[str, dict] = {
             "baml-expert",
             "jinja-expert",
             "makefile-best-practices",
-            "transformers-config-tokenizers-expert",
         ],
         "description": (
             "Developer tooling suite — BAML (typed LLM functions), Jinja2 "
             "templates (HuggingFace chat templates, Ansible), GNU Make "
-            "best practices, and HuggingFace transformers config/tokenizer "
-            "preflight (vLLM/sglang engine bridge)."
+            "best practices."
         ),
         "category": "developer-tools",
         "tags": [
@@ -558,9 +560,6 @@ GROUPS: dict[str, dict] = {
             "huggingface",
             "ansible",
             "typed-prompts",
-            "transformers",
-            "tokenizers",
-            "preflight",
         ],
     },
     "jira": {

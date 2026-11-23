@@ -11,8 +11,7 @@ compilation) and a task runner (developer workflow automation).
 
 **On the `dev` plugin.** Its members are grouped by "general development
 tooling", not by a shared workflow — this skill has no dependency on
-**`baml-expert`**, **`jinja-expert`**, or
-**`transformers-config-tokenizers-expert`**, and none of them on it. Don't hunt
+**`baml-expert`** or **`jinja-expert`**, and neither of them on it. Don't hunt
 for a pipeline that isn't there. The one overlap worth knowing: a Makefile that
 shells out to render templates is still a Makefile question here, but the
 template body itself is `jinja-expert`.
