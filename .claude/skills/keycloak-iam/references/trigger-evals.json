@@ -1,0 +1,110 @@
+[
+  {
+    "query": "login to our keycloak behind nginx redirects in a loop, which proxy flags do i need",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "explicit"
+  },
+  {
+    "query": "what breaks going from keycloak 26.7 to 26.8, anything i must do before the upgrade",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "explicit"
+  },
+  {
+    "query": "sso server upgrade: updating an idp via script now returns 400 when i resend the masked secret",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "after the patch update our backchannel logout from the upstream idp stopped working, signature validation was off before",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "mail from the login server stopped after the upgrade, realm smtp has starttls enabled and the relay doesn't offer it",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "pod keeps getting killed while the db migration runs, my liveness probe hits :8080/health on the iam statefulset",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "contextual"
+  },
+  {
+    "query": "pasted our hpa for the iam deployment, min 2 max 8 on cpu, sessions are in embedded infinispan, fine to ship?",
+    "should_trigger": true,
+    "source": "everyday",
+    "bucket": "contextual"
+  },
+  {
+    "query": "set up okta sso for our grafana instance",
+    "should_trigger": false,
+    "source": "generic",
+    "bucket": "negative"
+  },
+  {
+    "query": "how do i build an oauth2 authorization server from scratch in go with refresh tokens",
+    "should_trigger": false,
+    "source": "generic",
+    "bucket": "negative"
+  },
+  {
+    "query": "my own kubernetes operator crashloops with 'couldn't start informer' for a custom resource i just added",
+    "should_trigger": false,
+    "source": "keyword-collision",
+    "bucket": "negative"
+  },
+  {
+    "query": "netbox helm chart upgrade 4.4 to 4.5, my plugin isn't loading in the official image",
+    "should_trigger": false,
+    "source": "sibling:netbox-best-practices",
+    "bucket": "negative"
+  },
+  {
+    "query": "how do i bootstrap a v2 nbt_ api token for a seeding job in netbox",
+    "should_trigger": false,
+    "source": "sibling:netbox-best-practices",
+    "bucket": "negative"
+  },
+  {
+    "query": "openshell gateway add then login, gateway refuses to start after the 0.1.6 upgrade",
+    "should_trigger": false,
+    "source": "sibling:openshell-best-practices",
+    "bucket": "negative"
+  },
+  {
+    "query": "openshell sandbox shows credential_endpoint_mismatch when the agent calls the model provider",
+    "should_trigger": false,
+    "source": "sibling:openshell-best-practices",
+    "bucket": "negative"
+  },
+  {
+    "query": "script to provision open webui users and groups through the api, i get 403 with a valid api key",
+    "should_trigger": false,
+    "source": "sibling:open-webui-api",
+    "bucket": "negative"
+  },
+  {
+    "query": "open webui models/sync to keep the model catalog in git, how does import and export work",
+    "should_trigger": false,
+    "source": "sibling:open-webui-api",
+    "bucket": "negative"
+  },
+  {
+    "query": "write a _helpers.tpl with fullname and common labels for my chart",
+    "should_trigger": false,
+    "source": "sibling:helm",
+    "bucket": "negative"
+  },
+  {
+    "query": "add helm-unittest tests for my deployment template and run them in ci",
+    "should_trigger": false,
+    "source": "sibling:helm",
+    "bucket": "negative"
+  }
+]

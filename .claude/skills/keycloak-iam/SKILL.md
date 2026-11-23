@@ -1,7 +1,14 @@
 ---
 name: keycloak-iam
-description: Operate, configure, deploy, secure, and integrate with Keycloak (open-source IAM) — the modern Quarkus distribution (24.x–26.8.x), the Keycloak Operator with `Keycloak` and `KeycloakRealmImport` CRDs, realm/client/identity-provider configuration, plus legacy 16.x–23.x instances (incl. WildFly "-legacy" builds) and verifying realm/client config survived a version migration.
-when_to_use: Use whenever the user mentions Keycloak, Red Hat build of Keycloak (RHBK), `kc.sh`, `kcadm.sh`, `keycloak.conf`, `KC_*` / `KCRAW_*` env vars, the Keycloak Operator, a `Keycloak` or `KeycloakRealmImport` custom resource, or asks about server tuning (hostname / proxy / db / cache flags, `--optimized` builds), Kubernetes deployment (HA topology, probes, zero-downtime upgrades), security hardening (FGAP v2, client policies, FAPI, DPoP, JWT-Authz-Grant, federated client auth, redirect URI safety, CVEs), OIDC/SAML/IdP brokering with Keycloak as the IdP, LDAP/AD federation, themes / custom SPIs, or operations (Prometheus metrics, OTLP tracing, realm export/import, backup, upgrade matrix). Also trigger on old/unknown Keycloak versions ("we run 17/18/19-legacy", `/auth` URL paths, `/opt/jboss/keycloak`, old AngularJS admin console), upgrade-ladder questions ("what breaks going 1x→26"), and migration verification ("compare realm before/after upgrade", "did the migration keep our client settings"). In a thread already established as Keycloak-focused, keep triggering on follow-up realm/client/IdP/SSO questions even when "Keycloak" isn't repeated in every message. Do NOT trigger on generic IAM/SSO/OIDC questions with no Keycloak context (e.g. Auth0, Okta, Entra ID, Cognito, or a from-scratch OAuth server).
+description: >-
+  Operate, configure, secure and upgrade Keycloak (incl. Red Hat build of
+  Keycloak and old WildFly "-legacy" builds), its Operator and `Keycloak` /
+  `KeycloakRealmImport` CRDs. Use for `kc.sh`, `kcadm.sh`, `keycloak.conf`,
+  `KC_*` env vars, hostname/proxy/db/cache settings, Kubernetes HA and probes,
+  hardening and CVEs, OIDC/SAML/IdP brokering, LDAP/AD federation, themes and
+  SPIs, realm export/import, upgrade paths, `/auth` URL paths, and checking that
+  realm/client settings survived a migration. In a Keycloak thread, keep firing
+  on follow-up realm, client, IdP or SSO questions.
 ---
 
 # Keycloak IAM — operator's reference skill
