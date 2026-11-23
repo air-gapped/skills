@@ -161,6 +161,14 @@ Automatic skills only. A slash-only skill is never trimmed.
    group that falls by one query at 3 runs is re-measured at 7 before the step
    is dropped.
 6. **Stop** at the last passing version. Write that text to the frontmatter.
-7. **Report** before and after: characters, ~tokens, listing share, the score
+7. **Keep what was cut.** A trim removes text from the listing, never
+   knowledge from the skill. Run
+   `dropped-terms.py <skill-dir> --against HEAD`: it lists the old text's
+   flags, error strings, versions and quoted terms that are in neither the new
+   text nor the body or references. Each fact it lists, and each removed
+   sentence that states a behaviour, limit or failure, goes into the body or
+   the matching reference file before the commit. Phrases users type and names
+   from a "not for" clause need nothing.
+8. **Report** before and after: characters, ~tokens, listing share, the score
    lines. Save the eval set with the sibling queries to
    `references/trigger-evals.json`.

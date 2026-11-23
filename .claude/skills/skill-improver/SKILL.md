@@ -33,7 +33,7 @@ SKILL.md path, `--all`, or a glob (`'vllm-*'`). No mode → **Auto**. No target
 | `freshen` | Follows the product: adds what changed, retires what it moved past | `references/freshen-patterns.md` |
 | `trigger` | Measures and tunes the description's trigger rate | `references/trigger-patterns.md` |
 | `invocation` | Decides automatic / slash-only / `paths` / retire, per skill and per family | `references/invocation-patterns.md` |
-| `trim` | Cuts an automatic description in steps while trigger and sibling scores hold | `references/invocation-patterns.md` §trim |
+| `trim` | Cuts an automatic description in steps while trigger and sibling scores hold; every cut fact stays in the body | `references/invocation-patterns.md` §trim |
 | `outcome` | Runs the skill's eval cases with vs without it (`claude plugin eval`) | §Outcome |
 | `floor` | Measures what a bare model already knows about the subject | `references/floor-patterns.md` |
 | `ages` | Fleet table of verification age vs last change | §Ages |
