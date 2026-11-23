@@ -1,8 +1,9 @@
 {
-  "date": "2026-11-20",
-  "content_hash": "51c7e3d6452cc3c9",
+  "date": "2026-11-23",
+  "content_hash": "020fa881b2c76473",
   "cases": [
-    "03-trigger-fix-empirically"
+    "03-trigger-fix-empirically",
+    "08-freshen-pass-plan"
   ],
   "runs_per_case": 3,
   "model": "sonnet",
@@ -11,20 +12,30 @@
   ],
   "judge_model": "haiku",
   "judges": {
-    "03-trigger-fix-empirically": "sonnet"
+    "03-trigger-fix-empirically": "haiku",
+    "08-freshen-pass-plan": "sonnet"
   },
-  "with_skill": 1.0,
-  "without_skill": 0.8,
-  "without_from": "stored",
+  "with_skill": 0.9333,
+  "without_skill": 0.6333,
+  "without_from": "this run",
   "baselines": {
     "03-trigger-fix-empirically": {
-      "score": 0.8,
-      "id": "d7ab0833dd95",
+      "score": 0.7333,
+      "id": "a97f1a58c11b",
+      "judge": "haiku",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-23"
+    },
+    "08-freshen-pass-plan": {
+      "score": 0.5333,
+      "id": "b52be9af3c56",
       "judge": "sonnet",
       "models": [
         "claude-sonnet-5-5"
       ],
-      "date": "2026-11-20"
+      "date": "2026-11-23"
     }
   }
 }

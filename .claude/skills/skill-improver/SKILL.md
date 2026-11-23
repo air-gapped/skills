@@ -6,14 +6,16 @@ description: >-
   hill-climbs a 10-dimension quality rubric with blind scoring and an A/B
   comparator; `score` rates a skill without editing it; `freshen` verifies the
   skill's external references online and applies updates; `trigger` measures
-  and tunes how reliably the description fires; `outcome` runs eval cases with
-  and without the skill; `floor` measures what a bare model already knows;
+  and tunes how reliably the description fires; `invocation` decides whether a
+  skill is automatic, slash-only, path-scoped or retired; `trim` finds the
+  shortest description that still fires; `outcome` runs eval cases with and
+  without the skill; `floor` measures what a bare model already knows;
   `ages` lists each skill's verification age.
 when_to_use: >-
   Use when asked to improve, score, audit, test or freshen a skill, when a skill
   is out of date, when a skill does not trigger or triggers wrongly, or when
-  asked whether a skill actually helps.
-argument-hint: '[fix|improve|score|freshen|trigger|outcome|floor|ages|batch] [<skill-name>|--all|<glob>]'
+  asked whether a skill actually helps, or when the skill listing is too large.
+argument-hint: '[fix|improve|score|freshen|trigger|invocation|trim|outcome|floor|ages|batch] [<skill-name>|--all|<glob>]'
 ---
 
 # Skill Improver
@@ -30,6 +32,8 @@ SKILL.md path, `--all`, or a glob (`'vllm-*'`). No mode → **Auto**. No target
 | `score` | Rubric score, no edits | §Score |
 | `freshen` | Follows the product: adds what changed, retires what it moved past | `references/freshen-patterns.md` |
 | `trigger` | Measures and tunes the description's trigger rate | `references/trigger-patterns.md` |
+| `invocation` | Decides automatic / slash-only / `paths` / retire, per skill and per family | `references/invocation-patterns.md` |
+| `trim` | Cuts an automatic description in steps while trigger and sibling scores hold | `references/invocation-patterns.md` §trim |
 | `outcome` | Runs the skill's eval cases with vs without it (`claude plugin eval`) | §Outcome |
 | `floor` | Measures what a bare model already knows about the subject | `references/floor-patterns.md` |
 | `ages` | Fleet table of verification age vs last change | §Ages |
@@ -52,11 +56,13 @@ user-reported miss as a should-trigger query), `--against <git-ref>` (outcome).
 
    | Step | Run when |
    |---|---|
+   | `invocation` | no invocation decision on record, or the skill gained side effects, a fixed procedure or a sibling; skip the rest for a skill it retires or makes slash-only |
    | `freshen` | an upstream is newer than the skill states; the last pass is old for this product's pace; a model or Claude Code release it depends on shipped |
    | `floor` | fact-heavy skill, no floor run since the last model release — then cut what the model now knows |
    | `fix` | the skill has `evals/evals.json` and its content changed since the last outcome run |
    | `improve` | the skill has no eval cases, or `fix` left weak cases that only restructuring can address, or the user asks for it; and content changed since the last improve pass, a backlog blocker arrived, or no improve pass is on record |
    | `trigger` | description changed or trigger evals fail; never for `disable-model-invocation` |
+   | `trim` | automatic skill over ~600 listing characters, or carrying a version number in its description |
 
 3. **Print the plan** — one line per step: run or skip, with the evidence,
    sized to the reason for the run and the usage and time the user has. Run in
@@ -247,6 +253,11 @@ that verified it:
 - **Add or correct** what an agent acts on: a wrong fact, a removed flag, a new
   failure with its fix. A new feature earns a line only when an agent would
   otherwise do the task wrong.
+- **Check upstream, not the tool.** Compare against the upstream release list;
+  a tool's own update check or status command can report "current" while
+  upstream is months ahead.
+- **Check every referenced file, folder and tool exists** on the machine the
+  skill runs on, and its installed version against upstream's latest.
 - **Retire** what the product moved past (`scripts/retire-candidates.py
   <skill-dir> --floor <oldest supported release>` lists where to look): a
   workaround for a fixed bug, a feature that was superseded, a version gate below every supported release,
@@ -267,7 +278,9 @@ the user asks for it or has usage to spend. Metric: trigger rate on should- and
 should-not-trigger queries, test scores blinded, description ≤1024 characters. Probe: `scripts/probe-trigger.py`. Eval set:
 `<skill>/references/trigger-evals.json`, `[{"query", "should_trigger",
 "source", "bucket"}]`, buckets `explicit` / `implicit` / `contextual` /
-`negative`. Workflow T0–T7: `references/trigger-patterns.md`.
+`negative`. Workflow T0–T7: `references/trigger-patterns.md`. Accuracy is
+the score; fewer characters breaks a tie, and added characters need a higher
+score. 1,536 is a ceiling, not a target; no version numbers in the description.
 
 ## Floor
 
@@ -308,6 +321,7 @@ summary row for every listed skill. With the `Workflow` tool opted in:
 | `references/backlog-format.md` | writing a target's `improvement-backlog.md` |
 | `references/lessons.md` | Phase 0 of any `fix` or `improve` pass; writing its end-of-pass entry |
 | `references/anthropic-skill-design.md` | scoring Dims 1, 2, 8, 9; frontmatter questions |
+| `references/invocation-patterns.md` | where a fix goes (frontmatter, `skillOverrides`, plugin); listing cost |
 | `references/scripts.md` | choosing a script |
 
 Why a rule exists and when it changed: `references/sources.md`.

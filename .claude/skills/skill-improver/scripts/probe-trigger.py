@@ -162,6 +162,7 @@ def run_single_query(
     skill_description: str,
     timeout: int,
     model: str | None,
+    neighbours: tuple[tuple[str, str], ...] = (),
 ) -> tuple[bool, bool, dict]:
     """Run one query against a synthetic skill installation.
 
@@ -212,6 +213,15 @@ def run_single_query(
             f"---\nname: {clean_name}\ndescription: |\n  {indented}\n---\n\n"
             f"# {skill_name}\n\nThis skill handles: {skill_description}\n"
         )
+        # Neighbours compete for the query under their real names; only the
+        # synthetic id above counts as a trigger.
+        for n_name, n_desc in neighbours:
+            n_dir = work_root / ".claude" / "skills" / n_name
+            n_dir.mkdir(parents=True, exist_ok=True)
+            n_ind = "\n  ".join(n_desc.split("\n"))
+            (n_dir / "SKILL.md").write_text(
+                f"---\nname: {n_name}\ndescription: |\n  {n_ind}\n---\n\n# {n_name}\n"
+            )
 
         cmd = [
             "claude",
@@ -451,6 +461,7 @@ def collect_runs(
     timeout: int,
     num_workers: int,
     model: str | None,
+    neighbours: tuple[tuple[str, str], ...] = (),
 ) -> dict[str, list[tuple[bool, bool, dict]]]:
     """Probe each query `runs_per_query` times. Per query: a list of
     (triggered, unmeasured, usage) tuples, one per run."""
@@ -466,6 +477,7 @@ def collect_runs(
                     description,
                     timeout,
                     model,
+                    neighbours,
                 )
                 futs[fut] = item
         for fut in as_completed(futs):
@@ -502,6 +514,7 @@ def score_set(
     num_workers: int,
     model: str | None,
     first_look: int = 0,
+    neighbours: tuple[tuple[str, str], ...] = (),
 ) -> dict:
     """`first_look` > 0: probe every query that many times, then give only the
     undecided ones the remaining runs up to `runs_per_query`."""
@@ -509,17 +522,23 @@ def score_set(
     args = (skill_name, description)
     if 0 < first_look < runs_per_query:
         runs_by_query = collect_runs(
-            items, *args, first_look, timeout, num_workers, model
+            items, *args, first_look, timeout, num_workers, model, neighbours
         )
         again = [by_query[q] for q in undecided(runs_by_query, first_look)]
         more = collect_runs(
-            again, *args, runs_per_query - first_look, timeout, num_workers, model
+            again,
+            *args,
+            runs_per_query - first_look,
+            timeout,
+            num_workers,
+            model,
+            neighbours,
         )
         for q, runs in more.items():
             runs_by_query[q].extend(runs)
     else:
         runs_by_query = collect_runs(
-            items, *args, runs_per_query, timeout, num_workers, model
+            items, *args, runs_per_query, timeout, num_workers, model, neighbours
         )
 
     results = []
@@ -823,6 +842,14 @@ def main():
         f"run's queries x runs, would pass this number (default: {DEFAULT_MAX_CALLS_PER_DAY}). "
         "Raise it only for a spend the user has agreed to.",
     )
+    p.add_argument(
+        "--neighbour",
+        action="append",
+        default=[],
+        help="A competing skill directory, installed beside the synthetic under "
+        "its own name and listing text (repeatable). Its queries in the eval set "
+        "should be should_trigger false; neighbours.py writes such a set.",
+    )
     p.add_argument("--verbose", action="store_true")
     args = p.parse_args()
 
@@ -834,6 +861,9 @@ def main():
     items = json.loads(Path(args.eval_set).read_text())
     name, fm_desc = parse_skill_md(skill_dir)
     description = args.description if args.description is not None else fm_desc
+    neighbours = tuple(
+        parse_skill_md(Path(d).expanduser().resolve()) for d in args.neighbour
+    )
 
     if args.holdout > 0:
         train, test = stratified_split(items, args.holdout, args.seed)
@@ -874,6 +904,7 @@ def main():
         args.num_workers,
         args.model,
         args.first_look,
+        neighbours,
     )
     test_out = (
         score_set(
@@ -886,6 +917,7 @@ def main():
             args.num_workers,
             args.model,
             args.first_look,
+            neighbours,
         )
         if test
         else None
@@ -905,6 +937,7 @@ def main():
         "runs_per_query": args.runs_per_query,
         "trigger_threshold": args.trigger_threshold,
         "description": description,
+        "neighbours": [n for n, _ in neighbours],
         "train": train_out,
         "test": test_out,
     }
