@@ -29,7 +29,7 @@ when_to_use: >-
 
 # Jinja Expert
 
-**Boundary with `transformers-config-tokenizers-expert`** (in the `vllm` plugin).
+**Boundary with `transformers-config-tokenizers-expert`.**
 Both skills touch `chat_template.jinja`, from opposite sides. This one owns the
 template *as Jinja* — syntax, scoping, filters, whitespace, why the render is
 wrong. That one owns *which file wins* and what the loader does with it:
