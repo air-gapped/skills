@@ -1,0 +1,110 @@
+[
+  {
+    "query": "nixl initialize_xfer READ returns ERR and 'posting transfer failed', what are the usual causes",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "explicit"
+  },
+  {
+    "query": "nixl backend choice: i have rdma nics plus an s3 bucket and local nvme, which plugins do i enable",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "explicit"
+  },
+  {
+    "query": "prefill decode kv transfer segfaults right after prefill, memory is detected as host, UCX_TLS=tcp",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "python raises 'No plugins available' for our rdma transfer library, pip wheel is for cuda 12 and torch is 13",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "peer metadata exchange for kv transfer without running etcd, we already have a torch distributed store",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "implicit"
+  },
+  {
+    "query": "first request after the decode pod is ready fails with remote disconnect, second request works fine",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "contextual"
+  },
+  {
+    "query": "VLLM_NIXL_SIDE_CHANNEL_HOST is set to the service clusterIP in my yaml and the decode side hangs",
+    "should_trigger": true,
+    "source": "body-mined",
+    "bucket": "contextual"
+  },
+  {
+    "query": "how do i read a one-sided rdma write in the linux verbs api, example in c",
+    "should_trigger": false,
+    "source": "generic",
+    "bucket": "negative"
+  },
+  {
+    "query": "nixos nix flake for building a python package with cuda, build fails",
+    "should_trigger": false,
+    "source": "keyword-collision",
+    "bucket": "negative"
+  },
+  {
+    "query": "what's the best s3-compatible object store for backups on-prem",
+    "should_trigger": false,
+    "source": "keyword-collision",
+    "bucket": "negative"
+  },
+  {
+    "query": "sglang --hicache-ratio and --hicache-size, how much host dram per rank on 8 gpus",
+    "should_trigger": false,
+    "source": "sibling:sglang-hicache",
+    "bucket": "negative"
+  },
+  {
+    "query": "sglang hicache runtime attach and detach through the http admin api",
+    "should_trigger": false,
+    "source": "sibling:sglang-hicache",
+    "bucket": "negative"
+  },
+  {
+    "query": "kv_role and --kv-transfer-config for the vllm disaggregated prefill proxy with a connector, what's the full invocation",
+    "should_trigger": false,
+    "source": "sibling:vllm-caching",
+    "bucket": "negative"
+  },
+  {
+    "query": "MooncakeConnector vs native cpu offload for long context, which one",
+    "should_trigger": false,
+    "source": "sibling:vllm-caching",
+    "bucket": "negative"
+  },
+  {
+    "query": "lmcache daemonset with hostNetwork and --l1-size-gb sizing for a node with 512 gb ram",
+    "should_trigger": false,
+    "source": "sibling:lmcache-mp",
+    "bucket": "negative"
+  },
+  {
+    "query": "lmcache eviction policy ARC vs LRU when system prompts share l1 with batch scans",
+    "should_trigger": false,
+    "source": "sibling:lmcache-mp",
+    "bucket": "negative"
+  },
+  {
+    "query": "review my vllm manifest, tp/ep sizing for a moe with --enable-expert-parallel on 8 gpus",
+    "should_trigger": false,
+    "source": "sibling:vllm-deployment",
+    "bucket": "negative"
+  },
+  {
+    "query": "hf token secret in the vllm pod env and the model cache mount, is this right",
+    "should_trigger": false,
+    "source": "sibling:vllm-deployment",
+    "bucket": "negative"
+  }
+]
