@@ -1,6 +1,6 @@
 {
   "date": "2026-11-20",
-  "content_hash": "b5984566a08963be",
+  "content_hash": "4afc06372c3f88dd",
   "cases": [
     "04-diagnose-sdk-only-install-no-redis-module"
   ],

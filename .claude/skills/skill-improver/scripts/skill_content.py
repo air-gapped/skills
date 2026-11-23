@@ -1,15 +1,18 @@
 """One hash for the part of a skill an agent reads, shared by the eval scripts.
 
-Covers SKILL.md and references/. Leaves out scripts/ (their own self-checks test
-them) and what records the checking itself: evals/, sources.md,
-improvement-backlog.md, knowledge-claims.json and trigger-evals.json. Two calls
-agree when that content is byte-identical, whether it is read from the working
-tree or from a git ref.
+Covers the SKILL.md body and references/. Leaves out the SKILL.md frontmatter
+(name, description, invocation and path settings decide whether the skill is
+loaded, not what an answer says, and the outcome evals force invocation),
+scripts/ (their own self-checks test them) and what records the checking
+itself: evals/, sources.md, improvement-backlog.md, knowledge-claims.json and
+trigger-evals.json. Two calls agree when that content is byte-identical,
+whether it is read from the working tree or from a git ref.
 """
 
 from __future__ import annotations
 
 import hashlib
+import re
 import subprocess
 from pathlib import Path
 
@@ -20,11 +23,17 @@ SKIP_NAMES = {
     "trigger-evals.json",
 }
 SKIP_PARTS = {"evals", "scripts", "__pycache__"}
+FRONTMATTER = re.compile(rb"\A---\r?\n.*?^---[ \t]*(?:\r?\n|\Z)", re.S | re.M)
 
 
 def _counts(rel: str) -> bool:
     parts = rel.split("/")
     return parts[-1] not in SKIP_NAMES and not SKIP_PARTS.intersection(parts[:-1])
+
+
+def body_id(raw: bytes) -> str:
+    """Stand-in blob id for SKILL.md: its text with the frontmatter removed."""
+    return "body:" + hashlib.sha256(FRONTMATTER.sub(b"", raw, count=1)).hexdigest()
 
 
 def _digest(rows: list[tuple[str, str]]) -> str:
@@ -55,7 +64,11 @@ def content_hash(skill_dir: Path) -> str:
         text=True,
         check=True,
     ).stdout.split()
-    return _digest(list(zip(rels, out)))
+    rows = [
+        (r, body_id((skill_dir / r).read_bytes()) if r == "SKILL.md" else blob)
+        for r, blob in zip(rels, out)
+    ]
+    return _digest(rows)
 
 
 def content_hash_at(repo: Path, ref: str, skill_rel: str) -> str:
@@ -69,6 +82,15 @@ def content_hash_at(repo: Path, ref: str, skill_rel: str) -> str:
     for line in out.splitlines():
         meta, path = line.split("\t", 1)
         rel = path[len(skill_rel) :].lstrip("/")
-        if _counts(rel):
-            rows.append((rel, meta.split()[2]))
+        if not _counts(rel):
+            continue
+        blob = meta.split()[2]
+        if rel == "SKILL.md":
+            raw = subprocess.run(
+                ["git", "-C", str(repo), "cat-file", "blob", blob],
+                capture_output=True,
+                check=True,
+            ).stdout
+            blob = body_id(raw)
+        rows.append((rel, blob))
     return _digest(rows) if rows else ""

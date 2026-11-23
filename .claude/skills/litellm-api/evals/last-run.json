@@ -1,6 +1,6 @@
 {
   "date": "2026-11-20",
-  "content_hash": "e3a4b6d08495d1e6",
+  "content_hash": "a231187778ce33d0",
   "cases": [
     "00-build-least-privilege-ci-key",
     "01-diagnose-team-key-full-access-via-access-group",

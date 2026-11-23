@@ -23,7 +23,7 @@ SKILLS = ".claude/skills"
 IMPROVER = f"{SKILLS}/skill-improver/scripts"
 
 
-def load_hasher():
+def load_content_module():
     spec = importlib.util.spec_from_file_location(
         "skill_content", REPO / IMPROVER / "skill_content.py"
     )
@@ -31,7 +31,11 @@ def load_hasher():
         sys.exit("eval-gate: cannot load skill_content.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return mod.content_hash_at
+    return mod
+
+
+def load_hasher():
+    return load_content_module().content_hash_at
 
 
 def git(*args):
@@ -51,6 +55,55 @@ def verdict(old_hash, new_hash, has_evals, stamp_hash):
     return None
 
 
+def hasher_selfcheck():
+    """A frontmatter edit keeps the hash; a body or reference edit changes it."""
+    import tempfile
+
+    hash_at = load_hasher()
+    with tempfile.TemporaryDirectory() as tmp:
+        repo = Path(tmp)
+        skill = repo / SKILLS / "demo"
+        (skill / "references").mkdir(parents=True)
+
+        def commit(fm, body, ref="r"):
+            (skill / "SKILL.md").write_text(f"---\n{fm}\n---\n\n{body}\n")
+            (skill / "references" / "a.md").write_text(ref)
+            for cmd in (["add", "-A"], ["commit", "-qm", "x", "--no-verify"]):
+                subprocess.run(
+                    [
+                        "git",
+                        "-C",
+                        tmp,
+                        "-c",
+                        "user.name=t",
+                        "-c",
+                        "user.email=t@t",
+                        *cmd,
+                    ],
+                    check=True,
+                )
+            return subprocess.run(
+                ["git", "-C", tmp, "rev-parse", "HEAD"],
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.strip()
+
+        subprocess.run(["git", "init", "-q", tmp], check=True)
+        rel = f"{SKILLS}/demo"
+        base = commit("name: demo\ndescription: long one", "Do X.")
+        fm_only = commit("name: demo\ndescription: short\npaths: '**/*.rs'", "Do X.")
+        body = commit("name: demo\ndescription: short", "Do Y.")
+        ref = commit("name: demo\ndescription: short", "Do Y.", ref="changed")
+        h = {r: hash_at(repo, r, rel) for r in (base, fm_only, body, ref)}
+        assert h[base] == h[fm_only], "frontmatter-only change must keep the hash"
+        assert h[fm_only] != h[body], "body change must change the hash"
+        assert h[body] != h[ref], "reference change must change the hash"
+        assert load_content_module().content_hash(skill) == h[ref], (
+            "disk and git hashes must agree"
+        )
+
+
 def selfcheck():
     assert verdict("a", "a", True, None) is None  # unchanged
     assert verdict("a", "b", False, None) is None  # no eval cases
@@ -58,6 +111,7 @@ def selfcheck():
     assert verdict("a", "b", True, "a")  # measured before the change
     assert verdict("a", "b", True, "b") is None  # measured on this content
     assert verdict("", "b", True, "b") is None  # new skill, measured
+    hasher_selfcheck()
     print("selfcheck: all assertions passed")
     return 0
 
