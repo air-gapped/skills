@@ -1,6 +1,6 @@
 # Vera Rubin roadmap — buy-or-wait inputs
 
-**Contents:** [Shipping status](#shipping-status--checked-2026-11-09) · [Per-GPU specs](#per-gpu-specs) · [Rack products](#rack-products) · [Infrastructure delta vs GB300](#infrastructure-delta-vs-gb300--facilities-have-to-be-different) · [Pricing signals](#pricing-signals) · [Buy-or-wait](#buy-or-wait-rubin)
+**Contents:** [Shipping status](#shipping-status--checked-2026-11-24) · [Per-GPU specs](#per-gpu-specs) · [Rack products](#rack-products) · [Infrastructure delta vs GB300](#infrastructure-delta-vs-gb300--facilities-have-to-be-different) · [Pricing signals](#pricing-signals) · [Buy-or-wait](#buy-or-wait-rubin)
 
 NVIDIA's successor to Blackwell. First HBM4 silicon; first 800 VDC HVDC racks.
 Relevant to any 2026+ purchasing decision: facilities built now should be sized for
@@ -14,7 +14,7 @@ reference. When quoting NVIDIA marketing verbatim, use "Vera Rubin NVL72". When
 discussing die-count (144 dies = 72 packages) in engineering context, VR200 NVL144
 is still the accurate description.
 
-## Shipping status — checked 2026-11-09
+## Shipping status — checked 2026-11-24
 
 **Rubin is generally available on one hyperscaler (Oracle OCI, 2026-10-27) and in
 customer production at CoreWeave (2026-09-30); no vendor has published an on-prem
@@ -30,7 +30,7 @@ order against, and "in production" is a fab statement, not a delivery statement.
 | Supermicro IR release: "now shipping NVIDIA Vera Rubin NVL72 racks" | **2026-09-23** | First OEM shipping statement. No customers or volumes named. |
 | CoreWeave: Vera Rubin NVL72 "available", Cognition "the first customer anywhere running production workloads"; cluster stood up "in early September" | **2026-09-30** | **First customer delivery in production use.** Does not establish broad supply or hyperscaler GA. |
 | NVIDIA + Oracle: "general availability of NVIDIA Vera Rubin NVL72 and NVIDIA Vera CPUs on OCI" | **2026-10-27** | **Hyperscaler GA** (earliest found). Rentable capacity on one cloud; no rack volumes, no on-prem lead time. |
-| NVIDIA Vera Rubin NVL72 product page status: "Available Now" ("Notify Me" on 2026-08-12) | read **2026-11-09** | Orderable through NVIDIA sales. No delivery date or lead time published. |
+| NVIDIA Vera Rubin NVL72 product page status: "Available Now" ("Notify Me" on 2026-08-12) | read **2026-11-24** | Orderable through NVIDIA sales. No delivery date or lead time published. |
 | Reported risk | 2026-07 | A KeyBanc analyst flagged a possible **heat-lid qualification issue with SK hynix memory**. Unconfirmed; treat as rumour, not schedule. |
 
 **Reading it for a buy-or-wait call:** "in production" does not mean partners
@@ -61,15 +61,16 @@ cubins. Read this as: a team with Rubin silicon in hand can now build a
 working image themselves; a team waiting on the default wheel/image still
 waits.
 
-**v0.31.0–v0.33.0: prebuilt nightlies, release images unchanged.** Rubin images
+**v0.31.0–v0.34.0: prebuilt nightlies, release images unchanged.** Rubin images
 are published as `vllm/vllm-openai:cu134-nightly` (plus `-x86_64`/`-aarch64` and
 per-commit tags; #55953) — nightly only, no release-tagged cu134 image. At
 v0.32.0 the self-build recipe changed: `FINAL_BASE_IMAGE=nvidia/cuda:13.4.1-base-ubuntu24.04`,
 `NCCL_VERSION` ≥ **2.32.3** (first NCCL with SM107), Triton built from source via
-`TRITON_INSTALL_FROM_SOURCE_REPO`/`_REVISION`, `BUILD_NIXL=true` for the NIXL EP
-extension, torch nightlies from `requirements/rubin-prerelease.txt`
-(`2.16.0.dev20261009+cu134` at v0.33.0). The release image is still CUDA 13.0.3 at
-v0.33.0.
+`TRITON_INSTALL_FROM_SOURCE_REPO`/`_REVISION`, torch nightlies from
+`requirements/rubin-prerelease.txt` (`2.16.0.dev20261009+cu134` at v0.34.0, which
+also pins `nixl==1.5.2`). v0.32.0 and v0.33.0 recipes add `BUILD_NIXL=true`; v0.34.0
+removed that build arg, so drop it. The release image is still CUDA 13.0.3 at
+v0.34.0.
 Keep the default `torch_cuda_arch_list` — R100/VR200 report CC 10.7 and use the
 `10.0` family kernels. #49735 is still open.
 

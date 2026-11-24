@@ -5,14 +5,7 @@ but could not be applied in one atomic, score-improving iteration. Not a wishlis
 
 ## Open
 
-- **Humming W4A16: wrong output for group sizes that do not tile its K blocks** (Dim 9).
-  Would add one line to `references/vllm-platform-matrix.md` §2. Report:
-  vllm-project/vllm#66437, OPEN, fix PR #66445 OPEN, one reporter, no maintainer reply on
-  2026-11-09. The vLLM half is in the tree at v0.33.0 — `HummingLinearKernel.can_implement`
-  has no group-size check and is the last CUDA fallback. **Blocked on** the wrong-output
-  claim, which sits in the compiled CUDA main loop of `humming-kernels` and one SM120
-  measurement on synthetic layers: needs a second reproduction, a Humming maintainer
-  statement, or #66445 merging. No published checkpoint is known to use an affected size.
+None.
 
 ## Resolved this pass (2026-11-09)
 

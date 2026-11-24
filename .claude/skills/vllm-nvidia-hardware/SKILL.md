@@ -54,7 +54,7 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
 - Use FlashMLA for DeepSeek models; FlashAttention-3 elsewhere.
 - Disagg prefill across nodes needs XDR IB + GPUDirect-RDMA — use CPU/NVMe offload (LMCache) first.
 - **No FP4 compute (NVFP4 KV cache only, v0.32.0+ with FA2). No NVL72. No 270+ GB single-GPU.**
-- v0.33.0+ images are CUDA 13.0 only: R580+ drivers run them natively, R535/R570 need
+- v0.33.0+ images (v0.34.0 included) are CUDA 13.0 only: R580+ drivers run them natively, R535/R570 need
   `VLLM_ENABLE_CUDA_COMPATIBILITY=1`. `references/vllm-platform-matrix.md` §5.
 
 ### Running vLLM on Blackwell (B200/B300)
@@ -68,7 +68,7 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
   | NVFP4, multi-GPU, Gemma/Qwen-style RMSNorm | v0.25.1 | repeated `!!!!!` from the fused allreduce+RMSNorm+quant path |
   | NVFP4/MXFP4 MoE + expert parallelism, CUTLASS MoE backend | v0.32.0 | `expert_map` ignored, wrong local experts, ~0% GSM8K (#59042) |
 | NVFP4 MoE on SM100/SM103 with a hidden size the TRTLLM MoE pads (2688 → 2816), default `flashinfer_trtllm` backend | v0.33.0 | fluent but wrong text under torch.compile (#52308); `--enforce-eager` or `--moe-backend flashinfer_cutlass` avoids it |
-| NVFP4/MXFP4 compressed-tensors checkpoint at a TP where a `down_proj`/`o_proj`/expert `w2` input width ÷ TP is not a multiple of 16 (NVFP4) or 32 (MXFP4) | none — unfixed at v0.33.0 | loads clean, ranks read other groups' block scales (#66211). Pick a TP that divides evenly |
+| NVFP4/MXFP4 compressed-tensors checkpoint at a TP where a `down_proj`/`o_proj`/expert `w2` input width ÷ TP is not a multiple of 16 (NVFP4) or 32 (MXFP4) | none — unfixed through v0.34.0 | loads clean, ranks read other groups' block scales (#66211). Pick a TP that divides evenly |
 
 - 270 GB (HGX bin) or 279 GB (DGX bin) HBM per B300 often removes the *need* for KV offload on 70B-scale models. LMCache still earns its keep for 1M+ context and heavy prefix reuse.
 - **Crossing v0.27.0, v0.32.0 or v0.33.0 is an environment change:** torch, NCCL,
@@ -82,7 +82,7 @@ Every hardware decision — FP4 vs FP8, B300's higher FLOPs with the same 8 TB/s
 ### Buying NVIDIA hardware in 2026
 - **GB300 NVL72 is safe for 2026 capacity:** size the row for 135–155 kW, DLC @ 25 °C, 3φ 480 V. Vendors: NVIDIA DGX B300, Dell IR7000 + XE9780L / XE8712 sleds, Supermicro SRS-GB300-NVL72, Lenovo 7DJVCTO2WW, HPE.
 - **Greenfield rows should be spec'd for Rubin NVL144:** 180–220 kW, 45 °C W45 warm water, 800 VDC HVDC, new MGX rack. Retrofitting later is expensive.
-- **Rubin timing (2026-11-09):** cloud GA on Oracle OCI (2026-10-27), in production at
+- **Rubin timing (2026-11-24):** cloud GA on Oracle OCI (2026-10-27), in production at
   CoreWeave (2026-09-30), NVIDIA's product page reads "Available Now". None of these is
   a delivery date for an on-prem order — plan purchases against an OEM quoting firm
   order dates. vLLM `sm_107` is preview-only: CUDA ≥ 13.4, `cu134-nightly` images,
@@ -118,7 +118,8 @@ Configuring tiered KV (`--kv-offloading-size`, LMCache, NixlConnector, MooncakeC
   moving upstream decay fastest.
 - **Take the newest vLLM release from `git tag` or PyPI, not from the tag column of
   `gh release list`** — the v0.33.0 release object is attached to tag `v0.33.0rc3`,
-  so the listing shows an rc where the final release is.
+  so the listing shows an rc where the final release is; confirm the newest
+  version against `git tag` or PyPI.
 - Prefer NVIDIA first-party datasheets, then OEM datasheets (Dell/Lenovo/Supermicro),
   SemiAnalysis, then news; where sources disagree, report the range with each citation.
   Sources and the verification stamp: `references/sources.md`.

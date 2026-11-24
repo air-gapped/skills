@@ -1,6 +1,6 @@
 # Dell PowerEdge XE reference
 
-Primary source: [Dell PowerEdge XE spec sheet (PDF, Rev A07)](https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe-ai-spec-sheet.pdf).
+Primary source: [Dell PowerEdge XE spec sheet (PDF, Rev A08)](https://www.delltechnologies.com/asset/en-us/products/servers/technical-support/poweredge-xe-ai-spec-sheet.pdf).
 Cells marked `*` in the sheet ("not available at product launch") need a check against the Dell configurator before a purchase call.
 
 ## Naming disambiguations (these trip people up)

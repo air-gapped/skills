@@ -33,7 +33,7 @@
     {
       "id": 5,
       "question": "What minimum vLLM version is required to serve NVFP4 without garbage output?",
-      "skill_answer": "It depends on the workload: v0.25.1 for multi-GPU NVFP4 with Gemma/Qwen-style RMSNorm (below it, repeated '!!!!!'); v0.32.0 for NVFP4/MXFP4 MoE with expert parallelism on the CUTLASS MoE backend; v0.33.0 for NVFP4 MoE on SM100/SM103 with a padded hidden size on the default flashinfer_trtllm backend. A compressed-tensors NVFP4/MXFP4 checkpoint at a TP that cuts a scale group is unfixed at v0.33.0."
+      "skill_answer": "It depends on the workload: v0.25.1 for multi-GPU NVFP4 with Gemma/Qwen-style RMSNorm (below it, repeated '!!!!!'); v0.32.0 for NVFP4/MXFP4 MoE with expert parallelism on the CUTLASS MoE backend; v0.33.0 for NVFP4 MoE on SM100/SM103 with a padded hidden size on the default flashinfer_trtllm backend. A compressed-tensors NVFP4/MXFP4 checkpoint at a TP that cuts a scale group is unfixed through v0.34.0."
     },
     {
       "id": 6,
