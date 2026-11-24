@@ -67,7 +67,7 @@ vllm:external_prefix_cache_hits_total
 
 ### `vllm:kv_offload_*` — the offload tier's own gauges (v0.26.0+)
 
-The native offloading path publishes its own family, so you no longer have to infer tier health from the log line alone. Names present at tag v0.33.0 in `vllm/v1/kv_offload/cpu/common.py`, `tiering/base.py` and `vllm/v1/metrics/loggers.py`; the family has more members than listed (load/store bytes and times, promotion/cascade job counters) — `grep vllm:kv_offload_` on `/metrics` for the full set:
+The native offloading path publishes its own family, so you no longer have to infer tier health from the log line alone. Names present at tag v0.34.0 in `vllm/v1/kv_offload/cpu/common.py`, `tiering/base.py` and `vllm/v1/metrics/loggers.py`; the family has more members than listed (load/store bytes and times, promotion/cascade job counters) — `grep vllm:kv_offload_` on `/metrics` for the full set:
 
 ```
 vllm:kv_offload_stores_skipped                     # v0.25.x and earlier too
@@ -78,6 +78,7 @@ vllm:kv_offload_cpu_cache_read_usage_perc          # new in v0.26.0 (#47666)
 vllm:kv_offload_tiering_lookup_sync_delay_seconds  # histogram, new in v0.26.0 (#47679)
 vllm:kv_offload_tiering_lookup_async_delay_seconds # histogram, new in v0.26.0 (#47679)
 vllm:kv_offload_tiering_chunk_queries / _chunk_hits          # secondary-tier hit rate (present at v0.30.0)
+vllm:kv_offload_tiering_deferred_release_chunks / _deferred_release_hold_seconds   # gauge + histogram, new in v0.34.0: primary-tier chunks of failed promotions held until the tier's I/O is done
 vllm:kv_offload_tiering_backpressure_stores_dropped / _blocks_dropped  # v0.31.0+ (#50045)
 vllm:prompt_tokens_cached_by_source{source=device|host|disk|p2p|external_unspecified}  # v0.32.0+ (#56318)
 ```

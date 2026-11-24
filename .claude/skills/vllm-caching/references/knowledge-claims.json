@@ -42,8 +42,8 @@
     },
     {
       "id": 7,
-      "question": "What is the exact NIXL pin in vLLM's `requirements/kv_connectors.txt` at v0.33.0, and what happens with an older NIXL wheel?",
-      "skill_answer": "nixl == 1.5.0 (exact pin); from v0.33.0 NixlConnector raises `RuntimeError: NIXL >= 1.5.0 is required`"
+      "question": "What is the exact NIXL pin in vLLM's `requirements/kv_connectors.txt` at v0.34.0, and what happens with an older NIXL wheel?",
+      "skill_answer": "nixl == 1.5.2 (exact pin; 1.5.0 at v0.33.0); from v0.33.0 NixlConnector raises `RuntimeError: NIXL >= 1.5.0 is required` on an older wheel"
     },
     {
       "id": 8,

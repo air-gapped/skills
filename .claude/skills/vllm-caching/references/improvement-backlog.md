@@ -6,7 +6,7 @@
 
 Dim 5 / Dim 9. File-set: SKILL.md § Hybrid models + sources.md.
 
-**Blocked on:** datacenter GPU time — a 2× H100-class session serving a hybrid model (Qwen3.6-27B-FP8 or Gemma-4). Needs an operator-approved rental. The static `SupportsHMA` matrix is current at v0.33.0; only the runtime verdicts are missing.
+Blocker: datacenter GPU time — a 2× H100-class session serving a hybrid model (Qwen3.6-27B-FP8 or Gemma-4). Needs an operator-approved rental. The static `SupportsHMA` matrix is current at v0.34.0; only the runtime verdicts are missing.
 
 **Partially closed by the 2026-07-21 freshen pass.** The *static* half of this item is done: a `SupportsHMA` connector matrix verified against vLLM tag **v0.25.1** source now lives in SKILL.md "Critical pitfalls", and the decision-tree/Hybrid-models sections were rewritten around it. What remains is **runtime work**: the v0.19.1-era runtime verdicts below (fail-to-start, TOCTOU `AssertionError`, symmetric-mode no-discovery) have not been re-run on a modern image. Static `SupportsHMA` declarations tell you what vLLM *intends*; only a run tells you what happens. Needs a 2× H100 session on `vllm/vllm-openai:v0.25.1` with a hybrid model (Qwen3.6-27B-FP8 or Gemma-4).
 
