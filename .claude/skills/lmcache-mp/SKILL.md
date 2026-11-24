@@ -2,7 +2,7 @@
 name: lmcache-mp
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
 description: >-
-  LMCache multiprocess (MP) mode: LMCache as its own pod or process that vLLM
+  Not actively maintained: content as of 2026-11, may be retired. LMCache multiprocess (MP) mode: LMCache as its own pod or process that vLLM
   reaches over ZMQ (`LMCacheMPConnector`), one cache shared by several vLLM pods
   per node. Covers the DaemonSet+Deployment pattern (the LMCache Operator is deprecated), the L1
   CPU + L2 (NIXL, fs, mooncake, s3, Redis) cascade, the `lmcache/standalone`
@@ -13,6 +13,8 @@ description: >-
 ---
 
 # LMCache multiprocess (MP) mode
+
+> **Not actively maintained.** Content is current to 2026-11-24 (LMCache 0.5.8, vLLM v0.34.0) and is no longer freshened on a schedule; the skill may be retired. Before acting on a version, flag or security floor here, check the newest LMCache release and its security advisories (`gh release list --repo LMCache/LMCache`, `gh api repos/LMCache/LMCache/security-advisories`). For single-node CPU KV offload, prefer vLLM's native offloading (`vllm-caching`).
 
 Target audience: operators running vLLM on H100/H200/B200-class GPUs in production who need KV-cache extension beyond HBM and have outgrown the in-process LMCache path. Assumes Kubernetes or bare container deployment.
 

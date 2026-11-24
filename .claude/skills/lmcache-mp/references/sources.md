@@ -1,5 +1,7 @@
 # Sources and verification log
 
+Parked: 2026-11-24 — kept and published, not freshened on schedule: no known user, and vLLM's native KV offload covers the single-node case. Freshen only when someone reports using it, or a new LMCache advisory moves the security floor the skill states. Review: 2027-02-24 — retire (`git mv` to `removed/`, pointer left in `vllm-caching`) unless a user has appeared.
+
 Freshened: 2026-11-24 — every row probed against vLLM v0.34.0 (2026-11-16) and LMCache v0.5.8 (2026-11-22). LMCache 0.5.8 is the security floor for MP mode (GHSA-hhqh-8jpj-27rf, GHSA-jg4p-wprm-8hph, GHSA-qr43-hv93-6x7p); the vLLM v0.34.0 image bundles lmcache 0.5.7.post1, below it.
 
 Freshened: 2026-10-27 — every row probed. LMCache v0.5.6 sets a security floor for MP mode (CVE-2026-105192) and moves the HTTP admin bind to loopback; the current pair was vLLM v0.32.0, whose `-cu129` images still shipped lmcache 0.4.4.
