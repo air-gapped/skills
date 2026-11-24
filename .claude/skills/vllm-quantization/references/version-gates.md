@@ -1,4 +1,4 @@
-# Version gates — v0.14 → v0.33
+# Version gates — v0.14 → v0.34
 
 Quantization churns fast enough that cached operator knowledge goes stale
 within a release cycle. This table is the ground-truth for "what does vLLM
@@ -8,7 +8,8 @@ Check actual version: `vllm --version`. Release notes: [github.com/vllm-project/
 
 ## Table of Contents
 
-- [v0.33.0 — 2026-11-02 (current)](#v0330--2026-11-02-current)
+- [v0.34.0 — 2026-11-16 (current)](#v0340--2026-11-16-current)
+- [v0.33.0 — 2026-11-02](#v0330--2026-11-02)
 - [v0.32.0 — 2026-10-18](#v0320--2026-10-18)
 - [v0.31.0 — 2026-10-05](#v0310--2026-10-05)
 - [v0.28.0 – v0.30.0](#v0280--v0300)
@@ -33,7 +34,29 @@ Check actual version: `vllm --version`. Release notes: [github.com/vllm-project/
 
 ---
 
-## v0.33.0 — 2026-11-02 (current)
+## v0.34.0 — 2026-11-16 (current)
+
+**Breaking:**
+- [PR #65230](https://github.com/vllm-project/vllm/pull/65230) — QuTLASS and `--quantization fp_quant` removed: `fp_quant` checkpoints no longer load; re-export as compressed-tensors. The QuIP NVFP4 transform now runs on Humming.
+- [PR #65542](https://github.com/vllm-project/vllm/pull/65542) — Marlin INT8 / FP8 activation (W4A8) paths and `VLLM_MARLIN_INPUT_DTYPE` removed (setting the variable is an error); use `--quantization humming` with `VLLM_HUMMING_INPUT_QUANT_CONFIG`.
+- [PR #56492](https://github.com/vllm-project/vllm/pull/56492) — extensible KV cache on by default on CUDA and ROCm: `gpu_memory_utilization` defaults to 1.0 when unset and the cache is sized from memory free after warmup; set it only to share the GPU or when extensible KV cache is off.
+- [PR #63231](https://github.com/vllm-project/vllm/pull/63231) — default `--block-size` 64 (was 16); a backend's preferred block size still wins.
+- [PR #63373](https://github.com/vllm-project/vllm/pull/63373) — Model Runner V1 removed.
+- FlashInfer **0.7.3** (was 0.7.2.post1); PyTorch 2.14.0 and compressed-tensors 0.17.0 unchanged.
+
+**Quantization:**
+- [PR #64410](https://github.com/vllm-project/vllm/pull/64410) — `--quantization w4afp8`.
+- [PR #62759](https://github.com/vllm-project/vllm/pull/62759) — `lut_b_moe` online shorthand (Rubin-native).
+- [PR #62750](https://github.com/vllm-project/vllm/pull/62750) — `mxfp4_hadamard32` online shorthand and Quark online-rotation checkpoints.
+- [PR #51808](https://github.com/vllm-project/vllm/pull/51808) — activation quant override for online MXFP4; `targets` values may be `{weight, activation}` specs.
+- [PR #64312](https://github.com/vllm-project/vllm/pull/64312) — CSF-compressed NVFP4 block scales in ModelOpt.
+- [PR #63672](https://github.com/vllm-project/vllm/pull/63672) / [#63754](https://github.com/vllm-project/vllm/pull/63754) / [#64119](https://github.com/vllm-project/vllm/pull/64119) / [#64182](https://github.com/vllm-project/vllm/pull/64182) — Fast Start weight-cache restarts for online FP8 / MXFP8, ModelOpt CUTLASS FP8 / NVFP4 / block-FP8, AWQ / GPTQ Marlin.
+- [PR #65198](https://github.com/vllm-project/vllm/pull/65198) — GLM-5.x speculative draft KV cache follows the target's dtype.
+- `--quantization` flags 32 (was 30), `CacheDType` 22, `LinearBackend` 21 and `MoEBackend` 24 unchanged.
+
+**Known failures that persist in v0.34.0:** Humming MXFP4 small scales (#66074) and Humming W4A16 odd group sizes (#66437) — both fixed by `humming-kernels` 0.1.20, which v0.34.0 does not pin; ModelOpt Llama-4 slow load (#31624) fixed by #65987 in v0.34.1rc0; the checkpoint-KV-scale landmines (`kv-cache.md` items 12-13); #66109; #66211; #65139.
+
+## v0.33.0 — 2026-11-02
 
 Read the notes with `gh release view v0.33.0rc3` — the GitHub release named
 v0.33.0 hangs off that tag and `gh release view v0.33.0` returns "release not
@@ -401,13 +424,12 @@ Security / memory leak patch on top of v0.14.0. No quantization changes.
 
 ## Deprecation watch
 
-Re-verified against v0.33.0. vLLM's own `DEPRECATED_QUANTIZATION_METHODS`
-(`layers/quantization/__init__.py`) contains exactly two entries:
+vLLM's own `DEPRECATED_QUANTIZATION_METHODS`
+(`layers/quantization/__init__.py`) contains exactly one entry at v0.34.0:
 
 - `fbgemm_fp8` — use `fp8`.
-- `fp_quant` — no replacement; avoid.
 
-**Already removed** (do not offer): `gguf` and `bitsandbytes` (out-of-tree
+**Already removed** (do not offer): `fp_quant` and QuTLASS (#65230, v0.34.0), Marlin 8-bit activations and `VLLM_MARLIN_INPUT_DTYPE` (#65542, v0.34.0), `gguf` and `bitsandbytes` (out-of-tree
 plugins), `cpu_awq` (folded into `awq_marlin`, #43841), online quantization
 through `fp8` (#53585, v0.31.0), AllSpark W8A16 (#58001, v0.31.0), `--calculate-kv-scales` (#37201, v0.19),
 per-tensor-per-channel FP8 (#32700), Sparse24 (#36799), BitBlas (#32683),

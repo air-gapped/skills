@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-24",
+  "content_hash": "6a6adbba34f0b162",
+  "cases": [
+    "00-gb300-deepseek-multiturn-garbage"
+  ],
+  "runs_per_case": 3,
+  "model": "sonnet",
+  "models_resolved": [
+    "claude-sonnet-5-5"
+  ],
+  "judge_model": "haiku",
+  "judges": {
+    "00-gb300-deepseek-multiturn-garbage": "haiku"
+  },
+  "with_skill": 0.8333,
+  "without_skill": 0.6111,
+  "without_from": "this run",
+  "baselines": {
+    "00-gb300-deepseek-multiturn-garbage": {
+      "score": 0.6111,
+      "id": "9aeedfabcfa3",
+      "judge": "haiku",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-24"
+    }
+  }
+}

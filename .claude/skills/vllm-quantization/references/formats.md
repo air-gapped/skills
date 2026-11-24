@@ -18,7 +18,6 @@ kernels dispatched to, status, key caveats. Source of truth is
 - [MXFP4 — `--quantization mxfp4` / `gpt_oss_mxfp4`](#mxfp4----quantization-mxfp4--gpt_oss_mxfp4)
 - [MXFP8 — `--quantization mxfp8`](#mxfp8----quantization-mxfp8)
 - [FBGEMM FP8 — `--quantization fbgemm_fp8` (DEPRECATED)](#fbgemm-fp8----quantization-fbgemm_fp8-deprecated)
-- [FP_Quant — `--quantization fp_quant` (DEPRECATED)](#fp_quant----quantization-fp_quant-deprecated)
 - [Quark — `--quantization quark`](#quark----quantization-quark)
 - [experts_int8 / `int8_per_channel_weight_only` (online)](#experts_int8--int8_per_channel_weight_only-online)
 - [moe_wna16 — `--quantization moe_wna16`](#moe_wna16----quantization-moe_wna16)
@@ -36,11 +35,11 @@ kernels dispatched to, status, key caveats. Source of truth is
 
 ## Dispatcher
 
-[`vllm/model_executor/layers/quantization/__init__.py`](https://github.com/vllm-project/vllm/blob/v0.33.0/vllm/model_executor/layers/quantization/__init__.py) — grep `QuantizationMethods = Literal` for the flag list and `def get_quantization_config` for the dispatch table (line ranges drift every minor). Detection flow: `ModelConfig._verify_quantization()` in [`vllm/config/model.py`](https://github.com/vllm-project/vllm/blob/v0.33.0/vllm/config/model.py), which calls each config class's `override_quantization_method()`.
+[`vllm/model_executor/layers/quantization/__init__.py`](https://github.com/vllm-project/vllm/blob/v0.34.0/vllm/model_executor/layers/quantization/__init__.py) — grep `QuantizationMethods = Literal` for the flag list and `def get_quantization_config` for the dispatch table (line ranges drift every minor). Detection flow: `ModelConfig._verify_quantization()` in [`vllm/config/model.py`](https://github.com/vllm-project/vllm/blob/v0.34.0/vllm/config/model.py), which calls each config class's `override_quantization_method()`.
 
-Full 30-flag catalog **verified against v0.33.0** (unchanged since v0.28.0 dropped `bitsandbytes`): `awq, auto_awq, fp8, fbgemm_fp8, fp_quant, modelopt, modelopt_fp4, modelopt_mxfp8, modelopt_mixed, auto_gptq, gptq, gptq_marlin, awq_marlin, humming, compressed-tensors, experts_int8, quark, moe_wna16, torchao, inc, mxfp4, gpt_oss_mxfp4, deepseek_v4_fp8, online, fp8_per_tensor, fp8_per_block, fp8_per_channel, int8_per_channel_weight_only, nvfp4_per_token, mxfp8`.
+Full 32-flag catalog **verified against v0.34.0** (v0.34.0 removed `fp_quant` and added `w4afp8`, `lut_b_moe`, `mxfp4_hadamard32`): `awq, auto_awq, fp8, w4afp8, fbgemm_fp8, modelopt, modelopt_fp4, modelopt_mxfp8, modelopt_mixed, auto_gptq, gptq, gptq_marlin, awq_marlin, humming, compressed-tensors, experts_int8, quark, moe_wna16, torchao, inc, mxfp4, gpt_oss_mxfp4, deepseek_v4_fp8, online, fp8_per_tensor, fp8_per_block, fp8_per_channel, int8_per_channel_weight_only, nvfp4_per_token, mxfp8, lut_b_moe, mxfp4_hadamard32`.
 
-`DEPRECATED_QUANTIZATION_METHODS` (same file) is exactly `["fbgemm_fp8", "fp_quant"]`. **`gguf` and `cpu_awq` are no longer in the list** — see their sections below.
+`DEPRECATED_QUANTIZATION_METHODS` (same file) is exactly `["fbgemm_fp8"]`. **`gguf`, `cpu_awq` and (v0.34.0) `fp_quant` are no longer in the list** — see their sections below.
 
 ## FP8 — `--quantization fp8`
 
@@ -68,7 +67,7 @@ Key config fields: `is_checkpoint_fp8_serialized`, `activation_scheme`, `ignored
 
 - **Config class**: `ModelOptNvFp4Config`
 - **Min SM**: 75 (emulated), 100 native
-- **Kernels**: CUTLASS (Qutlass), TRTLLM, FlashInfer CuteDSL, Machete
+- **Kernels**: CUTLASS, TRTLLM, FlashInfer CuteDSL, Machete
 - **KV support**: `ModelOptFp8KVCacheMethod` — FP8 KV, not NVFP4 KV yet
 - **Backend selection**: `select_nvfp4_moe_backend` in [`vllm/model_executor/layers/fused_moe/oracle/nvfp4.py`](https://github.com/vllm-project/vllm/tree/main/vllm/model_executor/layers/fused_moe/oracle)
 
@@ -99,8 +98,8 @@ Recent landmarks: [PR #35733](https://github.com/vllm-project/vllm/pull/35733) (
 | `compressed_tensors_w8a8_fp8.py` | 89 | CUTLASS, Marlin, DeepGEMM |
 | `compressed_tensors_w8a16_fp8.py` | 75 | Marlin |
 | `compressed_tensors_w8a8_int8.py` | 75 | CUTLASS INT8, Triton (AMD asymmetric) |
-| `compressed_tensors_w4a16_nvfp4.py` | 75 | CUTLASS (Qutlass), TRTLLM |
-| `compressed_tensors_w4a4_nvfp4.py` | 75 | CUTLASS (Qutlass) |
+| `compressed_tensors_w4a16_nvfp4.py` | 75 | CUTLASS, TRTLLM |
+| `compressed_tensors_w4a4_nvfp4.py` | 75 | CUTLASS |
 | `compressed_tensors_w4a16_mxfp4.py` | 80 | Marlin |
 | `compressed_tensors_w8a8_mxfp8.py` | 80 | Marlin, FlashInfer |
 | `compressed_tensors_wNa16.py` | varies | per bits |
@@ -172,13 +171,6 @@ Landmarks: [PR #35448](https://github.com/vllm-project/vllm/pull/35448) (online 
 - **Config class**: `FBGEMMFp8Config`
 - **Min SM**: 80
 - In `DEPRECATED_QUANTIZATION_METHODS`. Use `fp8` instead.
-
-## FP_Quant — `--quantization fp_quant` (DEPRECATED)
-
-- **File**: `vllm/model_executor/layers/quantization/fp_quant.py`
-- **Config class**: `FPQuantConfig`
-- **Min SM**: 100
-- In `DEPRECATED_QUANTIZATION_METHODS`.
 
 ## Quark — `--quantization quark`
 
@@ -264,8 +256,8 @@ on CPU.
 - **File**: `vllm/model_executor/layers/quantization/online/base.py`
 - **Config class**: `OnlineQuantizationConfig`
 - **Min SM**: 75
-- **Shortcuts** (`_ONLINE_SHORTHANDS`, `vllm/config/quantization.py`): `fp8_per_tensor`, `fp8_per_block`, `fp8_per_channel`, `int8_per_channel_weight_only`, `nvfp4_per_token`, `mxfp8`
-- **Config args**: `QuantizationConfigArgs` in `vllm/config/quantization.py` — fields are `linear`, `moe` (each a `QuantSpec` with `weight` / `activation`), `ignore`, and (v0.30.0+) `targets` (`{pattern: shorthand}`, mutually exclusive with `linear`/`moe`). Weight/activation names come from `QUANT_KEY_NAMES` in the same file (`fp8_per_tensor_static`, `fp8_per_tensor_dynamic`, `fp8_per_token`, `fp8_per_channel_static`, `fp8_per_block_static`, `fp8_per_block_dynamic`, `mxfp8`, `mxfp4`, `nvfp4_per_token`, `int8_per_channel_static`, `int8_per_group_32`, `int4_per_group_32`). `int4_per_group_32` is the gfx942 load-time MXFP4-to-int4 path; `int8_per_group_32` (v0.33.0) is an activation name for MXFP4 linear layers on RDNA3 / RDNA3.5 — `--quantization-config.linear.activation int8_per_group_32` selects the W4A8 int8-dot GEMV for decode batches of up to 8 tokens.
+- **Shortcuts** (`_ONLINE_SHORTHANDS`, `vllm/config/quantization.py`): `fp8_per_tensor`, `fp8_per_block`, `fp8_per_channel`, `int8_per_channel_weight_only`, `nvfp4_per_token`, `mxfp8`, `mxfp4_hadamard32`, `lut_b_moe`
+- **Config args**: `QuantizationConfigArgs` in `vllm/config/quantization.py` — fields are `linear`, `moe` (each a `QuantSpec` with `weight` / `activation`), `ignore`, (v0.30.0+) `targets` (`{pattern: shorthand}`, mutually exclusive with `linear`/`moe`; v0.34.0+ a value may also be a `{weight, activation}` spec to override one layer's activation quantization), and (v0.34.0+) `hadamard_size` on a `QuantSpec` (power of two, MXFP4 linear only; the `mxfp4_hadamard32` shorthand sets 32). Weight/activation names come from `QUANT_KEY_NAMES` in the same file (`fp8_per_tensor_static`, `fp8_per_tensor_dynamic`, `fp8_per_token`, `fp8_per_channel_static`, `fp8_per_block_static`, `fp8_per_block_dynamic`, `mxfp8`, `mxfp4`, `nvfp4_per_token`, `int8_per_channel_static`, `lut_b` (v0.34.0), `int8_per_group_32`, `int4_per_group_32`). `int4_per_group_32` is the gfx942 load-time MXFP4-to-int4 path; `int8_per_group_32` (v0.33.0) is an activation name for MXFP4 linear layers on RDNA3 / RDNA3.5 — `--quantization-config.linear.activation int8_per_group_32` selects the W4A8 int8-dot GEMV for decode batches of up to 8 tokens.
 - **Re-quantization**: an online target can re-quantize a checkpoint-quantized layer (dequantize, then quantize). Supported sources: serialized ModelOpt MXFP8 linears (v0.32.0, [PR #55684](https://github.com/vllm-project/vllm/pull/55684)) and serialized compressed-tensors / ModelOpt / Quark NVFP4 MoE layers (v0.33.0, [PR #60276](https://github.com/vllm-project/vllm/pull/60276)); other pairs raise.
 - Passed via **`--quantization-config`** (JSON or dotted keys). There is no `--quantization-config-file` flag, no `global_scheme` / `linear_scheme_override` / `moe_scheme_override` keys, and no `OnlineQuantScheme` enum — that was the pre-v0.25 shape.
 - XPU: non-block FP8 scaled-mm linear defaults to W8A16; `--linear-backend xpu` forces W8A8, `--linear-backend xpu_woq` pins weight-only.

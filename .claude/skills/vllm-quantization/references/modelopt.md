@@ -109,7 +109,7 @@ Strongly recommended for smaller models (< 14B) where stock NVFP4 loses 3–5 % 
 - [vLLM #37854](https://github.com/vllm-project/vllm/issues/37854) — Nemotron-3 NVFP4 with `quant_algo MIXED_PRECISION` rejected by NGC vLLM 26.02 allow-list.
 - [vLLM #38912](https://github.com/vllm-project/vllm/issues/38912) — Gemma 4 MoE NVFP4 `expert_params_mapping` misses scale suffixes.
 - [vLLM #31628](https://github.com/vllm-project/vllm/issues/31628) — ModelOpt Llama-4 DP/EP FlashInfer Cutlass broken.
-- [vLLM #31624](https://github.com/vllm-project/vllm/issues/31624) — ModelOpt Llama-4 loads > 5 min.
+- [vLLM #31624](https://github.com/vllm-project/vllm/issues/31624) — ModelOpt Llama-4 loads > 5 min. Fixed by PR #65987, first in v0.34.1rc0 (not v0.34.0).
 
 Active RFC: [vLLM #40182](https://github.com/vllm-project/vllm/issues/40182) — unified ModelOpt quantization.
 

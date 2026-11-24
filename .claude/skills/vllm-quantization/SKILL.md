@@ -2,15 +2,15 @@
 name: vllm-quantization
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 description: |-
-  vLLM datacenter-GPU quantization — picking, configuring, troubleshooting NVFP4, FP8, MXFP4, MXFP8, AWQ, GPTQ, INT8, compressed-tensors, modelopt, quark on H100/H200/B200/B300/GB200/GB300; every `--quantization` flag value, KV-cache dtypes (fp8_e4m3, nvfp4, per-token-head, turboquant), MoE backend selection (CUTLASS, TRTLLM, FlashInfer, DeepGEMM, Marlin, Qutlass), producing checkpoints with llm-compressor and NVIDIA ModelOpt (NVFP4_DEFAULT_CFG, FP8_DEFAULT_CFG, W4A16, SmoothQuant+GPTQ), online quantization (`fp8_per_tensor`, `fp8_per_block`, `nvfp4_per_token`), training EAGLE-3/dflash drafters on BF16 targets before PTQ, version gates per vLLM release (v0.14 → v0.33).
+  vLLM datacenter-GPU quantization — picking, configuring, troubleshooting NVFP4, FP8, MXFP4, MXFP8, AWQ, GPTQ, INT8, compressed-tensors, modelopt, quark on H100/H200/B200/B300/GB200/GB300; every `--quantization` flag value, KV-cache dtypes (fp8_e4m3, nvfp4, per-token-head, turboquant), MoE backend selection (CUTLASS, TRTLLM, FlashInfer, DeepGEMM, Marlin, Humming), producing checkpoints with llm-compressor and NVIDIA ModelOpt (NVFP4_DEFAULT_CFG, FP8_DEFAULT_CFG, W4A16, SmoothQuant+GPTQ), online quantization (`fp8_per_tensor`, `fp8_per_block`, `nvfp4_per_token`), training EAGLE-3/dflash drafters on BF16 targets before PTQ, version gates per vLLM release (v0.14 → v0.34).
 when_to_use: |-
   Trigger on `--quantization`, `--kv-cache-dtype`, W8A8, W4A4, torchao, bitsandbytes, gguf, Machete, `hf_quant_config.json`, `kv_cache_scheme`. Symptoms — "garbage after FP8", "NVFP4 NaN", "FP8 KV multi-turn corruption", "MoE kernel not dispatched on SM120", "illegal memory access awq_marlin", "online FP8 quality drop", "modelopt checkpoint won't load". Decisions — NVFP4 vs FP8 on H200 vs B200, quantizing EAGLE-3/dflash drafters, generating a checkpoint vLLM can load. Also implicit — "quantize {model}", "pick quant for {model}", "audit quantization", "deploy-memo quant", "which quant fits {GPU}", "spec-study quantization".
 ---
 
 # vLLM quantization — operator skill
 
-Registries, counts and flag values below are re-derived from the **v0.33.0**
-tree (2026-11-02); verification dates and citations live in
+Registries, counts and flag values below are re-derived from the **v0.34.0**
+tree (2026-11-16); verification dates and citations live in
 `references/sources.md`.
 
 For production vLLM operators on **H100 / H200 / B200 / B300 / GB200 / GB300** fleets
@@ -68,9 +68,9 @@ accuracy benchmarks against any OpenAI-compatible endpoint).
 loads on Blackwell natively and on Hopper via emulation ([PR #35733](https://github.com/vllm-project/vllm/pull/35733), v0.19). A separate `fp8` checkpoint is still worth keeping for older Hopper nodes where the
 NVFP4 emulation path is slower.
 
-## The `--quantization` flag values (30 at v0.33.0)
+## The `--quantization` flag values (32 at v0.34.0)
 
-Ground truth is the `QuantizationMethods = Literal[...]` block in [`vllm/model_executor/layers/quantization/__init__.py`](https://github.com/vllm-project/vllm/blob/v0.33.0/vllm/model_executor/layers/quantization/__init__.py) (`get_quantization_config()` dispatches below it) — grep the symbol, not a line range. Full catalog with file paths, min-capability, kernel map, and notes: `references/formats.md`.
+Ground truth is the `QuantizationMethods = Literal[...]` block in [`vllm/model_executor/layers/quantization/__init__.py`](https://github.com/vllm-project/vllm/blob/v0.34.0/vllm/model_executor/layers/quantization/__init__.py) (`get_quantization_config()` dispatches below it) — grep the symbol, not a line range. Full catalog with file paths, min-capability, kernel map, and notes: `references/formats.md`.
 
 **Production formats (keep in head):**
 
@@ -89,7 +89,7 @@ Ground truth is the `QuantizationMethods = Literal[...]` block in [`vllm/model_e
 | `quark` | varies | AMD ROCm path |
 | `fp8_per_tensor` / `fp8_per_block` / `int8_per_channel_weight_only` / `online` | 75 | **Online** quantization from BF16 checkpoint — no pre-quant step |
 
-**Deprecated / legacy / narrow:** `fbgemm_fp8` and `fp_quant` are the only two in vLLM's own `DEPRECATED_QUANTIZATION_METHODS` list. `awq` / `awq_marlin` / `auto_awq` all resolve to `AutoAWQConfig` and `gptq` / `gptq_marlin` / `auto_gptq` to `AutoGPTQConfig`: the flag name does not pick the kernel (Marlin on CUDA when the shape allows, else Triton; pin with `--linear-backend`). Also avoid for new work: `experts_int8` (use `int8_per_channel_weight_only`), `moe_wna16`, `inc` (Intel Neural Compressor / AutoRound packing — no longer Intel-only compute: v0.30.0 added CUDA support for AutoRound's 2/3/5/6/7-bit widths via a Humming-kernel fallback, #52890), `torchao`.
+**Deprecated / legacy / narrow:** `fbgemm_fp8` is the only entry in vLLM's own `DEPRECATED_QUANTIZATION_METHODS` list (`fp_quant` and QuTLASS were removed in v0.34.0, #65230: such checkpoints no longer load; re-export as compressed-tensors). `awq` / `awq_marlin` / `auto_awq` all resolve to `AutoAWQConfig` and `gptq` / `gptq_marlin` / `auto_gptq` to `AutoGPTQConfig`: the flag name does not pick the kernel (Marlin on CUDA when the shape allows, else Triton; pin with `--linear-backend`). Also avoid for new work: `experts_int8` (use `int8_per_channel_weight_only`), `moe_wna16`, `inc` (Intel Neural Compressor / AutoRound packing — no longer Intel-only compute: v0.30.0 added CUDA support for AutoRound's 2/3/5/6/7-bit widths via a Humming-kernel fallback, #52890), `torchao`.
 
 **`bitsandbytes` left the tree in v0.28.0** (#43529, listed under Breaking
 Changes). It is now the out-of-tree `vllm-bnb-plugin`, so on v0.28.0+ an
@@ -119,13 +119,13 @@ longer accepted.
 - `gguf` — **migrated out-of-tree** to [`vllm-gguf-plugin`](https://github.com/vllm-project/vllm-gguf-plugin). `pip install vllm-gguf-plugin` first, then `vllm serve <repo>:Q4_K_M --tokenizer <base-model>`. Still experimental; not a datacenter path.
 - `cpu_awq` — **folded into `awq_marlin`** ([PR #43841](https://github.com/vllm-project/vllm/pull/43841), merged 2026-05-28). Use `awq_marlin` on CPU.
 
-**Newer values not in older skill copies:** `humming` (Humming mixed-precision, also a `--linear-backend` / `--moe-backend` value), `deepseek_v4_fp8` (DeepSeek-V4 checkpoint config), `fp8_per_channel` and `nvfp4_per_token` (online shorthands; `nvfp4_per_token` added v0.26.0, [#48538](https://github.com/vllm-project/vllm/pull/48538)).
+**Newer values not in older skill copies:** `humming` (Humming mixed-precision, also a `--linear-backend` / `--moe-backend` value), `deepseek_v4_fp8` (DeepSeek-V4 checkpoint config), `fp8_per_channel` and `nvfp4_per_token` (online shorthands; `nvfp4_per_token` added v0.26.0, [#48538](https://github.com/vllm-project/vllm/pull/48538)). v0.34.0 added `w4afp8` (INT4 group-128 routed experts with FP8 activations, #64410) and two online shorthands: `mxfp4_hadamard32` (MXFP4 linear with a 32-wide Hadamard rotation, MoE stays unquantized, #62750) and `lut_b_moe` (~3.14-bit routed experts with MXFP8 activations, native on Rubin and emulated elsewhere, #62759).
 
-## KV-cache dtypes (22 at v0.33.0)
+## KV-cache dtypes (22 at v0.34.0)
 
-Single dispatch: [`vllm/config/cache.py`](https://github.com/vllm-project/vllm/blob/v0.33.0/vllm/config/cache.py) — grep the `CacheDType = Literal[...]` block, not a line range; it has grown every minor. From v0.33.0 a platform backend can register further values (`register_kv_cache_dtype`), so on an out-of-tree platform the accepted set is whatever the `Invalid kv_cache_dtype ... Valid values are:` startup error lists, not the `Literal`.
+Single dispatch: [`vllm/config/cache.py`](https://github.com/vllm-project/vllm/blob/v0.34.0/vllm/config/cache.py) — grep the `CacheDType = Literal[...]` block, not a line range; it has grown every minor. From v0.33.0 a platform backend can register further values (`register_kv_cache_dtype`), so on an out-of-tree platform the accepted set is whatever the `Invalid kv_cache_dtype ... Valid values are:` startup error lists, not the `Literal`.
 
-- `auto` — match model weight dtype, except where the model overrides it: DeepSeek-V3.2, (v0.32.0+, SM100 only) GLM-5.x `GlmMoeDsaForCausalLM` and (v0.33.0+, SM100 only) GLM-5.3-Flash `Glm5Next*` resolve `auto` to FP8. `float16` / `bfloat16` — pin an explicit unquantized KV dtype; set `bfloat16` to opt out of those defaults.
+- `auto` — match model weight dtype, except where the model overrides it: DeepSeek-V3.2, (v0.32.0+, SM100 only) GLM-5.x `GlmMoeDsaForCausalLM` and (v0.33.0+, SM100 only) GLM-5.3-Flash `Glm5Next*` and (v0.34.0+) Mistral Large 4 with `fp8_kv_cache` in its config resolve `auto` to FP8. `float16` / `bfloat16` — pin an explicit unquantized KV dtype; set `bfloat16` to opt out of those defaults.
 - `fp8`, `fp8_e4m3`, `fp8_e5m2` — the production path. **E4M3 is default**; E5M2 only for ROCm-specific setups.
 - `fp8_inc` (Intel), `fp8_ds_mla` (DeepSeek MLA variant), `nvfp4_ds_mla` (sparse-MLA NVFP4 NoPE + FP8 RoPE, SM100 only).
 - `ultraquant_4bit` — ROCm-only 4-bit KV (FP4 E2M1 + UE8M0 per-32 scales, Hadamard-rotated K), ~2× FP8 density (v0.32.0).
@@ -150,7 +150,7 @@ Two production paths exist:
 - **W4A16 INT4 (AWQ or GPTQ) with best accuracy** → llm-compressor, `AWQModifier` or `GPTQModifier` with 256–512 ultrachat samples.
 - **NVFP4 on Blackwell** → ModelOpt `NVFP4_DEFAULT_CFG` or llm-compressor `NVFP4A16` / `NVFP4` scheme (v0.10+; current release **0.15.0**, which needs Python 3.11+; the project ships parallel maintenance lines — see `references/llm-compressor.md`).
 - **MXFP4 MoE for GPT-OSS-style models** → use the vendor checkpoint as-is, or ModelOpt MXFP4.
-- **KV cache FP8 scales for MLA** → llm-compressor `kv_cache_scheme` block with `strategy: tensor` (per-tensor is stable; per-head is still the experimental path). vLLM ≤ v0.33.0 does not apply stored KV scales to MLA layers and serves them at scale 1.0 — `references/kv-cache.md` landmine 12.
+- **KV cache FP8 scales for MLA** → llm-compressor `kv_cache_scheme` block with `strategy: tensor` (per-tensor is stable; per-head is still the experimental path). vLLM ≤ v0.34.0 does not apply stored KV scales to MLA layers and serves them at scale 1.0 — `references/kv-cache.md` landmine 12.
 
 Both tools output a HF directory vLLM serves with `--quantization compressed-tensors` (llm-compressor) or `--quantization modelopt` / `--quantization modelopt_fp4` (ModelOpt).
 
@@ -281,7 +281,7 @@ Internalize these before debugging accuracy / throughput regressions:
 4. **Dynamic FP8 + LoRA-merged model on B200 → non-deterministic degenerate output** ([#39662](https://github.com/vllm-project/vllm/issues/39662)). Pin static FP8.
 5. **SM120 (RTX 5090, 6000 Pro) is not a datacenter NVFP4 MoE target** ([#35065](https://github.com/vllm-project/vllm/issues/35065), [#31085](https://github.com/vllm-project/vllm/issues/31085)) — full kernel set is SM100 / SM103 only. Desktop Blackwell is production only for `fp8`.
 6. **CUTLASS NVFP4 / MXFP4 MoE under expert parallelism → silently wrong output** before v0.32.0: the CUTLASS FP4 MoE path ignored the EP `expert_map` ([#59042](https://github.com/vllm-project/vllm/pull/59042)). Upgrade to v0.32.0; on older releases with `--enable-expert-parallel`, pin a non-CUTLASS `--moe-backend`.
-7. **compressed-tensors NVFP4 / MXFP4 at a TP that cuts a scale group → silently wrong output**, unfixed at v0.33.0 ([#66211](https://github.com/vllm-project/vllm/issues/66211)). Before picking TP, check that every `down_proj` / `o_proj` / expert `down_proj` input width ÷ TP is a multiple of 16 (NVFP4) or 32 (MXFP4). Row in `references/troubleshooting.md`.
+7. **compressed-tensors NVFP4 / MXFP4 at a TP that cuts a scale group → silently wrong output**, unfixed at v0.34.0 ([#66211](https://github.com/vllm-project/vllm/issues/66211)). Before picking TP, check that every `down_proj` / `o_proj` / expert `down_proj` input width ÷ TP is a multiple of 16 (NVFP4) or 32 (MXFP4). Row in `references/troubleshooting.md`.
 
 The hardware-/version-gated traps (B300 TRTLLM hang, ModelOpt-vs-compressed-tensors export drift, MXFP4-linear-falls-back-to-BF16, A100 TurboQuant crash, Qwen3.5 v0.18 KV regression, MXFP8+DeepGEMM pre-v0.19 crash) live in the full triage playbook with symptoms → PR → workaround: `references/troubleshooting.md`.
 
@@ -292,8 +292,9 @@ Before any upgrade, read every hop between the installed and target release in
 
 | Gate | Action |
 |---|---|
+| v0.34.0+ | `fp_quant` and QuTLASS removed (`fp_quant` checkpoints no longer load; re-export as compressed-tensors). Marlin runs 16-bit activations only and `VLLM_MARLIN_INPUT_DTYPE` is an error: W4A8 from GPTQ / AWQ / compressed-tensors weights goes through `--quantization humming` + `VLLM_HUMMING_INPUT_QUANT_CONFIG` (#65230, #65542). Extensible KV cache is default: leave `gpu_memory_utilization` unset unless the GPU is shared (#56492) |
 | v0.33.0+ | PyTorch 2.14.0 / Triton 3.8.0 (#52183), and CUDA 13.0 only — `-cu129` wheels and images are no longer published (#62575). Rebuild any custom kernel or plugin image on CUDA 13.0 |
-| v0.32.0+ on SM90 | `auto` picks Humming over Marlin for linear and MoE (#56997). Pin `--linear-backend marlin` / `--moe-backend marlin` to A/B a throughput change. MXFP4 linear layers silently lose small-scale weights under Humming through v0.33.0 (#66074) — workaround in `references/kernels.md` §Hopper-specific notes |
+| v0.32.0+ on SM90 | `auto` picks Humming over Marlin for linear and MoE (#56997). Pin `--linear-backend marlin` / `--moe-backend marlin` to A/B a throughput change. MXFP4 linear layers silently lose small-scale weights under Humming through v0.34.0 (#66074); fixed in `humming-kernels` 0.1.20, which v0.34.0 does not pin — workaround and fix in `references/kernels.md` §Hopper-specific notes |
 | v0.32.0+ MXFP4 W4A4 checkpoint, no W4A4 MoE kernel | falls back to W4A16 with a warning (#60079) — grep the load log before benchmarking |
 | v0.27.0+ | PyTorch 2.13.0 / Triton 3.7.1 / Transformers 5.14.1 (#48155, #49223) — rebuild any custom kernel or plugin image |
 | ≤ v0.25.0, NVFP4 multi-GPU, Gemma/Qwen-style RMSNorm | fused allreduce+RMSNorm+quant corrupts output (#48330) — run v0.25.1+ |
@@ -303,7 +304,7 @@ Before any upgrade, read every hop between the installed and target release in
 - `references/formats.md` — per-format deep dive: kernels, config JSON shapes, min-capability, known caveats.
 - `references/llm-compressor.md` — recipe cookbook: FP8_DYNAMIC / W4A16 / AWQ / NVFP4A16 / KV-cache FP8 / model-free PTQ commands with exact calibration budgets and output layouts.
 - `references/modelopt.md` — ModelOpt PTQ (`hf_ptq.py`) + speculative-decoding training (EAGLE-3, dflash, MTP constraints) + vLLM loader compatibility.
-- `references/kernels.md` — kernel × format × SM dispatch map (Marlin / CUTLASS / DeepGEMM / FlashInfer / TRTLLM / Qutlass / Machete / Triton / Exllamav2).
+- `references/kernels.md` — kernel × format × SM dispatch map (Marlin / CUTLASS / DeepGEMM / FlashInfer / TRTLLM / Humming / Machete / Triton / Exllamav2).
 - `references/kv-cache.md` — KV-cache quantization: dtypes, per-token-head scales, attention-backend compatibility, calibration.
 - `references/troubleshooting.md` — symptom → known-issue → fix playbook.
 - `references/version-gates.md` — release-by-release quantization changes, v0.14 → v0.33.

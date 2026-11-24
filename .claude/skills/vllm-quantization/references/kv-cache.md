@@ -2,7 +2,7 @@
 
 Separate CLI axis from weight quant. `--kv-cache-dtype` + optional pre-calibrated
 scales in the model checkpoint. Source of truth:
-[`vllm/config/cache.py`](https://github.com/vllm-project/vllm/blob/v0.33.0/vllm/config/cache.py) — grep the `CacheDType = Literal[...]` block rather than a line range (22 entries at v0.33.0; platform backends can register more through `register_kv_cache_dtype`) — and
+[`vllm/config/cache.py`](https://github.com/vllm-project/vllm/blob/v0.34.0/vllm/config/cache.py) — grep the `CacheDType = Literal[...]` block rather than a line range (22 entries at v0.34.0; platform backends can register more through `register_kv_cache_dtype`) — and
 [`vllm/model_executor/layers/quantization/kv_cache.py`](https://github.com/vllm-project/vllm/blob/main/vllm/model_executor/layers/quantization/kv_cache.py) (loading + scale handling).
 
 ## Table of Contents
@@ -24,7 +24,7 @@ scales in the model checkpoint. Source of truth:
 
 | Dtype | Semantics | Hardware | Scales |
 |---|---|---|---|
-| `auto` | Match weight dtype; DeepSeek-V3.2, (v0.32.0+, SM100) GLM-5.x `GlmMoeDsaForCausalLM` and (v0.33.0+, SM100) GLM-5.3-Flash `Glm5NextForCausalLM` / `Glm5NextForConditionalGeneration` resolve it to FP8 — set `bfloat16` to opt out. A non-MTP draft model keeps `auto` rather than inheriting the FP8 default | All | — |
+| `auto` | Match weight dtype; DeepSeek-V3.2, (v0.32.0+, SM100) GLM-5.x `GlmMoeDsaForCausalLM` and (v0.33.0+, SM100) GLM-5.3-Flash `Glm5NextForCausalLM` / `Glm5NextForConditionalGeneration` resolve it to FP8; Mistral Large 4 (v0.34.0+) resolves it to `fp8_ds_mla` (`fp8` on ROCm) when the checkpoint declares `fp8_kv_cache` — set `bfloat16` to opt out. v0.34.0+: a GLM-5.x speculative draft inherits the target's FP8 KV dtype (#65198); a GLM-5.3-Flash draft other than `mtp` / `dspark` keeps `auto` | All | — |
 | `float16` / `bfloat16` | No quant | All | — |
 | `fp8` | Alias for `fp8_e4m3` | SM89+ | Loaded from checkpoint (`k_scale`, `v_scale`) |
 | `fp8_e4m3` | Standard E4M3 | SM89+ | Loaded |
@@ -58,7 +58,7 @@ Validation: `CacheConfig._validate_cache_dtype` (`vllm/config/cache.py`) rejects
 
 ## Calibrating scales (pre-compute)
 
-llm-compressor recipe (tensor-level; on MLA layers vLLM ≤ v0.33.0 ignores the result — landmine 12):
+llm-compressor recipe (tensor-level; on MLA layers vLLM ≤ v0.34.0 ignores the result — landmine 12):
 
 ```python
 recipe = QuantizationModifier(
@@ -130,18 +130,18 @@ The FlashInfer `nvfp4` cell is SM100 only on ≤ v0.31.x; v0.32.0 extends it to 
 9. **Per-head FP8 KV experimental for checkpointed scales** — use per-token-head dynamic path instead on MLA.
 10. **Qwen3.5 FP8 on B200 degraded-accuracy KV** v0.18 ([#37618](https://github.com/vllm-project/vllm/issues/37618)) — fixed v0.19 ([PR #38083](https://github.com/vllm-project/vllm/pull/38083)).
 11. **`sleep(level=2)` zeroed compressed-tensors KV-FP8 scales** → NaN logprobs and a wrong first token on the first request after a weights-only reload (the RL weight-sync shape) — fixed v0.32.0 ([PR #57163](https://github.com/vllm-project/vllm/pull/57163)). Other KV quant methods were unaffected. On older releases use `sleep(level=1)` for compressed-tensors FP8 KV checkpoints.
-12. **Checkpoint FP8 KV scales never reach these layers — the cache silently runs with `k_scale = v_scale = 1.0`.** Unfixed at v0.33.0 and on `main`; upstream reports without maintainer confirmation on 2026-11-09. Calibrating KV scales buys nothing here until the fix PR is in a release.
+12. **Checkpoint FP8 KV scales never reach these layers — the cache silently runs with `k_scale = v_scale = 1.0`.** Unfixed at v0.34.0 and on `main`; upstream reports without maintainer confirmation. Calibrating KV scales buys nothing here until the fix PR is in a release.
 
     | Attention layer | Checkpoint format | Versions | Issue · fix PR |
     |---|---|---|---|
-    | `MLAAttention` — DeepSeek-V2 / V3, Kimi-K2, GLM-4.7-Flash, A.X-K1 | ModelOpt (`kv_cache_quant_algo: FP8`): the scale is renamed to a path MLA does not have. compressed-tensors (`kv_cache_scheme`): MLA gets no KV-cache method | ModelOpt: v0.25.0 – v0.33.0 (v0.24.0 loads them). compressed-tensors: ≤ v0.33.0, checked back to v0.32.0 | [#65944](https://github.com/vllm-project/vllm/issues/65944) · [#65948](https://github.com/vllm-project/vllm/pull/65948) |
-    | Kimi-Linear and Kimi-K3 full-attention layers (`MultiHeadLatentAttention`, CUDA) | ModelOpt and compressed-tensors: the class is neither `Attention` nor `MLAAttention`, so neither config gives it a KV-cache method | ≤ v0.33.0, checked back to v0.32.0 | [#65946](https://github.com/vllm-project/vllm/issues/65946) · [#65950](https://github.com/vllm-project/vllm/pull/65950) |
-    | MiniMax-M3 sparse-attention layers (`MiniMaxM3SparseAttention`) | ModelOpt and compressed-tensors: the layer registers default scales and never requests a KV-cache method | ≤ v0.33.0, checked back to v0.32.0 | [#66120](https://github.com/vllm-project/vllm/issues/66120) · [#65950](https://github.com/vllm-project/vllm/pull/65950) |
+    | `MLAAttention` — DeepSeek-V2 / V3, Kimi-K2, GLM-4.7-Flash, A.X-K1 | ModelOpt (`kv_cache_quant_algo: FP8`): the scale is renamed to a path MLA does not have. compressed-tensors (`kv_cache_scheme`): MLA gets no KV-cache method | ModelOpt: v0.25.0 – v0.34.0 (v0.24.0 loads them). compressed-tensors: ≤ v0.34.0, checked back to v0.32.0 | [#65944](https://github.com/vllm-project/vllm/issues/65944) · [#65948](https://github.com/vllm-project/vllm/pull/65948) |
+    | Kimi-Linear and Kimi-K3 full-attention layers (`MultiHeadLatentAttention`, CUDA) | ModelOpt and compressed-tensors: the class is neither `Attention` nor `MLAAttention`, so neither config gives it a KV-cache method | ≤ v0.34.0, checked back to v0.32.0 | [#65946](https://github.com/vllm-project/vllm/issues/65946) · [#65950](https://github.com/vllm-project/vllm/pull/65950) |
+    | MiniMax-M3 sparse-attention layers (`MiniMaxM3SparseAttention`) | ModelOpt and compressed-tensors: the layer registers default scales and never requests a KV-cache method | ≤ v0.34.0, checked back to v0.32.0 | [#66120](https://github.com/vllm-project/vllm/issues/66120) · [#65950](https://github.com/vllm-project/vllm/pull/65950) |
 
     - Not affected: a checkpoint whose stored scales are all 1.0; `Attention` layers of that same model.
     - Detect: load log `Found k_scale in the checkpoint (e.g. …self_attn.attn.k_scale), but not found the expected name in the model (e.g. …self_attn.attn.attn.k_scale). k_scale is not loaded.`
     - No flag restores the scales. Where the stored scales differ from 1.0, A/B FP8 KV against `--kv-cache-dtype bfloat16` on the long-context eval before shipping it.
-13. **FP8 KV with `--kv-cache-dtype-skip-layers` breaks on the skipped (BF16) layers.** Unfixed at v0.33.0 and on `main`, checked back to v0.32.0; upstream reports without maintainer confirmation on 2026-11-09.
+13. **FP8 KV with `--kv-cache-dtype-skip-layers` breaks on the skipped (BF16) layers.** Unfixed at v0.34.0 and on `main`, checked back to v0.32.0; upstream reports without maintainer confirmation.
     - **Silent wrong output — skipped layers on FlashInfer, compressed-tensors checkpoint with a `kv_cache_scheme`** ([#66129](https://github.com/vllm-project/vllm/issues/66129); fix PRs [#66471](https://github.com/vllm-project/vllm/pull/66471), [#66519](https://github.com/vllm-project/vllm/pull/66519) open). The skipped layers still take the checkpoint's k / v / q scales and FlashInfer multiplies them into unquantized attention: their output collapses toward zero while grammar-constrained responses still parse. Workaround: keep the skipped kind off FlashInfer — `--attention-config '{"backend_per_kind":{"sliding_window":"TRITON_ATTN"}}'` — or drop the skip list. Detect: prompt logprobs differ between that serve and the FlashInfer one.
     - **Crash — FlashAttention 3** ([#65821](https://github.com/vllm-project/vllm/issues/65821), reported on v0.31.0; fix [PR #65891](https://github.com/vllm-project/vllm/pull/65891) open): `RuntimeError: mha_fwd, …/flash_api.cpp:1096, scheduler_metadata must have shape (metadata_size)` on a prefill step. FA3's scheduler metadata is built for FP8 from the engine-wide cache dtype; the skipped layer's BF16 forward rejects it whenever the two dtypes split the key sequence differently — reported at head dim 128 with a longest key of 513 – 768 tokens, e.g. one 600-token prompt. Workaround: drop the skip list when the model runs on FA3. A run that does not crash computes correct attention.
 

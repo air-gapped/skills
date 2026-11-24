@@ -7,8 +7,8 @@
   "claims": [
     {
       "id": 0,
-      "question": "How many `--quantization` flag values does vLLM v0.33.0 accept?",
-      "skill_answer": "30"
+      "question": "How many `--quantization` flag values does vLLM v0.34.0 accept?",
+      "skill_answer": "32"
     },
     {
       "id": 1,
@@ -17,8 +17,8 @@
     },
     {
       "id": 2,
-      "question": "Which two quantization methods are in vLLM's DEPRECATED_QUANTIZATION_METHODS list?",
-      "skill_answer": "`fbgemm_fp8` and `fp_quant`"
+      "question": "Which quantization methods are in vLLM's DEPRECATED_QUANTIZATION_METHODS list at v0.34.0?",
+      "skill_answer": "Only `fbgemm_fp8` (`fp_quant` was removed in v0.34.0)"
     },
     {
       "id": 3,

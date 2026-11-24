@@ -13,7 +13,7 @@ vLLM versions.
 - [Blackwell-specific dispatch](#blackwell-specific-dispatch)
 - [AMD / ROCm](#amd--rocm)
 - [Hopper-specific notes](#hopper-specific-notes)
-- [Marlin input dtype selection](#marlin-input-dtype-selection)
+- [Marlin activations](#marlin-activations)
 - [Sanity checks at load time](#sanity-checks-at-load-time)
 
 ---
@@ -43,7 +43,7 @@ vLLM versions.
 | INT4 GPTQ | Exllamav2 | 60 | gptq.py |
 | INT4 GPTQ-Marlin | Marlin | 75 | gptq_marlin.py |
 | INT4 W4A8 | `CutlassW4A8LinearKernel` | 89 | — **dim alignment bug** ([#33783](https://github.com/vllm-project/vllm/issues/33783)) |
-| NVFP4 | CUTLASS (Qutlass) | 75 (emulated) / 100 | modelopt.py |
+| NVFP4 | CUTLASS | 75 (emulated) / 100 | modelopt.py |
 | NVFP4 | TRTLLM GEN | 100 | modelopt.py |
 | NVFP4 | FlashInfer CuteDSL | 100 | [PR #38251](https://github.com/vllm-project/vllm/pull/38251) |
 | NVFP4 | `NvFp4LinearKernel` (refactored) | — | [PR #39129](https://github.com/vllm-project/vllm/pull/39129) |
@@ -58,8 +58,8 @@ vLLM versions.
 
 Both are first-class CLI flags; the authoritative value lists are the
 `LinearBackend` and `MoEBackend` `Literal`s in
-[`vllm/config/kernel.py`](https://github.com/vllm-project/vllm/blob/v0.33.0/vllm/config/kernel.py)
-(21 linear / 24 MoE values at v0.33.0).
+[`vllm/config/kernel.py`](https://github.com/vllm-project/vllm/blob/v0.34.0/vllm/config/kernel.py)
+(21 linear / 24 MoE values at v0.34.0).
 
 - `--linear-backend`: `auto` (default), `cutlass`, `flashinfer_cutlass`,
   `flashinfer_cutedsl`, `flashinfer_trtllm`, `flashinfer_cudnn`, `flashinfer_b12x`,
@@ -139,22 +139,21 @@ with BF16 activations.` Grep for it before benchmarking W4A4.
 - **DeepGEMM** (`is_deep_gemm_supported`) — preferred for FP8 block MoE. SM80+ with FP8 native ops. Fused output quant in [PR #36518](https://github.com/vllm-project/vllm/pull/36518). E8M0 accuracy fix for Qwen3.5 FP8 on Blackwell: [PR #38083](https://github.com/vllm-project/vllm/pull/38083).
 - **swapAB default on SM90** — [PR #34924](https://github.com/vllm-project/vllm/pull/34924) (v0.17).
 - **Humming outranks Marlin on SM90 (v0.32.0)** — `prioritize_humming()` moves Humming directly ahead of Marlin in the linear lists and the FP8 / NVFP4 / MXFP4 / MXFP8 / INT-WNA16 MoE oracles, SM90 only ([#56997](https://github.com/vllm-project/vllm/pull/56997)). After upgrading, a Hopper deployment that resolved to Marlin under `auto` now runs Humming; pin `--linear-backend marlin` / `--moe-backend marlin` to A/B a throughput or accuracy shift.
-- **MXFP4 linear layers under that SM90 default silently lose small-scale weights** — v0.32.0 – v0.33.0 (`humming-kernels` 0.1.17 – 0.1.19), compressed-tensors, Quark and AutoRound MXFP4 checkpoints ([#66074](https://github.com/vllm-project/vllm/issues/66074), acknowledged by a maintainer; fix open as vllm-project/humming#193). Humming runs these layers with FP8 activations and re-encodes every block whose E8M0 scale sits more than 11 binades below the largest scale in the tensor it builds per rank: values round to a coarser grid, and from 16 binades down the whole block decodes as 0. That tensor is the fused projection (q/k/v, gate/up), and an output width that is not a multiple of 256 pins its largest scale at 2^0 or above. No error, no log line; the damage scales with the checkpoint's scale spread (≤ 0.07 % perplexity on the two checkpoints the report served).
-  - Workaround: `VLLM_DISABLED_KERNELS=HummingMxFp4LinearKernel` — Marlin, weight-only with BF16 activations, decodes exactly. Keep it until a release pins a fixed `humming-kernels`.
+- **MXFP4 linear layers under that SM90 default silently lose small-scale weights** — v0.32.0 – v0.34.0 (`humming-kernels` 0.1.17 – 0.1.19), compressed-tensors, Quark and AutoRound MXFP4 checkpoints ([#66074](https://github.com/vllm-project/vllm/issues/66074), acknowledged by a maintainer; fixed in `humming-kernels` 0.1.20 by vllm-project/humming#193). Humming runs these layers with FP8 activations and re-encodes every block whose E8M0 scale sits more than 11 binades below the largest scale in the tensor it builds per rank: values round to a coarser grid, and from 16 binades down the whole block decodes as 0. That tensor is the fused projection (q/k/v, gate/up), and an output width that is not a multiple of 256 pins its largest scale at 2^0 or above. No error, no log line; the damage scales with the checkpoint's scale spread (≤ 0.07 % perplexity on the two checkpoints the report served).
+  - Fix: install `humming-kernels` 0.1.20 over the pinned 0.1.19 (v0.34.0 and earlier pin 0.1.19; vLLM `main` and v0.34.1rc0 pin 0.1.20).
+  - Workaround on a pinned image: `VLLM_DISABLED_KERNELS=HummingMxFp4LinearKernel` — Marlin, weight-only with BF16 activations, decodes exactly.
   - Detect: startup logs `Using HummingMxFp4LinearKernel for MXFP4 GEMM`, and some fused layer's `weight_scale` E8M0 codes span 12 or more (or its per-rank output width is not a multiple of 256 while codes sit below 116).
+- **Humming W4A16 returns wrong output at group sizes that do not tile its K blocks** (e.g. 48, 96, 160, 192, 320; Marlin accepts only `[-1, 32, 64, 128]`). Applies when Humming runs the layer: SM90 `auto`, `--linear-backend humming`, `--quantization humming`, or no earlier kernel accepts it. With `humming-kernels` ≤ 0.1.19 — what every release through v0.34.0 pins — the result is silently wrong (relative L2 error 0.05 to inf against an fp32 dequant) or fails with `RuntimeError: ... 1 != 2` ([#66437](https://github.com/vllm-project/vllm/issues/66437)). Fix: install `humming-kernels` 0.1.20 (vllm-project/humming#203; v0.34.1rc0 and `main` pin it), or re-quantize to a group size Marlin accepts. vLLM adds no guard (PR #66445 closed unmerged).
 - **CUTLASS FP8 blockwise on SM103a** — [PR #32224](https://github.com/vllm-project/vllm/pull/32224).
 
-## Marlin input dtype selection
+## Marlin activations
 
-`get_marlin_input_dtype()`:
-- `modelopt.py` — selects marlin input for ModelOpt NVFP4 / MXFP8.
-- `fp8.py` — selects for FP8.
-- `fp8.py` — `use_marlin` gate for dispatch.
+v0.34.0 removed Marlin's INT8 / FP8 activation (W4A8) paths and `VLLM_MARLIN_INPUT_DTYPE` (#65542); setting the variable is an error and Marlin always runs 16-bit activations. For GPTQ, AWQ or compressed-tensors weight-only checkpoints with 8-bit activations, use `--quantization humming` with `VLLM_HUMMING_INPUT_QUANT_CONFIG='{"dtype":"int8"}'`.
 
 ## Sanity checks at load time
 
 ```python
-# kv_cache.py
+# vllm/v1/kv_cache_interface.py
 kv_cache_uses_per_token_head_scales()    # dynamic per-(token, head)
 # fp8.py
 Fp8Config.get_min_capability()           # SM75
