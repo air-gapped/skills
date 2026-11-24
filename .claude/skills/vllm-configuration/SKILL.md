@@ -27,7 +27,6 @@ Every CLI flag has a YAML equivalent. Keys use the same name, hyphens allowed or
 # prod.yaml
 model: /mnt/models/Llama-3.1-70B-Instruct
 tensor-parallel-size: 4
-gpu-memory-utilization: 0.9
 max-model-len: 32768
 dtype: bfloat16
 enable-prefix-caching: true
@@ -71,9 +70,9 @@ Full catalog in `references/env-vars.md`. The ones that matter most in productio
 - `VLLM_USE_MODELSCOPE=true` — route model downloads to ModelScope. A LoRA adapter given as a repo id follows it from v0.15.0; below v0.15.0 it still fetches from HuggingFace — download the adapter and pass `--lora-modules name=/local/path`.
 - `HF_TOKEN` — **still required offline for gated repos** (meta-llama/*, google/gemma*). vLLM validates access through the hub config layer before weight loading even when weights are local (issue #9255).
 
-**Upgrades (v0.28.0 – v0.33.0):**
-- Stage the new dependency floors in the mirror **before** the image bump. v0.33.0 needs Python `>= 3.11, < 3.15`, `transformers >= 5.16.1, < 5.21.0` (an upper bound — a mirror holding only the newest `transformers` fails), `certifi >= 2026.10.19` and `torch == 2.14.0`. Its wheels and images are CUDA 13.0 only: the `-cu129` image tags stop at v0.32.0. Read ranges from `requirements/common.txt`, never from release-note "bumps". Full table: `references/air-gapped.md` §Mirror dependency floors.
-- Delete removed env vars from manifests — the feature they controlled is simply off, and the only trace is a startup warning `Unknown vLLM environment variable detected: <NAME>` (v0.17.0+). Add `--fail-on-environ-validation` in CI or a canary to make any unknown `VLLM_*` name fatal. Table with replacements: `references/env-vars.md` §Removed and renamed.
+**Upgrades (v0.28.0 – v0.34.0):**
+- Stage the new dependency floors in the mirror **before** the image bump. v0.34.0 needs Python `>= 3.11, < 3.15`, `transformers >= 5.16.1, < 5.23.0` (an upper bound — a mirror holding only the newest `transformers` fails), `huggingface_hub >= 2.0.0` (needs `httpx2`; v1.x used `httpx`), `tokenizers >= 0.23.3`, `certifi >= 2026.10.19` and `torch == 2.14.0`. Its wheels and images are CUDA 13.0 only: the `-cu129` image tags stop at v0.32.0. Read ranges from `requirements/common.txt`, never from release-note "bumps". Full table: `references/air-gapped.md` §Mirror dependency floors.
+- Delete removed env vars from manifests — the feature they controlled is simply off, and the only trace is a startup warning `Unknown vLLM environment variable detected: <NAME>` (v0.17.0+). Add `--fail-on-environ-validation` in CI or a canary to make any unknown `VLLM_*` name fatal. Exception from v0.34.0: `VLLM_MARLIN_INPUT_DTYPE` (any value) and `VLLM_USE_V2_MODEL_RUNNER` (any value but `1`) abort startup with a `ValueError`. Table with replacements: `references/env-vars.md` §Removed and renamed.
 
 **Telemetry (disable in air-gap):**
 - `VLLM_NO_USAGE_STATS=1` **or** `VLLM_DO_NOT_TRACK=1` **or** `DO_NOT_TRACK=1` **or** touch `$HOME/.config/vllm/do_not_track`. Default endpoint is `https://stats.vllm.ai`. In air-gap, connection errors in logs result otherwise. Write the literal `1`: `=true` is silently ignored and telemetry stays on. Same rule for every boolean `VLLM_*` var — some raise on `true` (`references/env-vars.md` §Boolean values).
@@ -99,7 +98,7 @@ restore `["*"]` to make them work.
 
 **Logging:**
 - `VLLM_LOGGING_LEVEL=DEBUG|INFO|WARNING|ERROR`, `VLLM_LOGGING_PREFIX="rank0: "`, `VLLM_CONFIGURE_LOGGING=0` (let the host app own config).
-- v0.31.0+: the env vars only seed `LoggingConfig` defaults. `--log-level` and `--logging-config '{"formatter": "json"}'` override them; `--log-config-file` is deprecated but still accepted with a warning at v0.33.0 → `--logging-config.pylogging_config_file`.
+- v0.31.0+: the env vars only seed `LoggingConfig` defaults. `--log-level` and `--logging-config '{"formatter": "json"}'` override them; `--log-config-file` is deprecated but still accepted with a warning at v0.34.0 → `--logging-config.pylogging_config_file`.
 
 ## Air-gapped operation
 
@@ -136,9 +135,11 @@ Gated repos need `HF_TOKEN` in the runtime env in every pattern, even with local
 
 6. **Revision pinning: `--revision` applies to model weights; `--tokenizer-revision` is separate.** Pinning the model to a commit but leaving the tokenizer floating lets it drift, and token counts change subtly. Pin both.
 
-7. **`load-format dummy` for profiling.** Skips weight download entirely, materializes random weights. Useful for measuring startup / attention kernel perf in air-gap before weights arrive. Don't ship with this. Sibling flag `--load-format fastsafetensors` accelerates safetensors load via batched pread + NUMA-aware buffers (requires `fastsafetensors>=0.3.3` — the `vllm[fastsafetensors]` extra — + `libnuma-dev`; no env-var toggle exists in vLLM source).
+7. **`load-format dummy` for profiling.** Skips weight download entirely, materializes random weights. Useful for measuring startup / attention kernel perf in air-gap before weights arrive. Don't ship with this. Sibling flag `--load-format fastsafetensors` accelerates safetensors load via batched pread + NUMA-aware buffers (requires `fastsafetensors>=0.3.3` (a dependency of the CUDA wheel; the `vllm[fastsafetensors]` extra elsewhere) + `libnuma-dev`; no env-var toggle exists in vLLM source).
 
 8. **Torch compile cache misses cost minutes per startup.** Persist `VLLM_CACHE_ROOT` across pod restarts (PVC, hostPath, or a shared NFS mount). First warmup of a new model config rebuilds CUDA graphs and torch.compile artifacts; subsequent starts hit cache.
+
+9. **Leave `gpu-memory-utilization` unset on v0.34.0+ (CUDA, ROCm).** The extensible KV cache is on by default and sizes the cache from memory free after warmup, so an unset value means 1.0 and an explicit 0.9 only takes KV memory away (startup warning when it withholds ≥ 1 GiB). Set it to share the GPU with other processes or on unified-memory devices. With `--no-enable-extensible-kv-cache` the old 0.92 default applies. The default `--block-size` is now 64 (was 16; ROCm paged attention keeps 16): pass `--block-size 16` to keep the old geometry.
 
 For more failure modes and the fuller troubleshooting flow (first-boot hang, revision-check failure detection, tokenizer mismatch diagnosis), see `references/troubleshooting.md`.
 
@@ -152,6 +153,7 @@ Before shipping, sanity-check the effective config:
 kubectl logs "$POD" | grep -E 'non-default args:|with config:'
 
 # /metrics: block size, KV dtype, gpu_memory_utilization, prefix caching as labels
+# (v0.34.0+: gpu_memory_utilization="None" means unset — 1.0 when enable_extensible_kv_cache="True", else 0.92)
 curl -s http://localhost:8000/metrics | grep -E '^vllm:cache_config_info|^vllm:prefix_cache'
 
 # Confirm the model path that was actually loaded

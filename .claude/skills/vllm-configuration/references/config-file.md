@@ -13,6 +13,8 @@ Load when building or debugging a `--config` file. vLLM parses YAML via `Flexibl
 
 Keys accept either `hyphen-case` or `snake_case` — matches whichever argparse exposes.
 
+**`key: null` (or an empty value) is not "unset" for every key.** The parser emits `--key None`, and only keys whose config type includes `None` map that back to unset. For `tokenizer`, `max-model-len`, `block-size`, `max-num-batched-tokens`, `max-num-seqs`, `enable-chunked-prefill`, `enable-extensible-kv-cache` and `allowed-local-media-path` the type has no `None`, so omit the key (they appear commented out in the catalog below). Upstream issue #68619 (open) reports `tokenizer: null` becoming a tokenizer named `None`. Configs rendered from Helm or Jinja templates must drop unset keys, not leave them empty.
+
 ## Precedence
 
 **CLI args > YAML > library defaults.** Env vars (`VLLM_*`) are read separately and do not participate directly in this chain; they gate behaviour at the library layer.
@@ -30,20 +32,20 @@ Config groups under the engine are:
 ### ModelConfig
 ```yaml
 model: meta-llama/Llama-3.1-70B-Instruct
-tokenizer: null                     # defaults to model
+# tokenizer:                       # omit to use the model's tokenizer
 tokenizer-mode: auto                # auto | hf | mistral | model-specific modes; `slow` removed at v0.31.0
 revision: null                      # or a commit SHA / tag
 tokenizer-revision: null
 code-revision: null                 # for trust-remote-code modules
 trust-remote-code: false
 dtype: auto                         # auto | half | bfloat16 | float | float32 | ...
-max-model-len: null                 # overrides config.json max_position_embeddings
+# max-model-len:                    # omit to use config.json max_position_embeddings; a number or `auto`
 quantization: null                  # awq | gptq | fp8 | compressed-tensors | modelopt | ...
                                     # full list: `vllm-quantization` skill; `bitsandbytes`
                                     # is out-of-tree from v0.28.0 and `squeezellm` is gone
 served-model-name: null             # name surfaced at /v1/models
 chat-template: null
-allowed-local-media-path: null      # required for file:// image URIs
+# allowed-local-media-path:         # omit unless serving file:// image URIs; a directory path
 ```
 
 ### LoadConfig
@@ -56,8 +58,9 @@ model-loader-extra-config: null     # backend-specific dict (runai-streamer tuni
 
 ### CacheConfig
 ```yaml
-block-size: null                    # auto-resolved per platform/backend; only set to pin it
-gpu-memory-utilization: 0.92        # fraction of free HBM per rank
+# block-size:                      # omit: unset → 64 from v0.34.0 (16 before); a backend's preferred size overrides it (ROCm paged attention: 16)
+gpu-memory-utilization: null        # v0.34.0+: unset = 1.0 with the extensible KV cache, 0.92 without; leave unset on CUDA/ROCm
+# enable-extensible-kv-cache:      # omit: unset = on where supported (CUDA, ROCm, v0.34.0+); sizes the KV cache from memory free after warmup
 cpu-offload-gb: 0                   # GiB for weights CPU offload (NOT KV); lives on UVAOffloadConfig
 kv-cache-dtype: auto                # auto | fp8 | fp8_e4m3 | fp8_e5m2
 enable-prefix-caching: true         # default ON
@@ -76,12 +79,12 @@ ray-workers-use-nsight: false
 
 ### SchedulerConfig
 ```yaml
-max-num-batched-tokens: null        # unset → usage-context default (see note)
-max-num-seqs: null                  # unset → usage-context default (see note)
+# max-num-batched-tokens:          # omit → usage-context default (see note)
+# max-num-seqs:                    # omit → usage-context default (see note)
 max-num-scheduled-tokens: null      # ≤ max-num-batched-tokens; spec-dec appends beyond it
 max-num-active-seqs: null           # v0.31.0+; ≤ max-num-seqs; caps RUNNING admission without shrinking CUDA-graph capacity
 long-prefill-token-threshold: 0     # 0 disables the long-prompt cap
-enable-chunked-prefill: null        # auto-enabled where the model supports it
+# enable-chunked-prefill:          # omit → auto-enabled where the model supports it
 scheduler-reserve-full-isl: true    # admit only if the full ISL fits in KV — anti-thrash
 watermark: 0.0                      # fraction of KV blocks kept free on admission
 prefill-schedule-interval: 1        # DP: admit prefills every N steps, aligned across ranks
@@ -135,7 +138,7 @@ logging-config:
 log-level: INFO                     # shortcut; overrides logging-config.log_level
 ```
 
-`log-config-file` is deprecated — still accepted with a warning at v0.33.0; use `logging-config: {pylogging_config_file: /path.json}`.
+`log-config-file` is deprecated — still accepted with a warning at v0.34.0; use `logging-config: {pylogging_config_file: /path.json}`.
 
 Request logging is opt-**in**: `enable-log-requests: true`. `disable-log-requests`
 is rejected through v0.32.0; from v0.33.0 it parses again and means "off", the default.
@@ -202,8 +205,7 @@ tensor-parallel-size: 8
 max-model-len: 32768
 trust-remote-code: false
 
-# Memory
-gpu-memory-utilization: 0.9
+# Memory (gpu-memory-utilization left unset: v0.34.0+ sizes the KV cache from free memory)
 kv-cache-dtype: auto
 enable-prefix-caching: true
 kv-offloading-backend: native
@@ -233,7 +235,7 @@ tool-call-parser: llama3_json
 - **Start from an upstream recipe** (source tree, v0.28.0+): `python3 tools/recipes/recipe_json_to_vllm_config.py --model <repo-id> --hardware <key>` writes `config.yml` + `env.sh` from recipes.vllm.ai; then `source env.sh && vllm serve --config config.yml`. Needs only PyYAML. Air-gapped: download `https://recipes.vllm.ai/<repo-id>/hw/<key>.json` on a connected host and pass the file path as the argument.
 - **Precedence escape:** to override one YAML value at runtime, pass the corresponding CLI flag after `--config`: `vllm serve --config prod.yaml --max-num-seqs 1024`.
 
-## Keys that no longer exist (as of v0.33.0)
+## Keys that no longer exist (as of v0.34.0)
 
 A YAML key that vLLM no longer recognises is not ignored — argparse rejects it
 and the server refuses to start. Config dataclasses use `extra="forbid"`, so a
@@ -254,17 +256,18 @@ fails validation the same way.
 | `speculative-config.disable_by_batch_size`, `.speculative_model_quantization` | v0.17.0 / v0.8.3 | Drop the first; use `speculative-config.quantization` for the second. |
 | `kv-transfer-config.kv_buffer_size`, `.kv_rank`, `.kv_parallel_size`, `.kv_ip`; `ec-transfer-config.ec_rank`, `.ec_parallel_size` | v0.32.0 ([PR #59781](https://github.com/vllm-project/vllm/pull/59781)) | Delete them — old 1P1D connector fields; `kv_port` remains. |
 | `speculative-config.method: medusa` / `mlp_speculator` | v0.33.0 ([PR #61701](https://github.com/vllm-project/vllm/pull/61701)) | Another method (`eagle3`, `draft_model`, `ngram`, …) — see `vllm-speculative-decoding`. |
+| `speculative-config.method: custom_class` | v0.34.0 ([PR #63373](https://github.com/vllm-project/vllm/pull/63373), Model Runner V1 removal) | A plugin method registered with `register_speculative_method` — see `vllm-speculative-decoding`. |
 
-Still accepted at v0.33.0 but dead — delete on sight:
+Still accepted at v0.34.0 but dead — delete on sight:
 
 | Key | Status | Why |
 |---|---|---|
-| `mamba-cache-mode` | deprecated, warns, no effect (#60043) | Mamba prefix caching follows `enable-prefix-caching`. |
-| `ir-op-priority` | deprecated, removal v0.34.0 (#63371) | vLLM IR is being removed. |
+| `mamba-cache-mode` | deprecated, warns, no effect (#60043); removal postponed (#64838) | Mamba prefix caching follows `enable-prefix-caching`. |
+| `ir-op-priority` | deprecated (#63371); the warning's "removed in v0.34.0" did not happen, still registered at v0.34.0 | vLLM IR is being removed. |
 
 ## Version notes
 
-- Section catalog above re-read key-by-key against tag `v0.33.0`
+- Section catalog above re-read key-by-key against tag `v0.34.0`
 - YAML config support: stable since v0.5.0
 - Nested dict-to-JSON conversion: enhanced in v0.11 to handle `compilation-config`, `speculative-config`, `kv-transfer-config` reliably
 - Boolean handling: pre-v0.10 was inconsistent; current parser requires explicit `true`/`false`

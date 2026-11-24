@@ -101,7 +101,7 @@ If the issue is torch.compile, persist `VLLM_CACHE_ROOT` to amortize across rest
 Verify three things:
 1. `enable-prefix-caching: true` is set (it is **not** on by default pre-v0.19; is default on v1 engine)
 2. Requests actually share prefixes — check with `curl -s http://localhost:8000/metrics | grep prefix_cache`
-3. `block-size` is consistent across runs (auto-resolved per platform/backend when unset; changing it invalidates cache)
+3. `block-size` is consistent across runs (unset resolves to 64 from v0.34.0, 16 before, or a backend's preferred size; changing it invalidates cache — an upgrade across v0.34.0 changes it)
 
 ### Tokenizer mismatch silently returning wrong token counts
 
@@ -197,14 +197,16 @@ Don't do this. YAML config doesn't support env substitution; put secrets in env 
 
 ## Verifying effective config
 
-The only authoritative "what's the engine actually running with" signals. `vllm:cache_config_info` is missing under `VLLM_USE_RUST_FRONTEND=1` through v0.33.0 — use the startup log there.
+The only authoritative "what's the engine actually running with" signals. `vllm:cache_config_info` is missing under `VLLM_USE_RUST_FRONTEND=1` through v0.33.0 (exported from v0.34.0) — use the startup log there.
 
 ```bash
 # 1. Model ID the server loaded
 curl -s http://localhost:8000/v1/models | jq '.data[].id'
 
 # 2. Prometheus — CacheConfig as labels on one gauge (block_size, cache_dtype,
-#    gpu_memory_utilization, enable_prefix_caching, num_gpu_blocks, ...)
+#    gpu_memory_utilization, enable_prefix_caching, num_gpu_blocks, ...).
+#    v0.34.0+: gpu_memory_utilization="None" means unset; read enable_extensible_kv_cache
+#    ("True" → effective 1.0, "False" → 0.92)
 curl -s http://localhost:8000/metrics | grep -E '^vllm:cache_config_info|^vllm:prefix_cache'
 
 # 3. Startup log — printed once at boot, so read the head, not --tail

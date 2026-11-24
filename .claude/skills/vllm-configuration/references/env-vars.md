@@ -1,8 +1,8 @@
 # vLLM environment variables — full catalog
 
-Load when the operator needs to look up a specific env var or survey what's configurable. Source of truth is `vllm/envs.py` (verify against the installed version — this table reflects **v0.18–v0.33**, re-diffed against `envs.py` at tag `v0.33.0`). Model- and hardware-specific kernel knobs are outside this catalog; removals are in §Removed and renamed.
+Load when the operator needs to look up a specific env var or survey what's configurable. Source of truth is `vllm/envs.py` (verify against the installed version — this table reflects **v0.18–v0.34**, re-diffed against `envs.py` at tag `v0.34.0`). Model- and hardware-specific kernel knobs are outside this catalog; removals are in §Removed and renamed.
 
-**Every vLLM minor adds and deletes env vars** (v0.33.0: 8 removed, 10 added).
+**Every vLLM minor adds and deletes env vars** (v0.34.0: 2 removed, 17 added).
 Check a name against the installed `vllm/envs.py` before writing it into a manifest.
 
 The docs page at https://docs.vllm.ai/en/stable/configuration/env_vars/ is literally generated from `vllm/envs.py` via an `--8<--` include, so both are the same list.
@@ -82,14 +82,15 @@ live:
 | `VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS` | `300` | model-execution call |
 | `VLLM_WORKER_SHUTDOWN_TIMEOUT_SECONDS` | `5` | worker shutdown grace |
 | `VLLM_P2P_HANDSHAKE_TIMEOUT_S` / `VLLM_P2P_IDLE_TIMEOUT_S` / `VLLM_P2P_MAX_PEERS` | `30` / `300` / `128` | P2P ZMQ peer-session bounds (v0.32.0+, #51504 — bounds ZMQ socket exhaustion) |
+| `VLLM_P2P_TRANSFER_STALL_TIMEOUT_S` | `20` | v0.34.0+: seconds a P2P WRITE may stay in progress before the source treats the peer as faulted (no new WRITEs, session torn down); `0` disables |
 
 `VLLM_ENGINE_ITERATION_TIMEOUT_S` is gone too — see §Removed and renamed.
 
-## Removed and renamed (v0.29 – v0.33)
+## Removed and renamed (v0.29 – v0.34)
 
 Delete these from manifests on upgrade. A removed env var is read by nothing; the
 only trace is a startup warning `Unknown vLLM environment variable detected: <NAME>`
-(v0.17.0+). `--fail-on-environ-validation` turns it into a startup `ValueError`.
+(v0.17.0+). `--fail-on-environ-validation` turns it into a startup `ValueError`. From v0.34.0 the names in `envs.removed_environment_variables` fail startup regardless: any set value, even empty, raises `ValueError: <NAME> has been removed`.
 
 | Name | Status | Use instead |
 |---|---|---|
@@ -104,6 +105,8 @@ only trace is a startup warning `Unknown vLLM environment variable detected: <NA
 | `VLLM_USE_RAY_V2_EXECUTOR_BACKEND`, `VLLM_USE_RAY_COMPILED_DAG_CHANNEL_TYPE`, `VLLM_USE_RAY_COMPILED_DAG_OVERLAP_COMM`, `VLLM_USE_RAY_WRAPPED_PP_COMM` | removed v0.33.0 (#61712, #62228) | nothing — the compiled-graph executor is gone and `RayExecutorV2` is the only Ray executor |
 | `VLLM_ROCM_MONO_DECODE` | removed v0.33.0 (#61082) | `--monokernel` |
 | `VLLM_ROCM_AITER_MLA_DCP_VERIFY`, `VLLM_ROCM_AITER_MEGA_MOE_FUSE_SHARED_EXPERTS` | removed v0.33.0 (#61628, #61345) | nothing |
+| `VLLM_USE_V2_MODEL_RUNNER` | removed v0.34.0 (#63373): Model Runner V1 is gone, V2 is the only runner | unset it — `=1` only warns; any other value raises `ValueError` at startup |
+| `VLLM_MARLIN_INPUT_DTYPE` | removed v0.34.0 (#65542), fails startup | Marlin no longer takes INT8/FP8 activations: `--quantization humming` plus `VLLM_HUMMING_INPUT_QUANT_CONFIG='{"dtype":"int8"}'` |
 | `python -m vllm.entrypoints.grpc_server` | deprecated v0.30.0 (#56746), `DeprecationWarning` | `vllm serve <model> --grpc` |
 
 Added in v0.29.0: `VLLM_ALLREDUCE_USE_FLASHINFER` (default on) — set `0` to opt
@@ -142,7 +145,7 @@ out of FlashInfer all-reduce.
 |---|---|
 | `VLLM_RUST_FRONTEND_PATH` set, neither `VLLM_USE_RUST_*` flag set | Warning; the path is ignored |
 | A flag set, path `auto`, image ships no `vllm-rs` next to the package | `FileNotFoundError` at startup ("Build with setuptools-rust or set the path explicitly") |
-| A frontend flag or YAML key `vllm-rs` does not implement, at a non-default value | Startup fails: `The following arguments are not implemented in Rust frontend yet`. At v0.33.0 that covers `log-config-file`, `root-path`, `middleware`, `uvicorn-log-level`, `otlp-traces-endpoint`, `collect-detailed-traces`, `enable-offline-docs`, `allowed-local-media-path`, `max-log-len`, `tokens-only`. Older releases ignored some of them silently. Remove the key or stay on the Python frontend |
+| A frontend flag or YAML key `vllm-rs` does not implement, at a non-default value | Startup fails: `The following arguments are not implemented in Rust frontend yet`. At v0.34.0 that covers `log-config-file`, `middleware`, `uvicorn-log-level`, `otlp-traces-endpoint`, `collect-detailed-traces`, `enable-offline-docs`, `allowed-local-media-path`, `tokens-only`; `root-path` and `max-log-len` are implemented from v0.34.0 and were refused through v0.33.0. Older releases ignored some of them silently. Remove the key or stay on the Python frontend |
 
 ## Hugging Face integration (inherited)
 
@@ -197,6 +200,7 @@ Belt-and-braces: set **both** `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1` 
 | Variable | Default | Purpose |
 |---|---|---|
 | `VLLM_DISABLE_COMPILE_CACHE` | `0` | `1` forces a rebuild of torch.compile artifacts |
+| `VLLM_COMPILE_ON_ONE_RANK` | `0` | v0.34.0+: `1` compiles so the cache is reusable on any device index (e.g. across `--device-ids`). Needs torch ≥ 2.14 on CUDA, ROCm or XPU, else stays off. Not yet compatible with `use_inductor_graph_partition` or `debug_dump_path`. The v0.34.0 release notes say "on by default"; the code default is off |
 | `VLLM_USE_AOT_COMPILE` | **on** (see below) | Ahead-of-time compile path |
 | `VLLM_USE_MEGA_AOT_ARTIFACT` | **on** (see below) | Single-file precompiled bundle |
 | `VLLM_TRITON_USE_TD` | unset (auto) | Tri-state override for the Triton tensor-descriptor path — unset lets the backend auto-select (currently XPU only), `1` forces on, `0` off. Renamed from `VLLM_TRITON_ATTN_USE_TD`, which is now warn-and-ignore ([PR #42436](https://github.com/vllm-project/vllm/pull/42436)) |
@@ -209,7 +213,7 @@ Belt-and-braces: set **both** `VLLM_NO_USAGE_STATS=1` and `VLLM_DO_NOT_TRACK=1` 
 **The two AOT vars are opt-*out* on any current image.** Their defaults are
 computed: `VLLM_USE_AOT_COMPILE` is on when torch ≥ 2.10 **and** the compile cache
 is enabled; `VLLM_USE_MEGA_AOT_ARTIFACT` is on when torch ≥ 2.12 **and** AOT compile
-is on. vLLM pins `torch==2.13.0` from v0.27.0 and `torch==2.14.0` at v0.33.0, so
+is on. vLLM pins `torch==2.13.0` from v0.27.0 and `torch==2.14.0` at v0.33.0 and v0.34.0, so
 both hold out of the box — set them to `0` to disable. `VLLM_DISABLE_COMPILE_CACHE=1`
 also turns AOT compile off, and the mega-artifact with it. Triton has no direct pin
 to grep for; it arrives through torch.

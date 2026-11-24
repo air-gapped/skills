@@ -62,7 +62,7 @@ else
   if [ -n "$cfg" ]; then
     printf '%s\n' "$cfg" | sed -e 's/^[^{]*{//' -e 's/}[^}]*$//' | tr ',' '\n' | sed 's/^/  /'
   else
-    echo "  (not exported — the Rust frontend omits it through v0.33.0;"
+    echo "  (not exported — the Rust frontend omits it through v0.33.0, exports it from v0.34.0;"
     echo "   read 'non-default args:' and 'with config:' in the startup log instead)"
   fi
   echo

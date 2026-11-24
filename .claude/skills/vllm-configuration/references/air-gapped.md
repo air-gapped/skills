@@ -10,7 +10,7 @@ Load when the deployment can't reach `huggingface.co` directly. Covers the three
 - [Disabling every phone-home](#disabling-every-phone-home)
 - [Benchmark datasets offline](#benchmark-datasets-offline)
 - [Common failure modes](#common-failure-modes)
-- [Mirror dependency floors (v0.27 – v0.33)](#mirror-dependency-floors-v027--v033)
+- [Mirror dependency floors (v0.27 – v0.34)](#mirror-dependency-floors-v027--v034)
 - [Container image considerations](#container-image-considerations)
 - [References](#references)
 
@@ -28,7 +28,7 @@ Best for: regulated environments, physically isolated networks, zero-egress clus
    python -c "from huggingface_hub import snapshot_download; \
      snapshot_download('meta-llama/Llama-3.1-70B-Instruct', \
                        local_dir='/export/models/llama-70b')"
-   # do not pass local_dir_use_symlinks: huggingface_hub 1.x removed it (TypeError);
+   # do not pass local_dir_use_symlinks: huggingface_hub 1.x and 2.x removed it (TypeError);
    # local_dir already holds real files
    ```
 
@@ -165,8 +165,8 @@ Fix:
 Harmless through v0.33.0 — do not unset `HF_HUB_OFFLINE` to chase it. With
 `HF_HUB_OFFLINE=1` and a Hub repo id as the `--speculative-config` draft model,
 every worker logs the line twice, sleeps 2 s, then loads the draft from the local
-cache and starts normally. Exclude the line from log alerting; releases after
-v0.33.0 skip the lookup in offline mode.
+cache and starts normally. Exclude the line from log alerting. v0.34.0 and later
+skip the retry and log nothing in offline mode.
 
 ### "Connection error: stats.vllm.ai" in logs
 
@@ -188,22 +188,23 @@ Usage stats opt-out wasn't applied. Set `VLLM_NO_USAGE_STATS=1` or the alternati
 - Token expired (refresh on https://huggingface.co/settings/tokens)
 - Offline mode is caching the failure — clear `$HF_HOME/hub/.locks`
 
-## Mirror dependency floors (v0.27 – v0.33)
+## Mirror dependency floors (v0.27 – v0.34)
 
 Stage these in the mirror before the image bump, not after. Read every range
 from `requirements/common.txt` at the target tag — release-note "bumps" (#51668
 → 5.15.0, #53905 → 5.16.1) touch only the CI pins in `requirements/test/*`.
 
-| Dependency | v0.33.0 | Earlier |
+| Dependency | v0.34.0 | Earlier |
 |---|---|---|
 | Python | `>= 3.11, < 3.15` (from v0.32.0, #60402) — drop 3.10 wheels; a 3.10 base image cannot install it | 3.10 allowed through v0.31.0 |
-| `transformers` | `>= 5.16.1, < 5.21.0` (#61983) | `>= 5.16.1, < 5.20.0` v0.32.0 (#57387, #59762); `>= 5.10.4, < 5.18.0` v0.31.0 (upper bound new, #59614); `>= 5.10.4` v0.29–v0.30; `>= 5.5.3` v0.27–v0.28 |
-| `tokenizers` | `>= 0.23.2` (from v0.32.0, #59796) | `>= 0.21.1` v0.31.0 |
-| `huggingface_hub` | `>= 1.31.0` (from v0.30.0, #56460) | `>= 1.28.0` v0.29.0 (#52797) |
+| `transformers` | `>= 5.16.1, < 5.23.0` (#64529) | `>= 5.16.1, < 5.21.0` v0.33.0 (#61983); `>= 5.16.1, < 5.20.0` v0.32.0 (#57387, #59762); `>= 5.10.4, < 5.18.0` v0.31.0 (upper bound new, #59614); `>= 5.10.4` v0.29–v0.30; `>= 5.5.3` v0.27–v0.28 |
+| `tokenizers` | `>= 0.23.3` (#64779) | `>= 0.23.2` v0.32.0–v0.33.0 (#59796); `>= 0.21.1` v0.31.0 |
+| `huggingface_hub` | `>= 2.0.0` (#64779); 2.x depends on `httpx2 >= 2.0.0, < 3` where 1.x used `httpx` — stage it | `>= 1.31.0` v0.30.0–v0.33.0 (#56460); `>= 1.28.0` v0.29.0 (#52797) |
+| `mistral_common[image]` | `>= 1.13.0` (#64169) | `>= 1.11.6` v0.33.0 |
 | `certifi` | `>= 2026.10.19` (#62868) | unpinned |
 | `pillow` / `aiohttp` / `multidict` / `mcp` | `>= 13.0.0` / `>= 3.14.4` / `>= 6.9.1` / `>= 2.2.0, < 3.0.0` (#62835) | `>= 12.3.0` / `>= 3.14.3` / unpinned / `>= 2.0.0, < 3.0.0` v0.32.0 |
-| `torch` / `torchvision` (CUDA) | `== 2.14.0` / `== 0.29.0` (#52183) | `== 2.13.0` / `== 0.28.0` v0.27–v0.32 |
-| FlashInfer / NIXL | `flashinfer-python == 0.7.2.post1` / `nixl == 1.5.0`; the NIXL connector needs NIXL 1.5+ (#61032) | v0.29.0 floors 0.6.18 (#54313) / 1.3.2 (#51777) |
+| `torch` / `torchvision` (CUDA) | `== 2.14.0` / `== 0.29.0` (unchanged from v0.33.0, #52183) | `== 2.13.0` / `== 0.28.0` v0.27–v0.32 |
+| FlashInfer / NIXL | `flashinfer-python == 0.7.3` / `nixl == 1.5.2`; the NIXL connector needs NIXL 1.5+ (#61032) | `0.7.2.post1` / `1.5.0` v0.33.0; v0.29.0 floors 0.6.18 (#54313) / 1.3.2 (#51777) |
 | CUDA variant | CUDA 13.0 wheels and images only (#62575); no `-cu129` wheel or image tag | cu129 variants through v0.32.0 |
 | Runtime image | Ubuntu 24.04 (#51058, from v0.28.0) | — |
 
@@ -220,7 +221,7 @@ from `requirements/common.txt` at the target tag — release-note "bumps" (#5166
 ## Container image considerations
 
 - **vLLM official images** include `huggingface_hub` and `transformers`, so all HF env vars work out of the box
-- For `hf` CLI inside containers: `pip install -U huggingface_hub[cli]` (newer images ship this)
+- For the `hf` CLI inside containers: `pip install -U huggingface_hub` — the CLI ships in the base package (no `[cli]` extra); official images already carry it
 - **Wheel installs lack FlashInfer's precompiled kernels** (the official CUDA image ships them). Without `flashinfer-cubin`, startup JIT-builds them (minutes, needs `nvcc` + `ninja`); with neither present, FlashInfer is **disabled** and only a warning says so. On v0.32.0+, run `vllm download-kernels` on the connected build host and bake the result into the image.
 - For full offline images, bake the model into the image or mount via PVC — see the sibling `vllm-caching` skill for image-inspection recipes
 
