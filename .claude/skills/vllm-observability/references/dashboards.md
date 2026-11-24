@@ -21,7 +21,7 @@ Ready-to-run minimal stack: Grafana + Prometheus via docker-compose, one dashboa
   - Request prompt-length heatmap
   - Request generation-length heatmap
   - Finish-reason breakdown (`request_success_total{finished_reason}`)
-  - Queue time, Prefill + decode time, Max-generation-tokens per sequence group — **all three plot `rate(…_sum[…])`, i.e. seconds (or tokens) accumulated per second, so the line rises with request rate at constant latency** (through v0.33.0). After import rewrite each as `rate(…_sum[5m]) / rate(…_count[5m])` for the mean, or as `histogram_quantile` over `…_bucket`, and set the unit to seconds
+  - Queue time, Prefill + decode time, Max-generation-tokens per sequence group — **all three plot `rate(…_sum[…])`, i.e. seconds (or tokens) accumulated per second, so the line rises with request rate at constant latency** (through v0.34.0). After import rewrite each as `rate(…_sum[5m]) / rate(…_count[5m])` for the mean, or as `histogram_quantile` over `…_bucket`, and set the unit to seconds
 - `prometheus.yaml` — 5s scrape interval, 30s evaluation, target `host.docker.internal:8000`
 - `docker-compose.yaml` — `prom/prometheus:latest` + `grafana/grafana:latest`; no DCGM, no cAdvisor, no node-exporter
 

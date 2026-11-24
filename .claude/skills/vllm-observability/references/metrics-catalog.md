@@ -1,6 +1,6 @@
 # vLLM Prometheus metrics — full catalog
 
-Names verified against vLLM **v0.33.0** (`references/sources.md`): every `"vllm:…"` string in the tree, Python and Rust, diffed against v0.32.0 — additions only. Names added in v0.31.0–v0.33.0 are marked inline with their release.
+Names verified against vLLM **v0.34.0** (`references/sources.md`): every `"vllm:…"` string in the tree, Python and Rust, diffed against v0.33.0 — additions only. Names added in v0.31.0–v0.34.0 are marked inline with their release.
 
 Load when looking up what a specific `vllm:*` metric means, its type/labels, or when debugging a dashboard/alert. Reflects V1 engine (default on current main); V0 deltas called out.
 
@@ -37,7 +37,7 @@ Every `vllm:*` series carries:
 
 Additional labels appear on specific series (`finished_reason`, `reason`, `source`, `sleep_state`, `position`). Callouts below where relevant.
 
-**Exceptions — no `engine` label:** `vllm:admission_rejections_total` (`model_name`, `reason` only) and the frontend operation metrics `vllm:sleep_mode_operation*` / `vllm:rl_weight_update_operation*` (`operation` only). Do not `sum by (engine)` or join them on `engine`.
+**Exceptions — no `engine` label:** `vllm:admission_rejections_total` (`model_name`, `reason` only), `vllm:request_render_duration_seconds` (`model_name`, `request_type`) and the frontend operation metrics `vllm:sleep_mode_operation*` / `vllm:rl_weight_update_operation*` (`operation` only). Do not `sum by (engine)` or join them on `engine`.
 
 ## Queue & scheduler state
 
@@ -135,10 +135,11 @@ All latency values in **seconds**.
 | `vllm:request_decode_time_seconds` | first token → last token | Pure decode |
 | `vllm:request_inference_time_seconds` | RUNNING state (prefill + decode) | Includes time during any preemption |
 | `vllm:e2e_request_latency_seconds` | arrival → last token | Wall-clock end-to-end |
+| `vllm:request_render_duration_seconds` | frontend, before the engine | **v0.34.0+**. Chat templating, tokenization and multimodal preprocessing. Labels `model_name`, `request_type` (`chat`\|`completion`); no `engine` label. Python frontend only. A slow value here is CPU contention on the API server, not the GPU |
 | `vllm:inter_token_latency_seconds` | per-step decode | Token-to-token. Catches stalls that TPOT averages away |
 | `vllm:request_time_per_output_token_seconds` | per-request TPOT (excluding first) | Averaged decode per request |
 
-**`vllm:model_forward_time_milliseconds` and `vllm:model_execute_time_milliseconds` do not exist on V1** (v0.11.0–v0.33.0). The V0 engine emitted them under `--collect-detailed-traces`; nothing in V1 reads that flag. Use `request_prefill_time_seconds`, `request_decode_time_seconds` and `request_inference_time_seconds`.
+**`vllm:model_forward_time_milliseconds` and `vllm:model_execute_time_milliseconds` do not exist on V1** (v0.11.0–v0.34.0). The V0 engine emitted them under `--collect-detailed-traces`; nothing in V1 reads that flag. Use `request_prefill_time_seconds`, `request_decode_time_seconds` and `request_inference_time_seconds`.
 
 ## Per-request count histograms
 
@@ -208,8 +209,8 @@ increments and the ratio above is not a valid health signal there.
 
 | Rule | Detail |
 |---|---|
-| One gate | The server flag alone. No release (v0.25.0–v0.33.0) has an `include_metrics` request field — do not send or wait for one |
-| Endpoints (v0.33.0) | `/v1/chat/completions`, `/v1/completions`, `/v1/responses`. **Not `/v1/messages`** |
+| One gate | The server flag alone. No release (v0.25.0–v0.34.0) has an `include_metrics` request field — do not send or wait for one |
+| Endpoints (v0.34.0) | `/v1/chat/completions`, `/v1/completions`, `/v1/responses`. **Not `/v1/messages`** |
 | `--disable-log-stats` | Startup fails when combined with the flag |
 | `n > 1` | `metrics` is `null` by design — check the request shape before calling it a bug |
 | Cost | CPU overhead at high concurrency; benchmark before enabling fleet-wide |
@@ -271,12 +272,12 @@ clamp only changes anything once `context_len > sliding_window`.
 **log-only**. Turning one on and then grepping `/metrics` for it is a wasted
 half-hour, so the first column below is the one that matters. All are read from
 `vllm/config/observability.py` and exposed as CLI flags in
-`vllm/engine/arg_utils.py` (v0.33.0).
+`vllm/engine/arg_utils.py` (v0.34.0).
 
 | Flag | Output | What it gives you |
 |---|---|---|
 | `--cudagraph-metrics` | **log only** | Padded/unpadded token counts, runtime cudagraph dispatch modes, and their observed frequencies, at every logging interval |
-| `--enable-layerwise-nvtx-tracing` | **NVTX ranges** | Per-layer/module ranges annotated with input/output shapes, for Nsight. **Does not work with CUDA graphs enabled** — a real constraint, not a caveat |
+| `--enable-layerwise-nvtx-tracing` | **NVTX ranges** | **Deprecated in v0.34.0**: per-layer ranges are gone with Model Runner V1; it only marks calls to the compiled model, logs a deprecation warning and is slated for removal. Do not use it for per-layer Nsight work. Does not work with CUDA graphs enabled |
 | `--enable-logging-iteration-details` | **log only** | Per-iteration context/generation request and token counts, plus elapsed CPU time |
 | `--jit-monitor-mode` (`warn`\|`error`) | **log only** | How to handle post-warmup JIT compilation events. `error` turns a late recompile into a failure instead of a line nobody reads |
 | `--jit-monitor-verbose` | **log only** | Every monitored JIT compile with runtime detail. Emits many logs and adds overhead — debugging only |
@@ -311,9 +312,12 @@ on `--grpc` deployments:
 | `vllm:request_num_preemptions` | v0.31.0+ |
 | `vllm:mooncake_*` transfer series (not `mooncake_store_*`, there since v0.30.0) | v0.33.0+ |
 | `vllm:corrupted_requests_total`, `vllm:prompt_tokens_cached_by_source_total` | v0.32.0+ |
-| `vllm:admission_rejections_total`, `vllm:watermark_requests_total`, `vllm:num_requests_kv_fetch_by_stage` | **not registered** through v0.33.0 |
+| `vllm:watermark_requests_total`, `vllm:num_requests_kv_fetch_by_stage`, `vllm:engine_sleep_state`, `vllm:cache_config_info`, `vllm:umbp_transfer_*_total` | v0.34.0+ (not registered on v0.33.0) |
+| `vllm:admission_rejections_total` | **not registered** through v0.34.0 |
+| `vllm:lora_requests_info` `max_lora` label | v0.34.0+ |
 | `--custom-histogram-buckets` | v0.33.0+. On v0.32.0 the flag is ignored and Rust histograms keep default buckets |
 | Per-request `metrics` response field | v0.33.0+ |
+| Per-request `metrics.speculative_decoding` field | v0.34.0+ |
 
 HTTP-layer metrics (`http_requests_total`, `http_request_duration_seconds`)
 are **not** `vllm:`-prefixed and mirror `PrometheusFastApiInstrumentator`
@@ -380,6 +384,8 @@ note these are a *different* pair from the connector-level lookup delays above:
 | `vllm:kv_offload_tiering_primary_read_usage_perc` / `_primary_write_usage_perc` | Occupancy of the primary tier's read and write paths |
 | `vllm:kv_offload_tiering_active_promotion_jobs` / `_active_cascade_jobs` | In-flight promotion and cascade jobs |
 | `vllm:kv_offload_tiering_promotion_job_failures` / `_cascade_job_failures` / `_promotion_allocation_failures` | Failure counters — watch these first when tiering silently stops helping |
+| `vllm:kv_offload_tiering_deferred_release_chunks` | **v0.34.0+**. Gauge per tier: chunks whose release to the free pool is deferred after a failed promotion because the tier's I/O may still write into them. Stays above 0 while a tier's failed I/O is unsettled |
+| `vllm:kv_offload_tiering_deferred_release_hold_seconds` | **v0.34.0+**. Histogram per tier: how long a deferred release was held before the tier settled. A rising tail means a slow or stuck tier is pinning primary-tier capacity |
 | `vllm:kv_offload_tiering_promotion_latency_seconds` | **v0.33.0+**. Histogram per promotion job, creation → completion, labelled by tier and result (`success`/`failure`). Includes tier queueing and failed attempts — the one to put a promotion-latency SLO on |
 
 **Apart from the two `lookup_*` histograms and names marked with a later release, the names above ship from v0.28.0 and do not exist before it.** Counted in `vllm/v1/kv_offload/tiering/base.py`: 2 names at v0.27.0, 15 at v0.28.0. On v0.27.x only the two `lookup_*_delay_seconds` metrics exist, so a dashboard built from this table will render empty panels there.
@@ -455,7 +461,7 @@ A disk-backend "stored" block is not fsync-durable.
 
 Mooncake pushes, so the three transfer histograms populate **only on the prefill instance** — empty on a decode instance is expected. Alert on the failure and expiry counters.
 
-**UMBP connector** (v0.33.0+): counters `vllm:umbp_transfer_{submitted,completed,failed,bytes}_total`, each with an extra `operation` label.
+**UMBP connector** (v0.33.0+; v0.34.0+ on the Rust frontend): counters `vllm:umbp_transfer_{submitted,completed,failed,bytes}_total`, each with an extra `operation` label.
 
 Other backends (`vllm:hf3fs_*`, LMCache) remain connector-version-dependent — grep
 `/metrics` on a running deployment to see what the installed connector actually emits.
@@ -508,15 +514,15 @@ V0 metrics are hidden by default on V1. Re-enable during migration with `--show-
 
 For debugging, jumping into the source is fastest:
 
-Line ranges at tag v0.33.0 (file length in parentheses):
+Line ranges at tag v0.34.0 (file length in parentheses):
 
-- Prometheus setup & metric definitions: `vllm/v1/metrics/loggers.py:473-1137` (1453)
+- Prometheus setup & metric definitions: `vllm/v1/metrics/loggers.py`
 - Bucket defaults: `vllm/v1/metrics/buckets.py`
-- Data classes (SchedulerStats, IterationStats): `vllm/v1/metrics/stats.py:222-647` (704)
-- Spec decode counters: `vllm/v1/spec_decode/metrics.py:177-281` (281)
-- MFU (perf.py `PerfMetricsProm`): `vllm/v1/metrics/perf.py:1741-1827` (1827)
-- Tracing init: `vllm/tracing/__init__.py:66-89` (155), `vllm/tracing/otel.py:60-124` (260)
+- Data classes (SchedulerStats, IterationStats): `vllm/v1/metrics/stats.py`
+- Spec decode counters: `vllm/v1/spec_decode/metrics.py`
+- MFU (perf.py `PerfMetricsProm`): `vllm/v1/metrics/perf.py`
+- Tracing init: `vllm/tracing/__init__.py`, `vllm/tracing/otel.py`
 - Request span: `OutputProcessor.do_tracing` in `vllm/v1/engine/output_processor.py`; attribute names in `vllm/tracing/utils.py`
-- ObservabilityConfig: `vllm/config/observability.py:19-222` (222)
-- Programmatic metric reader (`llm.get_metrics()`): `vllm/v1/metrics/reader.py:70-146` (258)
+- ObservabilityConfig: `vllm/config/observability.py`
+- Programmatic metric reader (`llm.get_metrics()`): `vllm/v1/metrics/reader.py`
 - Canonical design doc: `docs/design/metrics.md`

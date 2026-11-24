@@ -21,7 +21,7 @@ All OTel Python packages (`opentelemetry-sdk`, `opentelemetry-api`, `opentelemet
 
 ## `--collect-detailed-traces` — leave unset
 
-| Fact (v0.33.0) | Consequence |
+| Fact (v0.34.0) | Consequence |
 |---|---|
 | Only the V0 engine read the flag; V1 (v0.11.0+) has no consumer | No extra span, attribute or `/metrics` series appears. `vllm:model_forward_time_milliseconds`, `vllm:model_execute_time_milliseconds`, `gen_ai.latency.time_in_model_forward` and `…_execute` are never emitted |
 | Config validation requires `--otlp-traces-endpoint` | Setting the flag alone fails startup |
@@ -29,7 +29,7 @@ All OTel Python packages (`opentelemetry-sdk`, `opentelemetry-api`, `opentelemet
 
 ## Span structure
 
-vLLM emits **one span per finished request**: `llm_request`, kind SERVER, start time = request arrival. There are no queue, prefill, decode or per-step child spans — the phase timings are attributes on that one span (v0.33.0, `OutputProcessor.do_tracing`).
+vLLM emits **one span per finished request**: `llm_request`, kind SERVER, start time = request arrival. There are no queue, prefill, decode or per-step child spans — the phase timings are attributes on that one span (v0.34.0, `OutputProcessor.do_tracing`).
 
 | Attribute | Meaning (latencies in seconds) |
 |---|---|
@@ -76,7 +76,7 @@ jaeger:
 
 Point vLLM at `grpc://jaeger:4317`. UI at `http://localhost:16686`.
 
-Jaeger v1 reached end-of-life on 2025-12-31. The repo's `examples/observability/opentelemetry/` README still runs `jaegertracing/all-in-one:1.57` (through v0.33.0) — follow its vLLM steps, substitute the v2 image, and drop `COLLECTOR_OTLP_ENABLED`.
+Jaeger v1 reached end-of-life on 2025-12-31. The repo's `examples/observability/opentelemetry/` README still runs `jaegertracing/all-in-one:1.57` (through v0.34.0) — follow its vLLM steps, substitute the v2 image, and drop `COLLECTOR_OTLP_ENABLED`.
 
 ### OTel Collector → Tempo → Grafana (production)
 
@@ -166,7 +166,7 @@ Enabling `opentelemetry-instrument` on Ray workers and having Ray's native instr
 
 ### TLS to the collector
 
-The endpoint scheme decides, not `OTEL_EXPORTER_OTLP_TRACES_INSECURE` — vLLM builds the gRPC exporter with `insecure=True` (v0.33.0):
+The endpoint scheme decides, not `OTEL_EXPORTER_OTLP_TRACES_INSECURE` — vLLM builds the gRPC exporter with `insecure=True` (v0.34.0):
 
 | `--otlp-traces-endpoint` | Transport |
 |---|---|
@@ -196,7 +196,7 @@ Preemption is not on the span — use `vllm:request_num_preemptions` (v0.30.0+).
 
 ## Code anchors
 
-At tag v0.33.0 (file length in parentheses):
+At tag v0.34.0 (file length in parentheses):
 
 - Request span and its attributes: `OutputProcessor.do_tracing` in `vllm/v1/engine/output_processor.py`; names in `vllm/tracing/utils.py`
 - Tracer init and exporter/protocol selection: `vllm/tracing/otel.py:60-102` (260)
