@@ -23,7 +23,7 @@
     {
       "id": 3,
       "question": "What replaced the vLLM `--cuda-graph-sizes` flag?",
-      "skill_answer": "--cudagraph-capture-sizes (plus --max-cudagraph-capture-size)"
+      "skill_answer": "--cudagraph-capture-sizes (plus --max-cudagraph-capture-size); both deprecated in v0.34.0 in favour of the split prefill/decode keys"
     },
     {
       "id": 4,
@@ -33,7 +33,7 @@
     {
       "id": 5,
       "question": "What gpu-memory-utilization cap is recommended for MoE models in vLLM, and why?",
-      "skill_answer": "0.85; all-to-all/NVSHMEM staging buffers are outside memory accounting"
+      "skill_answer": "0.85 with estimate-based KV sizing (v0.33.0 or older, or extensible KV cache off), because all-to-all/NVSHMEM staging buffers are outside memory accounting; on v0.34.0 CUDA/ROCm leave it unset"
     },
     {
       "id": 6,

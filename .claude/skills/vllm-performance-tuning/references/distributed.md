@@ -47,7 +47,7 @@ Debug: `NCCL_DEBUG=INFO vllm serve ... 2>&1 | grep -i "IB\|InfiniBand"`. Missing
 |---|---|---|
 | `VLLM_NCCL_SO_PATH` | None | Explicit path to custom NCCL `.so`; else vLLM searches system paths |
 | `VLLM_NCCL_INCLUDE_PATH` | None | Headers for compilation |
-| `VLLM_USE_RAY_COMPILED_DAG_CHANNEL_TYPE`, `VLLM_USE_RAY_COMPILED_DAG_OVERLAP_COMM`, `VLLM_USE_RAY_WRAPPED_PP_COMM` | — | **Removed in v0.33.0** with the Ray compiled-graph executor (#61712) — silently ignored; delete them from manifests |
+| `VLLM_USE_RAY_COMPILED_DAG_CHANNEL_TYPE`, `VLLM_USE_RAY_COMPILED_DAG_OVERLAP_COMM`, `VLLM_USE_RAY_WRAPPED_PP_COMM` | — | **Removed in v0.33.0** with the Ray compiled-graph executor (#61712) — ignored with only an unknown-variable warning; delete them from manifests |
 
 ### Distributed executor backend
 
@@ -86,13 +86,13 @@ Source: [disagg prefill docs](https://docs.vllm.ai/en/latest/features/disagg_pre
 
 ### Connector catalog
 
-`kv_connector` must be a registered name — an unregistered one fails at startup. Names at v0.33.0 (`vllm/distributed/kv_transfer/kv_connector/factory.py`):
+`kv_connector` must be a registered name — an unregistered one fails at startup. P/D-relevant names at v0.34.0 (`vllm/distributed/kv_transfer/kv_connector/factory.py`; the offload and store connectors are in `vllm-caching`):
 
 | `kv_connector` | Transport | Use |
 |---|---|---|
 | `ExampleConnector` (formerly `SharedStorageConnector`) | filesystem | dev-only; slowest |
 | `LMCacheConnectorV1`, `LMCacheMPConnector` (not `LMCacheConnector`) | tiered HBM+CPU+NVMe+GDS | reusable KV (RAG, multi-turn) |
-| `NixlConnector` = `NixlPullConnector` | UCX (RDMA/IB, RoCE, TCP, NVMe-oF, S3) | decode pulls KV (NIXL READ) |
+| `NixlConnector` = `NixlPullConnector` | UCX (RDMA/IB, RoCE, TCP, NVMe-oF, S3) | decode pulls KV (NIXL READ); `"kv_connector_extra_config":{"transfer_mode":"push"}` selects the push connector |
 | `NixlPushConnector` (v0.24.0+) | same | prefill writes KV into decode memory (NIXL WRITE); rejects `--decode-context-parallel-size > 1` |
 | `MooncakeConnector` | RDMA | Kimi Moonshot's transfer layer |
 | `MoRIIOConnector` | AMD MORI-IO | P/D on AMD nodes |
@@ -100,7 +100,9 @@ Source: [disagg prefill docs](https://docs.vllm.ai/en/latest/features/disagg_pre
 
 `--kv-transfer-config` recipes per connector (`kv_connector_extra_config`, buffers, load-failure policy) → `vllm-caching` `references/connectors.md`. Proxy, router and pod wiring → `vllm-deployment` `references/disagg.md`.
 
-**v0.33.0: the NIXL connectors require NIXL ≥ 1.5.0** — the worker refuses to start on older NIXL (#61032). Upgrade NIXL in the image before the vLLM bump.
+**v0.33.0+: the NIXL connectors require NIXL ≥ 1.5.0** — the worker refuses to start on older NIXL (#61032). Upgrade NIXL in the image before the vLLM bump.
+
+**v0.34.0: extensible KV cache and KV transfers.** On CUDA, NIXL (and any connector exporting the KV cache by fabric handle) needs an IMEX channel for same-host transfers: without one vLLM turns the extensible cache off at startup (info log); forcing it on with `--enable-extensible-kv-cache` makes same-host transfers fall back to TCP, so force it only when transfers cross hosts. It is also off, on any platform, for a connector that shares the KV cache over legacy CUDA IPC (`LMCacheMPConnector` without VMM support) and with a custom memory pool; on ROCm it is off for connectors that register the KV cache for RDMA (NIXL, Mooncake, MoRIIO, UMBP). Explicitly requesting it in an unsupported case is a startup error.
 
 ### NIXL flow (from [LMCache blog 2025-04-11](https://blog.lmcache.ai/en/2025/04/11/shaping-nixl-based-pd-disaggregation-in-vllm-v1))
 
@@ -146,11 +148,11 @@ Model-specific caveat: [vllm#55434](https://github.com/vllm-project/vllm/issues/
 TP-rank transfer (~4.9 GB), and `cuda_ipc` spends 57% of transfer time posting them (4.07 µs/descriptor vs
 0.20 µs on IB `rc_x`), so the intra-node MNNVL path came out slower end-to-end than RDMA. Descriptor-heavy KV
 layouts can make the same-node transport the bottleneck; check the NIXL Prometheus `postDuration` histogram
-before assuming NVLink/cuda_ipc is free. Still open at v0.33.0, and upgrading to NIXL 1.5 does not clear it (posting stayed ~63% of transfer time):
+before assuming NVLink/cuda_ipc is free. Still open at v0.34.0, and upgrading to NIXL 1.5 does not clear it (posting stayed ~63% of transfer time):
 the NIXL 1.5 SGL speed-up (`NIXL_UCX_SGL_ENABLE=1`) applies to WRITE, and `NixlConnector` pulls with READ. The same ~3.5–3.7 µs per-descriptor
-`cuda_ipc` post cost is reported for single-node H100/H200 pull transfers whenever decode-side block IDs are scattered, so it is not GLM-specific.
+`cuda_ipc` post cost is reported for single-node H100/H200 pull transfers whenever decode-side block IDs are scattered, so it is not GLM-specific. One thread measurement of `NixlPushConnector` on the same single-node H100 TP4→TP4 Qwen3-235B FP8 workload: 4.8–7.3× slower per transfer than pull at concurrency 16 and 256; the maintainer's suggestion to try push on the MNNVL path is unanswered.
 
-No published single-node numbers exist (as of 2026-11-09) for GLM-5.x-Flash, DeepSeek, Llama-3.3-70B or SGLang.
+No published single-node numbers exist (as of 2026-11-24) for GLM-5.x-Flash, DeepSeek, Llama-3.3-70B or SGLang.
 Recipes (recipes.vllm.ai, NVIDIA Dynamo) document the 4+4 split without benchmarking it. Measure per model:
 `vllm bench serve --goodput ttft:… tpot:…` against the split vs 1× TP8 on the same node, cold prefix.
 

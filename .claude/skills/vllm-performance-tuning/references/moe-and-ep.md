@@ -71,19 +71,18 @@ export VLLM_TUNED_CONFIG_FOLDER=./moe_configs
 
 vllm serve deepseek-ai/DeepSeek-V3 \
   --tensor-parallel-size 8 --enable-expert-parallel \
-  --enable-eplb --enable-dbo \
-  --gpu-memory-utilization 0.85
+  --enable-eplb --enable-dbo
 ```
 
-Verify: no `default MoE config` warning in logs.
+Verify: no `default MoE config` warning in logs. On ≤ v0.33.0 add `--gpu-memory-utilization 0.85` to the serve line (all-to-all buffers are outside the estimate-based accounting); on v0.34.0 leave it unset.
 
 **Which models need re-tune on new hardware:** DeepSeek-V2/V3/V3.2/R1, Qwen2-MoE / Qwen3-MoE (incl. Qwen3-235B-A22B, Qwen3-Coder-480B-A35B), Mixtral 8x7B/8x22B, Llama-4-Scout (17B-16E), Llama-4-Maverick (17B-128E), Kimi-K2, GLM-4.5/4.6 MoE, Granite-MoE, Jamba, DBRX. 
 
-**Shipped coverage is per file, not per SKU.** At v0.33.0 files exist for Hopper (H100 / H200 / H20 / H800), A100 / A800, L20 / L40S, Blackwell (B200 / B300 / GB200 / GB10, RTX PRO 6000), RTX 4090, MI300X–MI355X, Radeon and Arc Pro B70 — each only for the `E` / `N` / `dtype` shapes that were tuned, and under one exact `device_name` string (`NVIDIA_B300_SXM6_AC`, `NVIDIA_H100_80GB_HBM3`; any name with an `H200` token maps to `NVIDIA_H200`). None ship for GB300, GH200 or Jetson AGX Thor ([Jetson AGX Thor thread](https://forums.developer.nvidia.com/t/jetson-agx-thor-vllm-26-02-moe-performance-significantly-below-reference-missing-fused-moe-config/364663)); community-tuned files: [MissionSquad/vllm-moe-configs](https://github.com/MissionSquad/vllm-moe-configs). Check a deployment with `ls $(python -c 'import vllm,os;print(os.path.dirname(vllm.__file__))')/model_executor/layers/fused_moe/configs | grep 'device_name=<NAME>'`, or read the startup warning — it prints the exact file name it looked for.
+**Shipped coverage is per file, not per SKU.** At v0.34.0 files exist for Hopper (H100 / H200 / H20 / H800), A100 / A800, L20 / L40S, Blackwell (B200 / B300 / GB200 / GB10, RTX PRO 6000), RTX 4090, MI300X–MI355X, Radeon and Arc Pro B70 — each only for the `E` / `N` / `dtype` shapes that were tuned, and under one exact `device_name` string (`NVIDIA_B300_SXM6_AC`, `NVIDIA_H100_80GB_HBM3`; any name with an `H200` token maps to `NVIDIA_H200`; an optional `_down.json` suffix is a down-projection config whose miss logs nothing). None ship for GB300, GH200 or Jetson AGX Thor ([Jetson AGX Thor thread](https://forums.developer.nvidia.com/t/jetson-agx-thor-vllm-26-02-moe-performance-significantly-below-reference-missing-fused-moe-config/364663)); community-tuned files: [MissionSquad/vllm-moe-configs](https://github.com/MissionSquad/vllm-moe-configs). Check a deployment with `ls $(python -c 'import vllm,os;print(os.path.dirname(vllm.__file__))')/model_executor/layers/fused_moe/configs | grep 'device_name=<NAME>'`, or read the startup warning — it prints the exact file name it looked for.
 
 **Env vars:** `VLLM_MOE_TUNE_CACHE_CLEAR_INTERVAL=50` (clear Triton JIT cache every N iters — OOM prevention on many-expert models).
 
-**ROCm with Ray ≥ 2.59:** the script renames `HIP_VISIBLE_DEVICES` to `ROCR_VISIBLE_DEVICES` before `ray.init()`, and Ray aborts with `RuntimeError: Please use HIP_VISIBLE_DEVICES instead of ROCR_VISIBLE_DEVICES` ([#65919](https://github.com/vllm-project/vllm/issues/65919), open through v0.33.0). Workaround: delete that rename (the `is_rocm() and "HIP_VISIBLE_DEVICES" in os.environ` block in `main`) in a local copy and keep `HIP_VISIBLE_DEVICES` set; leaving it unset makes Ray count an integrated GPU too.
+**ROCm with Ray ≥ 2.59:** the script renames `HIP_VISIBLE_DEVICES` to `ROCR_VISIBLE_DEVICES` before `ray.init()`, and Ray aborts with `RuntimeError: Please use HIP_VISIBLE_DEVICES instead of ROCR_VISIBLE_DEVICES` ([#65919](https://github.com/vllm-project/vllm/issues/65919)): v0.34.0 still has the rename; the fix, [PR #65935](https://github.com/vllm-project/vllm/pull/65935) (merged 2026-11-20), is in no release yet. Workaround on v0.34.0: delete that rename (the `is_rocm() and "HIP_VISIBLE_DEVICES" in os.environ` block in `main`) in a local copy and keep `HIP_VISIBLE_DEVICES` set; leaving it unset makes Ray count an integrated GPU too.
 
 ## DeepEP all-to-all
 
@@ -99,7 +98,7 @@ Repo: [github.com/deepseek-ai/DeepEP](https://github.com/deepseek-ai/DeepEP). vL
 ```bash
 # --all2all-backend, NOT an env var. VLLM_ALL2ALL_BACKEND was deprecated in
 # v0.15.0 and removed in #33535 (2026-02-03) — setting it does nothing.
---all2all-backend {allgather_reducescatter|deepep_high_throughput|deepep_low_latency|deepep_v2|mori_high_throughput|mori_low_latency|moonep|nixl_ep|flashinfer_nvlink_two_sided|flashinfer_nvlink_one_sided}
+--all2all-backend {allgather_reducescatter|deepep_high_throughput|deepep_low_latency|deepep_v2|mori|moonep|nixl_ep|flashinfer_nvlink_two_sided|flashinfer_nvlink_one_sided}
 ```
 
 | Backend | Use when | Caveats |
@@ -107,6 +106,7 @@ Repo: [github.com/deepseek-ai/DeepEP](https://github.com/deepseek-ai/DeepEP). vL
 | `allgather_reducescatter` | **the default** | |
 | `naive`, `pplx` | **removed** — still parse, but log a warning and fall back to `allgather_reducescatter` | pplx removed v0.17.0 (#33724), naive v0.19.0 (#36294). Delete them from recipes |
 | `moonep` | v0.31.0+. Balanced EP with dynamic redundant experts over NVLink | |
+| `mori` | ROCm. v0.34.0+: MoRI EPv2 where supported (single host, bf16, validated on gfx950/gfx1250), else EPv1 with the inter-node kernel picked from the token budget; `VLLM_MORI_EP_V2=1` forces EPv2, `0` selects EPv1 | `mori_high_throughput` / `mori_low_latency` are deprecated aliases |
 | `deepep_high_throughput` | prefill, long ISL | needs compiled `deep_ep` package |
 | `deepep_low_latency` | decode, CUDA-graph-compatible | same |
 | `deepep_v2` | DeepEP v2 `ElasticBuffer` over NCCL GIN — one backend for prefill and decode | NCCL ≥ 2.30.4 at runtime; multi-node needs `ibstat` in the container — see the startup failure below |
@@ -117,12 +117,12 @@ Repo: [github.com/deepseek-ai/DeepEP](https://github.com/deepseek-ai/DeepEP). vL
 
 **v0.32.0: DeepEP v2 auto-selects hybrid NVLink+RDMA mode by default** (`VLLM_DEEPEP_V2_ALLOW_HYBRID_MODE=1`, was `0`; #57991). Set `=0` for DeepEP direct mode (RDMA straight to every off-node rank, no NVLink relay) when a multi-node regression appears after the upgrade.
 
-**Multi-node `deepep_v2` in hybrid mode fails at startup with `ZeroDivisionError` when DeepEP cannot read a link speed.** Hybrid mode is the default from v0.32.0 and opt-in (`VLLM_DEEPEP_V2_ALLOW_HYBRID_MODE=1`) on v0.27.0–v0.31.0; v0.33.0 and `main` still fail. An EP group inside one NVLink domain is not affected. Upstream report [#62677](https://github.com/vllm-project/vllm/issues/62677): open, no maintainer reply, fix PRs [#63588](https://github.com/vllm-project/vllm/pull/63588) and [#62695](https://github.com/vllm-project/vllm/pull/62695) unmerged (2026-11-10).
+**Multi-node `deepep_v2` in hybrid mode fails at startup with `ZeroDivisionError` when DeepEP cannot read a link speed.** Hybrid mode is the default from v0.32.0 and opt-in (`VLLM_DEEPEP_V2_ALLOW_HYBRID_MODE=1`) on v0.27.0–v0.31.0; v0.33.0, v0.34.0 (DeepEP pin `a56d6156fe`) and `main` still fail. An EP group inside one NVLink domain is not affected. Upstream report [#62677](https://github.com/vllm-project/vllm/issues/62677): open, no maintainer reply, fix PRs [#63588](https://github.com/vllm-project/vllm/pull/63588) and [#62695](https://github.com/vllm-project/vllm/pull/62695) unmerged (2026-11-10).
 
 | | |
 |---|---|
 | Symptom | after the checkpoint loads, each worker logs `Failed to get RDMA connection speed: [Errno 2] No such file or directory: 'ibstat'`, then `ZeroDivisionError: float division by zero` in `deep_ep/buffers/elastic.py` `get_theoretical_num_sms`; the server never becomes ready |
-| Cause | the `vllm/vllm-openai` v0.32.0 and v0.33.0 images contain no `ibstat`; DeepEP turns any failed speed probe into 0 GB/s and divides by it |
+| Cause | the `vllm/vllm-openai` v0.32.0 and v0.33.0 images contain no `ibstat`, and the v0.34.0 Dockerfile installs no `infiniband-diags` (its EFA install is libfabric, aws-ofi-nccl and hwloc only); DeepEP turns any failed speed probe into 0 GB/s and divides by it |
 | Check in the container before loading weights | `ibstat "${EP_NIC_NAME:-mlx5_0}" \| grep Rate:` and `nvidia-smi nvlink -s \| grep GB/s` must each print a line |
 | Fix | `apt-get install -y --no-install-recommends infiniband-diags` in a derived image, or at container start before `vllm serve` (needs root and an apt mirror) |
 | `ibstat` present, same traceback | DeepEP reads the CA named by `EP_NIC_NAME` (default `mlx5_0`); set it to a CA that `ibstat` lists with a `Rate:` line |
@@ -153,7 +153,7 @@ vllm serve <model> --enable-expert-parallel \
   --eplb-config '{"window_size":1000,"step_interval":3000,"num_redundant_experts":32,"log_balancedness":true}'
 ```
 
-Recommended **32 redundant experts at scale** — hot experts get replicated across multiple ranks. Async EPLB (the default) also accepts `"enable_migration_batching": true` (v0.32.0+, off by default): each rank migrates with at most one peer per step — less network contention, more sequential steps.
+Recommended **32 redundant experts at scale** — hot experts get replicated across multiple ranks. v0.34.0: `num_redundant_experts` unset now defaults to the minimum valid value for the expert count and EP size (was 0), so set it explicitly when you want headroom; `eplb_config.communicator: "symm_mem"` pushes expert rows over CUDA symmetric memory and needs every EP rank in one NVLink domain. Async EPLB (the default) also accepts `"enable_migration_batching": true` (v0.32.0+, off by default): each rank migrates with at most one peer per step — less network contention, more sequential steps.
 
 ## Published Wide-EP numbers
 
@@ -206,7 +206,9 @@ Models with **single KV head** (DeepSeek-V2/V3/V3.2/R1, Kimi-K2) can't shard KV 
 
 **Avoid TP=8 on H100/H200/B200/B300.** Only 16 heads per rank, padded to 64 → overhead. **Recipe: DP/EP mode with TP=2 on Hopper (64 heads per rank), TP=1 on Blackwell** — `vllm serve deepseek-ai/DeepSeek-V3.2 -dp 8 --enable-expert-parallel` is the TP=1 form ([DeepSeek-V3.2 recipe](https://docs.vllm.ai/projects/recipes/en/latest/DeepSeek/DeepSeek-V3_2.html), [vllm.ai/blog/deepseek-v3-2](https://vllm.ai/blog/deepseek-v3-2)).
 
-The padding is a FlashMLA-Sparse property, not a TP property. On Blackwell with a BF16 KV cache and ≤ 16 heads per rank, auto-selection ranks other sparse backends first: FlashInfer sparse on ≤ v0.32.0, FA4 sparse (`FLASH_ATTN_MLA_SPARSE_FA4`) then FlashInfer on v0.33.0 (#55866). An FP8 KV cache ranks FlashInfer sparse first at any head count. Read the selected attention backend in the startup log before attributing a TP=8 slowdown to padding, and re-benchmark TP=8 on Blackwell after moving to v0.33.0.
+v0.34.0 shards sparse-MLA (DSA) prefill by token across TP ranks by default (`--attention-config.sparse_mla_shard_q`, steps with ≥ 1024 prefill tokens; FlashInfer sparse MLA, or FlashMLA sparse with an FP8 DeepSeek KV cache; not with DCP, PCP or HiSparse): GLM-5.3 NVFP4 TP4 on GB200 TTFT 1.24× at 32K and 1.40× at 128K ([#63956](https://github.com/vllm-project/vllm/pull/63956)). That is prefill only; re-benchmark TTFT at TP > 1 before attributing it to head padding.
+
+The padding is a FlashMLA-Sparse property, not a TP property. On Blackwell with a BF16 KV cache and ≤ 16 heads per rank, auto-selection ranks other sparse backends first: FlashInfer sparse on ≤ v0.32.0, FA4 sparse (`FLASH_ATTN_MLA_SPARSE_FA4`) then FlashInfer on v0.33.0 and v0.34.0 (#55866). An FP8 KV cache ranks FlashInfer sparse first at any head count. Read the selected attention backend in the startup log before attributing a TP=8 slowdown to padding, and re-benchmark TP=8 on Blackwell after moving to v0.33.0 or later.
 
 ### Supported combinations
 
@@ -218,7 +220,7 @@ The padding is a FlashMLA-Sparse property, not a TP property. On Blackwell with 
 | EP + DP | Yes | DP-attn + EP-MoE common pattern |
 | TP + PP + EP | Yes | DeepSeek / Qwen3 multi-stage |
 | TP + EP + DP | Yes | Full 3D parallelism |
-| EP + TP>1 + `--prefill-context-parallel-size` > 1 on the NVIDIA DeepSeek-V3.2 decoder (`nvidia/GLM-5.3-NVFP4`) | **No — silently wrong output** | v0.31.0–v0.33.0: the MoE output is all-reduced twice and enters the residual stream scaled by TP size — word salad at TP=4, degraded at TP=2, no error or warning. Run PCP=1 or TP=1 until [#62947](https://github.com/vllm-project/vllm/pull/62947) is in a release ([#62945](https://github.com/vllm-project/vllm/issues/62945)). |
+| EP + TP>1 + `--prefill-context-parallel-size` > 1 on the NVIDIA DeepSeek-V3.2 decoder (`nvidia/GLM-5.3-NVFP4`) | **No — silently wrong output** | v0.31.0–v0.34.0: the MoE output is all-reduced twice and enters the residual stream scaled by TP size — word salad at TP=4, degraded at TP=2, no error or warning. Run PCP=1 or TP=1 until [#62947](https://github.com/vllm-project/vllm/pull/62947) is in a release ([#62945](https://github.com/vllm-project/vllm/issues/62945)). |
 
 ### PP rules
 

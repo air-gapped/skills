@@ -1,36 +1,37 @@
 # Known regressions + vendor quirks
 
-Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/Ascend/XPU, or suspects a vendor-specific bug. Issue states below were re-probed on 2026-11-09 (vLLM v0.33.0).
+Load when: operator reports perf regression after vLLM upgrade, deploys on AMD/Ascend/XPU, or suspects a vendor-specific bug. Issue states below track vLLM v0.34.0.
 
 ## Contents
 
 - [Version regressions](#version-regressions)
 - [Vendor quirks](#vendor-quirks)
 - [Published benchmark discrepancies](#published-benchmark-discrepancies)
-- [Execution-path changes by minor, v0.22.0 → v0.33.0](#execution-path-changes-by-minor-v0220--v0330)
+- [Execution-path changes by minor, v0.22.0 → v0.34.0](#execution-path-changes-by-minor-v0220--v0340)
 - [Defensive upgrade checklist](#defensive-upgrade-checklist)
 
 ## Version regressions
 
-### v0.33.0: MoE decode slower on pre-Hopper GPUs ([#65055](https://github.com/vllm-project/vllm/issues/65055))
+### v0.33.0 only: MoE decode slower on pre-Hopper GPUs ([#65055](https://github.com/vllm-project/vllm/issues/65055))
 
 - Affects SM80–SM89 (A100, RTX A4000, RTX 4090) with CUDA graphs on; SM90+ and eager mode are unaffected
 - MoE top-k gating is launched with a PDL attribute on every arch (#59737); below SM90 each launch becomes a programmatic edge in the captured graph and slows replay
 - Measured on 4× A100, 512-expert MoE, TP4 + EP, concurrency 16: per-request decode −9.6% and −8.1% against the commit before #59737
-- Fixed on `main` by #65059 (merged 2026-11-02); no release carries it yet. On pre-Hopper MoE stay on v0.32.0 or build from `main` — check the first release after v0.33.0 for #65059 before upgrading
+- **Fixed in v0.34.0** by #65059 (merged 2026-11-02, issue closed `COMPLETED` the same day). On pre-Hopper MoE use v0.34.0 or v0.32.0, not v0.33.0
 
 ### v0.26.0 → v0.29.0+ MiniMax-M2.7 TP4+EP decode regression ([#63705](https://github.com/vllm-project/vllm/issues/63705)) — open, cause not isolated
 
 - 4× H100, TP=4 + `--enable-expert-parallel`, concurrency 8, 2048 in / 1024 out
 - Mean TPOT 14.71 ms on v0.26.0 → 18.05 / 18.82 / 17.96 ms on v0.29.0 / v0.31.0 / v0.32.0; total throughput 1568 → 1288 / 1237 / 1294 tok/s. TTFT unchanged — decode only
 - Two defaults changed in that window: FlashInfer all-reduce for the TP group (#52998) and Model Runner V2 for MoE (#53183)
-- **Bisect** with `VLLM_ALLREDUCE_USE_FLASHINFER=0` and `VLLM_USE_V2_MODEL_RUNNER=0`, one at a time, on the same benchmark; no fix has shipped through v0.33.0
+- The regression may be image-specific: on pip installs (4× H100, TP4 + EP, concurrency 8) v0.29.0 ran ~8% faster than v0.26.0, `VLLM_ALLREDUCE_USE_FLASHINFER=0` returned v0.29.0 to v0.26.0 speed, and the V2 runner toggle changed nothing. Compare the official image against a pip install before bisecting
+- **Bisect** with `VLLM_ALLREDUCE_USE_FLASHINFER=0` on the same benchmark. `VLLM_USE_V2_MODEL_RUNNER=0` was the second toggle up to v0.33.0; from v0.34.0 any value but `1` fails startup. No fix has shipped through v0.34.0
 
-### v0.24.0+: structured-output decode ~2× slower ([#62442](https://github.com/vllm-project/vllm/issues/62442)) — open
+### v0.24.0–v0.33.x on Model Runner V1: structured-output decode ~2× slower ([#62442](https://github.com/vllm-project/vllm/issues/62442)) — open
 
 - Introduced by #45424 (first release v0.24.0); the reporter attributes it to a ~12 MB staging allocation in `apply_grammar_bitmask` on every structured decode step
 - Reporter's workload: 233 req/min on v0.21.0 → 120–121 on v0.24.0 and v0.28.0; reverting that staging change on v0.28.0 gives 242. `OMP_NUM_THREADS=4` and the worker thread fix (#49919) do not recover it
-- Fix PR #62485 is open; nothing has shipped through v0.33.0. Before upgrading a grammar- or JSON-schema-heavy service across v0.24.0, benchmark with a structured-output workload, not plain chat
+- The cited allocation is in the Model Runner V1 `apply_grammar_bitmask` (`vllm/v1/structured_output/utils.py`); the Model Runner V2 version copies into a preallocated device buffer, and v0.34.0 removes the V1 function with the V1 runner. Fix PR #62485 is open and unmerged; no run on v0.34.0 is posted. On v0.24.0–v0.33.0 with V1 (V2 is the default for all models from v0.29.0), and before upgrading a grammar- or JSON-schema-heavy service, benchmark with a structured-output workload, not plain chat
 
 ### v0.14.0 → v0.15.1 MiniMax latency regression ([#35048](https://github.com/vllm-project/vllm/issues/35048))
 
@@ -156,11 +157,23 @@ PRs to know:
 
 For deployments mixing spec-dec + async-sched with post-upgrade perf drop, verify [#24799](https://github.com/vllm-project/vllm/pull/24799) and [#29821](https://github.com/vllm-project/vllm/pull/29821) fixes landed in the running version.
 
-## Execution-path changes by minor, v0.22.0 → v0.33.0
+## Execution-path changes by minor, v0.22.0 → v0.34.0
 
 Execution-path changes across these minors. These move the baseline a re-tune is
 measured against — re-benchmark across any of these boundaries rather than
 comparing to numbers taken before them.
+
+**v0.33.0 → v0.34.0:**
+
+- **Model Runner V1 removed** (#63373). `VLLM_USE_V2_MODEL_RUNNER` set to anything but `1` fails startup (`1` only warns); a recipe carrying `=0`, the V1 logits-processor API, the `custom_class` speculative method, `disable_padded_drafter_batch` or PP with `external_launcher` fails or is rejected.
+- **Extensible KV cache is on by default on CUDA and ROCm** (#56492): the cache is sized from memory free after warmup and graph capture, `gpu_memory_utilization` resolves to 1.0 when unset, and the cache is larger (release note: MiniMax-M3 on H200 433k → 672k tokens) while per-token decode latency can rise on some models (release note: TPOT +6–18% on some H200 models at concurrency 128). Bisect a decode regression with `--no-enable-extensible-kv-cache`; remove carried-over `--gpu-memory-utilization 0.9`.
+- **Default `--block-size` is 64, was 16** (#63231); a backend's preferred size still overrides it (ROCm paged attention keeps 16) and an explicit value wins. Re-measure prefix-cache hit rate.
+- **CUDA graph capture sizes split** into prefill (token) and decode (request) sets, wider on SM100 (#63406) → `scheduler-and-compile.md` §Default bucket list. Startup time and graph memory on B200/B300/GB200 move.
+- **Sparse-MLA prefill is token-sharded under TP by default** (#63956) → `moe-and-ep.md` §DeepSeek-V3.2 FlashMLA-Sparse warning.
+- **Best-effort NUMA binding is on by default** (#61258): spawned workers bind to GPU-local CPUs when the host supports it; `--no-numa-bind` disables it. Re-benchmark host-bound decode.
+- **EPLB `num_redundant_experts` unset defaults to the minimum valid value** (#30614), was 0.
+- **Pre-Hopper MoE decode regression of v0.33.0 fixed** (#65059).
+- **Removed:** Marlin W4A8 paths and `VLLM_MARLIN_INPUT_DTYPE` (setting it fails startup; use `--quantization humming` with `VLLM_HUMMING_INPUT_QUANT_CONFIG`), QuTLASS / `fp_quant`, ROCm 7.2 wheels and images (ROCm 10.0 only). `huggingface_hub >= 2.0.0` is required.
 
 **v0.32.0 → v0.33.0:**
 
@@ -168,7 +181,7 @@ comparing to numbers taken before them.
 - **DeepEP v2 decode fuses globalize + align + sort into one launch** (#53911) on the CUDA Humming path under CUDA-graph decode: 1.14–1.36× on that chain at ≤ 64 tokens, up to 2.01× at 256, measured on H200 EP32. DeepEP-v2 decode baselines from ≤ v0.32.0 are not comparable.
 - **Sparse MLA decode on Blackwell prefers the FA4 backend at ≤ 16 query heads per rank** (BF16 KV cache; #55866) → `moe-and-ep.md` §DeepSeek-V3.2 FlashMLA-Sparse warning.
 - **NIXL connectors require NIXL ≥ 1.5.0** (#61032) — the worker refuses to start on older NIXL. Upgrade NIXL in the image before the vLLM bump.
-- **Ray compiled-graph executor removed** (#61712, #62228). `--distributed-executor-backend ray` now always runs the MQ-based `RayExecutorV2`; `VLLM_USE_RAY_V2_EXECUTOR_BACKEND` and the three `VLLM_USE_RAY_COMPILED_DAG_*` / `VLLM_USE_RAY_WRAPPED_PP_COMM` env vars are gone and silently ignored.
+- **Ray compiled-graph executor removed** (#61712, #62228). `--distributed-executor-backend ray` now always runs the MQ-based `RayExecutorV2`; `VLLM_USE_RAY_V2_EXECUTOR_BACKEND` and the three `VLLM_USE_RAY_COMPILED_DAG_*` / `VLLM_USE_RAY_WRAPPED_PP_COMM` env vars are gone and ignored with only an unknown-variable warning.
 
 **v0.30.0 → v0.32.0:**
 
@@ -246,8 +259,10 @@ Before bumping vLLM version:
    `--max-num-partial-prefills` / `--max-long-partial-prefills`; v0.32.0 removed
    `pass_config.enable_sp` / `fuse_gemm_comms` / `sp_min_token_num` and
    `VLLM_ENGINE_ITERATION_TIMEOUT_S`; v0.33.0 removed the Ray compiled-DAG env vars
-   and `tools/install_deepgemm.sh`. Also diff `vllm/envs.py` — removed env vars
-   are silently ignored, not rejected.
+   and `tools/install_deepgemm.sh`; v0.34.0 removed `VLLM_USE_V2_MODEL_RUNNER` and
+   `VLLM_MARLIN_INPUT_DTYPE` (both fail startup). Also diff `vllm/envs.py` — most
+   removed env vars are ignored with only an `Unknown vLLM environment variable`
+   warning, so a dead setting does not announce itself.
 1. `git log v<current>..v<target> -- benchmarks/` in the vLLM repo — any new benchmark_moe.py changes?
 2. Check release notes for the deployed model family — DeepSeek-V3.2 / Qwen3-MoE / Kimi-K2 / Llama-4 all have fresh-release recipes that may change.
 3. Clear `$VLLM_CACHE_ROOT/torch_compile_cache` — stale cache is the single most common upgrade-break.

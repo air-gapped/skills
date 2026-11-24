@@ -17,12 +17,14 @@ Chunked prefill is on by default wherever the model supports it. `--num-schedule
 | `--async-scheduling` | auto (default-on recent) | Overlap CPU scheduling with GPU compute. Resolves [v0.10.0 regression](https://discuss.vllm.ai/t/performance-degradation-report-0-9-0-1-vs-0-10-0/1368) |
 | `--stream-interval N` | 1 | Token batching for SSE streaming. N=1 smooth, N≥10 less host overhead at high concurrency ([PR #27869](https://github.com/vllm-project/vllm/pull/27869)). Also settable **per request** as a sampling param ([#49754](https://github.com/vllm-project/vllm/pull/49754)) — one interactive client no longer forces N=1 server-wide |
 | `--watermark` | 0.0 | Fraction of KV blocks held free when admitting waiting/preempted requests. Raise to buy anti-thrash headroom |
+| `--cache-aware-admission-window` | 0 (off) | v0.34.0+. Within the first N waiting requests, admit those whose prefix is already cached ahead of cold ones, so a cold request does not evict blocks a resident one needs. Needs prefix caching and the `fcfs` policy; engages only above `--cache-aware-admission-threshold` KV usage (default 0.5); one prefix-cache lookup per window request per step, so keep N near the usual queue depth |
+| `--max-num-inflight-kv-loads` | unset | v0.34.0+. P/D decode side: caps requests holding KV blocks for an async KV load, and lets those loads start while the running batch is full |
 | `--scheduler-reserve-full-isl` | `true` | Admit only if the **whole** input length fits in KV, not just the first chunk. The default that prevents over-admission |
 | `--performance-mode` | `balanced` | `balanced` \| `interactivity` \| `throughput`. One flag for the whole latency-vs-throughput posture; `throughput` doubles the *defaulted* `max_num_batched_tokens` / `max_num_seqs` (explicit values are left alone) and picks larger graphs + throughput kernels; `interactivity` picks fine-grained graphs + latency kernels. Try this **before** hand-tuning the table below |
 
 **Neither batching default is a constant — both are device-gated, and this is the
 single most common source of "my numbers don't match the docs".** `EngineArgs`
-picks from the usage context and the device. **v0.28.0 added a third tier — read all three, the branch is `if / elif / else`** (`arg_utils.py`, verified at v0.33.0):
+picks from the usage context and the device. **v0.28.0 added a third tier — read all three, the branch is `if / elif / else`** (`arg_utils.py`, v0.34.0):
 
 | Device memory | `vllm serve` (OPENAI_API_SERVER) | `LLM`-class (offline) |
 |---|---|---|
@@ -32,7 +34,7 @@ picks from the usage context and the device. **v0.28.0 added a third tier — re
 
 GB10 reports 121.7 GiB but stays on the small tier on every version: ≤ v0.32.0 because the NVML memory query fails and the default falls back silently, v0.33.0 by an explicit compute-capability 12.1 check. Raise both values by hand there only after measuring.
 
-**The H100/H200 server default did NOT change in v0.28.0 — it is still 8192.** The release note phrased this as raising `max_num_batched_tokens` from 8192 to 16384, which reads as a fleet-wide bump; in the code it is a new ≥160 GiB branch inserted above the existing one. On B200/B300 your server default doubled without you touching anything; on H200 nothing moved. Checked 2026-09-15 by reading the branch at v0.27.0, v0.28.0 and v0.29.0 rather than the changelog. (`vllm bench throughput` and other `LLM`-class entry points
+**The H100/H200 server default did NOT change in v0.28.0 — it is still 8192.** The release note phrased this as raising `max_num_batched_tokens` from 8192 to 16384, which reads as a fleet-wide bump; in the code it is a new ≥160 GiB branch inserted above the existing one. On B200/B300 your server default doubled without you touching anything; on H200 nothing moved. (`vllm bench throughput` and other `LLM`-class entry points
 get 16384 / 1024 and 8192 / 256 respectively.) The flat "2048 / 256" figure from
 PR #10544 is the *small-GPU* branch only, so a tuning plan built on it starts 4×
 below where an H200 actually is.
@@ -54,10 +56,9 @@ allocated even when the flag was accepted.
 Incompatible-or-fragile paths:
 - Structured outputs — fixed in [#26866](https://github.com/vllm-project/vllm/pull/26866)
 - Spec-dec — fixed in [#24799](https://github.com/vllm-project/vllm/pull/24799), [#29821](https://github.com/vllm-project/vllm/pull/29821)
-- Pipeline parallelism — umbrella tracker [#27679](https://github.com/vllm-project/vllm/issues/27679) closed 2025-12-29, sub-PRs merged. Model Runner V1 + PP>1 still auto-disables async scheduling; forcing it on there with structured output is rejected at startup (v0.31.0+)
-- Spec-dec methods other than EAGLE/MTP/draft-model/GPU n-gram/DSpark/DFlash, or `disable_padded_drafter_batch=True`, auto-disable it (hard error if forced on) — on Model Runner V1 only from v0.33.0 (#62521); on ≤ v0.32.0 on both runners
-- Pooling models default it off
-- **Model Runner V1 + async scheduling + KV preemption can kill the engine**: `KeyError` at `req_data.all_token_ids[req_id]` in `_update_states`, then `EngineDeadError` ([#63549](https://github.com/vllm-project/vllm/issues/63549), open; code path present since v0.11.1). Shows under sustained preemption at high concurrency. On a deployment that runs V1 (startup logs `using the V1 model runner instead`) and preempts, set `--no-async-scheduling` or drop the feature that forces V1
+- Pipeline parallelism — umbrella tracker [#27679](https://github.com/vllm-project/vllm/issues/27679) closed 2025-12-29, sub-PRs merged
+- v0.34.0 auto-disables it only for pooling models, an executor without support, and ROCm DeepEP-HT + DBO (hard error if forced on in the last two). The Model Runner V1 conditions are gone with V1 ([#63373](https://github.com/vllm-project/vllm/pull/63373)); on ≤ v0.33.0 V1 + PP>1 auto-disables it, and spec methods outside EAGLE/MTP/draft-model/GPU n-gram/DSpark/DFlash or `disable_padded_drafter_batch=True` disable it (on ≤ v0.32.0 on both runners)
+- **≤ v0.33.0, Model Runner V1 + async scheduling + KV preemption can kill the engine**: `KeyError` at `req_data.all_token_ids[req_id]` in `_update_states`, then `EngineDeadError` ([#63549](https://github.com/vllm-project/vllm/issues/63549), open; the lookup exists only in the V1 worker, removed in v0.34.0). On ≤ v0.33.0 with V1 (startup logs `using the V1 model runner instead`) and preemption, set `--no-async-scheduling` or drop the feature that forces V1
 - Some multimodal paths — [#31679](https://github.com/vllm-project/vllm/issues/31679) closed 2026-01-07
 - vllm-ascend v0.11.0rc2 — precision regression **fixed**, [ascend #4649](https://github.com/vllm-project/vllm-ascend/issues/4649) closed 2026-03-13; upgrade rather than disabling
 
@@ -124,23 +125,31 @@ The flag is **`--cudagraph-capture-sizes`** (plus `--max-cudagraph-capture-size`
 `v0.27.0`, and a repo-wide code search for the old symbol returns nothing. Older
 recipes and blog posts still use the old spelling; they will fail to parse.
 
-If `--cudagraph-capture-sizes` is unset, vLLM generates (`vllm/config/vllm.py` at v0.33.0):
+**v0.34.0 splits capture sizes by graph kind** (#63406): prefill graphs (any batch that is not a uniform decode batch) are keyed by token count, FULL decode graphs by request count. `--cudagraph-capture-sizes` and `--max-cudagraph-capture-size` still parse but are deprecated (warning); they set both kinds from one token-count list. Set the split keys through `--compilation-config` / `-cc.<key>` (no dedicated CLI flags):
+
+| Key | Default |
+|---|---|
+| `prefill_cudagraph_capture_token_sizes` / `max_prefill_cudagraph_capture_tokens` | the shared grid below; **8192 on SM100** (token grid, 54 sizes at 8192), at most `max_num_batched_tokens` |
+| `decode_cudagraph_capture_request_sizes` / `max_decode_cudagraph_capture_requests` | the shared grid rounded to whole requests; **`max_num_seqs` on SM100** (request grid, 64 sizes at 1024) |
+| `max_decode_cudagraph_capture_tokens` | none; **8192 on SM100** |
+
+Wider graphs take memory from the KV cache and lengthen startup. Setting the deprecated keys together with the split keys raises `ValueError` unless they describe the same graphs; set only the split keys.
+
+Shared grid when nothing is set (`vllm/config/vllm.py` at v0.34.0):
 ```
 [1, 2, 4] + range(8, 256, 8) + range(256, max_cudagraph_capture_size+1, 16)
 max_cudagraph_capture_size = min(max_num_seqs * (1 + num_speculative_tokens) * 2,
                                  1024 if SM100 (B200/B300/GB200) else 512)
 ```
 `max_num_batched_tokens` is appended when it fits under the cap; with spec-dec the
-uniform-decode sizes are appended too.
+uniform-decode sizes are appended too. After resolution `max_cudagraph_capture_size` holds the widest captured graph.
 
-Setting `--cudagraph-capture-sizes` explicitly pins `max_cudagraph_capture_size`
-to the largest entry in the list. Rule: raising `--max-num-seqs` raises the
-generated cap with it, so only override when you want to *shrink* capture time or
-pin exact buckets.
+Rule: raising `--max-num-seqs` raises the generated cap with it, so only override
+when you want to *shrink* capture time or pin exact buckets.
 
 ### Capture gotchas
 
-- **`VLLM_USE_BREAKABLE_CUDAGRAPH=1` no longer overrides FULL graphs on MRV1** (v0.30.0, [#56312](https://github.com/vllm-project/vllm/pull/56312)). It now scopes capture to PIECEWISE dispatch only (`vllm/v1/worker/gpu_model_runner.py`); a separate `CUDAGraphWrapper` still owns FULL graphs unaffected. Do not assume this flag disables or replaces FULL-graph capture on v0.30.0+.
+- **Breakable CUDA graphs (`VLLM_USE_BREAKABLE_CUDAGRAPH=1`) replace torch.compile piecewise graphs**: v0.34.0 sets compilation mode to NONE when they are on, so compile-cache and AOT steps do not apply to that deployment. An explicit env var wins; otherwise they auto-enable for a built-in architecture list (startup logs `Auto-enabling VLLM_USE_BREAKABLE_CUDAGRAPH=1`; `=0` opts out) and, with `VLLM_BATCH_INVARIANT=1`, for bf16 unquantized models on tuned CUDA arches. A PIECEWISE graph mode on a model that is neither compiled nor breakable fails at capture with a `RuntimeError` naming `cudagraph_mode=NONE/FULL`. ([#56312](https://github.com/vllm-project/vllm/pull/56312) scoped the flag to PIECEWISE dispatch in v0.30.0.)
 - **FULL_AND_PIECEWISE garbage output** `!!!` on certain configs — [#29539](https://github.com/vllm-project/vllm/issues/29539).
 - **ROCm V1 piecewise capture size** much higher than CUDA's — [#19579](https://github.com/vllm-project/vllm/issues/19579) (bot-closed, no fix).
 - **Capture time is dominant cold-start cost.** CI: use `--cudagraph-capture-sizes 1` or `-O0` ([PR #25951](https://github.com/vllm-project/vllm/pull/25951)). Prefer `-O0` over `--enforce-eager` when first-request latency matters: v0.31.0+ `--enforce-eager` also skips JIT kernel warmup.
@@ -185,7 +194,7 @@ when torch ≥ 2.10 **and** the compile cache is enabled; the mega-artifact is o
 when torch ≥ 2.12 **and** AOT compile is on. `requirements/cuda.txt` pins
 **`torch==2.13.0`** / `torchvision==0.28.0` from v0.27.0
 ([PR #48155](https://github.com/vllm-project/vllm/pull/48155)) and
-**`torch==2.14.0`** / `torchvision==0.29.0` from v0.33.0 (#52183; Triton 3.8.0
+**`torch==2.14.0`** / `torchvision==0.29.0` from v0.33.0, unchanged in v0.34.0 (#52183; Triton 3.8.0
 arrives transitively — no direct `triton` pin exists), so both gates are satisfied
 out of the box. A torch bump invalidates every pre-baked compile cache: rebuild it
 on the new image. v0.33.0 wheels and images are CUDA 13.0 only — the CUDA 12.9

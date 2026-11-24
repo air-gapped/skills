@@ -8,7 +8,7 @@ when_to_use: |-
 
 # vLLM performance tuning
 
-Target: operators deploying models on new hardware, chasing throughput / latency / goodput SLOs, or diagnosing perf regressions. Verified against **v0.33.0** (2026-11-02), the latest stable.
+Target: operators deploying models on new hardware, chasing throughput / latency / goodput SLOs, or diagnosing perf regressions. Verified against **v0.34.0** (2026-11-16), the latest stable.
 
 Companion skills: `vllm-benchmarking` (measure), `vllm-caching` (KV), `vllm-nvidia-hardware` (GPU/GEMM), `vllm-configuration` (env vars), `vllm-observability` (metrics).
 
@@ -23,8 +23,8 @@ Companion skills: `vllm-benchmarking` (measure), `vllm-caching` (KV), `vllm-nvid
 
 **Throughput / batching:**
 - **`auto_tune.sh`** (`benchmarks/auto_tune/`) sweeps `max_num_seqs × max_num_batched_tokens`.
-- **`--gpu-memory-utilization`** — raise from 0.90 toward 0.95 until steady OOM margin, then back off. MoE: cap at 0.85 (all-to-all buffers not in accounting).
-- **Chunked prefill (on by default where supported)** — raise `--max-num-batched-tokens` if TTFT > SLO; lower if ITL > SLO. The default is gated on **both** device memory and entrypoint (`vllm/engine/arg_utils.py`, v0.33.0):
+- **`--gpu-memory-utilization`** — v0.34.0 on CUDA/ROCm: leave it **unset**. The extensible KV cache (default) sizes the cache from memory free after warmup and graph capture, and the unset value resolves to 1.0; an explicit value is a hard cap that only shrinks the cache (startup warns when a value in (0.8, 1.0) withholds ≥ 1 GiB). Set it only to share the GPU with other processes, on unified-memory devices (DGX Spark), for weight-transfer buffers, or for KV connectors that allocate device buffers. With the extensible cache off (`--no-enable-extensible-kv-cache`, `--kv-cache-memory-bytes`, `--num-gpu-blocks-override`, other platforms, ≤ v0.33.0): raise from 0.90 toward 0.95 until the OOM margin is steady, then back off; MoE: cap at 0.85 (all-to-all buffers not in accounting).
+- **Chunked prefill (on by default where supported)** — raise `--max-num-batched-tokens` if TTFT > SLO; lower if ITL > SLO. The default is gated on **both** device memory and entrypoint (`vllm/engine/arg_utils.py`, v0.34.0):
 
   | Device | `vllm serve` (OpenAI API) | Offline `LLM(...)` |
   |---|---|---|
@@ -36,8 +36,8 @@ Companion skills: `vllm-benchmarking` (measure), `vllm-caching` (KV), `vllm-nvid
 - **`--performance-mode {balanced,interactivity,throughput}`** — one flag for the whole posture; try it before hand-tuning the batching pair.
 
 **Latency / graph + compile:**
-- **CUDA graphs** — keep `FULL_AND_PIECEWISE` (default); the flag is now `--cudagraph-capture-sizes` / `--max-cudagraph-capture-size`, and the generated cap already tracks `min(max_num_seqs × (1+spec_tokens) × 2, ceiling)` — ceiling **1024 on SM100 (B200/B300/GB200)**, 512 elsewhere.
-- **`--async-scheduling`** — auto-on unless: pooling model, an executor without support, ROCm DeepEP-HT + DBO, or — on Model Runner V1 only — PP>1, `disable_padded_drafter_batch`, or a spec method other than EAGLE/MTP/draft-model/GPU n-gram/DSpark/DFlash. On ≤ v0.32.0 the two spec-decode conditions disable it on Model Runner V2 too.
+- **CUDA graphs** — keep `FULL_AND_PIECEWISE` (default). v0.34.0 captures prefill graphs (token counts) and decode graphs (request counts) separately; `--cudagraph-capture-sizes` / `--max-cudagraph-capture-size` still parse but are deprecated and set both. Defaults: generated cap `min(max_num_seqs × (1+spec_tokens) × 2, ceiling)`, ceiling 512; on **SM100 (B200/B300/GB200)** prefill graphs go to 8192 tokens and decode graphs to `max_num_seqs` requests. Details and the new `-cc.*` keys: `references/scheduler-and-compile.md`.
+- **`--async-scheduling`** — auto-on unless: pooling model, an executor without support, or ROCm DeepEP-HT + DBO (v0.34.0). Model Runner V2 is the only runner, so the V1-only blockers (PP>1, `disable_padded_drafter_batch`, spec methods outside EAGLE/MTP/draft-model/GPU n-gram/DSpark/DFlash) are gone; on ≤ v0.33.0 they still apply.
 - **Compile cache** — pre-bake `$VLLM_CACHE_ROOT/torch_compile_cache` on a representative pod; mount as PVC / bake into OCI layer.
 
 **Distributed (last resort, only when the lever above is exhausted):**
@@ -73,9 +73,9 @@ From Red Hat's 5-step triage ([2026-03-09](https://developers.redhat.com/article
 
 ## Top 10 operator mistakes this skill exists to prevent
 
-1. **Assuming a tuned MoE config exists because the SKU is common.** A config matches only on the exact file name `E=<experts/rank>,N=<N>,device_name=<name>[,dtype=…][,block_shape=…].json`. v0.33.0 ships files for H100 / H200 / H20 / A100 / L40S, B200 / B300 / GB200 / GB10, RTX PRO 6000 Blackwell and MI300X–MI355X — only for the shapes someone tuned, so a new model, TP/EP split or dtype on a covered SKU still misses. GB300, GH200 and Jetson Thor ship none. Symptom: `Using default MoE config. Performance might be sub-optimal! Config file not found at <path>` — the path names the file to generate; a hit logs `Using configuration from <path> for MoE layer`. Fix: `python benchmarks/kernels/benchmark_moe.py --model <moe-model> --tp-size <N> --enable-expert-parallel --tune --save-dir ./configs`, then `export VLLM_TUNED_CONFIG_FOLDER=./configs`. Expected: 20-40% throughput recovery.
+1. **Assuming a tuned MoE config exists because the SKU is common.** A config matches only on the exact file name `E=<experts/rank>,N=<N>,device_name=<name>[,dtype=…][,block_shape=…].json`. v0.34.0 ships files for H100 / H200 / H20 / A100 / L40S, B200 / B300 / GB200 / GB10, RTX PRO 6000 Blackwell and MI300X–MI355X — only for the shapes someone tuned, so a new model, TP/EP split or dtype on a covered SKU still misses. GB300, GH200 and Jetson Thor ship none. Symptom: `Using default MoE config. Performance might be sub-optimal! Config file not found at <path>` — the path names the file to generate; a hit logs `Using configuration from <path> for MoE layer`. Fix: `python benchmarks/kernels/benchmark_moe.py --model <moe-model> --tp-size <N> --enable-expert-parallel --tune --save-dir ./configs`, then `export VLLM_TUNED_CONFIG_FOLDER=./configs`. Expected: 20-40% throughput recovery.
 
-2. **`gpu_memory_utilization=0.95` on MoE.** All-to-all staging buffers (DeepEP, NVSHMEM) aren't in the memory accountant. OOM at high concurrency. Fix: cap at 0.85 for MoE, 0.92 for dense.
+2. **`gpu_memory_utilization=0.95` on MoE, or any hand-set value on v0.34.0 CUDA/ROCm.** With estimate-based sizing (≤ v0.33.0, or extensible KV cache off) all-to-all staging buffers (DeepEP, NVSHMEM) aren't in the memory accountant: OOM at high concurrency. Fix: cap at 0.85 for MoE, 0.92 for dense. On v0.34.0 with the extensible KV cache, a carried-over 0.9 only withholds memory from the cache: unset it.
 
 3. **TP not divisible by head count.** Model has 32 heads, TP=7 → shape mismatch. Rule: `num_heads % TP == 0` AND `hidden_size % TP == 0`.
 
@@ -85,7 +85,7 @@ From Red Hat's 5-step triage ([2026-03-09](https://developers.redhat.com/article
 
 6. **MLA model with TP=8.** Single KV head, TP duplicates ~84.5 GB KV cache per rank. Fix: DP-attention + EP-MoE splits KV to ~0.125 GB/GPU/request.
 
-7. **`--async-scheduling` with unsupported path.** Structured outputs (fixed #26866), spec-dec (#24799 fixed), PP/struct-out/spec-dec/MM umbrella tracker #27679 closed 2025-12-29 — all sub-PRs merged. Remaining hard limit: Model Runner V1 + PP>1 auto-disables it, and forcing it on there with structured output is rejected at startup (v0.31.0+). The vllm-ascend v0.11.0rc2 precision bug (#4649) is fixed — **closed 2026-03-13**; upgrade rather than disabling async-sched. Symptom: stall, latency regression, or precision loss. Fix: upgrade; disable only after reproducing the issue on the running version.
+7. **`--async-scheduling` with unsupported path.** Structured outputs (fixed #26866), spec-dec (#24799 fixed), PP/struct-out/spec-dec/MM umbrella tracker #27679 closed 2025-12-29 — all sub-PRs merged. Model Runner V1 (the only runner with a PP>1 limit) is removed in v0.34.0. The vllm-ascend v0.11.0rc2 precision bug (#4649) is fixed — **closed 2026-03-13**; upgrade rather than disabling async-sched. Symptom: stall, latency regression, or precision loss. Fix: upgrade; disable only after reproducing the issue on the running version.
 
 8. **Shipping `VLLM_MOE_USE_DEEP_GEMM=1` blindly on H200.** Between `d83f3f7` and `5a84b76` the DeepGEMM MoE M<128 restriction was removed; H200 DeepSeek-R1 EP at concurrency ≤8 regressed 1.5× TTFT. **[#28882](https://github.com/vllm-project/vllm/issues/28882) was bot-closed 2026-04-21 with no fix** — treat it as open. Keep `VLLM_MOE_USE_DEEP_GEMM=0` + FlashInfer FP8 for low-concurrency decode; drop the override only after measuring TTFT at concurrency ≤8 on the running build.
 
@@ -109,9 +109,10 @@ export VLLM_TUNED_CONFIG_FOLDER=./moe_configs
 
 # Step 3 — serve + verify no "default MoE config" warning in logs
 vllm serve deepseek-ai/DeepSeek-V3 --tensor-parallel-size 8 \
-  --enable-expert-parallel --enable-eplb --enable-dbo \
-  --gpu-memory-utilization 0.85
+  --enable-expert-parallel --enable-eplb --enable-dbo
 ```
+
+On ≤ v0.33.0 (estimate-based KV sizing) add `--gpu-memory-utilization 0.85`.
 
 ### Parallelism first-pick table
 
@@ -143,7 +144,7 @@ Concurrency crossover (8× MI300X benchmarks): ≤128 concurrent → TP wins, �
 | **`-O2`** | **default** — full compile + `FULL_AND_PIECEWISE` + fusions (AllReduce+RMSNorm +15%, Attention+Quant FP8 +7%; the compile-pass SP+Async-TP is gone in v0.32.0) |
 | `-O3` | reserved (currently = `-O2`) |
 
-### Upgrading across v0.22.0 → v0.33.0
+### Upgrading across v0.22.0 → v0.34.0
 
 Re-benchmark after crossing any minor in this range; do not compare against numbers taken before it. Per-minor execution-path changes and the config keys that now fail validation → `references/regressions.md` §"Execution-path changes by minor".
 
