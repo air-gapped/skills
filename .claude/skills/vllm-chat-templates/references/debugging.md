@@ -80,7 +80,7 @@ python -c "import vllm; from vllm.model_executor.models import registry as r; pr
 # HF model revision — from .cache/huggingface/hub/... or huggingface-cli scan-cache
 ```
 
-vLLM v0.33.0 requires **`transformers >= 5.16.1, < 5.21.0`** and `tokenizers >= 0.23.2` (`requirements/common.txt`); v0.32.0 capped it at `< 5.20.0`; v0.31.0 required `>= 5.10.4, < 5.18.0` and `tokenizers >= 0.21.1`. Note this is unrelated to the "v4.44" in the error message below — that string names the transformers release that removed default chat templates, and vLLM still prints it verbatim. Do not edit it.
+vLLM v0.34.0 requires **`transformers >= 5.16.1, < 5.23.0`** and `tokenizers >= 0.23.3` (`requirements/common.txt`); v0.33.0 capped it at `< 5.21.0`; v0.32.0 capped it at `< 5.20.0`; v0.31.0 required `>= 5.10.4, < 5.18.0` and `tokenizers >= 0.21.1`. Note this is unrelated to the "v4.44" in the error message below — that string names the transformers release that removed default chat templates, and vLLM still prints it verbatim. Do not edit it.
 
 **Security floor: `transformers >= 5.15.0`.** It clears all three 2026 fixes in the tokenizer-loading path — including one where a hostile repo's **chat-template names** become filenames and `save_pretrained` writes outside the target directory.
 
@@ -90,7 +90,8 @@ vLLM v0.33.0 requires **`transformers >= 5.16.1, < 5.21.0`** and `tokenizers >= 
 | v0.29.0–v0.30.0 | `>= 5.10.4` | below the floor — pin explicitly |
 | v0.31.0 | `>= 5.10.4, < 5.18.0` | below the floor — pin `>= 5.15.0, < 5.18.0` |
 | v0.32.0 | `>= 5.16.1, < 5.20.0` | clears it |
-| v0.33.0 | `>= 5.16.1, < 5.21.0` | clears it; the `< 5.21.0` cap blocks any later transformers fix until a vLLM bump |
+| v0.33.0 | `>= 5.16.1, < 5.21.0` | clears it |
+| v0.34.0 | `>= 5.16.1, < 5.23.0` | clears it; the `< 5.23.0` cap blocks any later transformers fix until a vLLM bump |
 
 Per-fix detail: `transformers-config-tokenizers-expert` § "Loading a tokenizer is a trust decision".
 
@@ -111,12 +112,13 @@ Exact strings operators see, with meaning:
 | `TimeoutError: "Chat template rendering timed out after 30.0s..."` (v0.32.0+) | Python renderer hit `VLLM_CHAT_TEMPLATE_RENDER_TIMEOUT`; the render pool is replaced and the stuck thread keeps burning CPU. | Pathological template loop → fix the template. Legitimately huge prompt → raise `VLLM_CHAT_TEMPLATE_RENDER_TIMEOUT` (seconds; `<= 0` disables). |
 | HTTP 500 `"chat template error: failed to render jinja template: engine ran out of fuel"` (Rust frontend, v0.32.0) | 500,000-instruction MiniJinja budget hit by the server's own template on a long conversation. | Upgrade to v0.33.0, or serve chat through the Python frontend. On v0.33.0+ the message reads `chat template exceeded its fuel budget; adjust VLLM_CHAT_TEMPLATE_FUEL to override` and only a request-supplied template can hit it. |
 | `"Chat template is passed with request, but --trust-request-chat-template is not set."` | Request carried `chat_template` (top-level or in `chat_template_kwargs`); `/v1/responses` enforces this from v0.32.0. | Move the template to `--chat-template`, or set `--trust-request-chat-template` on trusted deployments only. |
+| `--chat-template is not supported by the <renderer> renderer; use --tokenizer-mode hf to render a Jinja chat template` (Rust frontend startup, v0.34.0+; a request `chat_template` returns HTTP 400 with `param: "chat_template"`) | The resolved renderer is native (DeepSeek V3.2/V4/V4.1, Harmony, Inkling, Kimi K3) and renders no Jinja; earlier builds ignored the template silently. | Drop `--chat-template`, or serve with `--tokenizer-mode hf` to render a Jinja template. |
 | `ValueError: "Found unexpected chat template kwargs from request: {...}"` | Request passed reserved kwargs (`chat_template`, `tokenize`). | Remove from `extra_body`. |
 | `VLLMValidationError: "Found more '<##IMAGE##>' placeholders in input prompt than actual multimodal data items."` | Template has more image placeholders than images in request. | Reduce placeholders or include more images. |
 | `VLLMValidationError: "Missing 'type' field in multimodal part."` | Malformed content part. | Every `content` item needs `{"type": "..."}`. |
 | `VLLMValidationError: "Mixing raw image and embedding inputs is not allowed"` | Request has both `image_url` and `image_embeds`. | Pick one. |
 | `VLLMValidationError: "You must set \`--enable-mm-embeds\` to input \`image_embeds\`"` | Embeddings provided but flag missing. | Add `--enable-mm-embeds`. |
-| `"Unexpected combination of role and message content"` with `tool_chat_template_granite_20b_fc.jinja` | The shipped template raises on any `system` message (#66349, open at v0.33.0). | Patch a copy to loop over `loop_messages`, or drop the system message. |
+| `"Unexpected combination of role and message content"` with `tool_chat_template_granite_20b_fc.jinja` | The shipped template raises on any `system` message (#66349; fix #66348 is merged on `main` but not in v0.34.0). | Patch a copy to loop over `loop_messages`, or drop the system message. |
 | `ValueError: "Cannot put tools in the first user message when there's no first user message!"` | Tool template injects into first user msg; none exists. | Prepend a user message. |
 | `ValueError: "This model only supports single tool-calls at once!"` | Multiple tool calls in message but template is single-call. | Switch to parallel-tool template or send one at a time. |
 | `HarmonyError: ...` (on gpt-oss) | `openai_harmony` vocab load failed. | v0.31.0+: `oss-harmony` embeds the vocab — check `pip show openai-harmony`; if present it overwrote the module, uninstall it and reinstall `oss-harmony`. v0.30.0 and older: pre-download tiktoken, set `TIKTOKEN_ENCODINGS_BASE`. |

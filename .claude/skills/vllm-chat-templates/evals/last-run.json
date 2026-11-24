@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-24",
+  "content_hash": "11de2918a185e410",
+  "cases": [
+    "02-running-mistral-small-3-1",
+    "06-gemma4-pad-tokens-under-load",
+    "07-merged-qwen3-vl-checkpoint-no-template"
+  ],
+  "runs_per_case": 3,
+  "model": "sonnet",
+  "models_resolved": [
+    "claude-sonnet-5-5"
+  ],
+  "judge_model": "haiku",
+  "judges": {
+    "02-running-mistral-small-3-1": "haiku",
+    "06-gemma4-pad-tokens-under-load": "haiku",
+    "07-merged-qwen3-vl-checkpoint-no-template": "haiku"
+  },
+  "with_skill": 0.8704,
+  "without_skill": 0.537,
+  "without_from": "this run",
+  "baselines": {
+    "02-running-mistral-small-3-1": {
+      "score": 0.6667,
+      "id": "026a1e889b6d",
+      "judge": "haiku",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-24"
+    },
+    "06-gemma4-pad-tokens-under-load": {
+      "score": 0.3333,
+      "id": "0258a7190126",
+      "judge": "haiku",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-24"
+    },
+    "07-merged-qwen3-vl-checkpoint-no-template": {
+      "score": 0.6111,
+      "id": "80e915c8645f",
+      "judge": "haiku",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-24"
+    }
+  }
+}

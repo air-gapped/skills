@@ -95,7 +95,7 @@ No warning without the override — a missing override is silent.
 | DeepSeek-V4 (v0.20.1+) | (covered by `--tokenizer-mode deepseek_v4`) | `deepseek_v4` | `--reasoning-parser deepseek_v4` |
 | DeepSeek-V4.1 (v0.30.0+) | (covered by `--tokenizer-mode deepseek_v41`) | `deepseek_v41` | `--reasoning-parser deepseek_v41` |
 
-The three `deepseek_v*` tokenizer modes replace Jinja with a Python prompt encoder. `--chat-template`, `add_generation_prompt` and `continue_final_message` do nothing there (through v0.33.0). Thinking default with neither `thinking` nor `enable_thinking` sent: **off** on `deepseek_v32`, **on** on `deepseek_v4` / `deepseek_v41`.
+The three `deepseek_v*` tokenizer modes replace Jinja with a Python prompt encoder. `--chat-template` does nothing there on the Python frontend; the Rust frontend refuses it (v0.34.0+). `add_generation_prompt` and `continue_final_message` are read only by `deepseek_v41` (v0.34.0+, #62729); `deepseek_v32` and `deepseek_v4` ignore them. Thinking default with neither `thinking` nor `enable_thinking` sent: **off** on `deepseek_v32`, **on** on `deepseek_v4` / `deepseek_v41`.
 
 ### Known bugs
 
@@ -112,7 +112,7 @@ The three `deepseek_v*` tokenizer modes replace Jinja with a Python prompt encod
 | Concern | vLLM | DeepSeek official API |
 |---|---|---|
 | Thinking toggle | `extra_body={"chat_template_kwargs": {"thinking": true}}` | `extra_body={"thinking": {"type": "enabled"}}` |
-| Reasoning field (response) | **`reasoning`** — `ChatMessage.reasoning` at v0.33.0; `reasoning_content` is accepted request-side only, and normalized away (RFC #27755) | `reasoning_content` |
+| Reasoning field (response) | **`reasoning`** — `ChatMessage.reasoning` at v0.34.0; `reasoning_content` is accepted request-side only, and normalized away (RFC #27755) | `reasoning_content` |
 | Empty tool calls | `tool_calls: []` | `null` |
 
 Clients that hard-code one fail on the other.
@@ -358,7 +358,7 @@ Pair each with the matching `--tool-call-parser`. If unsure, check the vLLM docs
 
 ## Defects in shipped tool templates
 
-Open upstream, present in every release v0.28.0–v0.33.0 (the template files are byte-identical across those tags). All return HTTP 200 unless noted. Before launch with any shipped tool template, render a history holding one assistant tool call with a string, a boolean, an integer and a null argument; a pythonic template's rendered call must pass `ast.parse`. Fix: patch a copy of the template and pass the copy with `--chat-template`.
+Open upstream, present in every release v0.28.0–v0.34.0 (the template files are byte-identical across those tags); the `granite_20b_fc` fix (#66348) is merged on `main` after v0.34.0. All return HTTP 200 unless noted. Before launch with any shipped tool template, render a history holding one assistant tool call with a string, a boolean, an integer and a null argument; a pythonic template's rendered call must pass `ast.parse`. Fix: patch a copy of the template and pass the copy with `--chat-template`.
 
 | Template | Defect | Effect |
 |---|---|---|
@@ -372,7 +372,7 @@ Open upstream, present in every release v0.28.0–v0.33.0 (the template files ar
 
 ## Complete list of shipped tool templates
 
-27 files in `examples/`, unchanged v0.28.0–v0.33.0 (`tool_chat_template_` prefix omitted after the first). `minimax_m1.jinja` was removed in v0.24.0 with the MiniMax-Text-01/VL-01 models (#45993) — do not point `--chat-template` at it.
+27 files in `examples/`, unchanged v0.28.0–v0.34.0 (`tool_chat_template_` prefix omitted after the first). `minimax_m1.jinja` was removed in v0.24.0 with the MiniMax-Text-01/VL-01 models (#45993) — do not point `--chat-template` at it.
 
 **JSON-based:** `tool_chat_template_llama3.1_json.jinja`, `llama3.2_json.jinja`, `llama4_json.jinja`, `deepseekv3.jinja`, `deepseekv31.jinja`, `deepseekr1.jinja`, `mistral.jinja`, `mistral3.jinja`, `glm4.jinja`, `gemma4.jinja`
 
