@@ -56,13 +56,13 @@ Every item has a repro condition, observed symptom, root cause, and fix.
 
 **Takeaway.** There is no universal policy. Document the policy choice in the parser docstring and test it explicitly.
 
-**Fix.** Bound the reasoning segment, not the response: set `thinking_token_budget` in the request body to cap reasoning tokens, so the run leaves reasoning through the parser's normal path instead of being cut mid-CoT ([#46727](https://github.com/vllm-project/vllm/pull/46727)). It is a port to Model Runner V2 from v0.28.0; MRV2 is the default for all models from v0.29.0, so on an older build confirm which runner is live before relying on it. It matters most on quantized checkpoints, whose long reasoning traces are the PR's stated motivation.
+**Fix.** Bound the reasoning segment, not the response: set `thinking_token_budget` in the request body to cap reasoning tokens, so the run leaves reasoning through the parser's normal path instead of being cut mid-CoT ([#46727](https://github.com/vllm-project/vllm/pull/46727)). It is a port to Model Runner V2 from v0.28.0; MRV2 is the default for all models from v0.29.0 and the only runner from v0.34.0 ([#63373](https://github.com/vllm-project/vllm/pull/63373) removed V1), so on an older build confirm which runner is live before relying on it. `/v1/responses` accepts the field from v0.34.0 ([#63896](https://github.com/vllm-project/vllm/pull/63896)). It matters most on quantized checkpoints, whose long reasoning traces are the PR's stated motivation.
 
-**Where the budget silently does nothing (open at v0.33.0).**
+**Where the budget silently does nothing (open at v0.34.0).**
 
 - `--reasoning-parser mistral` with `--tokenizer-mode mistral` on a `[THINK]`/`[/THINK]` model: the budget's start/end ids come from `tokenizer.encode("[THINK]")`, which the Mistral tokenizer encodes as literal text (several ids), not the control token the model emits. The budget never sees a reasoning start and never forces the end; the request is accepted without a warning ([#64309](https://github.com/vllm-project/vllm/issues/64309)). Bound these models with `max_tokens` instead.
 
-**Where the budget turns reasoning off (open at v0.33.0).** A system, user or tool message containing the literal text `<think>` (an instruction such as "think inside `<think>` tags", a pasted transcript) tokenizes to the reasoning-start id. The budget takes the *last* start marker anywhere in the prompt as still-open reasoning and charges every prompt token after it; once that count reaches `thinking_token_budget`, `</think>` is forced as the first generated token — `reasoning` comes back empty with no error ([#66055](https://github.com/vllm-project/vllm/issues/66055)). `/v1/messages` `thinking.budget_tokens` maps to the same field. Not affected: `enable_thinking=False`. Fix: keep the literal tag out of earlier messages (reword or escape it), or raise the budget above the token count that follows it.
+**Where the budget turns reasoning off (open at v0.34.0).** A system, user or tool message containing the literal text `<think>` (an instruction such as "think inside `<think>` tags", a pasted transcript) tokenizes to the reasoning-start id. The budget takes the *last* start marker anywhere in the prompt as still-open reasoning and charges every prompt token after it; once that count reaches `thinking_token_budget`, `</think>` is forced as the first generated token — `reasoning` comes back empty with no error ([#66055](https://github.com/vllm-project/vllm/issues/66055)). `/v1/messages` `thinking.budget_tokens` maps to the same field. Not affected: `enable_thinking=False`. Fix: keep the literal tag out of earlier messages (reword or escape it), or raise the budget above the token count that follows it.
 
 ## 5. Nested `<think>` in output splits wrong
 
@@ -74,7 +74,7 @@ Every item has a repro condition, observed symptom, root cause, and fix.
 
 **Fix for split.** No general fix — at the split level, the first `</think>` is authoritative. Filter the content for stray end tokens if downstream tooling chokes.
 
-**Adapter path, non-streaming (open at v0.33.0).** `DelegatingParser.parse` receives `model_output_token_ids` and ignores them: it runs `extract_reasoning` and tool extraction on the decoded text. A marker the model wrote with ordinary tokens — quoting `</think>` or a `<tool_call>` block, or echoing one from the prompt — decodes to the same string as the special token and is parsed as structure. Affects every adapter-path name (`glm45`/`glm47`, `qwen3`, `deepseek_v4`, `kimi_k2`, `minimax_m2`, …). Streaming feeds token ids to the engine and gets the reasoning boundary right, so the same output splits differently by `stream`. No fixed release ([#64326](https://github.com/vllm-project/vllm/issues/64326)); use streaming where the split must be exact.
+**Adapter path, non-streaming (open at v0.34.0).** `DelegatingParser.parse` receives `model_output_token_ids` and ignores them: it runs `extract_reasoning` and tool extraction on the decoded text. A marker the model wrote with ordinary tokens — quoting `</think>` or a `<tool_call>` block, or echoing one from the prompt — decodes to the same string as the special token and is parsed as structure. Affects every adapter-path name (`glm45`/`glm47`, `qwen3`, `deepseek_v4`, `kimi_k2`, `minimax_m2`, …). Streaming feeds token ids to the engine and gets the reasoning boundary right, so the same output splits differently by `stream`. No fixed release ([#64326](https://github.com/vllm-project/vllm/issues/64326)); use streaming where the split must be exact.
 
 **Upstream.** [Discussion #12708](https://github.com/vllm-project/vllm/discussions/12708).
 
@@ -146,7 +146,7 @@ All built-in parsers do this.
 
 **Changed at v0.27.0 (#48947).** That raise is **gone** — `git grep "instance of MistralTokenizer"` finds nothing at v0.27.0. The unified `MistralParser` (`vllm/parser/mistral.py`) calls `is_mistral_tokenizer()` to *select a path*: with a non-Mistral tokenizer, or one whose `supports_grammar` is False, it falls back to the base `adjust_request` and detects pre-v11 format by probing the vocab for the `[ARGS]` token instead of reading `tokenizer.version`.
 
-**Fix, still.** Use `--tokenizer-mode mistral`. The failure is now quieter, not absent: the mistral-common grammar path is what enforces `tool_choice` (auto/none/required/named) for Mistral, and without a Mistral tokenizer you lose it and fall back to generic structured outputs.
+**Fix, still.** Use `--tokenizer-mode mistral`. The failure is now quieter, not absent: the mistral-common grammar path is what enforces `tool_choice` (auto/none/required/named) for Mistral, and without a Mistral tokenizer you lose it and fall back to generic structured outputs. From v0.34.0 the parser builds that grammar through `mistral_common >= 1.13.0` ([#64169](https://github.com/vllm-project/vllm/pull/64169)); pin `mistral_common` at or above that in an offline image.
 
 ## 12. Granite streaming swallows the first part of reasoning
 
@@ -187,7 +187,7 @@ All built-in parsers do this.
 - If you can't change the client, pin vLLM below v0.16.0, where the response still carried `reasoning_content`.
 - There is no `--include-reasoning-content` flag. The request field `include_reasoning` (default `true`) controls whether `reasoning` is returned at all.
 
-**Do not echo both names back (Rust frontend, through v0.33.0).** With `VLLM_USE_RUST_FRONTEND=1`, an assistant message in `messages` that carries both `reasoning` and `reasoning_content` is rejected: `400 … duplicate field \`reasoning\``, and every later turn fails too because the message stays in history. The Python frontend accepts both (non-null `reasoning` wins). Send one key, or strip `reasoning_content` in the client; fixed on `main` after v0.33.0 ([#63137](https://github.com/vllm-project/vllm/pull/63137)).
+**Do not echo both names back (Rust frontend, through v0.33.x).** With `VLLM_USE_RUST_FRONTEND=1`, an assistant message in `messages` that carries both `reasoning` and `reasoning_content` is rejected: `400 … duplicate field \`reasoning\``, and every later turn fails too because the message stays in history. The Python frontend accepts both (non-null `reasoning` wins). Send one key, or strip `reasoning_content` in the client; fixed in v0.34.0 ([#63137](https://github.com/vllm-project/vllm/pull/63137)).
 
 **Takeaway.** When someone asks "why is reasoning_content null" — before diving into parser debugging, first run `jq '.choices[0].message | keys'` to see what fields actually exist. If `reasoning` is there, the parser ran fine and this is purely a client-side name mismatch.
 
@@ -205,7 +205,7 @@ So `include_reasoning: false` is a display-only toggle, not a performance win.
 
 **Symptom.** Non-streaming returns the continuation in `reasoning` with `content: null`; `usage` counts every generated token as a reasoning token (streaming too). Streaming content is correct.
 
-**Fix.** Upgrade to v0.33.0 ([#61857](https://github.com/vllm-project/vllm/pull/61857)) for adapter-path parsers that declare turn boundaries — the GLM family (`glm45`, `glm47`, `ling3`) and the Qwen3 family (`qwen3`, `mimo`, `minicpmv`, `nemotron_v3`, `granite_thinking_parser`, `step3p5`, `seed_oss`). Not covered: `deepseek_v4`, `kimi_k2`, `minimax_m2` (no turn boundaries) and every legacy `ReasoningParser`, whose `set_prompt_token_ids` is a no-op — in a custom parser, override it and start in content when `is_reasoning_end(prompt_token_ids)` is true for the current turn.
+**Fix.** Upgrade to v0.33.0 ([#61857](https://github.com/vllm-project/vllm/pull/61857)) for adapter-path parsers that declare turn boundaries — the GLM family (`glm45`, `glm47`, `ling3`) and the Qwen3 family (`qwen3`, `mimo`, `minicpmv`, `nemotron_v3`, `granite_thinking_parser`, `step3p5`, `seed_oss`, and `zaya` from v0.34.0) — or to v0.34.0 for `deepseek_v41` ([#62729](https://github.com/vllm-project/vllm/pull/62729)). Not covered: `deepseek_v4`, `kimi_k2`, `minimax_m2` (no turn boundaries) and every legacy `ReasoningParser`, whose `set_prompt_token_ids` is a no-op — in a custom parser, override it and start in content when `is_reasoning_end(prompt_token_ids)` is true for the current turn.
 
 ## Bonus: streamed answer loses the text right after `</think>` (through v0.31.x)
 

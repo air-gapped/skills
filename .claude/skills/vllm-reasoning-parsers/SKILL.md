@@ -1,7 +1,7 @@
 ---
 name: vllm-reasoning-parsers
 description: |-
-  vLLM reasoning-parser operator + developer reference. `--reasoning-parser` CLI wiring, `ReasoningParser` contract (non-streaming `extract_reasoning` + per-delta `extract_reasoning_streaming`), `is_reasoning_end` xgrammar gating, `--structured-outputs-config.enable_in_reasoning` bypass, 42 built-in parsers (v0.33.0) with per-model quirks, 15 production pitfalls, authoring custom parsers via `@ReasoningParserManager.register_module` or plugin.
+  vLLM reasoning-parser operator + developer reference. `--reasoning-parser` CLI wiring, `ReasoningParser` contract (non-streaming `extract_reasoning` + per-delta `extract_reasoning_streaming`), `is_reasoning_end` xgrammar gating, `--structured-outputs-config.enable_in_reasoning` bypass, 44 built-in parsers (v0.34.0) with per-model quirks, 15 production pitfalls, authoring custom parsers via `@ReasoningParserManager.register_module` or plugin.
 when_to_use: |-
   Trigger on `reasoning_content`, `reasoning_parser_plugin`, `<think>`/`</think>` handling, harmony channels (`<|channel|>analysis`/`final`), Qwen3 prompt-side `<think>`, DeepSeek-R1 missing start tag, Kimi K2 tool-section implicit end, Hunyuan state machine, Granite phrase markers, `enable_thinking=False`, reasoning leaked into content, content empty while reasoning filled, structured output breaking with thinking disabled, tool calls not parsed when reasoning is on, adding a new reasoning model. Applies without "parser" in prompt. Also implicit — "audit reasoning config", "deploy-memo reasoning". NOT prompt-side Jinja (→ `vllm-chat-templates`) or tool-call JSON extraction (→ `vllm-tool-parsers`).
 ---
@@ -41,6 +41,7 @@ Optional:
 - `count_reasoning_tokens(token_ids)` — for usage accounting. Default returns `0`. `BaseThinkingReasoningParser` implements it via depth counter so nested `<think>…<think>…</think>…</think>` are handled.
 - `adjust_request(request)` — mutate request (rare).
 - `set_prompt_token_ids(prompt_token_ids)` — v0.33.0+, called with the rendered prompt before the output is parsed, streaming and non-streaming; default no-op. Override it when the prompt can already close reasoning (`continue_final_message`) — see `references/pitfalls.md` §"continued answer returned as reasoning".
+- `reasoning_end_token_ids`, `implicit_reasoning_end_token_ids`, `find_reasoning_end(token_ids)` — v0.34.0+, defaults `frozenset()` / `frozenset()` / `None`. A legacy parser whose reasoning end is a single token that is also content (a tool-call opener) overrides `implicit_reasoning_end_token_ids`; the structured-output manager then masks those ids while the grammar cannot start with them (pitfall 13).
 - `prepare_structured_tag(original, tool_server)` — emit a `structural_tag` JSON. Base returns `original` unchanged; harmony builds its tag in `HarmonyParser.adjust_request`, not here.
 - `reasoning_start_str` / `reasoning_end_str` — expose delimiter strings so `ReasoningConfig.initialize_token_ids` can derive the multi-token ID sequences automatically.
 
@@ -70,7 +71,7 @@ See `references/pitfalls.md` for each with repros and fixes. Quick index:
 
 4. **Truncated output = wrong field** — when the model hits `max_tokens` mid-reasoning, the parser's policy picks the field: `qwen3` with thinking on and `deepseek_r1` → all `reasoning`; `qwen3` with `enable_thinking=False` → all `content` (other parsers: `references/pitfalls.md` §4). Know the policy before shipping. Fix: cap reasoning with **`thinking_token_budget`** in the request body, so the run ends through the parser's normal path instead of truncation (Model Runner V2, v0.28.0+; cases where the budget does not fire or misfires: `references/pitfalls.md` §4).
 
-5. **Nested `<think>` tags** — base parser's `partition` stops at the first `</think>`; if a CoT contains a literal `</think>` substring (sometimes seen in distillation artifacts), content gets split wrong. `count_reasoning_tokens` uses a depth counter so counts are right, but the split is not. Adapter-path parsers have the same exposure in non-streaming only: the split runs on decoded text, so a `</think>` the model spelled with ordinary tokens (quoting it) ends reasoning there, while streaming matches token ids and does not (open at v0.33.0) — if only `stream: false` misroutes, it is this.
+5. **Nested `<think>` tags** — base parser's `partition` stops at the first `</think>`; if a CoT contains a literal `</think>` substring (sometimes seen in distillation artifacts), content gets split wrong. `count_reasoning_tokens` uses a depth counter so counts are right, but the split is not. Adapter-path parsers have the same exposure in non-streaming only: the split runs on decoded text, so a `</think>` the model spelled with ordinary tokens (quoting it) ends reasoning there, while streaming matches token ids and does not (open at v0.34.0) — if only `stream: false` misroutes, it is this.
 
 6. **Tool calls break with reasoning enabled** — tool parser only sees the `content` half of `extract_reasoning`'s return. If the reasoning parser returns `(everything, None)`, tool parser sees nothing. Kimi K2 handles this by treating `<|tool_calls_section_begin|>` as an implicit reasoning-end marker. Dropping `--reasoning-parser` makes the tool calls reappear only because the whole stream then lands in `content`: say so, and call it a mask that gives up the reasoning split, not a fix. The fix moves the reasoning-end boundary (the model emits `</think>` first, or the parser treats the tool-call opener as an implicit end). That same boundary releases grammar enforcement, so a tool-output-only special case leaves structured output and `tool_choice="required"` gated at the wrong token.
 
@@ -86,15 +87,15 @@ See `references/pitfalls.md` for each with repros and fixes. Quick index:
 
 12. **Granite is regex-on-text** — "Here is my thought process:" / "Here is my response:" are phrases, not special tokens. Streaming parser has to buffer partial matches across deltas (`Here is my thou…`) which makes it the most complex parser in the tree. Read `granite_reasoning_parser.py:140+` before modifying.
 
-13. **Implicit reasoning-end** — Kimi K2 ends at `</think>` **or** `<|tool_calls_section_begin|>`. MiniMax M2 never emits `<think>`, only `</think>`. Custom `is_reasoning_end` must encode these facts or xgrammar gates at the wrong moment. Through v0.31.x the grammar also skipped an implicit end token that is content (`<tool_call>` with no `</think>`, GLM/Qwen3), forced a second `<tool_call>` and lost `required`/named tool calls; v0.32.0 fixes it for adapter-path parsers only. On v0.32.x a request whose grammar cannot start with that token (JSON schema, `tool_choice="none"` + `response_format`) fails with HTTP 500 `grammar rejected tokens` when the model samples it mid-reasoning — upgrade to v0.33.0.
+13. **Implicit reasoning-end** — Kimi K2 ends at `</think>` **or** `<|tool_calls_section_begin|>`. MiniMax M2 never emits `<think>`, only `</think>`. Custom `is_reasoning_end` must encode these facts or xgrammar gates at the wrong moment. Through v0.31.x the grammar also skipped an implicit end token that is content (`<tool_call>` with no `</think>`, GLM/Qwen3), forced a second `<tool_call>` and lost `required`/named tool calls; v0.32.0 fixes it for adapter-path parsers only, and v0.34.0 keys the masking on `implicit_reasoning_end_token_ids`, so a legacy parser opts in by overriding it. On v0.32.x a request whose grammar cannot start with that token (JSON schema, `tool_choice="none"` + `response_format`) fails with HTTP 500 `grammar rejected tokens` when the model samples it mid-reasoning — upgrade to v0.33.0.
 
 14. **`--enable-reasoning` does not exist** — `vllm serve` exits with `unrecognized arguments: --enable-reasoning`. Drop it: passing `--reasoning-parser NAME` enables reasoning, omitting it disables it.
 
-15. **`reasoning_content` is always null — but the parser worked.** The client reads the removed field name (field-name note above). Before debugging any parser, run `jq '.choices[0].message | keys'` — if `reasoning` is there, fix the client. A client that echoes history with both `reasoning` and `reasoning_content` gets 400 `duplicate field` from the Rust frontend through v0.33.0 — send one key (`references/pitfalls.md` §15).
+15. **`reasoning_content` is always null — but the parser worked.** The client reads the removed field name (field-name note above). Before debugging any parser, run `jq '.choices[0].message | keys'` — if `reasoning` is there, fix the client. A client that echoes history with both `reasoning` and `reasoning_content` gets 400 `duplicate field` from the Rust frontend through v0.33.x (fixed in v0.34.0) — send one key (`references/pitfalls.md` §15).
 
 ## The per-model matrix
 
-`references/parser-matrix.md` — one row per registered name (**42** at v0.33.0: `beam`, `cohere_command3`, `cohere_command4`, `deepseek_r1`, `deepseek_v3`, `deepseek_v4`, `deepseek_v41`, `ernie45`, `gemma4`, `glm45`, `glm47`, `granite`, `granite_thinking_parser`, `hf`, `holo2`, `hunyuan_a13b`, `hy_v3`, `hy_v4`, `inkling`, `k2_horizon`, `kimi_k2`, `kimi_k3`, `ling3`, `mimo`, `minicpmv`, `minimax_m2`, `minimax_m2_append_think`, `minimax_m3`, `mistral`, `muse`, `muse_glimmer`, `musespark1x`, `nemotron_v3`, `olmo3`, `openai_gptoss`, `plamo3`, `poolside_v1`, `qwen3`, `seed_oss`, `step3`, `step3p5`, `step5`) with: delimiter style, start-token-in-prompt-or-output, thinking-disable mechanism, truncation policy, structured-output gating peculiarities.
+`references/parser-matrix.md` — one row per registered name (**44** at v0.34.0: `beam`, `cohere_command3`, `cohere_command4`, `deepseek_r1`, `deepseek_v3`, `deepseek_v4`, `deepseek_v41`, `ernie45`, `gemma4`, `glm45`, `glm47`, `granite`, `granite_thinking_parser`, `hf`, `holo2`, `hunyuan_a13b`, `hy_v3`, `hy_v4`, `inkling`, `k2_horizon`, `kimi_k2`, `kimi_k3`, `ling3`, `mimo`, `minicpmv`, `minimax_m2`, `minimax_m2_append_think`, `minimax_m3`, `mistral`, `muse`, `muse_glimmer`, `musespark`, `nemotron_v3`, `olmo3`, `openai_gptoss`, `plamo3`, `poolside_v1`, `qwen3`, `ripple`, `seed_oss`, `step3`, `step3p5`, `step5`, `zaya`) with: delimiter style, start-token-in-prompt-or-output, thinking-disable mechanism, truncation policy, structured-output gating peculiarities.
 
 Routing (which family each name belongs to — `<think>` two-token, delegating wrapper, stateful, harmony, phrase-regex, tokenizer-gated) lives in the matrix `Family` column. Non-obvious cases: `openai_gptoss` is harmony (`extract_reasoning` raises `NotImplementedError`), `mistral` runs without `MistralTokenizer` but needs `--tokenizer-mode mistral` for grammar-enforced `tool_choice` (pitfall 11), `hunyuan_a13b` is a token-ID state machine, `granite` is phrase-regex on text, and `nemotron_v3` swaps reasoning↔content on `enable_thinking=False`.
 
@@ -105,12 +106,12 @@ subclass is the only shape an out-of-tree parser can take** — it is what
 `--reasoning-parser-plugin` loads (from v0.30.0 the flag also takes an importable
 module name from site-packages, tried before the file path —
 [#45241](https://github.com/vllm-project/vllm/pull/45241); there is no
-entry-point discovery). 20 of the 42 names
+entry-point discovery). 20 of the 44 names
 use it.
 
 The other two shapes are in-tree only (name lists: the matrix path table):
 
-- **Adapter** (18 names): `vllm/parser/<model>.py` defines one class per model,
+- **Adapter** (20 names): `vllm/parser/<model>.py` defines one class per model,
   and `make_adapters(XParser)` in `vllm/parser/engine/registered_adapters.py`
   derives *both* `XParserReasoningAdapter` and `XParserToolAdapter` — the
   unified reasoning+tool design of RFC
@@ -136,7 +137,7 @@ tool parser.
 `minimax_m2_reasoning_parser.py`, `glm47_moe_reasoning_parser.py` and
 `mistral_reasoning_parser.py` are ordinary names that are nonetheless shims. The
 test is a reference to the `vllm.parser` package:
-`grep -l "vllm\.parser" vllm/reasoning/*.py`. Do NOT grep for
+`grep -l "vllm\.parser" vllm/reasoning/*.py`, ignoring `abs_reasoning_parsers.py` (a `TYPE_CHECKING` import). Do NOT grep for
 `registered_adapters import` — `ling3` imports from `vllm.parser.ling3` and the
 cohere file only names `vllm.parser.cohere_command` in a docstring, so that
 pattern misses both.

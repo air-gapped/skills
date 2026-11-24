@@ -30,8 +30,8 @@
     },
     {
       "id": 4,
-      "question": "How many built-in reasoning parsers are registered in vLLM v0.33.0?",
-      "skill_answer": "42"
+      "question": "How many built-in reasoning parsers are registered in vLLM v0.34.0?",
+      "skill_answer": "44"
     },
     {
       "id": 5,
@@ -107,6 +107,11 @@
       "id": 19,
       "question": "Which function derives both reasoning and tool adapters from a unified vLLM model parser class?",
       "skill_answer": "`make_adapters` in vllm/parser/engine/registered_adapters.py."
+    },
+    {
+      "id": 20,
+      "question": "Which vLLM reasoning parser names changed at v0.34.0?",
+      "skill_answer": "`ripple` and `zaya` were added; the `musespark1x` alias of `muse` was renamed `musespark`."
     }
   ]
 }

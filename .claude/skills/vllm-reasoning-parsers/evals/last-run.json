@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-24",
+  "content_hash": "11fcf7d762c8e4e1",
+  "cases": [
+    "01-custom-parser-plugin",
+    "03-multitoken-delimiter-plugin-parser",
+    "06-choose-parser-shape-out-of-tree"
+  ],
+  "runs_per_case": 3,
+  "model": "sonnet",
+  "models_resolved": [
+    "claude-sonnet-5-5"
+  ],
+  "judge_model": "haiku",
+  "judges": {
+    "01-custom-parser-plugin": "haiku",
+    "03-multitoken-delimiter-plugin-parser": "haiku",
+    "06-choose-parser-shape-out-of-tree": "haiku"
+  },
+  "with_skill": 0.9259,
+  "without_skill": 0.6667,
+  "without_from": "this run",
+  "baselines": {
+    "01-custom-parser-plugin": {
+      "score": 0.7222,
+      "id": "6910b2ec473b",
+      "judge": "haiku",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-24"
+    },
+    "03-multitoken-delimiter-plugin-parser": {
+      "score": 0.8333,
+      "id": "80d23e12d1fd",
+      "judge": "haiku",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-24"
+    },
+    "06-choose-parser-shape-out-of-tree": {
+      "score": 0.4444,
+      "id": "e20d8039bd63",
+      "judge": "haiku",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-24"
+    }
+  }
+}

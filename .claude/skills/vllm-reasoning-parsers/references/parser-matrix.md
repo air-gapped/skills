@@ -1,6 +1,6 @@
 # Per-parser matrix
 
-One row per registered name — all **42** at v0.33.0 (38 at v0.32.0, 35 at v0.31.0).
+One row per registered name — all **44** at v0.34.0 (42 at v0.33.0, 38 at v0.32.0, 35 at v0.31.0).
 
 **Three implementation paths now — check which one a name is on before reading
 its source.** A refactor has moved several parsers into a new top-level
@@ -21,7 +21,7 @@ a completion — even though the code has landed. Read the tree, not the tracker
 
 | Path | Names | Where the logic lives |
 |---|---|---|
-| **Adapter** | `deepseek_v4`, `deepseek_v41`, `gemma4`, `glm45`, `glm47`, `granite_thinking_parser` (v0.31.0), `inkling`, `kimi_k2`, `ling3`, `mimo`, `minicpmv` (v0.32.0), `minimax_m2`, `mistral`, `nemotron_v3`, `plamo3` (v0.32.0), `qwen3`, `seed_oss`, `step3p5` (moved here at v0.32.0) (18) | `vllm/parser/<model>.py`, adapters built in `vllm/parser/engine/registered_adapters.py`. Exception: `minicpmv` declares its reasoning adapter directly (no tool half) and `ParserManager` wraps it by name in `MiniCPMVUnifiedParser` |
+| **Adapter** | `deepseek_v4`, `deepseek_v41`, `gemma4`, `glm45`, `glm47`, `granite_thinking_parser` (v0.31.0), `inkling`, `kimi_k2`, `ling3`, `mimo`, `minicpmv` (v0.32.0), `minimax_m2`, `mistral`, `nemotron_v3`, `plamo3` (v0.32.0), `qwen3`, `ripple` (v0.34.0), `seed_oss`, `step3p5` (moved here at v0.32.0), `zaya` (v0.34.0) (20) | `vllm/parser/<model>.py`, adapters built in `vllm/parser/engine/registered_adapters.py`. Exception: `minicpmv` declares its reasoning adapter directly (no tool half) and `ParserManager` wraps it by name in `MiniCPMVUnifiedParser` |
 | **Name-wired unified** | `cohere_command3`, `cohere_command4` (v0.30.0), `hf` (v0.32.0), `beam` (v0.33.0) (4) | Picked in `vllm/parser/parser_manager.py`, not `make_adapters()`: `vllm/parser/cohere_command.py::CohereCommandParser` ([#56392](https://github.com/vllm-project/vllm/pull/56392)), `vllm/parser/response_template.py::ResponseTemplateParser` and its subclass `vllm/parser/beam.py::BeamParser`. The registered reasoning class only answers `is_reasoning_end` for xgrammar |
 | **Legacy** (standalone) | the other 20 | `vllm/reasoning/<file>.py` as before |
 
@@ -29,9 +29,11 @@ a completion — even though the code has landed. Read the tree, not the tracker
 named `*_engine_reasoning_parser.py`; `kimi_k2_reasoning_parser.py`,
 `minimax_m2_reasoning_parser.py`, `glm47_moe_reasoning_parser.py` and
 `mistral_reasoning_parser.py` are ordinary names that are nonetheless a few
-lines subclassing an adapter. The authoritative test — 20 files at v0.33.0
-(17 adapter files for 18 names, plus `cohere_command_reasoning_parser.py`,
-`response_template_reasoning_parser.py` and `beam_reasoning_parser.py`):
+lines subclassing an adapter. The authoritative test — 22 files at v0.34.0
+(19 adapter files for 20 names, plus `cohere_command_reasoning_parser.py`,
+`response_template_reasoning_parser.py` and `beam_reasoning_parser.py`; the
+grep also lists `abs_reasoning_parsers.py`, a `TYPE_CHECKING` import that is not
+a parser):
 
 ```bash
 grep -l "vllm\.parser" vllm/reasoning/*.py
@@ -57,7 +59,7 @@ all. Read `_REASONING_PARSERS_TO_REGISTER`.
 | `step5` | `DeepSeekR1ReasoningParser` | `deepseek_r1_reasoning_parser.py` — registry alias of `deepseek_r1`, **new at v0.33.0** (Step-5 Preview) | Same as `deepseek_r1` | Same as `deepseek_r1` | None | Same as `deepseek_r1` |
 | `deepseek_v3` | `DeepSeekV3ReasoningParser` | `deepseek_v3_reasoning_parser.py` | Delegates → R1 or Identity | — | `chat_template_kwargs.thinking` OR `enable_thinking` (default: **off**) | Inherits from delegate |
 | `deepseek_v4` | `DeepSeekV4ParserReasoningAdapter` | `deepseek_v4_engine_reasoning_parser.py` (shim) → `vllm/parser/deepseek_v4.py` | **No longer an alias of `deepseek_v3`** — as of v0.25.1 it has its own `DeepSeekV4Parser` on the adapter path | — | `chat_template_kwargs.thinking` / `enable_thinking`; thinking **on** when neither is set; `reasoning_effort="none"` turns it off | Thinking on → engine starts in the reasoning state; off → all content |
-| `deepseek_v41` | `DeepSeekV41ParserReasoningAdapter` | `deepseek_v41_engine_reasoning_parser.py` (shim) → `vllm/parser/deepseek_v41.py` — **new at v0.30.0** | `DeepSeekV4Parser` subclass: reasoning identical to `deepseek_v4`; only the tool-call markers differ (spaced DSML, `<｜DSML｜ calls>`) | — | Same as `deepseek_v4` | Same as `deepseek_v4` |
+| `deepseek_v41` | `DeepSeekV41ParserReasoningAdapter` | `deepseek_v41_engine_reasoning_parser.py` (shim) → `vllm/parser/deepseek_v41.py` — **new at v0.30.0** | `DeepSeekV4Parser` subclass: reasoning identical to `deepseek_v4`; the tool-call markers differ (spaced DSML, `<｜DSML｜ calls>`), and from v0.34.0 it declares turn boundaries (`<｜User｜>`, `<｜Assistant｜>`) so a reasoning block the prompt already closed (`continue_final_message`) is honored ([#62729](https://github.com/vllm-project/vllm/pull/62729)) | — | Same as `deepseek_v4` | Same as `deepseek_v4` |
 | `poolside_v1` | `PoolsideV1ReasoningParser` | `poolside_v1_reasoning_parser.py` | Subclass of `DeepSeekV3ReasoningParser` (`<think>`/`</think>`); scopes the backward `</think>` scan to the current assistant turn (`<assistant>` token) so a stray `</think>` in history/few-shot doesn't false-positive `prompt_is_reasoning_end` | — | Same as `deepseek_v3` | Inherits from delegate |
 | `cohere_command3` | `CohereCommand3ReasoningParser` | `cohere_command_reasoning_parser.py` (60-line shim at v0.30.0, was 716 lines) → `vllm/parser/cohere_command.py::CohereCommandParser` | **`<\|START_THINKING\|>` / `<\|END_THINKING\|>`** vocab tokens (also tracks `<\|CHATBOT_TOKEN\|>`). At v0.30.0 the shim class keeps only `is_reasoning_end`; `extract_reasoning`, streaming and `count_reasoning_tokens` moved into the unified parser, which needs the external `cohere_melody` package — not a vLLM dependency, install it into the image (`ImportError` at load if missing) | — | None — `melody_preset = "cmd3"` selects the filter profile | `count_reasoning_tokens` is a depth counter, implemented since v0.30.0 ([#54982](https://github.com/vllm-project/vllm/pull/54982)) — before that it fell through to the ABC's `0` default |
 | `cohere_command4` | `CohereCommand4ReasoningParser` | same shim/adapter, `melody_preset = "cmd4"` | Same delimiters and unified parser as `cohere_command3` | — | None — differs from `cohere_command3` **only** by `melody_preset` | Same as `cohere_command3` |
@@ -66,6 +68,8 @@ all. Read `_REASONING_PARSERS_TO_REGISTER`.
 | `ling3` | `Ling3ParserReasoningAdapter` | `ling3_reasoning_parser.py` (shim) → `vllm/parser/ling3.py` — **new at v0.29.0** | `Glm47MoeParser` subclass: GLM `<think>`/`</think>`; `<tool_call>` is an implicit reasoning end. Also registers a `ling3` tool parser | — | `chat_template_kwargs.thinking` or `enable_thinking`; **on** when neither is set | Same as `glm47` |
 | `holo2` | `DeepSeekV3ReasoningWithThinkingParser` | `deepseek_v3_reasoning_parser.py` (shared) | Delegates → R1 or Identity | — | Same as `deepseek_v3` but default **on** | Inherits |
 | `qwen3` | `Qwen3ParserReasoningAdapter` | `qwen3_engine_reasoning_parser.py` (shim) → `vllm/parser/qwen3.py` | `<think>`/`</think>` | Yes (Qwen3.5+) — old 2507 template emits it | `chat_template_kwargs.enable_thinking` (default **on**) | Enabled: `(all, None)`. Disabled: `(None, all)` |
+| `ripple` | `RippleParserReasoningAdapter` | `ripple_engine_reasoning_parser.py` (shim) → `vllm/parser/ripple.py` — **new at v0.34.0** ([#65745](https://github.com/vllm-project/vllm/pull/65745)) | `<think>`/`</think>` as **plain text** (not special tokens), newline-framed; the generation prompt does not open `<think>`, the model decides per turn whether to reason. Also registers a `ripple` tool parser (Hermes-style `<tool_call>` JSON) | No — starts in content; reasoning can open mid-stream, and with no tool parser streaming keeps parsing the whole stream, so a later `<think>` still routes to `reasoning` | None — `chat_template_kwargs` is ignored; the structured-output grammar applies from the first token (`wait_for_reasoning=False`) | — |
+| `zaya` | `ZayaParserReasoningAdapter` | `zaya_engine_reasoning_parser.py` (shim) → `vllm/parser/zaya.py` — **new at v0.34.0** ([#65302](https://github.com/vllm-project/vllm/pull/65302)) | `Qwen3Parser` subclass: `<think>`/`</think>`, ChatML turn boundaries; only the tool wrapper differs (`<zyphra_tool_call>`) | Same as `qwen3` | `chat_template_kwargs.enable_thinking` (default **on**) | Same as `qwen3` |
 | `mimo` | `MiMoParserReasoningAdapter` | `mimo_engine_reasoning_parser.py` (shim) → `vllm/parser/mimo.py` — **own class from v0.32.0**; through v0.31.x an alias of `qwen3` | `MiMoParser(Qwen3Parser)`: reasoning identical to `qwen3` (ChatML turn boundaries); only tool-call argument conversion differs (values kept as verbatim strings) | Same as `qwen3` | `chat_template_kwargs.enable_thinking` (default **on**) | Same as `qwen3` |
 | `minicpmv` | `MiniCPMVParserReasoningAdapter` | `minicpmv_reasoning_parser.py` → `vllm/parser/minicpmv.py` — **new at v0.32.0** | `MiniCPMVParser(Qwen3Parser)`: `<think>`/`</think>`; reasoning-only — no `minicpmv` tool parser, use `--tool-call-parser qwen3_coder`; serving adds newline recovery via `MiniCPMVUnifiedParser` | — | `chat_template_kwargs.enable_thinking` (default **on**); off → a `<think>…</think>` span in the output is dropped, not printed | Same as `qwen3` |
 | `granite_thinking_parser` | `GraniteThinkingParserReasoningAdapter` | `granite_thinking_engine_reasoning_parser.py` (shim) → `vllm/parser/granite_thinking.py` — **new at v0.31.0**, for Granite 4.2 (`granite` stays the phrase-regex parser for older Granite) | `NemotronV3Parser` subclass: `<think>`/`</think>` + `<tool_call>` XML; strips the template's leading `\n` from content | — | `chat_template_kwargs.enable_thinking` (default **on**); `enable_thinking=False` or `force_nonempty_content=True` swaps reasoning↔content, only when content is absent | Inherits `nemotron_v3` swap |
@@ -88,8 +92,8 @@ all. Read `_REASONING_PARSERS_TO_REGISTER`.
 | `olmo3` | `Olmo3ReasoningParser` | `olmo3_reasoning_parser.py` | `<think>`/`</think>` | — | — | — |
 | `openai_gptoss` | `GptOssReasoningParser` | `gptoss_reasoning_parser.py` | Harmony. **Reduced to a stub at v0.27.0** ([#45560](https://github.com/vllm-project/vllm/pull/45560)): `is_reasoning_end` and `is_reasoning_end_streaming` `return True` unconditionally; the backward-scan fields are gone. All real work is in `HarmonyParser` (`vllm/parser/harmony.py`) | Yes (system msg) | — | `extract_reasoning`, `extract_reasoning_streaming`, `extract_content_ids` all raise `NotImplementedError` with "Use HarmonyParser for output parsing" |
 | `seed_oss` | `SeedOssParserReasoningAdapter` | `seed_oss_engine_reasoning_parser.py` (shim) → `vllm/parser/seed_oss.py` | `<seed:think>`/`</seed:think>` | — | — | — |
-| `minimax_m3` | `MiniMaxM3ReasoningParser` | `minimax_m3_reasoning_parser.py` | MiniMax M3 — own file/class, **new since the 2026-05-28 sweep** (separate from the two `minimax_m2*` names) | — | See file | See file |
-| `muse` / `musespark1x` | `MuseReasoningParser` | `muse_reasoning_parser.py` (legacy) — **new at v0.33.0**; `musespark1x` is an alias | Muse Spark Open channel framing, regex on decoded text: reasoning = `to=self<\|message\|>…<\|eom\|>` blocks **and** recipient-less messages; content = `to=user` and `to=commentary`; `developer` messages dropped; a tool channel (`to=<tool><\|message\|>` carrying `<atem:function_calls>`/`<atem:invoke`) is returned as content, header included, for the tool parser. Forces `skip_special_tokens=False` | — | None | `is_reasoning_end` is True only once a tool channel opens — a `to=user` answer does not end reasoning; `extract_content_ids` returns `[]` |
+| `minimax_m3` | `MiniMaxM3ReasoningParser` | `minimax_m3_reasoning_parser.py` | MiniMax M3 — own file/class (separate from the two `minimax_m2*` names). From v0.34.0 `is_reasoning_end` and the streaming check read only the ids after the last `]~b]` message-begin token, so thinking markers in the system prompt or earlier turns do not decide it | — | `chat_template_kwargs.thinking_mode == "enabled"` starts in reasoning | See file |
+| `muse` / `musespark` | `MuseReasoningParser` | `muse_reasoning_parser.py` (legacy) — **new at v0.33.0**; `musespark` is an alias. **The v0.33.0 alias `musespark1x` was renamed to `musespark` in v0.34.0 ([#66334](https://github.com/vllm-project/vllm/pull/66334)); the old name is no longer registered, so `--reasoning-parser musespark1x` fails startup with `KeyError: invalid reasoning parser`** | Muse Spark Open channel framing, regex on decoded text: reasoning = `to=self<\|message\|>…<\|eom\|>` blocks **and** recipient-less messages; content = `to=user` and `to=commentary`; `developer` messages dropped; a tool channel (`to=<tool><\|message\|>` carrying `<atem:function_calls>`/`<atem:invoke`) is returned as content, header included, for the tool parser. Forces `skip_special_tokens=False` | — | None | `is_reasoning_end` is True only once a tool channel opens — a `to=user` answer does not end reasoning; `extract_content_ids` returns `[]` |
 | `muse_glimmer` | `MuseGlimmerReasoningParser` | `muse_glimmer_reasoning_parser.py` — from v0.33.0 a 10-line subclass of `MuseReasoningParser` (`_glimmer_compat = True`); logic in `muse_reasoning_parser.py`. **New at v0.29.0** | Channel framing, regex on decoded text: reasoning in `to=self<\|message\|>…<\|eom\|>` blocks (several per turn, joined); answer in `to=user<\|message\|>`; tool channels `to=<tool><\|message\|>` are returned as content so the tool parser sees them | — | None | Unterminated `to=self` block → partial reasoning, cut at the next channel header so a following tool call stays in content |
 | `step3` | `Step3ReasoningParser` | `step3_reasoning_parser.py` (plain `ReasoningParser`, not `BaseThinking`) | Splits on `</think>` alone | — | — | `count_reasoning_tokens` counts up to `</think>` from v0.31.0; returned `0` before |
 | `step3p5` | `Step3p5ParserReasoningAdapter` | `step3p5_engine_reasoning_parser.py` (shim) → `vllm/parser/step3p5.py` — **adapter path from v0.32.0**; through v0.31.x the legacy `Step3p5ReasoningParser(BaseThinkingReasoningParser)` | `Qwen3Parser` subclass: `<think>`/`</think>`, trailing reasoning whitespace stripped | Yes — template always prefills `<think>\n` | None — `enable_thinking` is ignored | Same as `qwen3` enabled |
@@ -98,7 +102,7 @@ all. Read `_REASONING_PARSERS_TO_REGISTER`.
 
 ### `BaseThinkingReasoningParser` subclasses (simple two-token)
 
-`basic_parsers.py:18`. Subclass only needs `start_token` / `end_token` string properties. Get for free:
+`basic_parsers.py`. Subclass only needs `start_token` / `end_token` string properties. Get for free:
 - Init-time vocab lookup + raise if token missing.
 - `is_reasoning_end` via reverse scan (depth-safe wrt nested pairs).
 - `extract_content_ids` via `input_ids.index(end_token_id) + 1 :`.
@@ -106,7 +110,7 @@ all. Read `_REASONING_PARSERS_TO_REGISTER`.
 - `extract_reasoning` via `.partition`.
 - `count_reasoning_tokens` via depth counter.
 
-Subclasses at v0.33.0: `DeepSeekR1ReasoningParser` (and `K2HorizonReasoningParser` through it), `Ernie45ReasoningParser`, `HYV3ReasoningParser`, `MiniMaxM3ReasoningParser`. **Not** OLMo3 or Step3 (plain `ReasoningParser`), and not Step3p5, Mistral, Qwen3, MiniMaxM2 or SeedOSS any more: those names now resolve through the adapter path (see the Path table above), so the `BaseThinkingReasoningParser` freebies below do not describe their behaviour.
+Subclasses at v0.34.0: `DeepSeekR1ReasoningParser` (and `K2HorizonReasoningParser` through it), `Ernie45ReasoningParser`, `HYV3ReasoningParser`, `MiniMaxM3ReasoningParser`. **Not** OLMo3 or Step3 (plain `ReasoningParser`), and not Step3p5, Mistral, Qwen3, MiniMaxM2 or SeedOSS any more: those names now resolve through the adapter path (see the Path table above), so the `BaseThinkingReasoningParser` freebies below do not describe their behaviour.
 
 ### Delegating wrappers
 
@@ -130,7 +134,7 @@ Subclasses at v0.33.0: `DeepSeekR1ReasoningParser` (and `K2HorizonReasoningParse
 
 ## Non-obvious fields the serving layer reads
 
-From `OpenAIServingChat` (`vllm/entrypoints/openai/chat_completion/serving.py`) and the `Parser` wrapper it builds (`vllm/parser/abstract_parser.py`), at v0.33.0:
+From `OpenAIServingChat` (`vllm/entrypoints/openai/chat_completion/serving.py`) and the `Parser` wrapper it builds (`vllm/parser/abstract_parser.py`), at v0.34.0:
 
 - `reasoning_ended = request.resolve_reasoning_ended(parser, prompt_token_ids)` — computed once per request and passed to `engine_client.generate(..., reasoning_ended=...)`; `StructuredOutputManager._get_constraint_bounds` (`_get_constraint_start` through v0.31.x) reads it to decide where grammar enforcement starts. `True` when `include_reasoning=false` or when the parser supplied a grammar that already covers the reasoning (Mistral; `beam` at message start), `parser.is_reasoning_end(prompt_token_ids)` otherwise, `None` with no reasoning parser (the engine then checks the prompt with its own reasoner). If True at prompt time (e.g. Qwen3 chat template with `enable_thinking=False` injected `<think>\n\n</think>\n\n`), streaming routes all deltas to content.
 
