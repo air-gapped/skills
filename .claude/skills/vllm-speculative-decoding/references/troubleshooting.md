@@ -17,9 +17,8 @@ Four regimes:
 The drafter is guessing badly. Causes, in order of likelihood:
 
 1. **Tokenizer mismatch.** Verify drafter and target share a tokenizer — *or*
-   that you are deliberately on **TLI** (v0.25.0+, PR #38174), which supports
-   different-but-overlapping vocabularies by design. If TLI is not in use, a
-   mismatch is a bug. For
+   that you are deliberately on **TLI** (v0.25.0–v0.33.x only; removed in
+   v0.34.0). Otherwise a mismatch is a bug. For
    EAGLE-3, the checkpoint is tied to a specific target tokenizer — swapping
    target (e.g., an instruction-tuned variant with added chat tokens) without
    swapping checkpoint breaks it.
@@ -36,9 +35,8 @@ The drafter is guessing badly. Causes, in order of likelihood:
    partial HF cache transfers.
 6. **Wrong method for model.** Model ships MTP heads but EAGLE-3 is running
    instead — the MTP path is better. Check `vllm/config/speculative.py`:
-   method auto-detection in `SpeculativeConfig.__post_init__` (L1432-1476 at
-   v0.33.0) and the per-arch `model_type` remap in `hf_config_override`
-   (L711-1170).
+   method auto-detection in `SpeculativeConfig.__post_init__` and the per-arch
+   `model_type` remap in `hf_config_override`.
 
 ### 2. AL OK (>2.5), throughput not improving
 
@@ -54,10 +52,10 @@ Spec-dec is accepting tokens but wall-clock isn't budging.
 4. **Drafter CUDA graph cache miss storm.** Logs show repeated graph capture.
    Raise `--max-num-seqs` batching headroom, or set
    `-cc.cudagraph_mode=PIECEWISE` if full-graph capture is unstable.
-5. **Draft TP != Target TP.** Fails at engine start on `draft_model` (hard
-   error in `v1/spec_decode/draft_model.py::_raise_if_draft_tp_mismatch`). On
-   other methods an explicit `draft_tensor_parallel_size: 1` under an 8-way
-   target makes the drafter a serial bottleneck — unset it.
+5. **Draft TP != Target TP.** ≤ v0.33.x failed at engine start on `draft_model`
+   (hard `ValueError`); v0.34.0 does not. An explicit
+   `draft_tensor_parallel_size: 1` under an 8-way target makes the drafter a
+   serial bottleneck — unset it.
 6. **Verification bottleneck on the target** — rare, but if the target's
    sampler is unusually slow (e.g., structured output with a complex
    grammar), verification dominates. Test without structured outputs.
@@ -93,13 +91,14 @@ passed.
    explicitly.
 3. **Attention backend mismatch.** DFlash requires `flash_attn`; on Triton,
    DFlash silently can't schedule. Log should reveal this.
-4. **Plugin missing.** `method: "suffix"` without `pip install
+4. **Plugin missing (≤ v0.33.x).** `method: "suffix"` without `pip install
    arctic-inference` fails clearly at engine start. Check base-image build.
+   v0.34.0 needs no package.
 
-Drafts counted but acceptance ≈ 0 with a DFlash-family draft on v0.32.0–v0.33.0:
+Drafts counted but acceptance ≈ 0 with a DFlash-family draft on v0.32.0–v0.33.x:
 the draft reads a stale kernel block table under FULL CUDA graphs when the KV
 block is split into smaller kernel blocks (hybrid attention + recurrent
-targets). Set `cudagraph_mode` to `PIECEWISE` (#64059; fix merged, unreleased).
+targets). Upgrade to v0.34.0 (#64059) or set `cudagraph_mode` to `PIECEWISE`.
 
 ## Silent regressions after upgrade
 
@@ -110,14 +109,16 @@ Map symptom → likely cause:
 | Engine hard-fails on startup where it used to succeed | v0.14.0 unsupported-params-now-error (PR #31982) | Remove the offending sampling param or update the config |
 | AL dropped after upgrade | Stale checkpoint vs method renames (#25232 unified MTP aliases) | Switch to `method: "mtp"`; old names still work but log deprecation |
 | "Multimodal not supported" error that didn't fire before | Strict MM / drafter compatibility checks in v0.15+ | Disable MM on drafter or use a MM-capable variant |
-| Throughput dropped after v0.16 | Default changes to `parallel_drafting` or unified parallel drafting (#32887) | Re-benchmark with explicit `parallel_drafting: true/false` to find best |
+| Throughput dropped after v0.16 (≤ v0.33.x) | Default changes to `parallel_drafting` or unified parallel drafting (#32887) | Re-benchmark with explicit `parallel_drafting: true/false` to find best |
+| After upgrading to v0.34.0 startup fails on `parallel_drafting`, `use_heterogeneous_vocab`, `disable_padded_drafter_batch`, `method: "custom_class"`, `VLLM_USE_V2_MODEL_RUNNER=0`, or a P-EAGLE (`peagle`) checkpoint | Model Runner V1 and its features removed (#63373) | Delete the keys; pin ≤ v0.33.x if P-EAGLE, PARD or TLI is required |
+| After upgrading to v0.34.0 `suffix` with `num_speculative_tokens: 32` is slower than before | Drafts are always full length and fully verified; the old per-request dynamic length is gone | Set N ≈ 8, or enable `enable_adaptive_verification` |
 | Multimodal target + Llama 4 / Mistral Large 3 EAGLE drafter fails in the first draft prefill (startup profile run) | v0.28.0–v0.31.x regression (#50417), fixed v0.32.0 (#57633) | Upgrade to v0.32.0 |
 | ModelOpt NVFP4 DeepSeek-V4/V4.1 + DSpark/MTP: AL exactly 1.00, no error; only hint is `w1_weight_scale_2 must match w3_weight_scale_2` after draft load | Ignored MTP/DSpark experts not kept on MXFP4 — fixed v0.32.0 (#59655) | Upgrade to v0.32.0, or use the non-NVFP4 checkpoint |
 | n-gram drafting on a hybrid recurrent-state target (GDN / Mamba2 / KDA layers): some requests return wrong tokens at temperature 0, no error | Present through v0.31.x; fixed v0.32.0 (#56531) | Upgrade to ≥ v0.32.0 |
-| `draft_model` + `use_heterogeneous_vocab: true` dies with a device-side assert | v0.31.x put TLI on MRV2, which has no vocab mapping; fixed v0.32.0 (#59541) | Upgrade, or `VLLM_USE_V2_MODEL_RUNNER=0` |
+| `draft_model` + `use_heterogeneous_vocab: true` dies with a device-side assert | v0.31.x put TLI on MRV2, which has no vocab mapping; fixed v0.32.0 (#59541); TLI removed v0.34.0 | Upgrade to v0.32.0–v0.33.x, or `VLLM_USE_V2_MODEL_RUNNER=0` on v0.31.x |
 | `method: "medusa"` / `"mlp_speculator"`, or a Medusa / MLP-speculator draft checkpoint, rejected by config validation | v0.33.0 removed both methods (#61701) | Retrain as EAGLE-3, or pin ≤ v0.32.x |
 | After upgrading to v0.33.0 the served `max_model_len` is lower than configured, with a warning naming the draft | MRV2 now lowers it to the drafter's limit when the drafter's rotary cache cannot be extended (`draft_model`, or RoPE types other than default / linear / llama3 / ntk / proportional) (#63251) | Use a drafter trained for the target's context, or accept the lower limit — on ≤ v0.32.x the same setup crashed |
-| Pipeline-parallel spec-dec broken | PP + spec-dec only on MRV2 (v0.17+ #33960). If on V1 engine runner, PP disables spec-dec | Switch to MRV2 or disable PP |
+| Pipeline-parallel spec-dec broken (≤ v0.33.x) | PP + spec-dec only on MRV2 (v0.17+ #33960); the V1 runner turns spec-dec off under PP | Switch to MRV2, upgrade to v0.34.0, or disable PP |
 
 ## Interpreting engine log lines
 

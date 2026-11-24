@@ -1,4 +1,4 @@
-# EAGLE-3 and P-EAGLE
+# EAGLE-3 and P-EAGLE (P-EAGLE: v0.16–v0.33.x only)
 
 Load when picking EAGLE-3 for a production deployment, tuning its k
 (num_speculative_tokens), or deciding between EAGLE-3 and P-EAGLE.
@@ -24,7 +24,7 @@ wrong. Upgrade before benchmarking.
 
 ## Target-model support
 
-No name allow-list (none in `vllm/config/speculative.py` at v0.33.0). A target
+No name allow-list (none in `vllm/config/speculative.py` at v0.34.0). A target
 accepts EAGLE-3 (and DFlash) when its model class implements
 `SupportsEagle3` (`vllm/model_executor/models/interfaces.py`); grep the model
 file for it. Without it, startup raises `RuntimeError("Model does not support
@@ -57,7 +57,7 @@ sample sizes, and target-family guidance — see
 
 vLLM sets `method="eagle3"` automatically only when `method` is unset and
 `"eagle3"` is a substring of the lower-cased `model` field of
-`--speculative-config` (`config/speculative.py:1447-1448` at v0.33.0). Setting
+`--speculative-config` (`EagleSpeculatorConfig.matches` at v0.34.0). Setting
 `eagle_aux_hidden_state_layer_ids` in the HF config does **not** select it.
 
 **Gotcha**: mirroring a checkpoint locally and renaming the directory to
@@ -91,7 +91,12 @@ Start at k=3. Watch `vllm:spec_decode_num_accepted_tokens_per_pos_total` and
 raise k only if positions 2 and 3 both show >0.5 acceptance. Lower k if
 position 2 is <0.4.
 
-## P-EAGLE (Parallel EAGLE)
+## P-EAGLE (Parallel EAGLE) — removed in v0.34.0
+
+**v0.34.0 rejects `parallel_drafting: true` on `eagle3` / `draft_model` (ValueError)
+and `peagle` Speculators checkpoints (*"P-EAGLE (parallel drafting EAGLE-3) is
+not supported"*).** Use vanilla EAGLE-3, or `dflash` for parallel drafting, or
+pin ≤ v0.33.x. The rest of this section applies to ≤ v0.33.x.
 
 vLLM PR #32887 (v0.16.0, 2026-02-05) landed "unified parallel drafting",
 which enables P-EAGLE (as well as PARD for draft models and the DFlash
@@ -131,7 +136,7 @@ chat-template / system-prompt variation. Reference checkpoint
 vllm serve meta-llama/Llama-3.1-8B-Instruct \
   --speculative-config '{"method":"eagle3","model":"yuhuili/EAGLE3-LLaMA3.1-Instruct-8B","num_speculative_tokens":3}'
 
-# P-EAGLE, k=7, on a supported checkpoint
+# P-EAGLE, k=7, on a supported checkpoint (≤ v0.33.x only)
 vllm serve openai/gpt-oss-20b \
   --speculative-config '{"method":"eagle3","model":"amazon/GPT-OSS-20B-P-EAGLE","num_speculative_tokens":7,"parallel_drafting":true}'
 ```
@@ -166,7 +171,7 @@ Concrete causes:
   eagle + chunked prefill")
 - **Structured outputs**: supported v0.16.0+ (PR #33374)
 - **Disaggregated serving**: v0.17.0+ (PR #34529)
-- **Pipeline parallel**: v0.17.0+ on MRV2 only (PR #33960, #35029, #35040)
+- **Pipeline parallel**: v0.17.0+ (PR #33960, #35029, #35040); the V1 runner, gone in v0.34.0, turned spec-dec off under PP
 - **Multimodal**: Qwen2.5-VL support in v0.11.1 (#22872); EAGLE-3 multimodal
   embedding support v0.19.0 (#36097)
 - **FP8 KV**: supported, specific FlashInfer sparse MLA fix in v0.19

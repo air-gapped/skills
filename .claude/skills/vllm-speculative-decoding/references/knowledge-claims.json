@@ -38,11 +38,11 @@
     {
       "id": 6,
       "question": "What relationship must draft-model tensor parallel size have to the target's TP in vLLM?",
-      "skill_answer": "It must be equal; mismatch is a hard error."
+      "skill_answer": "Keep it equal (leave unset). v0.34.0 accepts 1 or the target TP; <= v0.33.x raised a hard error on mismatch for draft_model."
     },
     {
       "id": 7,
-      "question": "Which two config keys must be set for vLLM's heterogeneous-vocabulary TLI speculative decoding?",
+      "question": "Which two config keys must be set for vLLM's heterogeneous-vocabulary TLI speculative decoding (v0.25.0-v0.33.x)?",
       "skill_answer": "`use_heterogeneous_vocab: true` with `method: \"draft_model\"` (and greedy draft sampling)"
     },
     {

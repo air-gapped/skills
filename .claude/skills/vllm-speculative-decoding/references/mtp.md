@@ -22,7 +22,7 @@ inherits the target's domain coverage.
 ## Models in vLLM main today
 
 Grep the `MTPModelTypes = Literal[...]` block in `vllm/config/speculative.py`
-(line numbers drift). **28 entries at v0.33.0** (27 model types + `mtp`):
+(line numbers drift). **29 entries at v0.34.0** (28 model types + `mtp`):
 
 | Family | Model types | vLLM model file |
 |---|---|---|
@@ -33,6 +33,7 @@ Grep the `MTPModelTypes = Literal[...]` block in `vllm/config/speculative.py`
 | MiMo-7B, MiMo v2 | `mimo_mtp`, `mimo_v2_mtp` | `mimo_mtp.py`, `mimo_v2_mtp.py` |
 | ERNIE 4.5 | `ernie_mtp` | `ernie_mtp.py` |
 | Nemotron-H | `nemotron_h_mtp` | `nemotron_h_mtp.py` |
+| Nemotron-3.5-Transcribe (v0.34.0+) | `nemotron3_5_transcribe_mtp` | added by #64282 |
 | EXAONE-MoE, EXAONE 4.5 | `exaone_moe_mtp`, `exaone4_5_mtp` | `exaone_*_mtp.py` |
 | LongCat-Flash | `longcat_flash_mtp` | (single layer only) |
 | Pangu-Ultra-MoE | `pangu_ultra_moe_mtp` | `openpangu_mtp.py` |
@@ -53,12 +54,12 @@ Grep the `MTPModelTypes = Literal[...]` block in `vllm/config/speculative.py`
 **All of these are deprecated aliases.** Users should set `method: "mtp"`;
 vLLM detects the target type and dispatches (PR #25232, v0.11.1).
 
-Two v0.33.0 paths have no entry in the list:
+Two paths (v0.33.0+) have no entry in the list:
 
 - **Transformers modeling backend** (#61270): a target served through it whose
   config sets `num_mtp_layers` accepts `method: "mtp"`. Multimodal targets
   raise `NotImplementedError`.
-- **Nemotron Parse 3.5** (#61651): MRV2 only, and `num_speculative_tokens`
+- **Nemotron Parse 3.5** (#61651): and `num_speculative_tokens`
   must be 1 — `ValueError("Parse 3.5 has only one trained MTP step")`.
 
 ## `num_speculative_tokens` rules
@@ -68,11 +69,11 @@ The target's MTP head has a fixed width: `n_predict` (or
 ships `n_predict=1` by default; the V3 paper describes 4 heads but the public
 release uses 1. Qwen3-Next ships `n_predict=1`. Nemotron-H varies.
 
-Rule from `config/speculative.py:1600-1612` (v0.33.0): unset defaults to
+Rule from `SpeculatorConfig.resolve_num_speculative_tokens` (v0.34.0): unset defaults to
 `n_predict`; a value above `n_predict` must be divisible by it, else
 `ValueError: num_speculative_tokens:N must be divisible by n_predict=M`. Above
 `n_predict`, vLLM re-runs the MTP layer sequentially. Any value > 1 also logs
-(L1486-1495, skipped for `step3p5_mtp` / `step5_mtp` / `inkling_mtp`):
+(skipped for `step3p5_mtp` / `step5_mtp` / `inkling_mtp`):
 
 > Enabling num_speculative_tokens > 1 will run multiple times of forward on
 > same MTP layer,which may result in lower acceptance rate

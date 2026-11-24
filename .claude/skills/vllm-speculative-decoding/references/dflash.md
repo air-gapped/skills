@@ -21,21 +21,20 @@ adapter. The KV cache is pre-populated with target hidden states; query tokens
 (the last sampled target token plus N mask placeholders) cross-attend
 non-causally over that context in a single forward.
 
-Conceptually closer to P-EAGLE than to EAGLE-3 — parallel, not sequential. The
+Parallel, not sequential, like the removed P-EAGLE. The
 head is trained on a block-diffusion objective (DDPM-like), which gives it
 stronger parallel-prediction behaviour than a standard EAGLE head.
 
-vLLM plumbing: `vllm/v1/spec_decode/dflash.py:23-320` (V1) and
-`vllm/v1/worker/gpu/spec_decode/dflash/` (MRV2). Model definition:
+vLLM plumbing: `vllm/v1/worker/gpu/spec_decode/dflash/`. Model definition:
 `vllm/model_executor/models/qwen3_dflash.py`.
 
 **LiLiCorr (v0.31.0+, #57934)** is a DFlash-backbone checkpoint
-(`LiLiCorrDraftModel`) served with `method: "dflash"` on MRV2. Set
+(`LiLiCorrDraftModel`) served with `method: "dflash"`. Set
 `num_speculative_tokens` to the checkpoint's `block_size - 1`; larger is unsupported.
 
 **XPress (v0.33.0+, #54448)** is a causal refiner on a DFlash drafter, also
-served with `method: "dflash"` (checkpoint architecture `Qwen3XPressModel`), MRV2
-only. Optional `"xpress_topc": <C>` in `--speculative-config` narrows each
+served with `method: "dflash"` (checkpoint architecture `Qwen3XPressModel`). Combines with adaptive
+verification from v0.34.0 (#65175). Optional `"xpress_topc": <C>` in `--speculative-config` narrows each
 refinement pass to the drafter's top-C candidates (`0` = full vocabulary; unset
 = the checkpoint's value); on a non-XPress checkpoint the key is a `ValueError`.
 
@@ -44,13 +43,12 @@ refinement pass to the drafter's top-C candidates (`0` = full vocabulary; unset
 1. **`--attention-backend flash_attn` is required.** The non-causal
    cross-attention path is not supported by Triton or FlashInfer-TRTLLM.
    DFlash won't fit if a different backend is pinned for the target.
-2. **`parallel_drafting: true` is force-enabled** (`config/speculative.py:1581-1582` at v0.33.0)
-   — can't turn it off. The architecture demands it.
+2. **Parallel drafting is always on.** `parallel_drafting` is a deprecated
+   no-op from v0.34.0 (≤ v0.33.x forced it true); do not set it.
 3. **Target support**: same rule as EAGLE-3 — the target model class must
    implement `SupportsEagle3` (`model_executor/models/interfaces.py`); there is
    no name allow-list.
-4. **Multimodal targets are allowed.** `DFlashProposer._warn_if_multimodal` is
-   a no-op override (Qwen3.5 support); measure AL on MM traffic before adopting.
+4. **Multimodal targets are allowed** (Qwen3.5 support); measure AL on MM traffic before adopting.
 5. Checkpoint must be a DFlash-trained adapter — not a standard EAGLE-3
    checkpoint. Not many of these exist yet; Qwen3-8B is the reference target.
 6. **`sample_from_anchor` comes from the checkpoint, not the CLI, and defaults
@@ -94,7 +92,7 @@ no Red Hat / Amazon / Snowflake reproduction in release notes as of April
 ```bash
 vllm serve Qwen/Qwen3-8B \
   --attention-backend flash_attn \
-  --speculative-config '{"method":"dflash","model":"<dflash-checkpoint-path>","num_speculative_tokens":15,"parallel_drafting":true}'
+  --speculative-config '{"method":"dflash","model":"<dflash-checkpoint-path>","num_speculative_tokens":15}'
 ```
 
 `num_speculative_tokens: 15` follows the paper. Drop it to 7-11 on higher

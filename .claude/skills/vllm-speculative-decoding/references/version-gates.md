@@ -11,7 +11,7 @@ build older than a row that applies, upgrade before benchmarking or debugging.
 | Unsupported sampling params now **hard-fail** (PR #31982) | **v0.14.0** | Prior versions silently ignored them |
 | Async scheduling default ON with spec-dec (PR #27614, #31998) | **v0.14.0** | Big throughput win; assume on |
 | Spec-dec + structured outputs (PR #33374) | **v0.16.0** | Prior versions: mutually exclusive |
-| Unified parallel drafting (PR #32887) — enables P-EAGLE | **v0.16.0** | Required for `parallel_drafting: true` on EAGLE/draft_model/dflash |
+| Unified parallel drafting (PR #32887) — enables P-EAGLE, PARD | **v0.16.0** | `parallel_drafting: true` on EAGLE/draft_model/dflash. **Removed in v0.34.0:** P-EAGLE and PARD are rejected; `parallel_drafting` is a deprecated no-op (DFlash/DSpark always parallel) |
 | Pipeline parallel + spec-dec on MRV2 (PR #33960) | **v0.17.0** | Docs still say PP-incompatible as of the public page |
 | Spec-dec + disaggregated serving (PR #34529) | **v0.17.0** | Required for NixlConnector + EAGLE-3 |
 | ngram on GPU + async-scheduler compatible (PR #29184) | **v0.18.0** | `ngram_gpu` method enum |
@@ -22,11 +22,11 @@ build older than a row that applies, upgrade before benchmarking or debugging.
 | Configurable acceptance rate for synthetic rejection (PR #38045) | **v0.19.0** | Testing only; not for prod |
 | Spec-dec respects reasoning/**thinking budgets** (PR #34668) | **v0.21.0** | Correct spec-dec on reasoning models — before this, budgets were not honoured |
 | Independent **drafter attention-backend** selection (PR #39930) | **v0.21.0** | Draft and target no longer forced onto one backend |
-| **`custom_class`** method — callable proposer backend (PR #39487) | **v0.22.0** | New base method; bring your own proposer |
+| **`custom_class`** method — callable proposer backend (PR #39487) | **v0.22.0** | Bring your own proposer. **Removed in v0.34.0**, replaced by plugin-registered speculators (#63205, `register_speculative_method`, `speculator_options`) |
 | **peagle** speculators (#41826) and **post-norm EAGLE-3** speculators (#42764) | **v0.22.0** | Wider checkpoint compatibility |
 | **Dynamic SD** (PR #32374) | **v0.24.0** | Adapts speculation depth at runtime; made full-CUDA-graph compatible in v0.25.0 (#45953) |
 | ⚠ **DoS fix: invalid recovered-token reinjection in spec-dec** (PR #44744) | **v0.24.0** | **Remote denial of service.** Listed under Security in the v0.24.0 notes. Anyone running spec-dec on an internet-reachable endpoint should be ≥ v0.24.0 |
-| **TLI — universal spec-dec for heterogeneous vocabularies** (PR #38174) | **v0.25.0** | Target and drafter may have different but *overlapping* vocabularies. **Opt-in:** `"use_heterogeneous_vocab": true`, `method: "draft_model"` only, `draft_sample_method: "greedy"` only |
+| **TLI — universal spec-dec for heterogeneous vocabularies** (PR #38174) | **v0.25.0** | **Removed in v0.34.0** (v0.25.0–v0.33.x only). Target and drafter may have different but *overlapping* vocabularies. **Opt-in:** `"use_heterogeneous_vocab": true`, `method: "draft_model"` only, `draft_sample_method: "greedy"` only |
 | **`kv_cache_dtype` inside `--speculative-config`** (PR #48787) | **v0.26.0** | Drafter KV dtype set independently of the target's `--kv-cache-dtype`. Unset = inherit. Lets a small drafter keep BF16 KV while the target runs FP8 |
 | **Multi-layer MTP speculator on Model Runner V2** (PR #48892) | **v0.27.0** | MTP heads with more than one layer now run under MRV2 |
 | **Quantized DSpark Markov heads** (PR #50424) | **v0.27.1** | `DSparkMarkovHead.markov_w2` accepts `quant_config`; W4A16 (incl. `weight_scale_2`) now loads through normal quantization dispatch. Before this, the Markov head stayed unquantized whatever the checkpoint declared |
@@ -39,7 +39,7 @@ build older than a row that applies, upgrade before benchmarking or debugging.
 | Draft's own `moe_backend` (#54788) and `attention_backend` (#54826) **actually honored on MRV2** | **v0.30.0** | The v0.19.0/v0.21.0 rows above only ever took effect on the legacy V1 speculator (`vllm/v1/spec_decode/`); Model Runner V2 (`vllm/v1/worker/gpu/spec_decode/eagle/utils.py`) silently forced the draft to inherit the target's backend until this fix |
 | **Adaptive verification** opened to every draft-model speculator via an online acceptance estimator (#52228) | **v0.30.0** | `enable_adaptive_verification: true` in `--speculative-config` previously required a DSpark checkpoint with a trained confidence head; now any MRV2 draft-model-based method (eagle3, dflash, dspark without a head; `draft_model` only from v0.31.0, when it moved to MRV2) gets per-position acceptance predicted online from the draft logits. Hard `ValueError` with `use_local_argmax_reduction: true`, LoRA, `pipeline_parallel_size > 1`, or a cudagraph mode without full graphs |
 | Dual-key Gumbel-max watermarking compatible with spec-dec (#56122) | **v0.30.0** | `--watermark-config '{"algorithm":"dual_key_gumbel",...}'` works with probabilistic-sampling, standard-rejection `eagle`/`eagle3`/`mtp`/`dspark`; `dflash` added in **v0.33.0** (#59554), not for DFlash2 / LiLiCorr candidate-head checkpoints. Other algorithms need `"allow_target_only_watermarking": true` (dilutes the signal) |
-| **`draft_model` on Model Runner V2** (#43091) | **v0.31.0** | Default runner for `draft_model` now; at v0.33.0 the MRV2 standalone drafter still captures no CUDA graphs. ⚠ On v0.31.x, `use_heterogeneous_vocab: true` (TLI) also lands on MRV2, which has no vocab mapping → device-side assert at startup. Fix: v0.32.0 (#59541) falls back to V1; on v0.31.x set `VLLM_USE_V2_MODEL_RUNNER=0` |
+| **`draft_model` on Model Runner V2** (#43091) | **v0.31.0** | Default runner for `draft_model` now; the MRV2 standalone drafter captured no CUDA graphs through v0.33.x (v0.34.0: #60989). ⚠ On v0.31.x, `use_heterogeneous_vocab: true` (TLI) also lands on MRV2, which has no vocab mapping → device-side assert at startup. Fix: v0.32.0 (#59541) falls back to V1; on v0.31.x set `VLLM_USE_V2_MODEL_RUNNER=0` |
 | Dense drafter (EAGLE/EAGLE3/`draft_model`) with an EP-enabled MoE target (#56930) | **v0.31.0** | On v0.30.x startup fails with *"Number of experts in the model must be greater than 0 when expert parallelism is enabled"*; the dense draft no longer inherits target EP |
 | **LiLiCorr** drafter (#57934) | **v0.31.0** | Not a new method: a `LiLiCorrDraftModel` checkpoint under `method: "dflash"`, MRV2 only. See `references/dflash.md` |
 | **`ngram` / `ngram_gpu` on Model Runner V2** (#40704) | **v0.32.0** | GPU n-gram speculator with variable-length drafts; before this, n-gram forced the V1 runner |
@@ -52,6 +52,14 @@ build older than a row that applies, upgrade before benchmarking or debugging.
 | Async scheduling kept for `ngram` (and `disable_padded_drafter_batch`) on MRV2 (#62521) | **v0.33.0** | v0.32.x moved `ngram` to MRV2 but still forced async scheduling off for it; the fallbacks are now V1-runner-only |
 | Drafters kept inside their rotary cache on MRV2 (#63251) | **v0.33.0** | Fixes the illegal-memory-access crash when a `dflash` / `dspark` / `mtp` / `draft_model` drafter has a shorter context than the target: the drafter's `max_position_embeddings` is raised where its RoPE type allows, otherwise the engine `max_model_len` is lowered to the drafter's with a warning |
 | MTP: `step5_mtp` type (#61727), Transformers-backend MTP drafts (#61270), Nemotron Parse 3.5 single-step MTP (#61651) | **v0.33.0** | `MTPModelTypes` 27 → 28 entries. See `references/mtp.md` |
+| ⚠ **Model Runner V1 removed** (#63373) | **v0.34.0** | `VLLM_USE_V2_MODEL_RUNNER` ≠ 1 fails startup. Dropped with it: `custom_class`, TLI (`use_heterogeneous_vocab`), `disable_padded_drafter_batch`, P-EAGLE / PARD. 10 built-in methods remain |
+| **`suffix` on a GPU speculator** (#60339) | **v0.34.0** | No `arctic-inference` package; fixed `num_speculative_tokens` slots (all verified); new `suffix_decoding_corpus_tokens`; `suffix_decoding_max_spec_factor` / `_min_token_prob` no-ops. Shared cross-request corpus: see SKILL.md pitfall 6 |
+| Custom speculators: declarative configs + `register_speculative_method` plugin API (#63205) | **v0.34.0** | `custom_method`, `speculator_options` fields |
+| CUDA graphs for the `draft_model` speculator (#60989) | **v0.34.0** | Before: none on MRV2 |
+| Adaptive verification with XPress (#65175) and with `suffix` | **v0.34.0** | `suffix` needs full CUDA graphs and a varlen-decode attention backend |
+| Draft KV cache dtype follows the target (#65198); FP8 KV for DSpark/DFlash drafts (#63841, #64612, #65553) | **v0.34.0** | FP8 target → FP8 draft cache; `kv_cache_dtype` in `--speculative-config` still overrides |
+| `draft_decode_context_parallel_size` | **v0.34.0** | DCP for the draft; DSpark sliding-window MLA drafts under DCP (#63796) |
+| Fixes: DFlash acceptance 0 under FULL CUDA graphs (#64059); offline-mode safetensors ERROR for a Hub-ID draft (#66012); resample race (#66048); acceptance-estimator cancellation (#65229); standalone-draft prefill under FULL graphs (#65804) | **v0.34.0** | Upgrade to clear them |
 
 ## Composability history
 

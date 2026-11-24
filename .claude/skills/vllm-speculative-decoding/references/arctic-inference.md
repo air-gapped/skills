@@ -1,8 +1,11 @@
 # Arctic Inference (Snowflake) — plugin + suffix decoding
 
-Load when deploying suffix decoding (already upstreamed, still requires the
-Arctic pip package) or considering Arctic-only features (LSTM-Speculator,
-SwiftKV, Shift Parallelism) behind the plugin.
+Load when deploying suffix decoding on vLLM ≤ v0.33.x (the Arctic pip package
+is required there; **v0.34.0 needs no package**, see `methods.md` §9) or
+considering Arctic-only features (LSTM-Speculator, SwiftKV, Shift Parallelism)
+behind the plugin. ArcticInference 0.3.0 is the latest release and targets vLLM
+v0.26.0; do not install it on v0.34.0 (it patches vLLM internals, and v0.34.0
+removed the V1 spec-dec modules and the MLP-speculator path).
 
 ## What it is
 
@@ -23,12 +26,13 @@ Repo: <https://github.com/snowflakedb/ArcticInference>
 
 ## Feature surface relevant to spec-dec
 
-### Suffix Decoding — upstream, needs plugin
+### Suffix Decoding — upstream
 
 Suffix decoding was upstreamed via PR #25784 (v0.12, 2025-11-03) as
-`method: "suffix"`. vLLM's proposer is a thin wrapper around Arctic's
-`SuffixDecodingCache` (`vllm/v1/spec_decode/suffix_decoding.py:9-102`), so the
-plugin is still required at runtime (lazy imported; engine throws if missing).
+`method: "suffix"`. On ≤ v0.33.x vLLM's proposer wraps Arctic's
+`SuffixDecodingCache`, so the plugin is required at runtime (lazy imported;
+engine throws if missing). From v0.34.0 (#60339) vLLM has its own GPU
+implementation and never imports Arctic.
 
 Paper: arXiv 2411.04975 (NeurIPS 2025). Project site:
 <https://suffix-decoding.github.io/>.
@@ -76,19 +80,17 @@ enterprise workloads. Orthogonal to spec-dec but stacks.
 Dynamic TP/SP switching based on batch state. Paper arXiv 2507.11830. Claims
 3.4× faster completion, 1.75× faster gen vs vanilla vLLM. Again orthogonal.
 
-## Canonical invocation — suffix decoding
+## Canonical invocation — suffix decoding (≤ v0.33.x)
 
 ```bash
-# Install the plugin
 pip install arctic-inference
-
-# Then just use the upstream method name
 vllm serve <target> \
   --speculative-config '{"method":"suffix","num_speculative_tokens":32,"suffix_decoding_max_spec_factor":1.0,"suffix_decoding_min_token_prob":0.1}'
 ```
 
 `num_speculative_tokens` acts as a ceiling; per-request speculation is dynamic
-based on `suffix_decoding_max_spec_factor × prefix_match_length`.
+based on `suffix_decoding_max_spec_factor × prefix_match_length`. On v0.34.0
+use `{"method":"suffix","num_speculative_tokens":8}` with no package.
 
 ## Air-gap checklist
 
@@ -114,9 +116,8 @@ based on `suffix_decoding_max_spec_factor × prefix_match_length`.
 ## Troubleshooting
 
 - `ImportError: Arctic Inference is required for suffix decoding. Install via
-  pip install arctic-inference==0.1.1` — raised at engine start by
-  `SpeculativeConfig._validate_suffix_decoding` (`config/speculative.py:1726-1731`
-  at v0.33.0). vLLM only checks that `arctic_inference` imports; the `==0.1.1`
+  pip install arctic-inference==0.1.1` — ≤ v0.33.x only, raised at engine start
+  by `SpeculativeConfig._validate_suffix_decoding`. vLLM only checks that `arctic_inference` imports; the `==0.1.1`
   pin is message text. Pick the ArcticInference release whose notes name your
   vLLM base.
 - Low AL on suffix method for a workload expected to benefit → inspect
