@@ -41,6 +41,19 @@ unasked.
 | Unmaintained port | a port of another tool's workflow with a handful of uses and no recent change |
 | Name collision | `NAME~` flag: another skill's name contains this one's, and the wrong one gets invoked |
 
+**Park instead of retiring** when the subject still exists but no known user
+needs it kept current: the skill stays published and automatic, and is not
+freshened on schedule. Write, above the stamps in `references/sources.md`:
+
+    Parked: <date> — <why>. Freshen only when <trigger>. Review: <date> — <retire or unpark condition>.
+
+Put a one-paragraph *Not actively maintained* notice at the top of the
+SKILL.md body (content date, what to re-check upstream before acting, the
+maintained alternative) and the same short clause at the start of the
+description. `staleness-report.py` lists the skill as parked, ranks it last
+and warns once the review date has passed. Unpark: delete the line and the
+notice, then freshen.
+
 ### Step 1: how is it invoked?
 
 | Decision | When | Frontmatter |

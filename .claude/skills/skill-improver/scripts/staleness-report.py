@@ -63,6 +63,10 @@ from pathlib import Path
 
 DATE_RE = re.compile(r"\b(\d{4}-\d{2}-\d{2})\b")
 INLINE_LV_RE = re.compile(r"Last verified:?\s*\**(\d{4}-\d{2}-\d{2})", re.I)
+# `Parked: YYYY-MM-DD ... Review: YYYY-MM-DD` in sources.md: the skill is
+# kept but no longer freshened on schedule, so it is never the next target.
+PARKED_RE = re.compile(r"^Parked:\s*(\d{4}-\d{2}-\d{2})", re.M)
+REVIEW_RE = re.compile(r"\bReview:\s*(\d{4}-\d{2}-\d{2})")
 STAMP_RE = re.compile(r"^\*{0,2}Freshened:?\*{0,2}\s*(\d{4}-\d{2}-\d{2})", re.I | re.M)
 
 
@@ -222,6 +226,16 @@ def scan_skill(skill_md, today):
             row["cap"], row["age"] = dim9_cap(oldest, dated, counted, today)
     else:
         row.update(oldest=None, rows="-", cap="6", age=None)
+    row["parked"] = row["review"] = None
+    if src.is_file():
+        text = src.read_text(errors="replace")
+        m = PARKED_RE.search(text)
+        if m:
+            row["parked"] = m.group(1)
+            line = text[m.start() : text.find("\n", m.start())]
+            r = REVIEW_RE.search(line)
+            row["review"] = r.group(1) if r else None
+            row["cap"] = "-"  # parked: age no longer caps or ranks it
     backlog = d / "references" / "improvement-backlog.md"
     dates = (
         DATE_RE.findall(backlog.read_text(errors="replace"))
@@ -293,7 +307,14 @@ def main():
     # Stalest first: hard caps (5, then 6) ahead of soft (7) ahead of fresh,
     # oldest date first within each bucket.
     cap_rank = {"5": 0, "6": 1, "7": 2, "-": 3}
-    rows.sort(key=lambda r: (cap_rank[r["cap"]], r["oldest"] or "9999", r["skill"]))
+    rows.sort(
+        key=lambda r: (
+            bool(r["parked"]),
+            cap_rank[r["cap"]],
+            r["oldest"] or "9999",
+            r["skill"],
+        )
+    )
 
     if not rows:
         # An empty table reads as "nothing is stale". A mistyped root or a glob
@@ -318,6 +339,13 @@ def main():
             f"{r['pass'] or '-':<10}  {r['evals']:<5}  "
             f"{fmt_cases(r['cases']):>5}  "
             f"{'-' if r['open'] is None else r['open']:>4}  {r['skill']}"
+            + (f"  (parked {r['parked']})" if r["parked"] else "")
+        )
+    due = [r for r in rows if r["review"] and r["review"] <= today.isoformat()]
+    for r in due:
+        print(
+            f"! {r['skill']}: parked since {r['parked']}, review date "
+            f"{r['review']} reached: decide retire or unpark"
         )
     thin = [r for r in rows if r.get("cases") and r["cases"] < RESOLVABLE_CASES]
     if thin:

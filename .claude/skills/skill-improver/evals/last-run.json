@@ -1,8 +1,9 @@
 {
-  "date": "2026-11-23",
-  "content_hash": "875f751c0492c120",
+  "date": "2026-11-24",
+  "content_hash": "4fc52a2f58a51b8d",
   "cases": [
-    "03-trigger-fix-empirically"
+    "08-freshen-pass-plan",
+    "11-which-skills-are-stale"
   ],
   "runs_per_case": 3,
   "model": "sonnet",
@@ -11,11 +12,12 @@
   ],
   "judge_model": "haiku",
   "judges": {
-    "03-trigger-fix-empirically": "haiku"
+    "08-freshen-pass-plan": "sonnet",
+    "11-which-skills-are-stale": "sonnet"
   },
-  "with_skill": 1.0,
-  "without_skill": 0.7333,
-  "without_from": "stored",
+  "with_skill": 0.8333,
+  "without_skill": 0.6444,
+  "without_from": "this run",
   "baselines": {
     "03-trigger-fix-empirically": {
       "score": 0.7333,
@@ -27,13 +29,22 @@
       "date": "2026-11-23"
     },
     "08-freshen-pass-plan": {
-      "score": 0.5333,
+      "score": 0.7333,
       "id": "b52be9af3c56",
       "judge": "sonnet",
       "models": [
         "claude-sonnet-5-5"
       ],
-      "date": "2026-11-23"
+      "date": "2026-11-24"
+    },
+    "11-which-skills-are-stale": {
+      "score": 0.5556,
+      "id": "899fe69b1ef9",
+      "judge": "sonnet",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-24"
     }
   }
 }

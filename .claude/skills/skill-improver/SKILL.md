@@ -52,6 +52,8 @@ user-reported miss as a should-trigger query), `--against <git-ref>` (outcome).
    --date=short -- <skill-dir> | head -20`; `references/improvement-backlog.md`
    §Open (has a named blocker arrived?); `disable-model-invocation` and
    `references/trigger-evals.json`; how fast the subject moves.
+   A `Parked:` line in `sources.md` means no step is due: skip the skill
+   unless that line's freshen trigger has fired or the user asks for it.
 2. **Decide each step:**
 
    | Step | Run when |
