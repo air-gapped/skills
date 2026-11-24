@@ -78,13 +78,13 @@ vllm bench serve \
 - Plot throughput vs P99 latency — the **knee of the curve is the usable operating point**. A config that shifts the knee right is a win.
 - Same seeds, same `--num-prompts` (≥500), same dataset on both sides.
 - Run A and B back-to-back on the same hardware in the same session to avoid thermal/neighbor noise.
-- **Done when** every rate has an output JSON on both sides with `failed == 0` (re-run any rate with failures; through v0.33.0 also confirm the server log shows no stream errors — `troubleshooting.md`), each side's knee is named as the highest rate whose P99 TTFT and P99 ITL stay within SLO, and the report lists rate, achieved RPS, P50/P99 TTFT and ITL, and tok/s for every rate on both sides.
+- **Done when** every rate has an output JSON on both sides with `failed == 0` (re-run any rate with failures; on a ≤ v0.33.0 client also confirm the server log shows no stream errors — `troubleshooting.md`), each side's knee is named as the highest rate whose P99 TTFT and P99 ITL stay within SLO, and the report lists rate, achieved RPS, P50/P99 TTFT and ITL, and tok/s for every rate on both sides.
 
 See `scripts/bench-sweep.sh` for a parametrized sweep runner that emits one JSON file per rate for plotting and exits 2 when any rate has failed requests, no P99 fields or no output file. Every rate replays the same seeded prompts, so it resets the server's prefix/MM/encoder caches before each rate; start the server with `VLLM_SERVER_DEV_MODE=1` or every rate after the first runs on a warm prefix cache.
 
 ## Critical pitfalls
 
-1. **No warmup.** First 30–60 s hit cold CUDA graphs / torch.compile caches. `vllm bench serve` does not auto-warm (v0.11–v0.33; `--num-warmups` defaults to `0`) — pre-flight the server with a few requests, or set `--num-prompts` large enough (≥500) to amortize. `latency` does warm up via `--num-iters-warmup` (default 10).
+1. **No warmup.** First 30–60 s hit cold CUDA graphs / torch.compile caches. `vllm bench serve` does not auto-warm (v0.11–v0.34; `--num-warmups` defaults to `0`) — pre-flight the server with a few requests, or set `--num-prompts` large enough (≥500) to amortize. `latency` does warm up via `--num-iters-warmup` (default 10).
 2. **Wrong tokenizer.** `--tokenizer` defaults to `--model`, but if they differ (e.g., served via a local path while benching with a HF ID), every token count in the output is fiction. Always specify explicitly.
 3. **`--dataset-name random` as a proxy for production traffic.** Random has zero prefix structure, overstates prefill work, understates prefix-cache hit rate, makes chunked prefill look worse than reality. For anything involving caching claims, use `custom` with a real-traffic JSONL, or `prefix_repetition` for synthetic prefix-heavy tests.
 4. **`--request-rate inf` alone.** Measures saturation throughput, not the latency regime users experience. For serving comparisons run the Methodology B request-rate sweep (a `--max-concurrency` sweep only for closed-loop client pools).
@@ -93,7 +93,7 @@ See `scripts/bench-sweep.sh` for a parametrized sweep runner that emits one JSON
 7. **Noisy neighbor.** Shared GPU, unrelated container load, MIG partition changes mid-run — check `nvidia-smi dmon` for unrelated activity before trusting numbers.
 8. **`latency` subcommand disables prefix caching by default** (to keep numbers clean). If benchmarking prefix-cache behavior, use `serve` with the `prefix_repetition` dataset.
 9. **Do not compare streaming TTFT/E2EL across v0.29 → v0.30.0 — re-baseline.** v0.30.0 fixed streaming TTFT timing and stopped counting zero-chunk streams as successes with `ttft=0`, so older runs read low (`troubleshooting.md`).
-10. **Chat backend + client-templated dataset = chat template applied twice (through v0.33.0).** `custom`, `hf`, `spec_bench` and `speed_bench` render the chat template client-side; with `--backend openai-chat` or `openai-responses` (`vllm-chat` in `bench throughput`) the server applies it again — nested templates, inflated input tokens. Pass `--skip-chat-template` with those backends.
+10. **Chat backend + client-templated dataset = chat template applied twice (client ≤ v0.33.0).** `custom`, `hf`, `spec_bench` and `speed_bench` render the chat template client-side; with `--backend openai-chat` or `openai-responses` (`vllm-chat` in `bench throughput`) the server applies it again — nested templates, inflated input tokens. Pass `--skip-chat-template` with those backends; v0.34.0 skips the client-side template on them by itself.
 
 For the full flag reference for each subcommand, see `references/commands.md`. For the dataset catalog and when to use each, see `references/datasets.md`.
 

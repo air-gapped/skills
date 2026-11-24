@@ -50,8 +50,8 @@ Use this when the China-based mirror is faster than an internal mirror, or when 
 export HF_HOME=/staging/hf-cache
 hf download <model-id>
 hf download --repo-type dataset <dataset-id>
-# (`huggingface-cli` still runs but is the deprecated shim —
-#  huggingface_hub maps it to `cli.deprecated_cli:main`; `hf` is the current entrypoint.)
+# (`huggingface-cli` is gone from huggingface_hub 2.0.0, which vLLM v0.34.0 requires;
+#  on 1.x it only runs as a deprecated shim. Use `hf`.)
 
 # rsync /staging/hf-cache into the enclave at /data/hf-cache
 
@@ -71,10 +71,13 @@ vllm bench serve ...
 
   | vLLM | `transformers` | `tokenizers` |
   |---|---|---|
+  | v0.34.0 | `>= 5.16.1, < 5.23.0` | `>= 0.23.3` |
   | v0.33.0 | `>= 5.16.1, < 5.21.0` | `>= 0.23.2` |
   | v0.32.0 | `>= 5.16.1, < 5.20.0` | `>= 0.23.2` |
   | v0.31.0 | `>= 5.10.4, < 5.18.0` | `>= 0.21.1` |
   | v0.30.0 | `>= 5.10.4` | `>= 0.21.1` |
+
+  `huggingface_hub`: `>= 2.0.0` on v0.34.0, `>= 1.31.0` on v0.33.0.
 
 ## Dataset sourcing air-gapped
 
@@ -100,7 +103,7 @@ Pattern 1 (hf-mirror.com) does NOT proxy auth for gated models. Workarounds:
 For enterprise air-gapped setups:
 
 - **Option A:** nginx reverse-proxy with aggressive caching, backed by a periodic rsync from a connected DMZ host. `HF_ENDPOINT` points at the nginx URL.
-- **Option B:** MinIO/S3 as the underlying storage, with `hf_transfer` enabled. Requires custom HF Hub patches or the `hf-transfer` library pointing at S3-compatible endpoints.
+- **Option B:** MinIO/S3 as the underlying storage behind a service that speaks the HF Hub API. `huggingface_hub` ≥ 1.31 (vLLM ≥ v0.33.0) ignores `HF_HUB_ENABLE_HF_TRANSFER`, so do not plan the transfer path around `hf_transfer`.
 - **Option C:** JuiceFS + S3 on a shared PVC — models live on the JuiceFS mount, `HF_HOME` points at `/mnt/juicefs/hf-cache`. K8s-native, works well with vLLM deployments that already use PVC-mounted model caches.
 
 **For ongoing operation:** a connected DMZ host runs a nightly `hf download` of the models the fleet uses, writes to the shared storage, air-gapped cluster consumes read-only. This is the pattern most enterprise vLLM deployments end up with.

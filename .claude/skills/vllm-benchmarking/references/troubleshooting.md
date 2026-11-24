@@ -37,15 +37,15 @@ The completions, chat and audio clients stripped whitespace from every transport
 
 ### `failed == 0` but the server logged errors during the run (client ≤ v0.33.0)
 
-Through v0.33.0 a completions, chat or audio stream that delivered at least one token and then ended in a server `error` event counts as a success. After an engine crash or restart mid-run the report overstates completed requests and output throughput and understates E2EL. Check the server log over the run window before accepting `failed == 0`; discard the run on any stream error. Fixed on `main` (#57519), in no release yet.
+Through v0.33.0 a completions, chat or audio stream that delivered at least one token and then ended in a server `error` event counts as a success. After an engine crash or restart mid-run the report overstates completed requests and output throughput and understates E2EL. Check the server log over the run window before accepting `failed == 0`; discard the run on any stream error. Fixed in v0.34.0 (#57519): the stream counts as failed and `errors[i]` carries the server's error JSON.
 
-### TTFT much higher on a reasoning model, v0.33.0 client, `--backend openai-chat`
+### TTFT much higher on a reasoning model, client ≤ v0.33.0, `--backend openai-chat`
 
-The v0.33.0 chat client counts `delta.reasoning` but not `delta.reasoning_content`. Against a server that streams reasoning as `reasoning_content` (SGLang and other non-vLLM servers; current vLLM servers send `reasoning`), TTFT runs to the first *answer* token and a reasoning-only response fails with `Never received a valid chunk to calculate TTFT.` Fixed on `main` after v0.33.0 (#64937), in no release yet. Bench such a server with `aiperf` or a ≤v0.32 client, and never set its v0.33.0-client TTFT beside a vLLM number.
+The v0.33.0 chat client counts `delta.reasoning` but not `delta.reasoning_content`. Against a server that streams reasoning as `reasoning_content` (SGLang and other non-vLLM servers; current vLLM servers send `reasoning`), TTFT runs to the first *answer* token and a reasoning-only response fails with `Never received a valid chunk to calculate TTFT.` Fixed in v0.34.0 (#64937), which counts `reasoning_content` too. Bench such a server with a v0.34.0+ client, `aiperf` or a ≤v0.32 client, and never set its v0.33.0-client TTFT beside a vLLM number.
 
 ### Results look suspiciously fast
 
-**Cold-cache contamination with `--num-prompts` too small.** `vllm bench serve` does not auto-warm (v0.11–v0.33; `--num-warmups` defaults to `0`). A 100-prompt run on a freshly-started server reports numbers dominated by the first cold 30 s, which can look *better* than steady state if the burst fits in KV before saturation.
+**Cold-cache contamination with `--num-prompts` too small.** `vllm bench serve` does not auto-warm (v0.11–v0.34; `--num-warmups` defaults to `0`). A 100-prompt run on a freshly-started server reports numbers dominated by the first cold 30 s, which can look *better* than steady state if the burst fits in KV before saturation.
 
 Fix: either set `--num-warmups 50` or bump `--num-prompts` to ≥500 and visually check the first 10 ms of saved per-request latencies (via `--save-detailed`) aren't abnormally low.
 

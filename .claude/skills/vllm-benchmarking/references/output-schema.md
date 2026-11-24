@@ -1,6 +1,6 @@
 # `--output-json` schema
 
-Field layout as of `vllm/benchmarks/serve.py` at tag **v0.33.0**.
+Field layout as of `vllm/benchmarks/serve.py` at tag **v0.34.0**.
 
 Load when parsing benchmark output JSON, building dashboards, or diffing A/B runs.
 
@@ -108,7 +108,7 @@ server_ttfts        list[float | null]   # seconds from scheduling to first toke
 
 ## Stable vs version-sensitive fields
 
-**Stable across v0.11 → v0.33:**
+**Stable across v0.11 → v0.34:**
 - `request_throughput`, `output_throughput`, `total_token_throughput`
 - `mean_<metric>_ms`, `median_<metric>_ms`, `std_<metric>_ms`, `p<N>_<metric>_ms`
 - `num_prompts`, `request_rate`, `max_concurrency`
@@ -128,4 +128,4 @@ server_ttfts        list[float | null]   # seconds from scheduling to first toke
 rps = d.get("request_throughput", d.get("requests_per_second", 0))  # old name was requests_per_second pre-v0.10
 ```
 
-Source of truth: `vllm/benchmarks/serve.py` at v0.33.0 (2460 lines) — `BenchmarkMetrics` dataclass **L342** (`EmbedBenchmarkMetrics` L377), JSON assembly starting at `result_json["date"]` **L2306**. Line refs drift every release — **resolve by symbol, not by line.**
+Source of truth: `vllm/benchmarks/serve.py` at v0.34.0 — the `BenchmarkMetrics` dataclass (`EmbedBenchmarkMetrics` follows it) and the JSON assembly starting at `result_json["date"]`. **Resolve by symbol, not by line.**

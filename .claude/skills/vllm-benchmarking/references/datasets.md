@@ -8,7 +8,7 @@ Load when picking `--dataset-name` for a specific test. What each tests, when to
 `create_txt_slices_dataset.py`. Any tooling or citation pointing at the old flat
 path will 404.
 
-**The complete `--dataset-name` value set at v0.33.0** (argparse `choices` in
+**The complete `--dataset-name` value set at v0.34.0** (argparse `choices` in
 `add_dataset_parser`, `vllm/benchmarks/datasets/datasets.py`): `sharegpt`, `burstgpt`, `random`, `random-mm`, `random-rerank`, `hf`,
 `custom`, `custom_audio`, `custom_image`, `prefix_repetition`, `spec_bench`,
 `speed_bench`, `timed_trace`. `vllm bench serve` defaults to `random`.
@@ -33,7 +33,7 @@ is via `--bfcl-categories`.
 
 - **`sharegpt`** — real conversational data (ShareGPT dump). Use for: "realistic average prompt" when prod replay isn't available. Requires `--dataset-path` pointing at a JSON file. **Air-gapped:** pre-download `ShareGPT_V3_unfiltered_cleaned_split.json` on a connected host, rsync into the enclave.
 - **`burstgpt`** — variable-length distributions mimicking real burst patterns. Flags: `--burstgpt-input-len`, `--burstgpt-output-len`.
-- **`custom`** — arbitrary JSONL file. One prompt per line with `{"prompt": "..."}` schema, optional `"output_tokens"` field. **Best for production A/B** — capture real prod prompts, replay them. If `--output-len` is unset or `-1`, the `output_tokens` field per row is mandatory. With a chat backend add `--skip-chat-template` (SKILL.md pitfall 10). Through v0.33.0 a number-shaped prompt (`"00123"`, `"1e5"`) is loaded as a number, not the string in the file — drop or pad such rows in a replay file (fixed on `main`, #65083, unreleased).
+- **`custom`** — arbitrary JSONL file. One prompt per line with `{"prompt": "..."}` schema, optional `"output_tokens"` field. **Best for production A/B** — capture real prod prompts, replay them. If `--output-len` is unset or `-1`, the `output_tokens` field per row is mandatory. With a chat backend add `--skip-chat-template` on a ≤ v0.33.0 client (SKILL.md pitfall 10; automatic from v0.34.0). Through v0.33.0 a number-shaped prompt (`"00123"`, `"1e5"`) is loaded as a number, not the string in the file — drop or pad such rows in a replay file (fixed in v0.34.0, #65083).
 - **`custom_audio`** / **`custom_image`** — multimodal variants of `custom` (in docs dataset table, verified 2026-05-28). Local JSONL referencing audio/image inputs (`audio_data.jsonl` / `image_data.jsonl`). Use to replay real multimodal prod traffic against ASR / VLM endpoints; always local, no network.
 
 ## HuggingFace datasets (`hf`)
