@@ -41,13 +41,25 @@ the upstream constraints that shape the answer.
 > holds ~0.65 GiB), so it runs out of CUDA memory under saturating load,
 > sooner with EAGLE, worst on large models on small cards. v0.29.0 fixes the
 > reservation ([#53306](https://github.com/vllm-project/vllm/pull/53306)).
-> #50159 is still open with no re-test on a fixed release: after an engine
-> upgrade, run a saturating-load test at the chosen
-> `--gpu-memory-utilization`. If it OOMs, or on v0.26.0–v0.28.x, pick one:
+> #50159 is still open with no re-test on a fixed release: on v0.29.0–v0.33.0,
+> run a saturating-load test at the chosen `--gpu-memory-utilization` after an
+> engine upgrade. If it OOMs, or on v0.26.0–v0.28.x, pick one:
 > - leave ≥0.5 GiB/GPU more margin (lower `--gpu-memory-utilization` by
 >   ~0.01 on 80 GB cards);
-> - `VLLM_USE_V2_MODEL_RUNNER=0` to force MRv1 (present through v0.33.0);
+> - `VLLM_USE_V2_MODEL_RUNNER=0` to force MRv1 (v0.26.0–v0.33.0 only);
 > - `--enforce-eager` (removes the gap, costs decode speed).
+>
+> **v0.34.0+: Model Runner V1 is removed.** Unset `VLLM_USE_V2_MODEL_RUNNER`:
+> any value but `1` fails at startup. The KV cache is sized after CUDA-graph
+> capture and warmup (extensible KV cache, on by default), so
+> `--gpu-memory-utilization` is no longer the OOM lever. Delete the flag from
+> the recipes below unless other processes share the GPU: unset resolves to
+> 1.0, and an explicit value caps what the KV cache can take. The 0.94 cliff,
+> the 0.97 capture OOM and the boot ceiling below were measured with the
+> estimate-based sizing and hold for v0.33.0 and older, or with
+> `--no-enable-extensible-kv-cache`. Default `--block-size` is now 64 (was 16):
+> leave it unset, since the FP8-KV FA4 path for the 512-dim layers on H100/H200
+> needs a block size divisible by 64.
 >
 > [#50477](https://github.com/vllm-project/vllm/issues/50477) (named /
 > `required` `tool_choice` unenforced, fix PR #51524 open) affects every
@@ -67,7 +79,8 @@ the upstream constraints that shape the answer.
      `Using per-layer FA3/FA4 selection for FP8 KV cache on SM90` — causal
      text runs FA3 (256) / FA4 (512); multimodal-prefix requests run
      TRITON_ATTN (#53175). A different kernel path: re-bench, do not reuse
-     these numbers. The Triton path gained the multimodal-prefix
+     these numbers. v0.34.0 runs the 512-dim layers with FA4 FP8 MMA (#60372)
+     — another path change. The Triton path gained the multimodal-prefix
      sliding-window fix in v0.30.0 (#53147, up to 3-4x E2E) and the FP8-KV
      softmax-underflow fix in v0.32.0 (#60156) — automatic, no flag.
 2. **Throughput plateaus at batch=64 on H100, batch=128 on H200.** This is
@@ -77,7 +90,7 @@ the upstream constraints that shape the answer.
    `references/hbm-saturation.md` for the source-code investigation
    (`get_batch_defaults()` in vllm/engine/arg_utils.py is the only
    hardware-aware batch default in the engine; H100 and H200 take the
-   *same* code path through v0.33.0). **Don't set
+   *same* code path through v0.34.0). **Don't set
    `max_num_seqs` above the bandwidth knee** — it just inflates TPOT and
    TTFT without moving throughput.
 3. **Serve Google's canonical chat template via `--chat-template`; never the
@@ -209,7 +222,7 @@ this since [#45852](https://github.com/vllm-project/vllm/pull/45852)
 (fixing #45834, in v0.24.0+): `adjust_initial_state_from_prompt()`
 reverse-scans the prompt token ids and pre-initialises the reasoning
 parser when the prompt ends inside an open `<|channel>` block
-(`vllm/parser/gemma4.py`; line 561 at v0.33.0). Measured on v0.25.1 (temp 0,
+(`vllm/parser/gemma4.py`). Measured on v0.25.1 (temp 0,
 stream + non-stream, with and without tool schemas in the request):
 **no CoT leaks into `content`**.
 
@@ -253,7 +266,7 @@ arguments are byte-identical on both sides of the fix — only timing changes.
 
 ### Named / `required` tool_choice is silently unenforced on stock vLLM
 
-From v0.24.0 through v0.33.0 the gemma4 tool parser sets
+From v0.24.0 through v0.34.0 the gemma4 tool parser sets
 `supports_required_and_named = False`
 (`vllm/tool_parsers/gemma4_engine_tool_parser.py`): named and `required`
 `tool_choice` get **no grammar** and are parsed as `auto`. A model that
@@ -277,7 +290,9 @@ random, 50–72% on MT-Bench). A collapsed number has two known causes:
   (~0.45/draft at K=3 on Russian). Run without spec-decode or use a
   drafter trained on the traffic's language.
 - **TP ranks disagree.** [#50158](https://github.com/vllm-project/vllm/issues/50158)
-  (open; fix PR #50280 open): embed_tokens sharing is decided per-rank.
+  (open): embed_tokens sharing is decided per-rank. Its only fix PR, #50280,
+  patches the MRv1 proposer that v0.34.0 removed, and the v0.34.0 EAGLE
+  code still compares per-rank.
 
 ### A trailing `<turn|>` can leak into streamed output (≤ v0.28.x)
 
@@ -316,16 +331,18 @@ restart-1 as a config failure and drop the offending knob (max_model_len,
 util, max_num_seqs). The cliff-edge boot at the previous pitfall is
 exactly this scenario.
 
-### `parallel_drafting:true` (P-EAGLE) needs a **prepared** checkpoint
+### `parallel_drafting:true` (P-EAGLE) is not for the EAGLE3 checkpoint
 
 `RedHatAI/gemma-4-31B-it-speculator.eagle3` is *vanilla* EAGLE3, no
-P-EAGLE prep tokens. `vllm/v1/spec_decode/llm_base_proposer.py` requires
-one of five keys in the draft `config.json`, checked in this order on
-v0.30.0–v0.33.0: `dflash_config.mask_token_id`, `mask_token_id`,
-`dspark_noise_token_id`, `pard_token`, `ptd_token_id` (grep
-`parallel_drafting_token_id` rather than a line number). Don't pass
-`parallel_drafting:true` with the vanilla checkpoint — engine init fails
-with a `ValueError` naming those keys.
+P-EAGLE prep tokens. Don't pass `parallel_drafting:true` with it on v0.30.0
+or newer — engine init fails with a `ValueError`:
+- v0.34.0+: `parallel_drafting is only supported by the dflash and dspark
+  methods`. The option is deprecated with no effect (`dflash` and `dspark`
+  always draft in parallel).
+- v0.30.0–v0.33.0: the draft `config.json` must carry one of five keys,
+  checked in this order: `dflash_config.mask_token_id`, `mask_token_id`,
+  `dspark_noise_token_id`, `pard_token`, `ptd_token_id`; the error names
+  them (grep `parallel_drafting_token_id`).
 
 ### MTP (`gemma-4-31B-it-assistant`) — 0% acceptance on quantized targets
 
@@ -388,6 +405,18 @@ Leave it off on v0.27.0–v0.32.0; enable it only on v0.33.0+.
 | Wrong embeddings (graph output ≠ eager) for video and for batches of 70- or 140-token images | v0.33.0 (#61365) |
 | Non-default `--mm-processor-kwargs.max_soft_tokens`: `RuntimeError` size mismatch in `pad_pixel_values` on the first image | v0.33.0 ([#60687](https://github.com/vllm-project/vllm/pull/60687)) |
 
+On v0.34.0 a batch above `encoder_cudagraph_max_token_budget` (default 5120
+tokens) runs eagerly instead of replaying a graph; set
+`encoder_cudagraph_token_budgets` to cover larger batches.
+
+### Online FP8 (`--quantization fp8`) crashes the engine on the first image or video before v0.34.0
+
+With `--quantization fp8`, an image request to Gemma 4 returns HTTP 500 and
+kills the engine core on v0.33.0 and older: the vision patch embedder casts
+pixels to the FP8 storage dtype of `input_proj`. Video enabled under
+`--enforce-eager` crashes at engine start for the same reason. Fixed by
+[#64168](https://github.com/vllm-project/vllm/pull/64168) in v0.34.0. On older
+engines keep image and video requests off an online-FP8 deployment.
 ## Stock parsers vs an out-of-tree Rust parser plugin
 
 **Use the stock `gemma4` reasoning and tool parsers on vLLM ≥ 0.24.0** unless

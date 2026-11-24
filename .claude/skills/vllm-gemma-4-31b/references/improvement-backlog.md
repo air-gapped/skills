@@ -27,10 +27,12 @@ and the 0.94 util cliff.
 **Finding:** every figure is a v0.20.0 observation on the all-Triton path.
 From v0.31.0, H100 with `--kv-cache-dtype fp8` runs per-layer FA3/FA4 (fact
 #1); from v0.32.0 the WNA16 kernel on SM90 is Humming; from v0.29.0 MRv2
-reserves CUDA-graph memory, which moves the util cliff.
+reserves CUDA-graph memory, which moves the util cliff; v0.34.0 sizes the KV
+cache after CUDA-graph capture (extensible KV cache, no util cliff to find),
+defaults the block size to 64 and runs the 512-dim layers with FA4 FP8 MMA.
 
 **Blocked on:** a 2× H100 80GB run of the `bench-numbers.md` phases on
-v0.33.0 or newer. No H100 is reachable (checked 2026-11-09); renting is a
+v0.34.0 or newer. No H100 is reachable (checked 2026-11-09); renting is a
 spend decision. With the run, replace the tables and re-derive the TP
 decision guide and the util cliff.
 
