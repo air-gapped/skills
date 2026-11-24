@@ -1,17 +1,40 @@
-# Upgrading a deployment through v0.33.0
+# Upgrading a deployment through v0.34.0
 
-Upstream is at **v0.33.0** (2026-11-02). Changes since v0.28.0 that affect a
+Upstream is at **v0.34.0** (2026-11-16). Changes since v0.28.0 that affect a
 deployment manifest or its rollout plan:
 
-- **No CUDA 12.9 image at v0.33.0** (#62575): a manifest pinned to a `-cu129` or
-  `-ubuntu2404` tag has no v0.33.0 tag to roll to and fails with
+- **Leave `--gpu-memory-utilization` unset** (#56492, v0.34.0). The KV cache is
+  sized from the memory actually free after warmup (extensible KV cache, default
+  on CUDA and ROCm) and the unset value resolves to 1.0. Set it only when
+  something else shares the GPU, e.g. two engines on one device. Opt out of the
+  sizing with `--no-enable-extensible-kv-cache`; the unset default is then 0.92.
+  The feature turns itself off for some KV connectors (a connector that shares
+  the cache over legacy CUDA IPC, such as LMCache MP, and NIXL, Mooncake or
+  MoRI-IO on ROCm). Remove inherited `0.85`/`0.9` values from manifests.
+- **Default `--block-size` is 64** (was 16; #63231, v0.34.0). ROCm paged
+  attention keeps 16 and an explicit `--block-size` wins. Pass `--block-size 16` to
+  keep the old layout (e.g. while prefill and decode pools run different tags).
+- **Model Runner V1 is removed** (#63373, v0.34.0). `VLLM_USE_V2_MODEL_RUNNER`
+  set to anything but `1` aborts startup (`1` only logs that it is redundant);
+  delete it from manifests. Features that fell back to V1 (e.g. `--enable-dbo`)
+  now run on V2.
+- **A removed env var fails or does nothing.** `VLLM_MARLIN_INPUT_DTYPE` aborts
+  startup (use `--quantization humming` with `VLLM_HUMMING_INPUT_QUANT_CONFIG`).
+  Any other unknown `VLLM_*` variable, such as the Ray and scale-out names below,
+  only logs `Unknown vLLM environment variable detected`.
+- **No `-rocm72` images from v0.34.0** (#61939): ROCm images are ROCm 10.0 only
+  (`vllm/vllm-openai-rocm:v0.34.0`, alias `vllm/vllm:v0.34.0-rocm`).
+- **`huggingface_hub >= 2.0.0`** (with `tokenizers >= 0.23.3`) from v0.34.0
+  (#64779): a derived image that pins `huggingface_hub<2` conflicts with it.
+- **No CUDA 12.9 image from v0.33.0** (#62575): a manifest pinned to a `-cu129` or
+  `-ubuntu2404` tag has no v0.33.0 or v0.34.0 tag to roll to and fails with
   `ImagePullBackOff`. Switch to the plain tag once the node driver supports
   CUDA 13.0; otherwise hold at `v0.32.0-cu129`.
 - **Ray tuning env vars are removed** (#61712, #62228, v0.33.0):
   `VLLM_USE_RAY_COMPILED_DAG_CHANNEL_TYPE`, `VLLM_USE_RAY_COMPILED_DAG_OVERLAP_COMM`,
   `VLLM_USE_RAY_WRAPPED_PP_COMM` and `VLLM_USE_RAY_V2_EXECUTOR_BACKEND` went with
-  the legacy compiled-graph executor. A manifest still setting them silently
-  does nothing; `--distributed-executor-backend ray` always runs `RayExecutorV2`.
+  the legacy compiled-graph executor. A manifest still setting them has no
+  effect; `--distributed-executor-backend ray` always runs `RayExecutorV2`.
 - **`NixlConnector` requires NIXL ≥ 1.5** from v0.33.0 — `references/disagg.md`.
 - **CORS is closed by default** (#61009, v0.32.0): `--allowed-origins` now
   defaults to `[]`, so a browser front end calling vLLM directly gets CORS
@@ -25,7 +48,7 @@ deployment manifest or its rollout plan:
 - **Scale-out endpoints (`/render`, `/derender`, `/inference/v1/generate`) are
   opt-in on plain `vllm serve`.** Pass `--enable-scale-out`; the old
   `VLLM_ENABLE_SCALE_OUT_ENDPOINTS` env var is removed, so a manifest still
-  setting it silently does nothing (#54579, #55176, v0.30.0). `vllm launch
+  setting it has no effect (#54579, #55176, v0.30.0). `vllm launch
   render` and `vllm serve --tokens-only` still register their endpoints
   unconditionally.
 - **`python -m vllm.entrypoints.grpc_server` is deprecated** in favour of
@@ -39,14 +62,6 @@ deployment manifest or its rollout plan:
 - **`python -m vllm.entrypoints.openai.api_server` is deprecated** in favour of
   `vllm serve` (#52131, v0.29.0). If a container `command:` still spells the
   module form, change it now rather than on the release that removes it.
-- **Model Runner V2 is the default for all models** (#53183, v0.29.0). MRV1 is
-  deprecated but **still ships in v0.33.0** despite the earlier v0.32 removal
-  target, and vLLM still falls back to it for features MRV2 does not cover yet
-  (log line: `Model Runner V2 does not yet support …; using the V1 model runner
-  instead`; e.g. `--enable-dbo` unless `VLLM_USE_V2_MODEL_RUNNER=1`). v0.32.0
-  removed the model-specific ROCm MRV1 exceptions (#56360). A fleet can be split
-  across both runners without anyone choosing that; pin `VLLM_USE_V2_MODEL_RUNNER`
-  if it matters.
 - **FlashInfer all-reduce is on by default** for TP CUDA groups (#52998,
   v0.29.0). Opt out with `VLLM_ALLREDUCE_USE_FLASHINFER=0` to keep collective
   behaviour pinned across the upgrade.

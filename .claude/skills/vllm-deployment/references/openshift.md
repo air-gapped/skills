@@ -32,8 +32,8 @@ For OpenShift-only teams: also read `references/pod-shape.md`, `references/multi
 
 - **Product page**: https://www.redhat.com/en/products/ai/inference-server
 - **Renamed at 3.4**: the product is now *Red Hat AI Inference*, and the image path changed from `rhaiis/` to `rhaii/`.
-- **Docs root**: https://docs.redhat.com/en/documentation/red_hat_ai_inference/3.4 (3.3 and older: https://docs.redhat.com/en/documentation/red_hat_ai_inference_server/3.3)
-- **Images**: `registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1`; up to 3.3 `registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.3.0` (+ `-rocm-rhel9`, `-gaudi-rhel9`)
+- **Docs root**: https://docs.redhat.com/en/documentation/red_hat_ai_inference/3.5 (3.3 and older: https://docs.redhat.com/en/documentation/red_hat_ai_inference_server/3.3)
+- **Images**: `registry.redhat.io/rhaii/vllm-cuda-rhel9:3.5.1` (3.4.x the same path; 3.5.1 ships CUDA, ROCm and CPU images); up to 3.3 `registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.3.0` (+ `-rocm-rhel9`, `-gaudi-rhel9`). The 3.5.0 release notes list the `rhaiis/` path: pull the exact path from the notes of the tag you pin.
 - **vLLM CLI reference**: https://docs.redhat.com/en/documentation/red_hat_ai_inference_server/3.3/html-single/vllm_server_arguments/index
 - **Hardware compat matrix**: https://docs.redhat.com/en/documentation/red_hat_ai/3/html-single/supported_product_and_hardware_configurations/index
 - **TGIS adapter** (for KServe/TGIS-API compat): https://github.com/opendatahub-io/vllm-tgis-adapter
@@ -42,12 +42,13 @@ For OpenShift-only teams: also read `references/pod-shape.md`, `references/multi
 
 | RHAIIS | Upstream vLLM |
 |---|---|
+| 3.5.0, 3.5.1 | v0.24.0 |
 | 3.4.0, 3.4.1 | v0.18.0 |
 | 3.3.0 | v0.13.0 |
 | 3.2.5 | v0.11.2 |
 | 3.2.3, 3.2.4 | v0.11.0 |
 
-Pin the exact tag; roll forward with its release notes. The Red Hat image trails upstream by many minors (v0.18.0 in 3.4.1 against upstream v0.33.0), so any flag, default or fix this skill dates to a later upstream release is absent from it — check the mapped version before writing serve args, and read the release notes for each tag rather than assuming it tracks upstream.
+Pin the exact tag; roll forward with its release notes. The Red Hat image trails upstream by many minors (v0.24.0 in 3.5.1 against upstream v0.34.0), so any flag, default or fix this skill dates to a later upstream release is absent from it — check the mapped version before writing serve args, and read the release notes for each tag rather than assuming it tracks upstream.
 
 ## RHOAI — Red Hat OpenShift AI model serving
 

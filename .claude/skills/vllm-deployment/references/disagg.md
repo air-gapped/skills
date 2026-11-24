@@ -48,7 +48,7 @@ See also `vllm-caching` skill for connector tiers (CPU/NVMe offload) vs cross-po
 - **Docs**: https://docs.vllm.ai/en/stable/features/nixl_connector_usage/
 - **NIXL lib**: https://github.com/ai-dynamo/nixl
 - Pairs with NVIDIA Dynamo: Dynamo drives Nixl; vLLM's `NixlConnector` consumes it.
-- **vLLM ≥ v0.33.0 requires NIXL ≥ 1.5** (#61032; upstream pins `nixl == 1.5.0`). In a
+- **vLLM ≥ v0.33.0 requires NIXL ≥ 1.5** (#61032; upstream pins `nixl == 1.5.2`). In a
   custom image, upgrade NIXL in the same build as the engine, on prefill and decode pools.
 
 **Prefill pod spec excerpt**:
@@ -126,7 +126,7 @@ vLLM's `NixlConnector` works without Dynamo (production-stack supports it). Dyna
 
 ## Disagg status in upstream docs
 
-At v0.33.0 the disagg-prefill docs are still marked **experimental**:
+At v0.34.0 the disagg-prefill docs are still marked **experimental**:
 
 - https://docs.vllm.ai/en/latest/features/disagg_prefill/
 

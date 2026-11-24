@@ -251,6 +251,11 @@ The flags an operator most often asks about when cross-checking a manifest's `ar
   kernel JIT and decode throughput suffers on every request thereafter. Correct during bring-up/debug and OOM triage; remove it for
   production serving. Deep capture-mode tuning (`FULL_AND_PIECEWISE` etc.) →
   `vllm-performance-tuning`.
+- **`--gpu-memory-utilization`** — from v0.34.0 leave it unset: the KV cache is sized
+  from memory measured after warmup (unset resolves to 1.0), and an explicit value
+  withholds memory from it. Set it when another process shares the GPU. With
+  `--no-enable-extensible-kv-cache`, or a KV connector that disables the feature, the
+  unset default is 0.92. Details: `references/upgrading.md`.
 - **MoE models (`--enable-expert-parallel`)** — expert layers shard across GPUs (EP)
   instead of pure TP. Shorthand like "ep2 dp2" describes the EP×DP layout; the product
   of the parallel sizes must equal the pod's GPU count — a mismatched `nvidia.com/gpu`
@@ -259,13 +264,13 @@ The flags an operator most often asks about when cross-checking a manifest's `ar
   GPU limits, and nodeSelector agree.
   - **DeepEPv2 is an image-only capability.** The `vllm/vllm-openai` image pins the
     NCCL DeepEPv2 needs: ≥ 2.30.4 for the GIN backend (2.30.7 from v0.27.0, #45321),
-    ≥ 2.31 for DeepEPv2 over EFA (`ARG NCCL_VERSION=2.31.2` at v0.33.0).
+    ≥ 2.31 for DeepEPv2 over EFA (`ARG NCCL_VERSION=2.31.2` at v0.34.0).
     The PyPI wheel is unchanged because DeepEP is not shipped in it — a pip-installed
     vLLM in a custom image does not get DeepEPv2 by bumping the version alone.
   - **DP+EP on an external load balancer can hang the whole cluster.** When one DP rank
     dies the EP all-to-all on surviving ranks blocks indefinitely. v0.27.0 (#44428) adds
     an opt-in fault-tolerance framework for the external-LB topology that detects the
-    fault, aborts in-flight requests, and exposes `POST /fault_tolerance/apply` for an
+    fault, aborts in-flight requests, and exposes `POST /v1/fault_tolerance/apply` (`/fault_tolerance/apply` before v0.34.0) for an
     external orchestrator to drive recovery. External-LB mode only.
 
 ## Custom tool/reasoning parser via ConfigMap
@@ -348,14 +353,16 @@ Don't probe `/v1/models` — it is a router endpoint that requires the engine fu
 ## Image tag discipline
 
 - Never `:latest` — every vLLM release is a breaking change in some dimension.
-- Use the SemVer tag (`v0.33.0`) and bump deliberately.
+- Use the SemVer tag (`v0.34.0`) and bump deliberately.
 - Pin by digest (`@sha256:...`) for reproducibility + image-signature gate (cosign verify).
-- Suffixes from v0.33.0: none = CUDA 13.0 on Ubuntu 24.04; `-efa` = AWS EFA libraries and
-  the EFA Mooncake build, for EFA-enabled EC2; `-x86_64-zstd` = zstd layers (≈7.7 GB vs
-  9.7 GB for `-x86_64`; the runtime must support zstd). Every tag also exists as
-  `vllm/vllm:<tag>`.
-- No CUDA 12.9 image from v0.33.0: `references/upgrading.md`.
-- Red Hat image tags are independently versioned and trail upstream: `rhaii/vllm-cuda-rhel9:3.4.1` is upstream `v0.18.0`, `rhaiis/vllm-cuda-rhel9:3.3.0` is `v0.13.0`.
+- Suffixes from v0.34.0: none = CUDA 13.0 on Ubuntu 24.04 with the AWS EFA userspace
+  already installed; `-efa` = adds DeepEP built for EFA and routes NCCL over EFA by
+  default (`NCCL_NET_PLUGIN=ofi`), for EFA-enabled EC2 — on a non-EFA host override with
+  `-e NCCL_NET_PLUGIN= -e NCCL_TUNER_PLUGIN=`; `-x86_64-zstd` = zstd layers (≈7.9 GB vs
+  10.0 GB for `-x86_64`; the runtime must support zstd). Every tag also exists as
+  `vllm/vllm:<tag>`; ROCm is `vllm/vllm-openai-rocm:<tag>` (`vllm/vllm:<tag>-rocm`).
+- No CUDA 12.9 image from v0.33.0 and no `-rocm72` image from v0.34.0: `references/upgrading.md`.
+- Red Hat image tags are independently versioned and trail upstream: `rhaii/vllm-cuda-rhel9:3.5.1` is upstream `v0.24.0`, `rhaii/vllm-cuda-rhel9:3.4.1` is `v0.18.0`, `rhaiis/vllm-cuda-rhel9:3.3.0` is `v0.13.0`.
 
 ## Gotchas not yet covered
 

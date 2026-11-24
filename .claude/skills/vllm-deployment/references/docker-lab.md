@@ -228,13 +228,13 @@ Useful for developing Grafana dashboards before handing off to k8s. See `vllm-ob
 
 ## Building a custom image
 
-Dockerfiles under `docker/` in the repo (v0.33.0):
+Dockerfiles under `docker/` in the repo (v0.34.0):
 
 | File | Purpose |
 |---|---|
 | `Dockerfile` | Main CUDA (build base `pytorch/manylinux2_28-builder:cuda13.0`, runtime `nvidia/cuda:13.0.3-base-ubuntu24.04`); targets `vllm-openai`, `vllm-openai-nonroot`, `vllm-sagemaker` |
-| `Dockerfile.efa` | AWS EFA layer; needs a base built with `INSTALL_KV_CONNECTORS=true` |
-| `Dockerfile.rocm` / `Dockerfile.rocm_base` | AMD ROCm 10.0 (`.rocm_72` / `.rocm_72_base` for ROCm 7.2) |
+| `Dockerfile.efa` | DeepEP-for-EFA layer; needs a base built with `INSTALL_KV_CONNECTORS=true` (that build installs the EFA userspace; the published images have it) |
+| `Dockerfile.rocm` / `Dockerfile.rocm_base` | AMD ROCm 10.0 only, built with `docker-bake-rocm.hcl` |
 | `Dockerfile.cpu`, `Dockerfile.zen` | CPU-only; AMD Zen |
 | `Dockerfile.xpu` | Intel XPU |
 | `Dockerfile.ppc64le`, `Dockerfile.s390x` | Non-x86 |

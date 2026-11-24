@@ -38,7 +38,7 @@
     {
       "id": 6,
       "question": "What is the Red Hat (RHAIIS, renamed Red Hat AI Inference at 3.4) vLLM CUDA image reference for OpenShift?",
-      "skill_answer": "registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1 (rhaiis/vllm-cuda-rhel9:3.3.x before the 3.4 rename)"
+      "skill_answer": "registry.redhat.io/rhaii/vllm-cuda-rhel9:3.5.1 (rhaiis/vllm-cuda-rhel9:3.3.x before the 3.4 rename)"
     },
     {
       "id": 7,
@@ -63,7 +63,7 @@
     {
       "id": 11,
       "question": "What version is vLLM's in-tree chart-helm and what is its stability status?",
-      "skill_answer": "chart-vllm 0.0.2 (examples/deployment/chart-helm, v0.33.0) \u2014 an example chart, not a supported release artifact; not for production"
+      "skill_answer": "chart-vllm 0.0.2 (examples/deployment/chart-helm, v0.34.0) \u2014 an example chart, not a supported release artifact; not for production"
     }
   ]
 }

@@ -10,7 +10,7 @@ cat > "$TMP/kubectl" <<'SHIM'
 [[ -n "${K_BROKEN:-}" ]] && { echo "error: connection refused" >&2; exit 1; }
 case "$*" in
   *"get pod"*"status.phase"*) printf '%s' "${K_PHASE:-Running}";;
-  *"get pod"*"containers[0].image"*) printf '%s' "${K_IMG-vllm/vllm-openai:v0.33.0}";;
+  *"get pod"*"containers[0].image"*) printf '%s' "${K_IMG-vllm/vllm-openai:v0.34.0}";;
   *"get pod"*"args"*) printf '%s' '["--tensor-parallel-size=8"]';;
   *exec*"/health"*) [[ "${K_HEALTH:-ok}" == ok ]] || exit 22;;
   *exec*"/v1/models"*) echo '{"data":[{"id":"m"}]}';;

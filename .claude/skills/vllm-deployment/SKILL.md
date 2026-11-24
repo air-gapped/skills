@@ -33,7 +33,7 @@ This skill is a **pointer map**. It points to the canonical sources — in the v
 
 1. **`/dev/shm` is the single most common cause of silent multi-GPU failure on k8s.** On vanilla k8s there is no `--ipc=host`. Without a shared-memory volume, `torch.distributed` segfaults on the first all-reduce of a TP>1 pod. Mount an `emptyDir` with `medium: Memory` and `sizeLimit: 10Gi` at `/dev/shm`. Documented in vLLM's own k8s guide — see ``vllm` repo: docs/deployment/k8s.md:211,291`. A pre-flight free-space check fails an *undersized* mount at startup with an actionable `RuntimeError`; a 64 MiB `/dev/shm` still boots, so check the mount, not just the log (`references/pod-shape.md`).
 2. **Multi-node vLLM on k8s is LeaderWorkerSet, not a hand-built headless Service + StatefulSet.** Use LWS (`kubernetes-sigs/lws`) as the group primitive. From v0.24.0 the upstream recipe is multiprocessing: every pod runs `vllm serve … --nnodes $(LWS_GROUP_SIZE) --node-rank $(LWS_WORKER_INDEX) --master-addr $(LWS_LEADER_ADDRESS)`, workers add `--headless`. Ray is the alternative: `examples/ray_serving/multi-node-serving.sh` forms the cluster, then the leader runs `vllm serve --distributed-executor-backend ray`. Manifest: `references/multi-node.md`.
-3. **The upstream `vllm/vllm-openai` image runs as root by default.** On OpenShift (and any k8s cluster with a `restricted` PSA), that is a deploy-time failure. Fixed non-root UID: run the stock image as its built-in `vllm` user (`runAsUser: 2000`, `runAsGroup: 0`) and mount caches under `/home/vllm`, not `/root`. OpenShift arbitrary UID: use the Red Hat images (`registry.redhat.io/rhaii/vllm-cuda-rhel9:3.4.1`; `rhaiis/vllm-cuda-rhel9:3.3.x` before the 3.4 rename), UID-agnostic by construction, or build upstream's `vllm-openai-nonroot` target.
+3. **The upstream `vllm/vllm-openai` image runs as root by default.** On OpenShift (and any k8s cluster with a `restricted` PSA), that is a deploy-time failure. Fixed non-root UID: run the stock image as its built-in `vllm` user (`runAsUser: 2000`, `runAsGroup: 0`) and mount caches under `/home/vllm`, not `/root`. OpenShift arbitrary UID: use the Red Hat images (`registry.redhat.io/rhaii/vllm-cuda-rhel9:3.5.1`; `rhaiis/vllm-cuda-rhel9:3.3.x` before the 3.4 rename), UID-agnostic by construction, or build upstream's `vllm-openai-nonroot` target.
 
 ## Minimum viable pod shape
 
@@ -86,7 +86,7 @@ For "review / audit this manifest", "cross-check flags", "caches saved?": mark e
 | Probes | readiness and liveness on `/health`; cold-boot budget from a `startupProbe` or liveness `initialDelaySeconds: 600` | pitfalls 2, 11 |
 | Shutdown | `--shutdown-timeout N` set and `terminationGracePeriodSeconds` ≥ N + 30 | pitfall 12 |
 | Parallelism | TP × PP × DP equals the pod's `nvidia.com/gpu` limit; MoE EP flags agree with it | `references/pod-shape.md` §Serve-args review |
-| serve_args | no `--enforce-eager` in production; every flag exists at the pinned tag (`references/upgrading.md`) | `references/pod-shape.md` §Serve-args review |
+| serve_args | no `--enforce-eager` in production; `--gpu-memory-utilization` unset unless the GPU is shared (v0.34.0+); every flag exists at the pinned tag (`references/upgrading.md`) | `references/pod-shape.md` §Serve-args review |
 | Network | `VLLM_HOST_IP` from `status.podIP`; `NCCL_SOCKET_IFNAME` pinned on multi-NIC hosts | pitfall 7, `references/multi-node.md` |
 | Telemetry | `VLLM_NO_USAGE_STATS` and `VLLM_DO_NOT_TRACK` both set to exactly `"1"` | pitfall 9 |
 | Platform | OpenShift: non-root image and Route timeout annotation; KEDA: threshold 5–10, `cooldownPeriod: 360` | pitfalls 4–6 |
@@ -106,7 +106,7 @@ This skill owns the **pod/container/topology** layer. It does not own:
 
 The decision guide above maps each situation to its file. Files without a row there:
 `references/autoscaling.md` (KEDA on `vllm:num_requests_waiting`, HPA, scale-to-zero),
-`references/upgrading.md` (manifest-affecting changes v0.28.0–v0.33.0; read before bumping the
+`references/upgrading.md` (manifest-affecting changes v0.28.0–v0.34.0; read before bumping the
 image tag), `references/pod-shape.md` (annotated manifest, env vars, probes, compile-cache
 survival, serve-args review, image tag discipline).
 
@@ -128,7 +128,7 @@ survival, serve-args review, image tag discipline).
 | `vllm/envs.py` | Canonical env-var catalogue |
 | `vllm/distributed/kv_transfer/` | KV connector implementations (LMCache, Mooncake, MORI-IO, NIXL, HF3FS, Offloading, FlexKV) |
 | `vllm/entrypoints/serve/instrumentator/health.py` | `/health` endpoint (200 healthy, 503 EngineDeadError) |
-| `docker/Dockerfile{,.efa,.rocm,.rocm_72,.cpu,.xpu,.zen,.ppc64le,.s390x}` | Image variants |
+| `docker/Dockerfile{,.efa,.rocm,.cpu,.xpu,.zen,.ppc64le,.s390x}` | Image variants |
 
 All paths relative to vLLM repo root (https://github.com/vllm-project/vllm).
 
@@ -159,12 +159,13 @@ The script validates pod health, `/health`, `/v1/models`, `/dev/shm` sizing, `/m
 
 ## Upgrading the image tag
 
-Current release: **v0.33.0** (2026-11-02). Write `vllm/vllm-openai:v0.33.0` (or the tag the operator runs) into every command and manifest, never `:latest` or a `<tag>` placeholder.
+Current release: **v0.34.0** (2026-11-16). Write `vllm/vllm-openai:v0.34.0` (or the tag the operator runs) into every command and manifest, never `:latest` or a `<tag>` placeholder.
 
-Before bumping the image tag, read `references/upgrading.md`: the v0.28.0–v0.33.0
-changes that alter a manifest or its rollout (CORS closed by default, a removed env
-var that now silently does nothing, deprecated `python -m` entrypoints, Model
-Runner V2 default, a YaRN `--max-model-len` that must be recomputed).
+Before bumping the image tag, read `references/upgrading.md`: the v0.28.0–v0.34.0
+changes that alter a manifest or its rollout (`--gpu-memory-utilization` now best left
+unset, block size 64, a removed env var that fails or does nothing, CORS closed by
+default, deprecated `python -m` entrypoints, a YaRN `--max-model-len` that must be
+recomputed).
 
 ## External references
 

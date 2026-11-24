@@ -1,0 +1,63 @@
+{
+  "date": "2026-11-24",
+  "content_hash": "db4712707e18eef8",
+  "cases": [
+    "01-openshift-root-and-route",
+    "03-moe-cold-boot-cache-manifest",
+    "04-podman-lab-two-gpu-run",
+    "06-control-plane-choice-12-node"
+  ],
+  "runs_per_case": 3,
+  "model": "sonnet",
+  "models_resolved": [
+    "claude-sonnet-5-5"
+  ],
+  "judge_model": "haiku",
+  "judges": {
+    "01-openshift-root-and-route": "haiku",
+    "03-moe-cold-boot-cache-manifest": "haiku",
+    "04-podman-lab-two-gpu-run": "haiku",
+    "06-control-plane-choice-12-node": "sonnet"
+  },
+  "with_skill": 0.9444,
+  "without_skill": 0.8528,
+  "without_from": "this run",
+  "baselines": {
+    "01-openshift-root-and-route": {
+      "score": 0.8,
+      "id": "bfd91c297a14",
+      "judge": "haiku",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-24"
+    },
+    "03-moe-cold-boot-cache-manifest": {
+      "score": 1.0,
+      "id": "6c3ed16aa547",
+      "judge": "haiku",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-24"
+    },
+    "04-podman-lab-two-gpu-run": {
+      "score": 0.7778,
+      "id": "29639be0bb0d",
+      "judge": "haiku",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-24"
+    },
+    "06-control-plane-choice-12-node": {
+      "score": 0.8333,
+      "id": "8022179bdcee",
+      "judge": "sonnet",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-24"
+    }
+  }
+}
