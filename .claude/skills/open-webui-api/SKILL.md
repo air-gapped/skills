@@ -1,14 +1,14 @@
 ---
 name: open-webui-api
 description: |-
-  Administer Open WebUI entirely via its REST API (v0.11+): user/group lifecycle, permissions, model catalog GitOps (export/import/sync), knowledge/RAG pipelines, config-as-code, SCIM provisioning, event webhooks, and backup surfaces. Covers the 476-path surface the official docs leave ~96% undocumented, the auth bootstrapping traps (ENABLE_API_KEYS default-off, JWT 4-week expiry, one unscoped key per user), and the 0.10.0 breaking changes (access_control→access_grants with inverted public/private defaults, flat dot-keyed config) that silently break every pre-0.10 script and most LLM training-data knowledge.
+  Administer Open WebUI entirely via its REST API (v0.11+): user/group lifecycle, permissions, model catalog GitOps (export/import/sync), knowledge/RAG pipelines, config-as-code, SCIM provisioning, event webhooks, and backup surfaces. Covers the 580+-path surface the official docs leave ~95% undocumented, the auth bootstrapping traps (ENABLE_API_KEYS default-off, JWT 4-week expiry, one unscoped key per user), and the 0.10.0 breaking changes (access_control→access_grants with inverted public/private defaults, flat dot-keyed config) that silently break every pre-0.10 script and most LLM training-data knowledge.
 when_to_use: |-
   Trigger on "open-webui api", "open-webui automation", "provision open-webui users", "open-webui api key", "access_grants", "models/sync", "configs/import", "PersistentConfig", "open-webui scim", "custom_params", "chat_template_kwargs open-webui", "open-webui webhook events", "/api/v1/", "api_type responses", or any task scripting/automating an Open WebUI instance (create users, manage groups, sync model catalog, upload knowledge, read analytics) rather than clicking the UI. Also trigger on symptoms: "API returns HTML", "403 with valid API key", "changed an env var or Helm value and the setting stays the same after restart" (any setting, RAG ones too), "custom parameter shows [object Object]", "reasoning missing from API response". NOT for choosing embedding/reranker models (open-webui-embeddings), multi-pod scaling (open-webui-valkey-websocket), or generic OpenAI-API client questions.
 ---
 
 # Open WebUI REST API administration — operator reference
 
-Target: operators who script Open WebUI (create users, reconcile model catalogs, drive RAG pipelines, export configs) instead of clicking the admin UI. Grounded in v0.11.0 source (2026-07-27), with mounts, auth, floors and new routes re-checked at v0.13.0 (2026-11-04); the API is officially "experimental" with no versioning policy, so every claim here is version-stamped. **First step on any instance: `GET /api/version`** — never trust `openapi.json`'s `info.version` (always says "0.1.0").
+Target: operators who script Open WebUI (create users, reconcile model catalogs, drive RAG pipelines, export configs) instead of clicking the admin UI. Grounded in v0.11.0 source (2026-07-27), with mounts, auth, floors and new routes re-checked at v0.13.4; the API is officially "experimental" with no versioning policy, so every claim here is version-stamped. **First step on any instance: `GET /api/version`** — never trust `openapi.json`'s `info.version` (always says "0.1.0").
 
 ## Security floor: v0.12.2 published, latest release in practice
 
@@ -19,7 +19,7 @@ accurately; the instance you point them at should not be on it. The repository's
 advisory list (`gh api repos/open-webui/open-webui/security-advisories`, checked
 2026-11-04) tops out at `< 0.12.2` (channel members spoofing webhook messages,
 published 2026-10-18); the global advisory database still tops out at 0.11.1 and
-trails it by weeks. **v0.12.0, v0.12.4, v0.12.5 and v0.13.0 ship security fixes
+trails it by weeks. **v0.12.0, v0.12.4, v0.12.5, v0.13.0 and v0.13.1 ship security fixes
 their notes say are not listed, with advisories to follow after CVE assignment**
 — re-check the repository list when new GHSAs appear.
 
@@ -55,7 +55,7 @@ Four surfaces, one Bearer header (`Authorization: Bearer <jwt-or-api-key>`):
 
 | Surface | What lives there | Examples |
 |---|---|---|
-| `/api/v1/*` | Resource CRUD — 31 routers at v0.13.0 (+2 feature-gated) | users, groups, auths, configs, models, knowledge, files, retrieval, tools, functions, prompts, chats, evaluations |
+| `/api/v1/*` | Resource CRUD — 33 routers at v0.13.4 (+2 feature-gated) | users, groups, auths, configs, models, knowledge, files, retrieval, tools, functions, prompts, chats, evaluations |
 | `/api/*` | Runtime endpoints in main.py | `chat/completions`, `models`, `config`, `version`, `events` (webhooks), `tasks`, `usage` |
 | `/ollama/*`, `/openai/*` | Authenticated proxies to backends | inference = user-level; model lifecycle + config = admin |
 | `/ws` | socket.io | invisible to openapi.json |
@@ -66,8 +66,10 @@ Preflight before any scripted work (`$B` = base URL, `$T` = token):
 
 ```bash
 curl -s $B/api/version | jq -e .version          # real version; jq failing = HTML came back (SPA trap — check the path)
-curl -s -H "Authorization: Bearer $T" $B/api/v1/auths/ | jq -e .role   # expect "admin" for admin endpoints; 401 = key disabled/expired
+curl -s -H "Authorization: Bearer $T" $B/api/v1/users/user/status | jq -e .role   # expect "admin" for admin endpoints; 401 = key disabled/expired; 403 = ENABLE_USER_STATUS off
 ```
+
+Never probe an `sk-` key with `GET /api/v1/auths/`: from v0.12.0 it answers 403 `A human session is required.` to every API key, as do `/auths/mfa/{status,replace,recovery/codes}` and `/auths/sessions*`.
 
 For multi-call scripts, source `scripts/owui-curl.sh` (live-tested): `owui <METHOD> <path> [json]` wraps every call with the HTTP-2xx and JSON-content-type checks (the HTML-200 trap detector), and `owui_preflight [role]` runs the probes above.
 
@@ -115,7 +117,7 @@ authenticating proxy does **not** cover most of it:
 | IdP provisioning (SCIM), audit/event webhooks | `references/events-scim.md` |
 | Verify a claim / freshen | `references/sources.md` |
 
-## Gotchas that cost hours (verified in v0.11.0 source or live; still true at v0.13.0)
+## Gotchas that cost hours (verified in v0.11.0 source or live; still true at v0.13.4)
 
 - **HTML-200 trap**: the SPA catch-all serves `index.html` with HTTP 200 for any unknown path. A typo'd endpoint "succeeds" with HTML. Always check `Content-Type: application/json`.
 - **`/docs` and `/openapi.json` need `ENV=dev`** — the Docker image ships `ENV=prod`, so production instances return the SPA for both. Flipping to `dev` also skips the prod-only default `OLLAMA_BASE_URL` Docker rewrite — safe on external-connection setups, breaking on default-Ollama containers.

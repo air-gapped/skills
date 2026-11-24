@@ -28,7 +28,7 @@ Find `<admin-user-id>` the same way (`Users.get_users()` is async — wrap in `a
 Verify before use — a wrong-role or expired token fails as HTML, not 401:
 
 ```bash
-curl -s -H "Authorization: Bearer $T" $B/api/v1/auths/ | jq -e .role   # expect "admin"
+curl -s -H "Authorization: Bearer $T" $B/api/v1/users/user/status | jq -e .role   # expect "admin"; /auths/ 403s every sk- key from v0.12.0
 ```
 
 Cleaner long-term alternative: set `ENABLE_API_KEYS=true` and grant the `features.api_keys` permission to a dedicated non-admin service account, then scope it with `API_KEYS_ALLOWED_ENDPOINTS`. The minted-JWT route is for bootstrap and break-glass, not steady-state automation.

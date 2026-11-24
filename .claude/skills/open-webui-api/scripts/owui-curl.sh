@@ -27,7 +27,8 @@ owui() {
 owui_preflight() {
   local want_role=${1:-admin} v role
   v=$(owui GET /api/version | jq -er .version) || { echo "owui: version probe failed" >&2; return 1; }
-  role=$(owui GET /api/v1/auths/ | jq -er .role) || { echo "owui: auth probe failed (key disabled/expired?)" >&2; return 1; }
+  # /api/v1/auths/ refuses sk- keys from v0.12.0 (403 "A human session is required."); users/user/status takes both
+  role=$(owui GET /api/v1/users/user/status | jq -er .role) || { echo "owui: auth probe failed (key disabled/expired, or users.enable_status off → 403)" >&2; return 1; }
   echo "owui: instance v$v, token role=$role"
   [[ $role == "$want_role" ]] || { echo "owui: need role '$want_role'" >&2; return 1; }
 }

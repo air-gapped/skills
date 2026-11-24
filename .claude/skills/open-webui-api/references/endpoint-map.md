@@ -1,8 +1,8 @@
-# Endpoint map with auth levels — v0.11.0 (mounts and deltas re-checked at v0.13.0)
+# Endpoint map with auth levels — v0.11.0 (mounts and deltas re-checked at v0.13.4)
 
-Roles: **[admin]** = `get_admin_user`, **[user]** = `get_verified_user` (role user/admin; resource ACLs apply on top), **[current]** = any authenticated identity incl. `pending`, **[public]** = no auth. API keys pass wherever JWTs do (key inherits owner's role); SCIM uses its own bearer token.
+Roles: **[admin]** = `get_admin_user`, **[user]** = `get_verified_user` (role user/admin; resource ACLs apply on top), **[current]** = any authenticated identity incl. `pending`, **[public]** = no auth. API keys pass wherever JWTs do (key inherits owner's role), except routes marked [human session JWT] and the JWT-only websockets; SCIM uses its own bearer token.
 
-Derived from `backend/open_webui/main.py:785–829` at v0.11.0 (mounts; `814–865` at v0.13.0) and per-router `Depends()` audit. Live-instance surface may differ only by feature flags (SCIM, analytics, channels) — diff the instance's `openapi.json` (needs `ENV=dev`) against this map, never assume version drift first.
+Mounts come from `backend/open_webui/main.py` `include_router` calls; auth levels from each route's `Depends()`. Live-instance surface may differ only by feature flags (SCIM, analytics, channels) — diff the instance's `openapi.json` (needs `ENV=dev`) against this map, never assume version drift first.
 
 ## Mount table (main.py)
 
@@ -12,6 +12,7 @@ Derived from `backend/open_webui/main.py:785–829` at v0.11.0 (mounts; `814–8
 | `/api/v1/notifications` | notifications.py | new in 0.11.0; unconditional mount (`main.py:844` at v0.13.0); inbox routes added in 0.13.0 |
 | `/api/v1/{auths/mfa,apps,search}` | mfa.py, apps.py, search.py | mfa from 0.12.0; apps and search present by 0.12.4 |
 | `/api/v1/comments` | comments.py | new in 0.13.0; mounted unconditionally, but every route 403s "Comments are disabled" until `comments.enable` (env `ENABLE_COMMENTS`, default false) |
+| `/api/v1/{videos,tether}` | videos.py, tether.py | new in 0.13.4, unconditional. Nested, not in main.py: `/api/v1/auths/sessions` (sessions.py, 0.13.1), `/api/v1/terminals/templates` (templates.py, 0.13.4; grants must be read-only, else 400) |
 | `/api/v1/analytics` | analytics.py | only if `ENABLE_ADMIN_ANALYTICS` (default true) |
 | `/api/v1/scim/v2` | scim.py | only if `ENABLE_SCIM` (default false); toggle needs restart |
 | `/ollama`, `/openai` | proxies | not under /api/v1 |
@@ -47,7 +48,7 @@ Derived from `backend/open_webui/main.py:785–829` at v0.11.0 (mounts; `814–8
 
 ### auths
 - [public]: `POST /auths/signin|signup|signout|ldap` (signin rate-limited 15/3min/email w/ Redis)
-- `GET /auths/` [current] — session probe; `POST /auths/add` [admin] — create user, **returns a login token for the new user**
+- `GET /auths/` [human session JWT from v0.12.0; `sk-` keys get 403] — session probe; key probe is `GET /users/user/status` [current]; `POST /auths/add` [admin] — create user, **returns a login token for the new user**
 - `GET|POST /auths/admin/config` [admin] — ENABLE_SIGNUP, DEFAULT_USER_ROLE, JWT_EXPIRES_IN, ENABLE_API_KEYS, API_KEYS_ALLOWED_ENDPOINTS, feature toggles; invalid values silently dropped
 - `GET|POST /auths/admin/config/ldap` + `/ldap/server`; `GET|POST /auths/admin/config/oauth` [admin]
 - `POST|GET|DELETE /auths/api_key` [current] — self-service key (gated: ENABLE_API_KEYS + permission)
@@ -125,7 +126,7 @@ AST route diff `v0.12.4..v0.13.0` (614 → 655 method+path routes; 0.12.5 alone 
 
 - **0.12.5:** `POST /users/{id}/api_key/rotate` and `DELETE /users/{id}/api_key` [admin] — rotate returns the new key once (`Cache-Control: no-store`), 403s while API keys are off or when a non-admin target lacks `features.api_keys`, and only the primary admin may rotate the primary admin's key; delete works even with API keys off. `GET /analytics/sessions`, `/sessions/{chat_id}`, `…/messages/{message_id}/events`, `…/trace` [admin, and 403 unless `ENABLE_ADMIN_CHAT_ACCESS`]. `GET /chats/{id}/search/snippet`, `POST /notes/{id}/pages/update` [user].
 - **0.13.0:** `/comments/*` (11 routes) [user]; `GET /notifications/inbox`, `/inbox/count`, `POST /inbox/open`, `PATCH /inbox/{id}` [user] (404 when `ENABLE_NOTIFICATIONS` is off); `POST /tools/id/{id}/toggle` [user + write access] and `POST /tools/id/{id}/mcp/app/rpc` [user]; `POST /knowledge/{id}/files/validate` [user + write access]; `GET /automations/{id}/runs/{run_id}` [user]; `POST /api/tasks/chat/{chat_id}/resume` [user].
-- **0.13.0 terminals:** `…/terminals/{server_id}/browser/view/{sid}/{ticket}/{path}` (all methods, plus a websocket) has **no auth dependency** — a signed ticket in the URL authenticates it. The websockets `…/terminals/{server_id}/events`, `/desktop/stream`, `/desktop/audio`, `/execute`, `/execute/{process_id}/status` read a JWT from the first message, so **`sk-` API keys do not work there**.
+- **0.13.0 terminals:** `…/terminals/{server_id}/browser/view/{sid}/{browser_token}/{path}` (all methods, plus a websocket; the segment was `{ticket}` before 0.13.4) has **no auth dependency** — a signed token in the URL authenticates it. The websockets `…/terminals/{server_id}/events`, `/desktop/stream`, `/desktop/audio`, `/execute`, `/execute/{process_id}/status` read a JWT from the first message, so **`sk-` API keys do not work there**.
 
 ### Public (no auth) — complete list, v0.11.0 (24 routes)
 
@@ -136,4 +137,4 @@ Two that need calling out:
 - **`GET /ollama/api/version` is NO LONGER public** — it gained `get_verified_user` in 0.11.0 (`routers/ollama.py:538`) and 401s anonymously (verified live). Unauthenticated liveness probes pointed at it break on upgrade. `GET /ollama/` itself is still public — use that instead.
 - **`GET /chats/share/{share_id}` is now anonymously readable** when the share is "open" — 0.11.0 swapped `get_verified_user` for `get_optional_verified_user` (`routers/chats.py:1188-1193`). In 0.10.2 a share link still required a logged-in account. Security-posture change; audit existing share links after upgrading.
 
-**`ENV=dev` adds an unauthenticated 25th route.** `GET /api/v1/retrieval/ef/{text}` is registered only under `if ENV == 'dev'` (`routers/retrieval.py:2987-2990`) and carries **no auth dependency at all** — anyone who can reach the instance can drive the embedding model with arbitrary text. Since the only supported way to expose `/openapi.json` and `/docs` is `ENV=dev`, that convenience is not free on an internet-reachable deployment.
+**Below v0.12.4, `ENV=dev` adds an unauthenticated 25th route.** `GET /api/v1/retrieval/ef/{text}` is registered only under `if ENV == 'dev'` and carries **no auth dependency at all** — anyone who can reach the instance can drive the embedding model with arbitrary text. On those versions do not set `ENV=dev` (the only way to expose `/openapi.json` and `/docs`) on a reachable deployment. v0.12.4 removed the route.

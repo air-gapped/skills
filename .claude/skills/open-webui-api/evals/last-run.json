@@ -1,8 +1,9 @@
 {
-  "date": "2026-11-20",
-  "content_hash": "d1bcb74b43282559",
+  "date": "2026-11-24",
+  "content_hash": "ed2d58adfad442f7",
   "cases": [
-    "02-config-as-code"
+    "00-provision-team",
+    "05-analytics-token-401"
   ],
   "runs_per_case": 3,
   "model": "sonnet",
@@ -10,8 +11,12 @@
     "claude-sonnet-5-5"
   ],
   "judge_model": "haiku",
-  "with_skill": 0.8571,
-  "without_skill": 0.5714,
+  "judges": {
+    "00-provision-team": "haiku",
+    "05-analytics-token-401": "sonnet"
+  },
+  "with_skill": 0.8214,
+  "without_skill": 0.5833,
   "without_from": "stored",
   "baselines": {
     "02-config-as-code": {
@@ -21,6 +26,24 @@
         "claude-sonnet-5-5"
       ],
       "date": "2026-11-20"
+    },
+    "00-provision-team": {
+      "score": 0.6667,
+      "id": "759801cb1e0c",
+      "judge": "haiku",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-24"
+    },
+    "05-analytics-token-401": {
+      "score": 0.5556,
+      "id": "7875ed9aa686",
+      "judge": "sonnet",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-24"
     }
   }
 }
