@@ -5,13 +5,6 @@ hypothesis but not applied in a single atomic iteration. Not a wishlist.
 
 ## Open
 
-- **Pin two "first release after v0.33.0" fixes to a tag** (Dim 9) —
-  `references/parser-index.md` rows `functiongemma` (fix #63992) and `minicpm5` /
-  `poolside_v1` / `muse` (fix #64518). Blocked on an unreleased upstream version: both
-  merge commits (`410ab341a8`, `1fc9d008eb`) are on main only and no release newer than
-  v0.33.0 exists (2026-11-09). When one ships, run
-  `git merge-base --is-ancestor <sha> <tag>` and write the tag into the four rows.
-
 ## Decided — do not re-propose
 
 - **Relocate framework-contract + reasoning-pairing tables out of SKILL.md** (Dim 2 Progressive Disclosure) — `SKILL.md` "Framework contract (mental model)" (~lines 89-106) and "Reasoning-parser pairing" (~lines 108-123). Both are reference content already cross-linked from the diagnostic playbook. Moving them to a reference file would trim the 222-line body toward the <150 lean band, but the diagnostic playbook's steps reference the four state fields and the reasoning pairing inline, so a pure relocation risks dangling those pointers — needs a coordinated multi-file edit (extract + repoint + add reference bullet) that exceeds one atomic iteration. Deferred: Dim 2 already at 9 and SKILL.md is comfortably under the 500-line limit, so this is low-ROI relative to its breakage risk.

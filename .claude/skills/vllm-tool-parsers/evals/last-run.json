@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-24",
+  "content_hash": "e184cfa829403f9d",
+  "cases": [
+    "06-llama4-pythonic-vs-json-for-code-args"
+  ],
+  "runs_per_case": 3,
+  "model": "sonnet",
+  "models_resolved": [
+    "claude-sonnet-5-5"
+  ],
+  "judge_model": "haiku",
+  "judges": {
+    "06-llama4-pythonic-vs-json-for-code-args": "sonnet"
+  },
+  "with_skill": 0.9333,
+  "without_skill": 0.6,
+  "without_from": "this run",
+  "baselines": {
+    "06-llama4-pythonic-vs-json-for-code-args": {
+      "score": 0.6,
+      "id": "2e7108b2735f",
+      "judge": "sonnet",
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "date": "2026-11-24"
+    }
+  }
+}

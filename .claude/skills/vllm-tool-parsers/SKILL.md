@@ -36,17 +36,18 @@ Assume a local [vllm-project/vllm](https://github.com/vllm-project/vllm) checkou
 **If the operator's question is "what does parser X do" — read `vllm/tool_parsers/X_tool_parser.py`.**
 
 **Except for the names on the unified-parser path** (19 at v0.32.0; 20 at v0.33.0
-with `step5`): there the
+with `step5`; 26 at v0.34.0 with `llama3_json`, `llama4_json`, `granite_toolcall_parser`,
+`ripple`, `zaya`, `zaya_xml`): there the
 `tool_parsers/` file is a stub of a few lines and the logic lives in
 `vllm/parser/<model>.py`. The CLI name → real file map, with the version each name
 moved, is in `references/parser-index.md` (rows written `a.py → vllm/parser/b.py`).
 
-**Recent names NOT on this path** — `dots` (`DotsToolParser`), `hy_v4` (`HYV4ToolParser`), `k2_horizon` (`K2HorizonToolParser`) and, v0.33.0+, `muse` / `musespark1x` (`MuseToolParser`; `muse_glimmer` is a thin subclass of it from v0.33.0 — read `muse_tool_parser.py`). None imports a `*ParserToolAdapter`, so each is an ordinary standalone tool parser with no paired reasoning adapter. Also off-path: `qwen3_json` (an alias of `hermes`'s `Hermes2ProToolParser`), `hf` (`ResponseTemplateToolParser`, see the CLI contract) and, v0.33.0+, `beam` (`BeamToolParser`, a `ResponseTemplateToolParser` subclass in `vllm/parser/beam.py`). Registry total: **58 names at v0.33.0** (54 at v0.32.0).
+**Recent names NOT on this path** — `dots` (`DotsToolParser`), `hy_v4` (`HYV4ToolParser`), `k2_horizon` (`K2HorizonToolParser`) and, v0.33.0+, `muse` / `musespark` (`MuseToolParser`; `musespark1x` at v0.33.0 only; `muse_glimmer` is a thin subclass of it from v0.33.0 — read `muse_tool_parser.py`). None imports a `*ParserToolAdapter`, so each is an ordinary standalone tool parser with no paired reasoning adapter. Also off-path: `qwen3_json` (an alias of `hermes`'s `Hermes2ProToolParser`), `hf` (`ResponseTemplateToolParser`, see the CLI contract) and, v0.33.0+, `beam` (`BeamToolParser`, a `ResponseTemplateToolParser` subclass in `vllm/parser/beam.py`). Registry total: **62 names at v0.34.0** (58 at v0.33.0, 54 at v0.32.0).
 
 **`_engine_` in the filename is not the marker.** `glm47_moe_tool_parser.py`,
 `kimi_k2_tool_parser.py`, `minimax_m2_tool_parser.py` and `mistral_tool_parser.py`
 have ordinary names and are still stubs. The test is whether the file imports
-an adapter: `grep -l "ParserToolAdapter" vllm/tool_parsers/*.py` (17 files at v0.32.0 and v0.33.0;
+an adapter: `grep -l "ParserToolAdapter" vllm/tool_parsers/*.py` (17 files at v0.32.0 and v0.33.0, 21 at v0.34.0;
 `ling3_tool_parser.py` imports its adapter from `vllm.parser.ling3`, so grepping
 `registered_adapters` misses it). The grep also misses `step5_tool_parser.py`
 (v0.33.0+): it subclasses `Qwen3EngineToolParser`, so its logic is `vllm/parser/qwen3.py`.
@@ -94,7 +95,7 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `hermes` / `qwen3_json` | Hermes-2/3, Qwen2.5-Instruct, Qwen3-Instruct (text), QwQ (`qwen3_json`, v0.32.0+, is the same class) | `tool_chat_template_hermes.jinja` |
 | `longcat` | LongCat-Flash-Chat | (inherits hermes) |
 | `mistral` | Mistral-Instruct (all), Mistral-Large-2506+ (v≥11 format auto-detected) | `tool_chat_template_mistral.jinja` (also `_mistral3.jinja`, `_mistral_parallel.jinja`) |
-| `llama3_json` / `llama4_json` | Llama 3.1/3.2/3.3/4 (JSON flavor) | `tool_chat_template_llama3.1_json.jinja`, `_llama3.2_json.jinja`, `_llama4_json.jinja` |
+| `llama3_json` / `llama4_json` | Llama 3.1/3.2/3.3/4 (JSON flavor); engine path at v0.34.0+, which no longer streams arguments incrementally | `tool_chat_template_llama3.1_json.jinja`, `_llama3.2_json.jinja`, `_llama4_json.jinja` |
 | `pythonic` | Llama-3.2-{1B,3B}, ToolACE-8B, Gemma-3 | `tool_chat_template_llama3.2_pythonic.jinja`, `tool_chat_template_toolace.jinja`, `tool_chat_template_gemma3_pythonic.jinja` |
 | `llama4_pythonic` | Llama-4 Scout/Maverick | `tool_chat_template_llama4_pythonic.jinja` |
 | `olmo3` | Olmo-3-7B/32B | (HF default) |
@@ -127,7 +128,10 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 | `k2_horizon` | K2 Horizon (v0.30.0+) — `<ifm\|tool_calls>` / `<ifm\|tool_call>` wrappers, JSON or XML (`<ifm\|arg_key>`) bodies; `supports_required_and_named = False` | (HF default) |
 | `hy_v4` | Hunyuan V4 / Hy4-preview (v0.29.0+); XML `<arg_key>` / `<arg_value>` pairs | (HF default — no bundled template; the `hunyuan_a13b` one is a different parser) |
 | `muse_glimmer` | Muse Glimmer (v0.29.0+); `<\|eom\|>` / `<\|eot\|>` special tokens | `tool_chat_template_muse_glimmer.jinja` |
-| `muse` / `musespark1x` | Muse Spark Open (v0.33.0+; same ATEM `<atem:function_calls>` format as `muse_glimmer`); pair `--reasoning-parser muse` | (HF default) |
+| `muse` / `musespark` | Muse Spark Open (v0.33.0+, alias `musespark1x` until v0.33.0 and `musespark` from v0.34.0; same ATEM `<atem:function_calls>` format as `muse_glimmer`); pair `--reasoning-parser muse` | (HF default) |
+| `granite_toolcall_parser` | Granite 4.2 (v0.34.0+; XML `<function=…><parameter=…>`; the CLI name keeps the `_parser` suffix) | (HF default) |
+| `zaya` / `zaya_xml` | ZAYA1 (v0.34.0+; Qwen3-Coder XML in `<zyphra_tool_call>`); pair `--reasoning-parser zaya` | (HF default) |
+| `ripple` | Ricursive Ripple-65B (v0.34.0+; Hermes-style JSON `<tool_call>`); pair `--reasoning-parser ripple` | (HF default) |
 | `seed_oss` | Seed-OSS | (HF default) |
 | `hunyuan_a13b` | Hunyuan-A13B | (HF default per vLLM docs; `tool_chat_template_hunyuan_a13b.jinja` also ships) |
 | `ernie45` | ERNIE-4.5 thinking | (HF default) |
@@ -139,7 +143,7 @@ Use this to pick the CLI name. **Then read the parser file and the matching Jinj
 The table is not authoritative — verify against the deployed tree:
 
 ```bash
-grep -oE '^\s+"[a-z0-9_-]+": \(' vllm/tool_parsers/__init__.py | tr -d ' ":('   # CLI names only (58 at v0.33.0)
+grep -oE '^\s+"[a-z0-9_-]+": \(' vllm/tool_parsers/__init__.py | tr -d ' ":('   # CLI names only (62 at v0.34.0)
 ls examples/tool_chat_template_*.jinja            # lists shipped templates
 ls vllm/tool_parsers/*_tool_parser.py              # lists source files
 ```
@@ -270,4 +274,4 @@ Before upstreaming, read `AGENTS.md` at the repo root for the duplicate-work + P
 
 ---
 
-**Last verified: 2026-11-09** against vLLM **v0.33.0**. See `references/sources.md` for per-reference probe details and timestamps.
+**Last verified: 2026-11-24** against vLLM **v0.34.0**. See `references/sources.md` for per-reference probe details and timestamps.
