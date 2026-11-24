@@ -1,7 +1,7 @@
 ---
 name: vllm-input-modalities
 description: |-
-  vLLM non-chat inference surfaces — text embeddings (`/v1/embeddings`, `/v2/embed`), reranking/scoring (`/rerank`, `/score`), speech-to-text (`/v1/audio/transcriptions`, `/v1/audio/translations`), document OCR via VLMs. Covers 2026 `--runner pooling` (replacing `--task embed`), v0.20 deprecations (`score`→`classify`, multitask pooling, `encode`→`token_embed`+`token_classify`), Matryoshka/MRL, ColBERT/ColPali/ColQwen late-interaction MaxSim, Cohere v2 `/v2/embed`, Jina v3/v4/v5 quirks, cross-encoder score templates, Whisper large-v3-turbo quants, DeepSeek-OCR recipe (NGramPerReqLogitsProcessor, no prefix cache, GUNDAM mode).
+  vLLM non-chat inference surfaces — text embeddings (`/v1/embeddings`, `/v2/embed`), reranking/scoring (`/rerank`, `/score`), speech-to-text (`/v1/audio/transcriptions`, `/v1/audio/translations`), document OCR via VLMs. Covers 2026 `--runner pooling` (replacing `--task embed`), v0.20 deprecations (`score`→`classify`, multitask pooling, `encode`→`token_embed`+`token_classify`), Matryoshka/MRL, ColBERT/ColPali/ColQwen late-interaction MaxSim, Cohere v2 `/v2/embed`, Jina v3/v4/v5 quirks, cross-encoder score templates, Whisper large-v3-turbo quants, DeepSeek-OCR recipe (NGramPerReqLogitsProcessor — removed in v0.34.0, no prefix cache, GUNDAM mode).
 when_to_use: |-
   Trigger on any non-chat vLLM endpoint or non-`/v1/chat/completions` model. Covers `--runner pooling`, `--convert embed|classify`, `--pooler-config`, `--hf-overrides is_matryoshka`, CLS/LAST/MEAN/ALL pooling; BGE-M3, Qwen3-Embedding, Jina v3/v4/v5, Qwen3-Reranker, BGE-reranker, mxbai-rerank, ColBERT, ColPali, ColQwen3/3.5, jina-reranker-v3/m0; Whisper, Voxtral, Qwen3-ASR/Omni, Kimi-Audio, Ultravox, FunASR, GLM-ASR; DeepSeek-OCR, dots-OCR, GLM-OCR, Nemotron-Parse. Narrow phrasings — "is --task embed still supported", "which Whisper quant fits 24 GB", "how to serve ColPali". Also implicit — "serve embed model", "deploy Whisper", "embed endpoint for {model}", "rerank endpoint", "OCR pipeline vLLM", "audit embedder", "deploy-memo for embedding", "spec-study embed/rerank/ASR/OCR".
 ---
@@ -208,14 +208,22 @@ standard CUDA/ROCm/CPU/XPU requirement files, no extra install. Details:
 **OOM on 24 GB with Whisper** (issue #15216) is a known sharp edge — Whisper
 allocates aggressively for its encoder KV, despite the 1.6 GB checkpoint.
 Production path is one of the RedHatAI quants above, or raising
-`--gpu-memory-utilization` past 0.9 with eager mode if memory is truly tight;
+`--gpu-memory-utilization` past 0.9 with eager mode if memory is truly tight
+(from v0.34.0 leave the flag unset — the extensible KV cache sizes itself from
+free memory and defaults to 1.0; set it only to share the GPU);
 unquantized large-v3 / large-v3-turbo wants ≥32 GB for comfortable batch sizes.
 
 ### OCR (DeepSeek-OCR)
 
-Canonical recipe (`recipes.vllm.ai/deepseek-ai/DeepSeek-OCR`):
+Recipe (`recipes.vllm.ai/deepseek-ai/DeepSeek-OCR`) by version:
 
 ```bash
+# v0.34.0+ — no n-gram processor exists; do not copy the recipe's --logits-processors line
+vllm serve deepseek-ai/DeepSeek-OCR \
+  --no-enable-prefix-caching \
+  --mm-processor-cache-gb 0
+
+# v0.31.0–v0.33.0 — processor present, Model Runner V1 mandatory
 VLLM_USE_V2_MODEL_RUNNER=0 \
 vllm serve deepseek-ai/DeepSeek-OCR \
   --logits-processors vllm.model_executor.models.deepseek_ocr:NGramPerReqLogitsProcessor \
@@ -223,19 +231,23 @@ vllm serve deepseek-ai/DeepSeek-OCR \
   --mm-processor-cache-gb 0
 ```
 
-**`VLLM_USE_V2_MODEL_RUNNER=0` is mandatory from v0.31.0.** The processor
-implements the V1 logits-processor interface; Model Runner V2 rejects it at
-startup with `ValueError: NGramPerReqLogitsProcessor is not a subclass of
-vllm.v1.worker.gpu.sample.logits_processor.LogitsProcessor`. No V2 port exists
-at v0.33.0 (`references/ocr.md` §3).
+**v0.34.0 removed Model Runner V1 and `NGramPerReqLogitsProcessor` with it**
+(DeepSeek-OCR and Unlimited-OCR). The recipe pages and `recipes/` still show
+the old line: it fails at load with `AttributeError`. `VLLM_USE_V2_MODEL_RUNNER=0`
+aborts startup — unset it. No in-tree replacement exists (PR #57540 is open).
+Without the processor long pages can loop: cap `max_tokens`, stay on v0.33.0
+until a replacement ships, or write a processor against
+`vllm.v1.worker.gpu.sample.logits_processor.LogitsProcessor` and load it with
+`--logits-processors <module>:<Class>` (`references/ocr.md` §3).
 
-Three non-obvious flags:
-- `NGramPerReqLogitsProcessor` is required — without it, table-token
-  generation degrades. It is **off for any request that does not configure
-  it**: send `ngram_size=30`, `window_size=90`,
+Non-obvious flags:
+- v0.31.0–v0.33.0: `NGramPerReqLogitsProcessor` is required — without it,
+  table-token generation degrades. It is **off for any request that does not
+  configure it**: send `ngram_size=30`, `window_size=90`,
   `whitelist_token_ids=[128821,128822]` in `extra_body={"vllm_xargs": {...}}`
   (online) or `SamplingParams(extra_args=...)` (offline), plus
-  `skip_special_tokens=False` (`references/ocr.md` §4).
+  `skip_special_tokens=False` (`references/ocr.md` §4). On v0.34.0 these
+  fields have no consumer.
 - **Disable prefix caching.** OCR per-request inputs don't share prefixes;
   the cache bookkeeping is pure overhead.
 - **`--mm-processor-cache-gb 0`** — the multimodal processor cache isn't
@@ -243,7 +255,7 @@ Three non-obvious flags:
 
 DeepSeek reports ~2500 tok/s per A100-40 GB, ~200 k pages/day per GPU. Mode
 is hard-coded to GUNDAM (base=1024, image=640, crop=True); Tiny/Small/Base/
-Large are not selectable (still hard-coded at v0.33.0).
+Large are not selectable (still hard-coded at v0.34.0).
 
 Invocation is still plain `/v1/chat/completions` with image URLs — there is
 no dedicated `/ocr` endpoint.
@@ -251,7 +263,7 @@ no dedicated `/ocr` endpoint.
 ## Top pitfalls
 
 1. **`--task embed` is dead, not deprecated.** No `--task` in
-   `vllm/engine/arg_utils.py` and no `task` field in `ModelConfig` at v0.33.0 —
+   `vllm/engine/arg_utils.py` and no `task` field in `ModelConfig` at v0.34.0 —
    passing it is an unrecognized-argument error. Use `--runner pooling`. The `score`
    and `encode` *pooling task names* are removed too and raise
    `VLLMValidationError` (`vllm/tasks.py`): use `--convert classify` on a
@@ -297,10 +309,13 @@ history and the PRs behind each row: `references/sources.md`.
 | below v0.31.0 | Chunked long-text embeddings (`enable_chunked_processing`) come back non-unit length; a non-truncating `max_tokens_per_doc` still changes scores on Qwen3-Reranker-style models | Upgrade; **re-embed / re-score** affected output | `references/embedding.md` §7, `references/reranking.md` §3 |
 | v0.33.0+ | All images, audio and video frames in one chat request share a decoded-size budget (715,827,880 bytes; images count 4 bytes/pixel ≈ 21 letter pages at 300 DPI) and a 256 MB URL-download budget; over either, the request is rejected | One page per request, or raise `VLLM_MAX_MEDIA_REQUEST_DECODE_BYTES` / `VLLM_MAX_MEDIA_REQUEST_DOWNLOAD_SIZE_MB` (`0` disables) | `references/ocr.md` §5 |
 | v0.31.0+ | A request carrying `mm_processor_kwargs` or `media_io_kwargs` is rejected unless the server runs `--trust-request-mm-kwargs` (chat and pooling/scoring alike) | Set decode options server-side with `--media-io-kwargs`, or add the flag | `references/stt.md` §6 |
-| v0.31.0+ | `--logits-processors …NGramPerReqLogitsProcessor` (DeepSeek-OCR, Unlimited-OCR) fails at startup on Model Runner V2: `ValueError: … is not a subclass of vllm.v1.worker.gpu.sample.logits_processor.LogitsProcessor` | Start the server with `VLLM_USE_V2_MODEL_RUNNER=0` | `references/ocr.md` §3 |
-| v0.32.0 (same kernel code v0.30.0–v0.33.0) | DeepSeek-OCR, DeepSeek-OCR-2 and Unlimited-OCR die in the startup profiling run: Triton `CompilationError … Cannot access global variable LOG2E from within @jit'ed function` | Set `TRITON_ALLOW_NON_CONSTEXPR_GLOBALS=1` in the server environment | `references/ocr.md` §6 |
+| v0.34.0+ | Model Runner V1 is removed: `VLLM_USE_V2_MODEL_RUNNER=0` aborts startup; `NGramPerReqLogitsProcessor` (DeepSeek-OCR, Unlimited-OCR) no longer exists, so the recipe's `--logits-processors` line fails at load | Unset the env var and drop the flag; no in-tree n-gram replacement | `references/ocr.md` §3 |
+| v0.34.0+ | A model whose pooler selects the `plugin` task (IO-processor-plugin deployments) fails at startup — no V1 fallback | Serve it on v0.33.x with `VLLM_USE_V2_MODEL_RUNNER=0` | `references/runner-flags.md` §11 |
+| v0.34.0+ | `jinaai/jina-reranker-v3` rejects `truncate_prompt_tokens` on `/rerank`, `/score` and `/pooling` with HTTP 400 | Send `max_tokens_per_query` / `max_tokens_per_doc` | `references/reranking.md` §2 |
+| v0.31.0–v0.33.0 | `--logits-processors …NGramPerReqLogitsProcessor` (DeepSeek-OCR, Unlimited-OCR) fails at startup on Model Runner V2: `ValueError: … is not a subclass of vllm.v1.worker.gpu.sample.logits_processor.LogitsProcessor` | Start the server with `VLLM_USE_V2_MODEL_RUNNER=0` | `references/ocr.md` §3 |
+| v0.30.0–v0.33.0 | DeepSeek-OCR, DeepSeek-OCR-2 and Unlimited-OCR die in the startup profiling run: Triton `CompilationError … Cannot access global variable LOG2E from within @jit'ed function`; v0.34.0 declares the constant `tl.constexpr` (#64016) | Set `TRITON_ALLOW_NON_CONSTEXPR_GLOBALS=1` in the server environment | `references/ocr.md` §6 |
 | v0.29.x | `media_io_kwargs` is not part of the multimodal cache hash — requests differing only in it hit each other's cache entries | Do not A/B decode settings with the processor cache on | `references/stt.md` §6 |
-| v0.29.0+ | Pooling runs on Model Runner V2 by default | `VLLM_USE_V2_MODEL_RUNNER=0` restores V1 (still accepted at v0.33.0) | `references/runner-flags.md` §11 |
+| v0.29.0–v0.33.0 | Pooling runs on Model Runner V2 by default | `VLLM_USE_V2_MODEL_RUNNER=0` restores V1 (removed in v0.34.0) | `references/runner-flags.md` §11 |
 | v0.24.0+ | Rerank `top_n` below 0 is a 400 (`-1` used to mean `0`); `top_n=0` still returns all | Send `0` for "all" | `references/reranking.md` §3 |
 | v0.24.0+ | `/v1/embeddings` accepts message-shaped input and `chat_template_kwargs` | Use it for instruction-style embedding prompts | `references/embedding.md` §1 |
 | v0.20.0+ | `PoolerConfig` `logit_bias`/`logit_scale` renamed `logit_mean`/`logit_sigma` (old names warn); `normalize` → `use_activation`; no automatic multitask pooling — pick one with `--pooler-config.task`; async scheduling off by default for pooling | Rename keys; set the task explicitly | `references/runner-flags.md` §3 |

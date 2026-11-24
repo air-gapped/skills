@@ -119,7 +119,7 @@ vector on retrieval tasks, at the cost of 10–100× storage per document.
 | `vidore/colpali-v1.3-hf` | **multimodal** (image + query) |
 | `ColQwen3`, `ColQwen3.5` | multimodal, Qwen3 base |
 | `ColModernVBertForRetrieval` | multimodal, ModernBERT base |
-| `athrael-soju/ColUltraVBERT` | v0.33.0+ (#62237), `ColUltraVBertForRetrieval`: multimodal, 768-d token vectors. Clients must send the trained prompts — page: `User:<image>Describe the image.<end_of_utterance>\nAssistant:` plus the image; query: the text followed by ten `<end_of_utterance>` |
+| `athrael-soju/ColUltraVBERT` | v0.33.0+ (#62237), `ColUltraVBertForRetrieval` (checkpoints declaring `UltraVBertModel` resolve to it from v0.34.0): multimodal, 768-d token vectors. Clients must send the trained prompts — page: `User:<image>Describe the image.<end_of_utterance>\nAssistant:` plus the image; query: the text followed by ten `<end_of_utterance>` |
 
 Serve: `vllm serve jinaai/jina-colbert-v2 --runner pooling --trust-remote-code`.
 Runner pick is auto for most; `--runner pooling` is the safe explicit form.
@@ -155,6 +155,12 @@ embeds both sides and returns cosine similarity.
 late interaction" — `JinaForRanking`, `token_embed` task, custom scoring.
 Same `/rerank` endpoint, but ranks a full list jointly rather than scoring
 pairs independently.
+
+**`truncate_prompt_tokens` is rejected for jina-reranker-v3 from v0.34.0**
+(#55200): `/rerank`, `/score`, `/pooling` and offline `LLM.score` / `LLM.encode`
+fail with HTTP 400 (`param="truncate_prompt_tokens"`) even when the limit would
+not cut anything. Truncate with `max_tokens_per_query` / `max_tokens_per_doc`
+(offline: `PoolingParams(extra_kwargs={...})`), or on the client.
 
 ## 3. Request shapes
 
@@ -194,6 +200,17 @@ Sequence to truncate too short to respect the provided max_length`. v0.33.0
 truncates the query as usual, or returns the normal 400 "maximum context
 length". On older engines drop `max_tokens_per_doc` for long-query
 ("find similar") requests.
+
+**`max_tokens_per_query` / `max_tokens_per_doc` failed on bi-encoder scoring
+with `MistralTokenizer` models below v0.34.0** (#65093, issue #65075): any
+positive limit returned HTTP 400, even one that truncated nothing (default
+`--tokenizer-mode auto` selects it for Mistral checkpoints). Omit the fields
+on older engines.
+
+**`max_tokens_per_query` / `max_tokens_per_doc` do nothing for multimodal
+content on bi-encoder and late-interaction models through v0.34.0** (#68212, fix
+PR #68229 open): only plain-string inputs are truncated, so an image-plus-text
+document passes through at full length with the same score and token count.
 
 ### `/score`
 
@@ -254,7 +271,7 @@ token) but scoring is cheap once indexed.
    probabilities, some raw logits). Use Platt scaling to normalise, or
    wrap the client to rescale per model.
 
-## 7. Source anchors (line numbers at v0.33.0)
+## 7. Source anchors (line numbers at v0.34.0)
 
 - `vllm/entrypoints/pooling/scoring/api_router.py` — routes
 - `vllm/entrypoints/pooling/scoring/serving.py` — dispatch + flash

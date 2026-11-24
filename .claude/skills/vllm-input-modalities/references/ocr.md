@@ -20,8 +20,8 @@ biases them hard toward transcription of document images.
 
 | Model | vLLM class | File | Notes |
 |---|---|---|---|
-| `deepseek-ai/DeepSeek-OCR` | `DeepseekOCRForCausalLM` | `vllm/model_executor/models/deepseek_ocr.py:362` | 3B, the reference OCR model since Oct 2025 |
-| `deepseek-ai/DeepSeek-OCR-2` | `DeepseekOCR2ForCausalLM` | `deepseek_ocr2.py:234` | v2, wider layout support. TTFT optimisation in v0.27.0 (#49531) |
+| `deepseek-ai/DeepSeek-OCR` | `DeepseekOCRForCausalLM` | `vllm/model_executor/models/deepseek_ocr.py` | 3B, the reference OCR model since Oct 2025 |
+| `deepseek-ai/DeepSeek-OCR-2` | `DeepseekOCR2ForCausalLM` | `deepseek_ocr2.py` | v2, wider layout support. TTFT optimisation in v0.27.0 (#49531) |
 | `THUDM/glm-ocr-*` | `GlmOcrForConditionalGeneration` | `glm_ocr.py` | `model_type=glm_ocr` inside glm4_1v family |
 | `glm-ocr-mtp-*` | `GlmOcrMTP` (arch `GlmOcrMTPModel`) | `glm_ocr_mtp.py` | multi-token prediction variant |
 | `rednote-hilab/dots.ocr` (family) | `DotsOCRForCausalLM` | `dots_ocr.py` | dense layout + table handling |
@@ -29,7 +29,8 @@ biases them hard toward transcription of document images.
 | `Lighton/Ocr-*` | `LightOnOCRForConditionalGeneration` | `lightonocr.py` | lightweight |
 | Qianfan-OCR | `QianfanOCRForConditionalGeneration` | `qianfan_ocr.py` | added v0.21.0 (#40136) |
 | `baidu/Unlimited-OCR` | `UnlimitedOCRForCausalLM` | `unlimited_ocr.py` | added v0.25.0 (#46564); Triton R-SWA backend #47102. Benchmarked on OmniDocBench |
-| `nvidia/Nemotron-3.5-Parse` | `RadioMBartPrefixForCausalLM` | `nemotron_parse3_5.py` | added v0.33.0 (#61651); `--trust-remote-code`. Its MTP draft (`ParseAuxMTPModel`) runs on Model Runner V2 only |
+| `baidu/Unlimited-OCR-2` | `UnlimitedOCR2TextForCausalLM` | `unlimited_ocr.py` | added v0.34.0 (#64016); DASH sparse attention, 16 crops |
+| `nvidia/Nemotron-3.5-Parse` | `RadioMBartPrefixForCausalLM` | `nemotron_parse3_5.py` | added v0.33.0 (#61651); `--trust-remote-code` |
 | `openbmb/MiniCPM-OCR-1.0` | `MiniCPMOcrForConditionalGeneration` | `minicpm_ocr.py` | added v0.33.0 (#63095). Send `chat_template_kwargs={"enable_thinking": false}` for plain transcription — otherwise the output opens with `<think>` |
 | `PaddlePaddle/PaddleOCR-VL` | `PaddleOCRVLForConditionalGeneration` | `paddleocr_vl.py` | vision encoder batched across images from v0.33.0 (#61458) |
 
@@ -39,10 +40,18 @@ accurately as the purpose-built models on dense document images.
 
 ## 3. DeepSeek-OCR — canonical recipe
 
-From <https://recipes.vllm.ai/deepseek-ai/DeepSeek-OCR> (source:
-`recipes/models/deepseek-ai/DeepSeek-OCR.yaml` in the vLLM repo):
+Recipe: <https://recipes.vllm.ai/deepseek-ai/DeepSeek-OCR> (source:
+`recipes/models/deepseek-ai/DeepSeek-OCR.yaml` in the vLLM repo). **The recipe
+and the in-repo `recipes/` files still carry the v0.33.0-era
+`--logits-processors` line; it fails on v0.34.0 and later.**
 
 ```bash
+# v0.34.0 and later
+vllm serve deepseek-ai/DeepSeek-OCR \
+  --no-enable-prefix-caching \
+  --mm-processor-cache-gb 0
+
+# v0.31.0 – v0.33.0
 VLLM_USE_V2_MODEL_RUNNER=0 \
 vllm serve deepseek-ai/DeepSeek-OCR \
   --logits-processors vllm.model_executor.models.deepseek_ocr:NGramPerReqLogitsProcessor \
@@ -50,31 +59,39 @@ vllm serve deepseek-ai/DeepSeek-OCR \
   --mm-processor-cache-gb 0
 ```
 
-**Model Runner V1 is required for the logits processor.**
-`NGramPerReqLogitsProcessor` subclasses the V1 `AdapterLogitsProcessor`. What
-happens without `VLLM_USE_V2_MODEL_RUNNER=0`:
+**What changed on v0.34.0.** Model Runner V1 and the V1 logits-processor API
+are removed (#63373), and `NGramPerReqLogitsProcessor` was deleted with them
+from `deepseek_ocr.py` and `unlimited_ocr.py`. `--logits-processors
+…:NGramPerReqLogitsProcessor` now raises `AttributeError` at load,
+`VLLM_USE_V2_MODEL_RUNNER=0` aborts startup, and the `ngram_size` /
+`window_size` / `whitelist_token_ids` request fields (§4) have no consumer. No
+in-tree V2 port exists; PR #57540 (native GPU no-repeat n-gram masking) is
+open. Choices until one lands:
 
-| Running version | Result |
+1. Stay on v0.33.0 with `VLLM_USE_V2_MODEL_RUNNER=0` and the recipe above.
+2. Run v0.34.0 without a processor and bound runaway output with
+   `max_tokens`; long pages can loop and dense tables degrade.
+3. Subclass `vllm.v1.worker.gpu.sample.logits_processor.LogitsProcessor`
+   (V2 interface), ship it in an importable module and pass it as
+   `--logits-processors <module>:<Class>`. A V1-interface class is rejected.
+
+| Running version | Result with the recipe's `--logits-processors` line |
 |---|---|
 | v0.28.x and below | V1 is the default — works |
 | v0.29.x–v0.30.x | vLLM logs `Model Runner V2 does not yet support custom logits processors; using the V1 model runner instead.` — works |
-| v0.31.0–v0.33.0 | startup fails: `ValueError: NGramPerReqLogitsProcessor is not a subclass of vllm.v1.worker.gpu.sample.logits_processor.LogitsProcessor` |
+| v0.31.0–v0.33.0 | startup fails without `VLLM_USE_V2_MODEL_RUNNER=0`: `ValueError: NGramPerReqLogitsProcessor is not a subclass of vllm.v1.worker.gpu.sample.logits_processor.LogitsProcessor` |
+| v0.34.0 and later | processor removed — load fails |
 
-Same for `baidu/Unlimited-OCR`, which reuses this processor. No V2-interface
-n-gram processor ships at v0.33.0, and MRV1 is announced for removal
-(`references/runner-flags.md` §11): re-check on every upgrade. Dropping the
-processor instead makes long pages loop.
-
-Three non-obvious flags. Only the first changes output; the other two remove
-overhead (the recipe's own serve line carries the first and third):
+Three non-obvious flags. Only the first changes output (v0.31.0–v0.33.0 only —
+removed in v0.34.0); the other two remove overhead:
 
 1. **`--logits-processors ...NGramPerReqLogitsProcessor`** — applies the
    table-token whitelist (`{128821, 128822}`) with `ngram_size=30`,
    `window_size=90`. Without it, dense tables regress badly. Note the class
    does not hard-code those numbers: it reads `whitelist_token_ids`,
    `ngram_size` and `window_size` from each request's `extra_args`
-   (`deepseek_ocr.py:140-195`). A request without `ngram_size` gets **no
-   processor at all** — every client must send the §4 request shape.
+   (`deepseek_ocr.py` at v0.33.0). A request without `ngram_size` gets
+   **no processor at all** — every client must send the §4 request shape.
 2. **`--no-enable-prefix-caching`** — OCR requests don't share prefixes;
    the cache is pure bookkeeping overhead. Keep this spelling: upstream docs
    from v0.33.0 write `--disable-prefix-caching`, which v0.32.x and older
@@ -91,8 +108,10 @@ Published throughput: ~2500 tok/s on a single A100-40 GB, ~200 k pages/day.
 
 ## 4. Request format
 
-OpenAI chat-completions with images. For DeepSeek-OCR and Unlimited-OCR the
-`extra_body` block is mandatory — it is what switches the logits processor on:
+OpenAI chat-completions with images. On v0.31.0–v0.33.0 the `extra_body`
+block is mandatory for DeepSeek-OCR and Unlimited-OCR — it is what switches the
+logits processor on. On v0.34.0 and later drop `vllm_xargs`; only
+`skip_special_tokens` still matters:
 
 ```python
 from openai import OpenAI
@@ -150,6 +169,9 @@ instructions; offline, prefix them with `<image>\n`.
 - **Raster formats only from v0.32.0** (#60022). Request images are opened
   against `ALLOWED_IMAGE_FORMATS`; EPS/PostScript and WMF are refused.
   Rasterize vector scans (PDF/EPS/WMF) to PNG client-side.
+- **Undecodable images return 400 from v0.34.0** — decompression bombs
+  (Pillow's check), corrupt AVIF/BLP files and disabled local-media access
+  (#60308, #63433, #64032); below v0.34.0 these surfaced as HTTP 500.
 - **Multi-page documents** — split client-side into one image per page.
   vLLM handles one image per message cleanly; some VLMs accept multiple
   images per message (see per-model docs for limit).
@@ -186,7 +208,7 @@ instructions; offline, prefix them with `<image>\n`.
    on single-GPU setups. **Exception — dots.ocr / dots.mocr through v0.33.0:**
    with `--tensor-parallel-size` > 1 every region comes back as the same
    "does not contain any text … blurry image" sentence (vision-tower QKV split,
-   #64541; fix merged after v0.33.0). Run TP=1 or add
+   #64541; fixed in v0.34.0 by #64543). Below v0.34.0 run TP=1 or add
    `--mm-encoder-tp-mode data`.
 5. **GLM-OCR model_type quirk** — it's `glm_ocr` inside the `glm4_1v`
    family. If auto-detection picks the plain `glm4_1v` class, the model
@@ -201,7 +223,9 @@ instructions; offline, prefix them with `<image>\n`.
    core initialization failed`** (DeepSeek-OCR, DeepSeek-OCR-2, Unlimited-OCR —
    the shared DeepEncoder attention kernel). Reported on v0.32.0; the kernel
    code is identical in v0.30.0–v0.33.0 and the upstream issue (#62848) is
-   open. Set `TRITON_ALLOW_NON_CONSTEXPR_GLOBALS=1` in the server environment.
+   still open. v0.34.0 declares the constant `tl.constexpr` (#64016), which
+   Triton accepts as a global. On v0.30.0–v0.33.0 set
+   `TRITON_ALLOW_NON_CONSTEXPR_GLOBALS=1` in the server environment.
    No attention backend and no `--enforce-eager` avoids it — the failing
    kernel is the vision encoder's.
 
@@ -219,13 +243,13 @@ feed text to a general LLM for reasoning. Two approaches:
 Pick based on throughput vs latency requirements. OCR-then-LLM is cheaper
 per page; single-VLM is lower-latency for interactive use.
 
-## 8. Source anchors (line numbers at v0.33.0)
+## 8. Source anchors (line numbers at v0.34.0)
 
-- `vllm/model_executor/models/deepseek_ocr.py:362-` — `DeepseekOCRForCausalLM`;
-  `:140-195` — `NGramPerReqLogitsProcessor`
-- `vllm/model_executor/models/deepseek_ocr2.py:234-` — v2
+- `vllm/model_executor/models/deepseek_ocr.py` — `DeepseekOCRForCausalLM`
+  (`NGramPerReqLogitsProcessor`, is removed)
+- `vllm/model_executor/models/deepseek_ocr2.py` — v2
 - `vllm/model_executor/models/glm_ocr.py`, `glm_ocr_mtp.py`
-- `vllm/model_executor/models/dots_ocr.py` — 770 LOC
+- `vllm/model_executor/models/dots_ocr.py` — 779 LOC
 - `vllm/model_executor/models/lightonocr.py`
 - `vllm/multimodal/parse.py` — image-input parsing
 - Recipe: `recipes/models/deepseek-ai/DeepSeek-OCR.yaml`, rendered at

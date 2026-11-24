@@ -12,7 +12,7 @@ model, Matryoshka / dimension reduction, pool-type overrides, or the
 | `/v2/embed` | Cohere v2 compatible | client expects `input_type`, `embedding_types`, per-request `truncate` |
 
 Both endpoints are live whenever the loaded model's supported tasks include
-`embed`. No flag to toggle. Code: `vllm/entrypoints/pooling/embed/api_router.py:28-61`.
+`embed`. No flag to toggle. Code: `vllm/entrypoints/pooling/embed/api_router.py`.
 
 **Instruction-style embedding prompts — v0.24.0 and later.** `/v1/embeddings`
 now accepts chat-message-shaped input and honours `chat_template_kwargs`
@@ -42,7 +42,7 @@ N tokens, `"left"` keeps the last N (`PoolingBasicRequestMixin` in
 
 ## 2. Pooling types
 
-Two enums in `vllm/config/pooler.py:16-20`: `SequencePoolingType` = `CLS`,
+Two enums in `vllm/config/pooler.py`: `SequencePoolingType` = `CLS`,
 `LAST`, `MEAN`; `TokenPoolingType` = `ALL` (token-wise), `STEP` (with
 `returned_token_ids`). `pooling_type` accepts either and fills
 `seq_pooling_type` / `tok_pooling_type`.
@@ -72,7 +72,7 @@ vllm serve <model> --runner pooling \
 ## 3. Matryoshka / MRL
 
 Native: model config must have `is_matryoshka: true` **or**
-`matryoshka_dimensions: [256, 512, 768]`. `vllm/config/model.py:2084-2091`.
+`matryoshka_dimensions: [256, 512, 768]`. `vllm/config/model.py`.
 
 Forcing on for a model that supports MRL but lacks config:
 
@@ -98,8 +98,10 @@ true` but no explicit `matryoshka_dimensions` list. A value above the model's
 vector — the request succeeded with the *wrong width*, silently. PR #46313
 (merged 2026-06-22) adds the upper-bound check and raises instead, mirroring
 sglang's `_validate_for_matryoshka_dim`. The bound is
-`ModelConfig.embedding_size`: `hf_config.embedding_size` if set, else the
-Sentence-Transformers Dense output width, else `hidden_size`.
+`ModelConfig.embedding_size`: `hf_config.embedding_size` if set, else
+`embedding_dim` (v0.34.0+, #60978), else the Sentence-Transformers Dense
+output width, else `hidden_size`. Models with `matryoshka_dimensions` accept
+only the listed values.
 
 Practical consequence: an index built on a pre-v0.24 engine with an oversized
 `dimensions` value contains `hidden_size`-width vectors, not the width the
@@ -160,7 +162,7 @@ Pinning `matryoshka_dimensions` explicitly avoids the whole ambiguity.
 
 - `google/embeddinggemma-2` (`EmbeddingGemma2Model`, #60254): text/image/audio/video into one 768-dim normalized space. `vllm serve google/embeddinggemma-2 --runner pooling --max-model-len 8192`.
 - Text-only deployment: add `--limit-mm-per-prompt '{"image":0,"audio":0,"video":0}'` — unused modality encoders are not loaded (#60289).
-- MRL (the model card lists 128/256/512/768): on v0.32.0–v0.33.0 every request carrying `dimensions` fails with `does not support Matryoshka embeddings`. Add `--hf-overrides '{"matryoshka_dimensions":[128,256,512]}'`; for 768 omit `dimensions` (768 is the default width, but an explicit 768 is rejected as outside `[1, 512]`). Fixed upstream after v0.33.0 (#64885, #60978).
+- MRL (the model card lists 128/256/512/768): v0.34.0 and later accept `dimensions` of 128, 256, 512 and 768 with no override (#64885, #60978). On v0.32.0–v0.33.0 every request carrying `dimensions` fails with `does not support Matryoshka embeddings`: add `--hf-overrides '{"matryoshka_dimensions":[128,256,512]}'`, and for 768 omit `dimensions` (768 is the default width, but an explicit 768 is rejected as outside `[1, 512]`).
 
 ### LFM2.5-Embedding (Liquid AI, v0.33.0+)
 
@@ -226,6 +228,18 @@ r = requests.post("http://localhost:8000/v2/embed", json={
   multimodal data silently — even short ones — and were embedded as text
   (#62859). v0.33.0 rejects such requests with a 400; text-only chunking is
   unchanged. Re-embed multimodal items indexed that way.
+- **`/pooling` returns HTTP 400 `Chunked embedding metadata not available` on
+  every request when `enable_chunked_processing` is on** (v0.25.0 through
+  v0.34.0; `/v1/embeddings` on the same server works). Fixed after v0.34.0
+  (#67791, issue #67790). Use `/v1/embeddings`, or turn chunked processing off.
+- **Large steps on a model with no KV cache (#68381, fix PR #68382 open):** a model with no
+  KV cache (encoder-only embedder, or `hf_overrides={"is_causal": false}`)
+  skips the engine's profile run, so `torch.compile` traces at the 2048-token
+  warmup and picks 32-bit indexing. A single step above `2**31 / widest
+  activation width` (about 110k tokens for a 19456-wide MLP) then crashes with
+  an illegal memory access or silently returns wrong embeddings. Keep
+  `--max-num-batched-tokens` below that bound on such models, or run
+  `--enforce-eager`.
 - Chunked prefill + prefix caching: both work on embedding models; leave
   defaults on — **but only from v0.26.0**. Below that, chunked prefill plus
   `torch.compile` (the default pair) silently produced *wrong* vectors and
@@ -248,13 +262,13 @@ r = requests.post("http://localhost:8000/v2/embed", json={
 - **HF gated models** — set `HF_TOKEN` even in offline mode (known quirk,
   issue #9255).
 
-## 9. Source anchors (line numbers at v0.33.0)
+## 9. Source anchors (line numbers at v0.34.0)
 
 - `vllm/entrypoints/pooling/embed/api_router.py` — route definitions
-- `vllm/entrypoints/pooling/factories.py:38-109` — IO processor registration
-- `vllm/config/pooler.py:30-201` — `PoolerConfig` schema (pool type,
+- `vllm/entrypoints/pooling/factories.py` — IO processor registration
+- `vllm/config/pooler.py` — `PoolerConfig` schema (pool type,
   dimensions, chunked processing, Platt scaling)
-- `vllm/config/model.py:2084-2091` — `is_matryoshka` detection
+- `vllm/config/model.py` — `is_matryoshka` detection
 - `vllm/model_executor/models/bert.py`, `jina.py` — embedding model
   definitions
 - Docs: `docs/models/pooling_models/embed.md` in the repo

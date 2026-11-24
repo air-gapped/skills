@@ -11,23 +11,23 @@ Load when the question is about `--task` vs `--runner`, what replaces
 | `--runner {auto|generate|pooling|draft}` | **current, preferred** | — |
 | `--convert {auto|none|embed|classify}` | **current** | — |
 | `--pooler-config '{...}'` | **current** | — |
-| `--task {generate|embed|score|classify|reward|encode|...}` | **removed** — not a CLI arg at v0.33.0 | `--runner` + `--convert` |
+| `--task {generate|embed|score|classify|reward|encode|...}` | **removed** — not a CLI arg at v0.34.0 | `--runner` + `--convert` |
 | `--enable-scoring-api` | **never existed** | auto per-model |
 
-`--task` is gone, not merely warned about: at v0.33.0 there is no `task`
+`--task` is gone, not merely warned about: at v0.34.0 there is no `task`
 field in `ModelConfig` (`vllm/config/model.py`), no `--task` in
 `vllm/engine/arg_utils.py`, and `docs/models/pooling_models/README.md`
 documents only `--runner`/`--convert`. Passing it fails argument parsing.
 The table in §2 is now a **migration table for old configs and old blog
 posts**, not a description of two live spellings.
 
-Runner types (`vllm/config/scheduler.py:20`):
+Runner types (`vllm/config/scheduler.py`):
 `RunnerType = Literal["generate", "pooling", "draft"]`.
 
-Pooling tasks (`vllm/tasks.py:10-17`):
+Pooling tasks (`vllm/tasks.py`):
 `PoolingTask = Literal["embed", "classify", "token_embed", "token_classify", "plugin", "embed&token_classify"]`.
 
-Score types (`vllm/tasks.py:33`):
+Score types (`vllm/tasks.py`):
 `ScoreType = Literal["bi-encoder", "cross-encoder", "late-interaction"]`.
 
 ## 2. Translation table — old `--task` → new flags
@@ -50,7 +50,7 @@ From the v0.20.0 release notes and the pooling-models docs
 
 1. **`--task` flag** — replaced entirely by `--runner` + `--convert`. It was
    accepted with a deprecation warning in the v0.20 era; by v0.22.0 it was
-   already absent from `arg_utils.py`, and it is still absent at v0.33.0.
+   already absent from `arg_utils.py`, and it is still absent at v0.34.0.
 2. **`score` pooling task** — replaced by `classify` + `num_labels==1`.
    Now hard-removed: `vllm/tasks.py:check_removed_pooling_task` raises
    `VLLMValidationError` for `score` and `encode` with the replacement named
@@ -71,7 +71,7 @@ From the v0.20.0 release notes and the pooling-models docs
 ## 4. How the runner + convert combination resolves
 
 Resolution order (`ModelConfig._get_runner_type` / `_get_convert_type`,
-`vllm/config/model.py:1307-1382`; validation at `:704-738`):
+`vllm/config/model.py`):
 
 1. Read `--runner`. If `auto`, check the registry:
    - If the architecture is in the pooling-model registry
@@ -83,7 +83,7 @@ Resolution order (`ModelConfig._get_runner_type` / `_get_convert_type`,
    - Otherwise no conversion.
 3. Read `--pooler-config` and merge into the resolved `PoolerConfig`.
 
-Converters (`_RUNNER_CONVERTS` in `vllm/config/model.py:124-128`):
+Converters (`_RUNNER_CONVERTS` in `vllm/config/model.py`):
 
 - `embed` — attaches a pool head (default LAST for causal LMs, configurable).
 - `classify` — attaches a classification head (requires labels info).
@@ -102,7 +102,7 @@ Converters (`_RUNNER_CONVERTS` in `vllm/config/model.py:124-128`):
 
 ## 6. When the scoring API auto-enables
 
-`vllm/entrypoints/pooling/utils.py:220-238` — `enable_scoring_api()` gates
+`vllm/entrypoints/pooling/utils.py` — `enable_scoring_api()` gates
 `/score` + `/rerank` endpoint registration. Active if the model's pooler
 reports any of:
 
@@ -143,15 +143,15 @@ Symptoms and fixes:
 | Pool outputs garbled | loaded as `generate` + `--convert embed` auto-failed | explicit `--runner pooling --convert embed` |
 | `dimensions=N` returns 400 | model doesn't declare Matryoshka | `--hf-overrides '{"is_matryoshka": true}'` or accept the model doesn't support MRL |
 
-## 9. Source anchors (line numbers at v0.33.0)
+## 9. Source anchors (line numbers at v0.34.0)
 
-- `vllm/config/scheduler.py:20` — `RunnerType`
-- `vllm/config/model.py:86-128` — `RunnerOption`/`ConvertOption`, `_RUNNER_CONVERTS`
-- `vllm/config/model.py:1307-1382` — runner/convert resolution
+- `vllm/config/scheduler.py` — `RunnerType`
+- `vllm/config/model.py` — `RunnerOption`/`ConvertOption`, `_RUNNER_CONVERTS`
+- `vllm/config/model.py` — runner/convert resolution
 - `vllm/config/pooler.py` — `PoolerConfig` schema
-- `vllm/entrypoints/pooling/factories.py:38-109` — IO processor registry
-- `vllm/entrypoints/pooling/utils.py:220-238` — scoring API auto-enable
-- `vllm/tasks.py:7-33` — `GenerationTask`, `PoolingTask`, `ScoreType` enums
+- `vllm/entrypoints/pooling/factories.py` — IO processor registry
+- `vllm/entrypoints/pooling/utils.py` — scoring API auto-enable
+- `vllm/tasks.py` — `GenerationTask`, `PoolingTask`, `ScoreType` enums
 - Docs: `docs/models/pooling_models/README.md`
 
 ## 10. Recent PRs worth knowing (all merged, all shipped in v0.20.0)
@@ -170,49 +170,33 @@ Symptoms and fixes:
 - **#39763** — pre/post-processing offloaded to thread pool (async
   rendering for pooling).
 
-## 11. Model Runner V2 and the pooling runner (v0.27.0 onward)
+## 11. Model Runner V2 is the only runner (v0.34.0)
 
-MRV2 grew a pooling path in v0.27.0: encoder-only attention
-(#49331), sequence `embed` + `classify` pooling (#48791), `token_classify`
-(#50293), `token_embed` (#50574), and BGE-M3's combined
-`embed&token_classify` (#50661). Encoder-only pooling is complete for every
-in-tree pooling task as of #50661.
+Model Runner V1 is removed (#63373, v0.34.0). Pooling ran on Model Runner V2
+by default from v0.29.0 (#48290; opt-in at v0.28.0 and below). Encoder-only
+and decoder token-wise pooling are complete on V2 (#50661, #50931).
 
-**Default for pooling from v0.29.0; opt-in at v0.28.0 and below.**
-`VLLM_USE_V2_MODEL_RUNNER` defaults to `None` ("use config defaults",
-`vllm/envs.py`), and `VllmConfig._is_default_v2_model_runner_model` returns
-`False` for any `runner_type != "generate"` **up to and including v0.28.0**.
-PR #48290 flips that; it merged 2026-08-19, after the v0.28.0 branch cut, and
-first ships in **v0.29.0**. At v0.28.0 and below a pooling deployment behaves
-exactly as before unless the operator opts in; at v0.29.0 the upgrade itself
-switches the runner, and `VLLM_USE_V2_MODEL_RUNNER=0` is the way back.
+- `VLLM_USE_V2_MODEL_RUNNER=0` aborts startup (`… is no longer supported:
+  Model Runner V1 has been removed`); `=1` only logs a warning. Unset it.
+  `VllmConfig.use_v2_model_runner` is gone, and so is the automatic fallback
+  to V1 for unsupported features.
+- Supported pooling tasks (`vllm/v1/worker/gpu/pool/pooling_runner.py`):
+  `embed`, `classify`, `token_embed`, `token_classify`,
+  `embed&token_classify`. **`plugin` (IO-processor plugins) is not
+  supported and has no fallback**: a model whose pooler selects it fails at
+  startup with `vLLM supports pooling tasks [...], but this model selects
+  'plugin' from ['plugin']`. Serve such a model on v0.33.x with
+  `VLLM_USE_V2_MODEL_RUNNER=0`.
+- Any other unsupported selection fails with the same message plus `Set an
+  explicitly supported task.` — set `--pooler-config.task`.
+- Custom logits processors implement the V2 interface
+  (`vllm.v1.worker.gpu.sample.logits_processor.LogitsProcessor`); V1-interface
+  classes, including plugins registered under `vllm.logits_processors`, are
+  rejected. `NGramPerReqLogitsProcessor` is gone (`references/ocr.md` §3).
 
-**That escape hatch has a horizon — treat it as a migration window, not a setting.**
-v0.29.0 also made MRV2 the default for *every* model, not just pooling
-([#53183](https://github.com/vllm-project/vllm/pull/53183)), and its notes declare MRV1 deprecated and
-**target v0.32 for its removal**, with no further MRV1-specific work accepted.
-**v0.32.0 and v0.33.0 shipped without removing it**: `VLLM_USE_V2_MODEL_RUNNER=0`
-still selects MRV1 (`VllmConfig.use_v2_model_runner`, `vllm/config/vllm.py`). The
-removal is still announced — pinning `=0` buys time to fix a blocker, it is not
-a durable configuration. Re-check on every upgrade past v0.33.
-
-**vLLM also falls back to MRV1 by itself** when a feature MRV2 does not yet
-support is configured. At v0.33.0 (`_get_v2_model_runner_unsupported_features`):
-PP with the `external_launcher` backend, speculative methods `suffix` /
-`custom_class` (v0.32.0 also listed `medusa` / `mlp_speculator`; v0.33.0 removes
-both methods outright), EAGLE parallel drafting, heterogeneous-vocabulary draft
-models, some dual-batch-overlap setups, and no Triton ([tracking issue #47172](https://github.com/vllm-project/vllm/issues/47172)).
-The fallback logs `Model Runner V2 does not yet support ...; using the V1 model
-runner instead.` Check which runner is actually in use before concluding the
-upgrade changed anything. HiSparse and watermarking force MRV2 even with `=0`.
-
-On MRV2 (`vllm/v1/worker/gpu/pool/pooling_runner.py`):
-
-- Supported pooling tasks: `embed`, `classify`, `token_embed`,
-  `token_classify`, `embed&token_classify`. **`plugin` (IO-processor plugins)
-  is not** — such deployments need `VLLM_USE_V2_MODEL_RUNNER=0`.
-- Token-wise tasks work on decoder backbones from v0.28.0 (#50931); on v0.27.x
-  they were encoder-only and decoder late-interaction models were rejected.
-- An unsupported selection fails at startup with `Model Runner V2 supports
-  pooling tasks [...], but this model selects '<task>' from [...]`, and the
-  error names the escape hatch: **`VLLM_USE_V2_MODEL_RUNNER=0`**.
+**v0.29.0–v0.33.0:** `VLLM_USE_V2_MODEL_RUNNER=0` selected MRV1, and vLLM
+fell back to it by itself (log line `Model Runner V2 does not yet support ...;
+using the V1 model runner instead.`) for PP with `external_launcher`, the
+`suffix` / `custom_class` speculative methods, EAGLE parallel drafting,
+heterogeneous-vocabulary draft models, some dual-batch-overlap setups, no
+Triton, custom logits processors (v0.29.0–v0.30.x) and `plugin` pooling.

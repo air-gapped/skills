@@ -37,12 +37,12 @@
     },
     {
       "id": 6,
-      "question": "Besides `--logits-processors ...NGramPerReqLogitsProcessor`, which two flags does the vLLM DeepSeek-OCR serve recipe carry, and which environment variable is mandatory from v0.31.0?",
-      "skill_answer": "`--no-enable-prefix-caching` and `--mm-processor-cache-gb 0` (overhead only); `VLLM_USE_V2_MODEL_RUNNER=0`, because the processor is V1-interface and Model Runner V2 rejects it at startup."
+      "question": "On vLLM v0.34.0, what happens to the DeepSeek-OCR recipe's `--logits-processors ...NGramPerReqLogitsProcessor` line and to `VLLM_USE_V2_MODEL_RUNNER=0`, and which two other recipe flags remain?",
+      "skill_answer": "Both break: Model Runner V1 and `NGramPerReqLogitsProcessor` were removed in v0.34.0 (the flag fails at load; `VLLM_USE_V2_MODEL_RUNNER=0` aborts startup; no in-tree replacement). `--no-enable-prefix-caching` and `--mm-processor-cache-gb 0` remain (overhead only). On v0.31.0-v0.33.0 the processor needs `VLLM_USE_V2_MODEL_RUNNER=0`."
     },
     {
       "id": 7,
-      "question": "Which values must a DeepSeek-OCR request send to switch on NGramPerReqLogitsProcessor, and in which field on the OpenAI-compatible route?",
+      "question": "On vLLM v0.31.0-v0.33.0, which values must a DeepSeek-OCR request send to switch on NGramPerReqLogitsProcessor, and in which field on the OpenAI-compatible route?",
       "skill_answer": "ngram_size=30, window_size=90, whitelist_token_ids [128821,128822] in `extra_body={\"vllm_xargs\": {...}}` (offline: `SamplingParams(extra_args=...)`); a request without them gets no processor."
     },
     {

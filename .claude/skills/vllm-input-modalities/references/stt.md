@@ -54,7 +54,7 @@ Task types (from `vllm/tasks.py:7`):
 | Voxtral | `mistralai/Voxtral-Mini-3B-2507` | `VoxtralForConditionalGeneration` | Mistral's speech model; Small variant also exists |
 | Qwen2-Audio | `Qwen/Qwen2-Audio-*` | `Qwen2AudioForConditionalGeneration` | **audio chat only** — no `SupportsTranscription`, so no `/v1/audio/*`; use `/v1/chat/completions` |
 | Qwen3-Omni | `Qwen/Qwen3-Omni-MoE-Thinker-*` | `Qwen3OmniMoeThinkerForConditionalGeneration` | unified audio+vision |
-| Qwen3-ASR | `Qwen/Qwen3-ASR-*` | `Qwen3ASRForConditionalGeneration` | dedicated ASR; realtime variant `Qwen3ASRRealtimeGeneration`, forced aligner `Qwen3ASRForcedAlignerForTokenClassification` |
+| Qwen3-ASR | `Qwen/Qwen3-ASR-*` | `Qwen3ASRForConditionalGeneration` | dedicated ASR; realtime variant `Qwen3ASRRealtimeGeneration`, forced aligner `Qwen3ASRForcedAlignerForTokenClassification` (below v0.34.0 it needs `--hf-overrides '{"architectures":["Qwen3ASRForcedAlignerForTokenClassification"]}'`; v0.34.0 loads it from the upstream config, #66097, #63274) |
 | Ultravox | `fixie-ai/ultravox-v0_*` | `UltravoxModel` | **audio chat only** — no `/v1/audio/*`. LLaMA 3 + Whisper encoder |
 | Kimi-Audio | `moonshotai/Kimi-Audio-7B-Instruct` | `KimiAudioForConditionalGeneration` | long-form audio understanding |
 | FunASR | `funasr/*` | family | Chinese-first ASR |
@@ -65,6 +65,9 @@ Task types (from `vllm/tasks.py:7`):
 | Granite Speech | — | `GraniteSpeechForConditionalGeneration` | |
 | Nemotron 3.5 ASR | `nvidia/nemotron-3.5-asr-streaming-0.6b` | `Nemotron3_5AsrForRNNT` | v0.32.0 (#59827). **Out-of-tree** — install `vllm-nemotron-asr-plugin` first; in-tree vLLM only points at it. Complete-audio transcription only, no realtime streaming |
 | MOSS | `OpenMOSS-Team/MOSS-Transcribe-Diarize` | `MossTranscribeDiarizeForConditionalGeneration` | added v0.26.0 (#47729). **The only entry here that diarizes** — end-to-end long-form transcription with timestamped *speaker labels*, Whisper-style audio encoder feeding a Qwen3 causal decoder. Reach for this instead of bolting a separate diarization stage onto Whisper. Ask for it via `response_format=diarized_json` (#48543, v0.27.0). Max audio duration is **90 minutes** as of #49403 (v0.27.0) — before that it inherited Whisper's 30 s assumption, sized the encoder cache from `max_num_batched_tokens`, and **rejected long audio at request time**. The `hotwords` form field (comma-separated terms) takes effect from v0.33.0 (#62329); below that it is silently ignored for this model — put the terms in `prompt` instead |
+| Nemotron-3.5-Transcribe | `nvidia/NVIDIA-Nemotron-3.5-Transcribe-30B-A4B` (also `-FP8`, `-NVFP4`) | `Nemotron3_5TranscribeForConditionalGeneration` | v0.34.0 (#64282), in-tree; not the out-of-tree RNNT model above. MTP and DFlash2 drafters supported |
+| Canary | `nvidia/canary-1b-v2` | `CanaryForConditionalGeneration` | v0.34.0 (#64215). Cannot detect the language: transcription and translation without `language` return HTTP 400 (#65445); translation is to or from English only and needs `language` and `to_language` |
+| Ming-3.0-ASR | `inclusionAI/Ming-3.0-asr-tiny` | `MingV3ASRForConditionalGeneration` | v0.34.0 (#63585); `language` zh or en |
 | Gemma 3n | `Gemma3nForConditionalGeneration` | family | multimodal, audio optional |
 
 Model files live under `vllm/model_executor/models/` — grep for
@@ -227,8 +230,8 @@ Source URL: <https://developers.redhat.com/articles/2026/03/06/private-transcrip
    …/torchcodec/libtorchcodec_*.so` or `libnvrtc.so.13: cannot open shared
    object file` — any model, `-cu129` images of v0.31.0 and v0.32.0.** Those
    images ship a CUDA-13 `torchcodec` 0.17.0 and the audio module imported it
-   unguarded. v0.33.0 catches the error and falls back to soundfile/PyAV
-   (#61090), and publishes CUDA 13 images only. On the older `-cu129` images
+   unguarded. v0.33.0 and later catch the error and fall back to soundfile/PyAV
+   (#61090) and publish CUDA 13 images only. On the older `-cu129` images
    reinstall `torchcodec==0.16.0+cu129`.
 7. **`/v1/audio/speech` (TTS)** — **not** currently supported. That's a
    request-output shape nobody in vLLM serves; use a dedicated TTS engine.
@@ -245,7 +248,7 @@ Audio-specific metrics (seconds of audio processed, real-time factor) are
 not currently surfaced as counters in vLLM itself. For production, wrap
 the request client with your own timing instrumentation.
 
-## 11. Source anchors (line numbers at v0.33.0)
+## 11. Source anchors (line numbers at v0.34.0)
 
 - `vllm/entrypoints/speech_to_text/transcription/api_router.py` — routes
 - `vllm/entrypoints/speech_to_text/base/serving.py` — dispatch + chunking
