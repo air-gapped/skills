@@ -1,6 +1,6 @@
 # Qwen3-Omni realtime + Qwen3-TTS serving
 
-Load when serving Qwen3-Omni with `/v1/realtime`, serving Qwen3-TTS via `/v1/audio/speech`, or debugging audio output. Source: `vllm_omni/entrypoints/openai/realtime_connection.py`, `examples/online_serving/qwen3_omni/README.md`, `vllm_omni/entrypoints/openai/serving_speech.py`.
+Load when serving Qwen3-Omni with `/v1/realtime`, serving Qwen3-TTS via `/v1/audio/speech`, or debugging audio output. Source: `vllm_omni/entrypoints/openai/realtime/connection.py`, `examples/online_serving/qwen3_omni/README.md`, `vllm_omni/entrypoints/openai/serving_speech.py`.
 
 ## Qwen3-Omni realtime (`/v1/realtime`)
 
@@ -25,7 +25,7 @@ vllm serve Qwen/Qwen3-Omni-30B-A3B-Instruct --omni --port 8091
 
 ### Turn-mode wire contract by version
 
-| | v0.30.0 | v0.32.0 |
+| | v0.30.0 | v0.32.0 and v0.34.0 |
 |---|---|---|
 | Input audio (`input_audio_buffer.append`, base64) | PCM16 mono 16 kHz | PCM16 mono **24 kHz**; a `session.update` declaring another rate or format → `unsupported_audio_format` |
 | Start a reply | `input_audio_buffer.commit` with `"final": true` | `input_audio_buffer.commit`, then **`response.create`** |
@@ -38,7 +38,7 @@ vllm serve Qwen/Qwen3-Omni-30B-A3B-Instruct --omni --port 8091
 | Function tools | — | `tools` in `session.update` or `response.create`; server needs `--enable-auto-tool-choice --tool-call-parser <name>`, else `invalid_request_error` |
 | Close | `session.close` | close the WebSocket (`session.close` is not a turn-mode event) |
 
-Minimal v0.32.0 turn (client → server):
+Minimal v0.32.0+ turn (client → server):
 
 ```json
 {"type": "session.update", "session": {"type": "realtime", "output_modalities": ["audio"]}}
@@ -47,18 +47,19 @@ Minimal v0.32.0 turn (client → server):
 {"type": "response.create"}
 ```
 
-### Server VAD (v0.32.0 turn mode, #8600)
+### Turn detection (v0.32.0+ turn mode: `server_vad` #8600; `semantic_vad` v0.34.0 #9170)
 
-Send `session.update` with `session.audio.input.turn_detection: {"type": "server_vad"}`; the server then commits the turn and creates the response itself, so send neither `commit` nor `response.create`. Defaults: `threshold` 0.5, `prefix_padding_ms` 300, `silence_duration_ms` 500, `create_response` and `interrupt_response` true.
+Send `session.update` with `session.audio.input.turn_detection: {"type": "server_vad"}`; the server then commits the turn and creates the response itself, so send neither `commit` nor `response.create`. `semantic_vad` (v0.34.0, `eagerness` low/medium/high/auto, requires `interrupt_response: true`) keeps Silero for speech and asks a Smart Turn model whether the user has finished before committing. Server VAD defaults: `threshold` 0.5, `prefix_padding_ms` 300, `silence_duration_ms` 500, `create_response` and `interrupt_response` true.
 
 | Symptom | Cause | Fix |
 |---|---|---|
 | `server_vad_unavailable` on the first append | No usable Silero VAD backend: the ONNX model is read only from the local HF cache or a configured path (never downloaded while serving), and a configured path that is missing is a hard error | Pre-download `istupakov/silero-vad-onnx` into the HF cache or set `duplex_session.server_vad_model_path` in the deploy YAML; install `onnxruntime` |
-| `unsupported_turn_detection` | Any type other than `server_vad` on the turn handler | Use `server_vad`; `semantic_vad` is served by duplex deployments only |
+| `semantic_vad_unavailable` | Silero or the Smart Turn model artifact is missing | Prepare both artifacts as in `examples/online_serving/realtime_web/README.md` (§Semantic VAD), or use `server_vad` |
+| `unsupported_turn_detection` | Any type other than `server_vad` / `semantic_vad`, or `semantic_vad` with `interrupt_response: false` | Fix the `turn_detection` object |
 
 ### Client templates
 
-- **v0.32.0:** `python -m examples.online_serving.realtime_web --profile qwen3-turn --backend ws://127.0.0.1:8091 --manual --port 7863` (browser UI; connects to `/v1/realtime?duplex=0`).
+- **v0.32.0 and v0.34.0:** `python -m examples.online_serving.realtime_web --profile qwen3-turn --backend ws://127.0.0.1:8091 --manual --port 7863` (browser UI; connects to `/v1/realtime?duplex=0`).
 - **Through v0.30.0** (`examples/online_serving/qwen3_omni/openai_realtime_client.py`, removed at v0.32.0):
 
 ```bash
@@ -85,7 +86,7 @@ python examples/online_serving/qwen3_omni/openai_realtime_client.py \
 ### Common realtime gotchas
 
 - **Over-generation on incomplete input**: if Thinker runs before input audio is fully committed, it may ramble past the intended end. Cap `max_output_tokens` (v0.32.0 `session.update` / `response.create`) or the stage's `max_tokens`.
-- **Voice**: no session voice field in turn mode. Ask in the prompt ("Reply with Ethan's voice: ..."); v0.32.0 defaults the talker voice to Ethan.
+- **Voice**: no session voice field in turn mode. Ask in the prompt ("Reply with Ethan's voice: ..."); the talker voice defaults to Ethan (v0.32.0 and v0.34.0).
 
 ## Qwen3-TTS via `/v1/audio/speech`
 
@@ -94,7 +95,7 @@ python examples/online_serving/qwen3_omni/openai_realtime_client.py \
 1. **`--trust-remote-code`** required — custom model code lives in the HF repo.
 2. **`--task-type`** must match the checkpoint variant: `CustomVoice`, `VoiceDesign`, or `Base`.
 3. **`--enforce-eager`** is not needed: TTS CUDA-graph capture is on by default.
-4. **The default CUDA profile runs experimental Model Runner V2** since v0.30.0 (#7930); ROCm, NPU, XPU and MUSA overrides in `qwen3_tts.yaml` stay on V1. On a regression set `model_runner: v1` in the deploy YAML. Event-driven orchestration is the default for Qwen3-TTS on v0.30.0 (#7088) and for every pipeline on v0.32.0 (#8675); `VLLM_OMNI_EVENT_DRIVEN_ORCH=0` restores the legacy 1 ms poll loop.
+4. **Model Runner V2 is the only runner on v0.34.0** (#10365): `qwen3_tts.yaml` selects `v2` on CUDA, ROCm, NPU and XPU, and any resolved `v1` stage (the MUSA override, or a custom YAML) fails at startup. On v0.30.0–v0.32.0 CUDA ran experimental V2 (#7930) and a regression was worked around with `model_runner: v1`; that fallback no longer exists. Event-driven orchestration is the default for Qwen3-TTS on v0.30.0 (#7088) and for every pipeline on v0.32.0 (#8675); `VLLM_OMNI_EVENT_DRIVEN_ORCH=0` restores the legacy 1 ms poll loop.
 5. **Single-GPU option (v0.32.0):** `--deploy-config vllm_omni/deploy/qwen3_tts_fused_single_gpu.yaml` runs one stage whose Talker decodes PCM itself (no Code2Wav stage, #8259). Opt-in; the two-stage `qwen3_tts.yaml` stays the default.
 
 ### Three task types
@@ -199,7 +200,7 @@ Useful for large synthesis runs that don't require interactive streaming.
 
 `XiaomiMiMo/MiMo-Audio-7B-Instruct` It's a general audio generation model — not purely TTS. Served via `/v1/audio/speech` but supports arbitrary-audio prompts.
 
-Known issue: `online_serving mimo_audio` has a bug (#2683). Verify with a simple prompt before trusting batch output.
+The `online_serving mimo_audio` bug (#2683) is fixed from v0.20.0 (#2693); an older build needs the fix before batch output can be trusted.
 
 ## Voxtral TTS
 

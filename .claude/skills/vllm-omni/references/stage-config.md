@@ -19,9 +19,10 @@ The paper's central claim: disaggregation enables per-stage scaling independentl
 
 ## Stage config YAML grammar
 
-Deploy-YAML format since v0.28.0 (the `stage_args:` / `runtime:` / `engine_args:` nesting and `--stage-configs-path` were removed). Topology — `model_stage`, `input_sources`, `engine_output_type`, `final_output`, input-processor funcs — comes from the model's registered pipeline; the deploy YAML carries placement and engine args, flat per stage. Excerpt of `vllm_omni/deploy/qwen3_omni_moe.yaml` at v0.32.0:
+Deploy-YAML format since v0.28.0 (the `stage_args:` / `runtime:` / `engine_args:` nesting and `--stage-configs-path` were removed). Topology — `model_stage`, `input_sources`, `engine_output_type`, `final_output`, input-processor funcs — comes from the model's registered pipeline; the deploy YAML carries placement and engine args, flat per stage. Excerpt of `vllm_omni/deploy/qwen3_omni_moe.yaml` at v0.34.0:
 
 ```yaml
+model_runner: v2               # the only runner on v0.34.0
 async_chunk: true              # deploy-wide; --async-chunk / --no-async-chunk override
 connectors:
   connector_of_shared_memory:
@@ -30,7 +31,7 @@ stages:
   - stage_id: 0                # thinker
     devices: "0"
     gpu_memory_utilization: 0.9
-    enable_prefix_caching: false
+    enable_prefix_caching: true    # Thinker, CUDA default since v0.34.0 (#9203)
     default_sampling_params: {temperature: 0.0, max_tokens: 2048}
   - stage_id: 1                # talker, shares cuda:1 with stage 2
     devices: "1"
@@ -40,7 +41,7 @@ platforms:                     # per-platform deltas merged over the stages
   npu: {stages: [{stage_id: 0, tensor_parallel_size: 2, devices: "0,1"}]}
 ```
 
-Other deploy-level keys: `base_config` (inherit another deploy YAML and override it), `pipeline` (pick a registered pipeline variant), `session_mode` (`turn` | `duplex`), `duplex_session` (e.g. `server_vad_model_path`), `model_runner` (`v1` | `v2`), `trust_remote_code`, `edges`.
+Other deploy-level keys: `base_config` (inherit another deploy YAML and override it), `pipeline` (pick a registered pipeline variant), `session_mode` (`turn` | `duplex`), `duplex_session` (e.g. `server_vad_model_path`), `model_runner` (`v2` only on v0.34.0; a resolved `v1` fails at startup, #10365; a stage may set its own), `trust_remote_code`, `edges`.
 
 ## Key fields (OmniModelConfig + StageConfig)
 
@@ -52,7 +53,7 @@ Other deploy-level keys: `base_config` (inherit another deploy YAML and override
 | `worker_type` | `ar` / `generation` | AR uses LLMEngine; generation uses DiffusionEngine |
 | `engine_output_type` | LLM stages: `text` / `image` / `audio` / `latent` / `token_ids`, combinable with `+` or `,` | What the stage emits; routes to output processors. On v0.32.0 an LLM stage accepts only these exact lowercase names (#7843): legacy aliases, case variants and padded values raise `Unknown modality` at output-processor init. `token_ids` (discrete image tokens, e.g. GLM-Image AR) is new in v0.32.0 |
 | `hf_config_name` | string \| null | Sub-key in multi-stage HF config for per-stage quant settings |
-| `async_chunk` | bool or unset, deploy-level; a stage may set its own `false` | Chunk-level pipeline overlap. Unset: `true` on v0.30.0; on v0.32.0 `true` only for a multi-stage pipeline that defines async-chunk processors, else `false`. v0.32.0 turns an explicit `true` off with a warning on a single-stage or unsupported pipeline and when a stage has `kv_transfer_config` (native AR→DiT KV needs it off) — grep the startup log for `async chunk` before assuming it is on. Blocked `/v1/realtime` only on v0.20.x and older |
+| `async_chunk` | bool or unset, deploy-level; a stage may set its own `false` | Chunk-level pipeline overlap. Unset: `true` on v0.30.0; on v0.32.0 `true` only for a multi-stage pipeline that defines async-chunk processors, else `false`. v0.32.0 and later turn an explicit `true` off with a warning on a single-stage or unsupported pipeline (a single-stage pipeline that requires async chunk raises on `false` instead) and when a stage has `kv_transfer_config` (native AR→DiT KV needs it off) — grep the startup log for `async chunk` before assuming it is on. Blocked `/v1/realtime` only on v0.20.x and older |
 | `task_type` | `CustomVoice`/`VoiceDesign`/`Base` | Qwen3-TTS mode |
 | `codec_frame_rate_hz` | float | Audio codec sample rate |
 | `stage_connector_config` | dict | Connector choice + extras |
@@ -69,7 +70,7 @@ Other deploy-level keys: `base_config` (inherit another deploy YAML and override
 
 ## Pipeline topology validation
 
-`PipelineConfig.get_validation_errors()` (`stage_config.py:492-516` at v0.32.0, run from `__post_init__`) rejects at load:
+`PipelineConfig.get_validation_errors()` (run from `__post_init__`) rejects at load:
 
 - No stages, or duplicate `stage_id`s.
 - An `input_sources` entry naming a missing stage, or the stage itself.
@@ -93,7 +94,7 @@ Source: `vllm_omni/distributed/omni_connectors/connectors/`.
 | `NixlConnector` | NIXL transport for full AR/encoder→DiT conditioning payloads (v0.30.0, #6093/#6264) | `nixl_connector.py` |
 | `YuanrongConnector`, `YuanrongTransferEngineConnector` | Alternative remote backend | `yuanrong_connector.py`, `yuanrong_transfer_engine_connector.py` |
 
-There is no `RDMAConnector` on v0.28.0–v0.32.0 — RDMA goes through the Mooncake or MORI transfer-engine connectors. Registered names: `vllm_omni/distributed/omni_connectors/factory.py`.
+There is no `RDMAConnector` on v0.28.0–v0.34.0 — RDMA goes through the Mooncake or MORI transfer-engine connectors. Registered names: `vllm_omni/distributed/omni_connectors/factory.py`.
 
 Declare connectors once at deploy level, then wire them per stage:
 
@@ -136,7 +137,7 @@ All nodes must see the same `--deploy-config` YAML (`--stage-configs-path` was r
 
 1. **GPU over-allocation**: `gpu_memory_utilization: 0.8` per stage where multiple stages share a GPU → sum > 1.0 → OOM. Either isolate stages to separate GPUs, or shrink per-stage utilization.
 
-2. **Prefix caching + latent output**: setting `enable_prefix_caching: true` on a stage with `engine_output_type: latent` silently corrupts subsequent requests. Always set `enable_prefix_caching: false` for latent stages.
+2. **Prefix caching on a stage that emits latents/hidden states**: the omni prefix cache stores stage outputs on the host and supports AR stages with one KV-cache group. v0.34.0 turns it on only for the Qwen3-Omni Thinker (stage 0) and MiniCPM-o 4.5 turn profiles on CUDA (#9203). Leave `enable_prefix_caching: false` on every other stage and on the MRv2, duplex, ROCm, NPU and XPU profiles, and on the stage that uses LMCache KV offload; on v0.32.0 and older set it `false` on every latent stage.
 
 3. **Wrong `hf_config_name` for quantized multi-stage**: when a checkpoint has per-stage quant (modelopt FP8 multi-stage), `hf_config_name` must name the specific sub-config for each stage — otherwise talker/code2wav inherit thinker's quant wrongly. Symptoms: silent accuracy drop on one stage.
 
@@ -144,7 +145,7 @@ All nodes must see the same `--deploy-config` YAML (`--stage-configs-path` was r
 
 5. **Global engine flags on GPU-sharing stages**: `--gpu-memory-utilization 0.85` on the CLI applies to every stage and oversubscribes a device that two stages share (Qwen3-Omni stages 1+2 on cuda:1). Use `--stage-overrides '{"1": {...}}'` or the YAML.
 
-6. **Request hangs with no error and `async_chunk: false`** (#9358, open; reproduced on v0.30.0 and v0.32.0rc1): a failed inter-stage transfer is not propagated, so the client waits until its own timeout. Give clients a timeout and read the producing stage's connector log; transfer failures are surfaced only on the async-chunk path.
+6. **Request hangs with no error and `async_chunk: false`** (#9358, open at v0.34.0; reproduced on v0.30.0 and v0.32.0rc1; fix PR #10778 unmerged): a failed inter-stage transfer is not propagated, so the client waits until its own timeout. Give clients a timeout and read the producing stage's connector log; transfer failures are surfaced only on the async-chunk path.
 
 ## KV-transfer plumbing for DiT stages
 
@@ -158,14 +159,14 @@ If `need_kv_receive: true` and transfer stalls (broken connector, mis-sized buff
 
 ## Example stage configs shipped with the repo
 
-At v0.32.0 (142 YAML files):
+At v0.34.0 (169 YAML files):
 
 - `qwen3_omni_moe.yaml` — canonical Qwen3-Omni turn deployment (Thinker/Talker/Code2Wav), `async_chunk: true`, serves `/v1/realtime`
-- `qwen3_omni_duplex.yaml` — Qwen3-Omni duplex (`session_mode: duplex`); `qwen3_omni_moe_thinking.yaml` — thinker-only
-- `qwen3_tts.yaml` (+ `_mrv2`, `_high_concurrency*`, `_fused_single_gpu` variants) — Qwen3-TTS
+- `qwen3_omni_duplex.yaml` — Qwen3-Omni duplex (`session_mode: duplex`; still resolves to V1 and is unavailable on v0.34.0, use `qwen3_omni_duplex_mrv2.yaml`); `qwen3_omni_moe_thinking.yaml` — thinker-only
+- `qwen3_tts.yaml` (+ `_high_concurrency*`, `_fused_single_gpu` variants; `_mrv2` variants are CUDA-tuned overlays) — Qwen3-TTS
 - `bagel.yaml`, `bagel_single_stage.yaml`, `bagel_think.yaml` — BAGEL
 - `wan2_2.yaml`, `wan2_2_ti2v.yaml`, `wan2_2_eg*.yaml` — Wan2.2
 
-`qwen3_omni_moe_async_chunk.yaml`, `qwen_image.yaml` and `wan2_2_t2v.yaml` do not exist at v0.30.0 or v0.32.0; single-stage diffusion models need no deploy YAML.
+`qwen3_omni_moe_async_chunk.yaml`, `qwen_image.yaml` and `wan2_2_t2v.yaml` do not exist at v0.30.0, v0.32.0 or v0.34.0; single-stage diffusion models need no deploy YAML.
 
 Check `ls vllm_omni/deploy/` in the cloned repo for the current list.

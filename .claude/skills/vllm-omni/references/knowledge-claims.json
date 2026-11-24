@@ -8,7 +8,7 @@
     {
       "id": 0,
       "question": "What is the current stable version of vllm-omni and its release date?",
-      "skill_answer": "v0.32.0, released 2026-10-28, aligned with upstream vLLM 0.32.0"
+      "skill_answer": "v0.34.0, released 2026-11-22, aligned with upstream vLLM 0.34.0"
     },
     {
       "id": 1,
@@ -18,12 +18,12 @@
     {
       "id": 2,
       "question": "What is the minimum Python version required for vllm-omni?",
-      "skill_answer": "Python 3.11 on v0.32.0 (requires >=3.11,<3.14; v0.30.0 still accepted 3.10); use 3.12"
+      "skill_answer": "Python 3.11 on v0.32.0 and v0.34.0 (requires >=3.11,<3.14; v0.30.0 still accepted 3.10); use 3.12"
     },
     {
       "id": 3,
       "question": "What audio format does Qwen3-Omni's `/v1/realtime` endpoint require for input, and what does it output?",
-      "skill_answer": "16-bit PCM mono in, at 24 kHz on v0.32.0 and 16 kHz through v0.30.0; PCM16 at 24 kHz out"
+      "skill_answer": "16-bit PCM mono in, at 24 kHz on v0.32.0 and v0.34.0 and 16 kHz through v0.30.0; PCM16 at 24 kHz out"
     },
     {
       "id": 4,

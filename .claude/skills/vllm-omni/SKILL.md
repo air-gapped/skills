@@ -20,13 +20,13 @@ vllm-omni layers on upstream vLLM: upstream's own CLI hands `vllm serve <model> 
 
 | Rule | Action |
 |---|---|
-| omni major.minor must equal vLLM major.minor (`vllm_omni/version.py` warns on mismatch) | Install omni **v0.32.0** (current stable) with vLLM **0.32.0** |
-| vLLM **0.33.0** is the newest vLLM release, so an unpinned `pip install vllm` resolves to it (PyTorch 2.14.0); omni's only build for it is the pre-release v0.33.0rc1 | Always write `vllm==0.32.0` beside `vllm-omni==0.32.0`. Do not deploy v0.33.0rc1 as current |
-| transformers ranges are disjoint across omni minors: v0.30.0 pins `>= 5.13.0, < 5.15`, v0.32.0 pins `>= 5.16.1, < 5.20.0` (same as vLLM 0.32.0) | Upgrade omni and vLLM together, in a fresh venv/image. Never put omni v0.30.0 in a vLLM 0.32.0 env or the reverse |
-| v0.32.0 requires Python `>=3.11,<3.14` (v0.30.0 accepted 3.10) | Use 3.12; rebuild 3.10 envs before upgrading |
-| Odd omni minors (v0.21 … v0.33) exist only as `rc1` | Check `prerelease` before pinning a minor; a missing stable is not a withdrawn one |
-| Docker `vllm/vllm-omni:latest` follows the newest image, and has pointed at rc builds (v0.29.0rc1, v0.31.0rc1; today v0.32.0) | Pin `vllm/vllm-omni:v0.32.0` (`-x86_64` / `-aarch64` variants) in every manifest |
-| ROCm images live in `vllm/vllm-omni-rocm`, newest stable **v0.30.0** (no v0.32.0 tag, no `latest`) | On ROCm deploy the v0.30.0 pair; the 0.32.0 ROCm wheel is unvalidated (Install below) |
+| omni major.minor must equal vLLM major.minor (`vllm_omni/version.py` warns on mismatch) | Install omni **v0.34.0** (current stable) with vLLM **0.34.0** |
+| vLLM **0.34.0** is the newest vLLM release (PyTorch 2.14.0); omni v0.34.0 is its stable match. omni v0.33.0rc1 targets vLLM 0.33.0 and is a pre-release | Always write `vllm==0.34.0` beside `vllm-omni==0.34.0`. Do not deploy v0.33.0rc1 |
+| transformers ranges differ across omni minors: v0.30.0 pins `>= 5.13.0, < 5.15` (disjoint from the others), v0.32.0 `>= 5.16.1, < 5.20.0`, v0.34.0 `>= 5.16.1, < 5.23.0` (same as vLLM 0.34.0) | Upgrade omni and vLLM together, in a fresh venv/image. Never mix an omni minor with another vLLM minor |
+| v0.32.0 and v0.34.0 require Python `>=3.11,<3.14` (v0.30.0 accepted 3.10) | Use 3.12; rebuild 3.10 envs before upgrading |
+| Odd omni minors (v0.21 … v0.33) exist only as `rc1`; v0.34.0 is stable | Check `prerelease` before pinning a minor; a missing stable is not a withdrawn one |
+| Docker `vllm/vllm-omni:latest` follows the newest image, and has pointed at rc builds (v0.29.0rc1, v0.31.0rc1; today v0.34.0) | Pin `vllm/vllm-omni:v0.34.0` (`-x86_64` / `-aarch64` variants) in every manifest |
+| ROCm images live in `vllm/vllm-omni-rocm`, newest stable **v0.30.0** (no tag after v0.31.0rc1, no `latest`) | On ROCm deploy the v0.30.0 pair, or build from the v0.34.0 source tag against vLLM 0.34.0 (ROCm runtime unvalidated; no 0.33/0.34 `rocm723` wheels) (Install below) |
 | A tag is not a wheel and not an image | Check GitHub releases, PyPI and both Docker repos before quoting a version |
 
 Release-by-release history and channel evidence: `references/sources.md` §Releases.
@@ -42,7 +42,7 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
 
 **Picking a model** → `references/models.md`
   - Full supported-architecture → HuggingFace-ID table
-  - Per-model platform matrix (CUDA / ROCm / NPU / XPU), synced with upstream at v0.32.0
+  - Per-model platform matrix (CUDA / ROCm / NPU / XPU), synced with upstream at v0.34.0
   - Known-issue flags per family
 
 **Writing / debugging stage configs** → `references/stage-config.md`
@@ -59,12 +59,13 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
   - Ulysses / Ring sequence parallel, CFG-parallel merged-batch TP
 
 **Full-duplex realtime** — unified engine-owned duplex framework in v0.30.0 (#7413); MiniCPM-o 4.5, PersonaPlex, Qwen3-Omni (`qwen3_omni_duplex.yaml`)
-  - `/v1/realtime?duplex=1`; `/v1/duplex` is an alias of it. Needs a duplex plugin and a deploy YAML with `session_mode: duplex` — the default `qwen3_omni_moe.yaml` is a turn deployment
+  - `/v1/realtime?duplex=1`; `/v1/duplex` is an alias of it. Needs a duplex plugin and a deploy YAML with `session_mode: duplex` — the default `qwen3_omni_moe.yaml` is a turn deployment; on v0.34.0 use `qwen3_omni_duplex_mrv2.yaml` (`qwen3_omni_duplex.yaml` still resolves to V1)
+  - With `--api-server-count` > 1 a duplex connection is accepted only when the deployment sets `replica_policy: least_sessions` and session resume is unsupported; otherwise the socket closes with 1008 `multi_api_duplex_unsupported` (v0.34.0)
   - **v0.30.0 client contract break:** `native_duplex` and the experimental client params are gone; use `auto_response` (the `full_duplex` alias was removed). Update clients written against v0.26–v0.28
   - Streaming audio in/out with cancel, barge-in, playback-aware session state, session resume. `docs/serving/realtime_duplex_api.md` is the wire contract
 
 **Qwen3-Omni realtime + Qwen3-TTS** → `references/realtime-tts.md`
-  - Turn-mode wire contract per version: v0.32.0 takes PCM16 mono 24 kHz and needs `response.create`; v0.30.0 takes 16 kHz and emits `transcription.*`
+  - Turn-mode wire contract per version: v0.32.0 and v0.34.0 take PCM16 mono 24 kHz and need `response.create`; v0.30.0 takes 16 kHz and emits `transcription.*`
   - Qwen3-TTS CustomVoice / VoiceDesign / Base modes, 12 Hz / 25 Hz tokenizers
   - Voice-upload surface (`name` + `consent` + audio ≤10 MB or a speaker embedding; persisted under `SPEAKER_SAMPLES_DIR`)
 
@@ -72,9 +73,9 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
 
 - **`async_chunk` and realtime**. Default `qwen3_omni_moe.yaml` ships `async_chunk: true` and serves `/v1/realtime`; do not turn it off for realtime. `--no-async-chunk` / `--async-chunk` override the YAML.
 
-- **Realtime client written for another server version**. v0.32.0 rewrote turn-mode `/v1/realtime` on the OpenAI Realtime GA event set (#8339). A client that worked on v0.30.0 hangs on v0.32.0, and the reverse writes silence:
+- **Realtime client written for another server version**. v0.32.0 rewrote turn-mode `/v1/realtime` on the OpenAI Realtime GA event set (#8339); v0.34.0 keeps that contract. A client that worked on v0.30.0 hangs on v0.32.0 and later, and the reverse writes silence:
 
-  | | v0.30.0 | v0.32.0 |
+  | | v0.30.0 | v0.32.0 and v0.34.0 |
   |---|---|---|
   | Input | PCM16 mono 16 kHz | PCM16 mono **24 kHz** |
   | Start a reply | `input_audio_buffer.commit` | `input_audio_buffer.commit`, then **`response.create`** |
@@ -86,17 +87,19 @@ Release-by-release history and channel evidence: `references/sources.md` §Relea
 
 - **v0.30.0 config removals that fail at load.** `diffusion_batch_size` is gone — use `max_num_seqs` (#6484). Unknown diffusion config fields now raise with the field name and stage id instead of being silently dropped (#5172) — a stale or misspelled key that used to be ignored now stops the server. First-party Dynin-Omni and dots.tts support was removed (#7655).
 
+- **v0.34.0 removes Model Runner V1 (#10365).** Any stage that resolves to `model_runner: v1` — a custom YAML, a platform override, or a shipped profile — fails at startup; there is no fallback. Unavailable profiles: `qwen3_omni_duplex.yaml` (use `qwen3_omni_duplex_mrv2.yaml`), PersonaPlex, VibeVoice, LFM3-Omni, Fish Audio Drama 3 and the MUSA overrides of Qwen3-TTS and Qwen3-Omni. Drop `model_runner: v1` and `--shm-threshold-bytes` (CLI option removed, #9992). JoyAI-Image-Edit and Kokoro-82M are gone from the registry (#10393).
+
 - **v0.32.0 changes that fail at startup.** An LLM stage's `engine_output_type` must be exactly `text`, `image`, `audio`, `latent` or `token_ids`, joined by `+` or `,` (#7843); a legacy alias, case variant or padded value raises `Unknown modality` when the output processor initialises. First-party HiDream-I1-Full (`HiDreamImagePipeline`) is gone from the registry (#9065). Python 3.10 is no longer accepted.
 
-- **PCM format on `/v1/realtime`**. Send headerless **16-bit PCM mono** at the rate the server version expects (24 kHz on v0.32.0, 16 kHz through v0.30.0); output is 24 kHz PCM16. Stereo, the wrong rate, 24-bit, or WAV-with-header inputs produce garbage or silence. Client templates: v0.32.0 `examples/online_serving/realtime_web` (`--profile qwen3-turn`); through v0.30.0 `examples/online_serving/qwen3_omni/openai_realtime_client.py` (removed at v0.32.0).
+- **PCM format on `/v1/realtime`**. Send headerless **16-bit PCM mono** at the rate the server version expects (24 kHz on v0.32.0 and v0.34.0, 16 kHz through v0.30.0); output is 24 kHz PCM16. Stereo, the wrong rate, 24-bit, or WAV-with-header inputs produce garbage or silence. Client templates: v0.32.0+ `examples/online_serving/realtime_web` (`--profile qwen3-turn`); through v0.30.0 `examples/online_serving/qwen3_omni/openai_realtime_client.py` (removed at v0.32.0). Turn mode also accepts `semantic_vad` on v0.34.0.
 
-- **Prefix caching on a stage that emits latents**. Any stage with `engine_output_type: latent` (thinker stages producing hidden states) must set `enable_prefix_caching: false` on that stage (a flat per-stage key in the deploy YAML; the shipped Qwen3-Omni YAML sets it on every stage). Prefix cache reuses token-level blocks, which makes no sense for latent outputs — leaving it on surfaces as intermittent stale responses.
+- **Prefix caching on a stage that emits latents**. `enable_prefix_caching` is a flat per-stage key in the deploy YAML. v0.34.0 enables it by default only on the Qwen3-Omni Thinker and the MiniCPM-o 4.5 turn profile on CUDA (#9203). Keep it `false` on every other latent-emitting stage, on the MRv2, duplex, ROCm, NPU and XPU profiles, and on a stage that uses LMCache offload. On v0.32.0 and older set it `false` on every latent stage; the shipped YAML did.
 
 - **`/v1/videos/sync` for long jobs**. The sync endpoint times out at `VIDEO_SYNC_TIMEOUT_S` — **600 s** by default, overridable with `VLLM_OMNI_VIDEO_SYNC_TIMEOUT` — and returns 504 past it. Long Wan2.2 / HunyuanVideo-1.5 jobs should use `POST /v1/videos` (async), then poll `GET /v1/videos/{id}` and fetch `/content`.
 
-- **Orphan processes after a Wan2.2 crash** (#2768). Killing one worker leaves sibling stage processes alive. Launch in a process group and `kill -- -<PGID>` on failure, or run under `systemd` with `KillMode=control-group`. Keep this on current builds: the issue closed without a fix PR, after a fresh reproduction.
+- **Orphan processes after a Wan2.2 crash** (#2768). Killing one worker leaves sibling stage processes alive. Launch in a process group and `kill -- -<PGID>` on failure, or run under `systemd` with `KillMode=control-group`. PR #3214 (v0.22.0+) makes the inline diffusion engine propagate worker death so the server exits; killing the serve process itself was the reporter's last, unfixed case, so keep the process-group launch.
 
-- **LTX registry names and GGUF.** `LTX2Pipeline` is the single one-stage entry for LTX-2 and LTX-2.3, T2V and I2V (checkpoint metadata picks the version, `image=` picks I2V); `LTX2ImageToVideoPipeline`, `LTX23Pipeline` and `LTX23ImageToVideoPipeline` no longer resolve. Supported names on v0.32.0: `LTX2TwoStagePipeline`, `LTX2DistilledOneStagePipeline`, `LTX2DistilledTwoStagePipeline`, `LTX2TextToAudioPipeline` (`LTX2DistilledPipeline` is still registered); distilled rows cover LTX-2.3 and LTX-2.5 only (`rootonchair/LTX-2-19b-distilled` was removed, #9065). The official guidance recipe runs up to four transformer passes per denoise step. A GGUF DiT deployment needs `vllm-project/vllm-gguf-plugin`; the in-core path is gone.
+- **LTX registry names and GGUF.** `LTX2Pipeline` is the single one-stage entry for LTX-2 and LTX-2.3, T2V and I2V (checkpoint metadata picks the version, `image=` picks I2V); `LTX2ImageToVideoPipeline`, `LTX23Pipeline` and `LTX23ImageToVideoPipeline` no longer resolve. Supported names on v0.32.0 and v0.34.0: `LTX2TwoStagePipeline`, `LTX2DistilledOneStagePipeline`, `LTX2DistilledTwoStagePipeline`, `LTX2TextToAudioPipeline` (`LTX2DistilledPipeline` is still registered); distilled rows cover LTX-2.3 and LTX-2.5 only (`rootonchair/LTX-2-19b-distilled` was removed, #9065). The official guidance recipe runs up to four transformer passes per denoise step. A GGUF DiT deployment needs `vllm-project/vllm-gguf-plugin`; the in-core path is gone.
 
 - **Assuming vllm-omni serves text-only models**. If the model has no multimodal output, use stock vLLM — vllm-omni adds overhead for features a text-only model won't exercise, and the community skill explicitly recommends against it. The decision rule: output modality is non-text OR the model name ends `-Omni`/`-Image`/`-TTS`/`-Video` → vllm-omni; otherwise stock vLLM.
 
@@ -109,17 +112,17 @@ uv venv --python 3.12 --seed
 source .venv/bin/activate
 
 # CUDA 13.0 — vLLM and omni on the same minor (needs a CUDA 13 driver):
-uv pip install "vllm==0.32.0" "vllm-omni==0.32.0" --torch-backend=cu130
-# OR omni from source, after `uv pip install "vllm==0.32.0" --torch-backend=cu130`:
-#   git clone -b v0.32.0 https://github.com/vllm-project/vllm-omni && cd vllm-omni && uv pip install -e .
+uv pip install "vllm==0.34.0" "vllm-omni==0.34.0" --torch-backend=cu130
+# OR omni from source, after `uv pip install "vllm==0.34.0" --torch-backend=cu130`:
+#   git clone -b v0.34.0 https://github.com/vllm-project/vllm-omni && cd vllm-omni && uv pip install -e .
 
-# ROCm — validated prebuilt pair is still 0.30.0 (vLLM wheel is cp312-only):
+# ROCm — the only prebuilt pair is still 0.30.0 (vLLM wheel is cp312-only):
 uv pip install vllm==0.30.0+rocm723 \
   --extra-index-url https://wheels.vllm.ai/rocm/0.30.0/rocm723
 uv pip install vllm-omni==0.30.0
 ```
 
-Resulting CUDA stack (vLLM v0.32.0 `requirements/cuda.txt` + omni `requirements/common.txt`): PyTorch 2.13.0, FlashInfer 0.7.0.post1, torchvision 0.28.0, `transformers >= 5.16.1, < 5.20.0`, `diffusers==0.40.0`. Keep transformers inside the range of the omni version installed. Python 3.11–3.13 is declared; use 3.12 (quickstart default, and the ROCm wheel is cp312-only). A `vllm==0.32.0+rocm723` wheel exists but is unverified against the v0.32.0 source pin and there is no v0.32.0 ROCm image — treat it as a test build. Docker model tags (`minimax-h3`, `qwen-image21`, `cosmos3`, …) and `nightly*` tags are not releases.
+Resulting CUDA stack (vLLM v0.34.0 `requirements/cuda.txt` + omni `requirements/common.txt`): PyTorch 2.14.0, FlashInfer 0.7.3, torchvision 0.29.0, `transformers >= 5.16.1, < 5.23.0`, `diffusers==0.42.0`. Keep transformers inside the range of the omni version installed. Python 3.11–3.13 is declared; use 3.12 (quickstart default, and the ROCm wheel is cp312-only). The `vllm==0.32.0+rocm723` wheel does not provide the APIs omni v0.34.0 uses, and there is no ROCm image after v0.30.0: for v0.34.0 on ROCm build vLLM 0.34.0 from its source tag, then `VLLM_OMNI_TARGET_DEVICE=rocm uv pip install -e .` (runtime validation pending upstream). Docker model tags (`minimax-h3`, `qwen-image21`, `cosmos3`, …) and `nightly*` tags are not releases.
 
 ### Serving canonical forms
 
@@ -170,7 +173,7 @@ vllm serve Wan-AI/Wan2.2-T2V-A14B-Diffusers --omni \
 
 | Metric | Value |
 |---|---|
-| `/v1/realtime` input | PCM16 mono @ 24 kHz on v0.32.0; 16 kHz through v0.30.0 |
+| `/v1/realtime` input | PCM16 mono @ 24 kHz on v0.32.0 and v0.34.0; 16 kHz through v0.30.0 |
 | Qwen3-Omni audio output rate | 24 kHz |
 | Qwen3-TTS tokenizer rate | 12 Hz or 25 Hz |
 | `/v1/videos/sync` timeout | 600 s default; `VLLM_OMNI_VIDEO_SYNC_TIMEOUT` overrides |
@@ -188,4 +191,4 @@ vllm serve Wan-AI/Wan2.2-T2V-A14B-Diffusers --omni \
 
 All claims are cited with file:line, release-note PR refs, or issue IDs. Full anchor list, version history, community channels and third-party plugin catalog in `references/sources.md`.
 
-`references/models.md` mirrors upstream's list at v0.32.0 only — on any other tag, read `docs/models/supported_models.md` at that tag before calling a model unsupported.
+`references/models.md` mirrors upstream's list at v0.34.0 only — on any other tag, read `docs/models/supported_models.md` at that tag before calling a model unsupported.

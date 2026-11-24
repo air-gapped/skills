@@ -4,24 +4,27 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 
 **Contents:** sync rule · Any-to-any omni · Image · Video · TTS and audio · World models and VLA · Platform legend · Model-picker heuristics · Pending additions · Community skill catalog.
 
-> **Synced row-for-row with `docs/models/supported_models.md` at tag v0.32.0** (105 rows),
+> **Synced row-for-row with `docs/models/supported_models.md` at tag v0.34.0** (125 rows),
 > platform columns included. Upstream's own caveat applies: for rows with an
 > audited recipe, the checkmarks are only the hardware that recipe documents, so
 > an empty cell means "not listed", not "fails". For any other tag, read the
 > document at that tag before calling a model unsupported:
 > `gh api -H 'Accept: application/vnd.github.raw' 'repos/vllm-project/vllm-omni/contents/docs/models/supported_models.md?ref=<tag>'`
 >
+> With vLLM 0.34.0 every profile that needs Model Runner V1 is unavailable (see the
+> `FishOmni` and `Lfm3*` rows); a row's presence does not make it runnable.
+>
 > **Removed — a deploy naming these fails to resolve:** DreamID-Omni,
 > MagiHuman, SoulX-Singer and AudioX (v0.28.0); Dynin-Omni and dots.tts
 > (v0.30.0, #7655); HiDream-I1-Full (`HiDreamImagePipeline`) and the
-> `rootonchair/LTX-2-19b-distilled` checkpoint (v0.32.0, #9065).
+> `rootonchair/LTX-2-19b-distilled` checkpoint (v0.32.0, #9065); JoyAI-Image-Edit (`JoyImageEditPipeline`) and Kokoro-82M (v0.34.0, #10393).
 >
 > **Not in the supported list even where a deploy YAML ships:** Step-Audio2,
 > Aura and Nemotron Audex (`aura_omni.yaml`, `audex_*.yaml`). A release note
 > saying a model was "added or improved" is not presence in the list. Treat them
 > as unsupported.
 >
-> **Code present, no list row at v0.32.0:** Nemotron VoiceChat, JoyAI-VL
+> **Code present, no list row at v0.34.0:** Nemotron VoiceChat, JoyAI-VL
 > interaction (`vllm_omni/model_executor/models/`).
 > Read the release notes and the example under `examples/online_serving/` before
 > relying on one.
@@ -35,10 +38,14 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `MingFlashOmniForConditionalGeneration` + `MingImagePipeline` | Ming-flash-omni-2.0 (omni-speech + imagegen<sup>1</sup>) | `Jonathan1909/Ming-flash-omni-2.0` | Y |  |  | Y |  |
 | `MammothModa2ForConditionalGeneration` | MammothModa2-Preview | `bytedance-research/MammothModa2-Preview` | Y | Y |  | Y | Preview model. |
 | `MammothModa2ForConditionalGeneration` | MammothModa2-Dev (AR-only image understanding) | `bytedance-research/MammothModa2-Dev` | Y |  |  |  |  |
-| `MiMoAudioModel` | MiMo-Audio-7B-Instruct | `XiaomiMiMo/MiMo-Audio-7B-Instruct` | Y | Y |  | Y | Wrong attention backend → noise output. #2683 root-caused in `stage_input_processors/mimo_audio.py`, fix unconfirmed. |
+| `MiMoAudioModel` | MiMo-Audio-7B-Instruct | `XiaomiMiMo/MiMo-Audio-7B-Instruct` | Y | Y |  | Y | Wrong attention backend → noise output. #2683 (online serving) fixed by #2693 (v0.20.0+: Code2Wav prompt truncated to `MAX_CODE2WAV_TOKENS`). |
 | `CovoAudioForConditionalGeneration` | Covo-Audio-Chat | `tencent/Covo-Audio-Chat` | Y |  |  | Y |  |
 | `MiniCPMO45OmniForConditionalGeneration` | MiniCPM-o 4.5 | `openbmb/MiniCPM-o-4_5` | Y |  | Y |  |  |
 | `PersonaPlexTalkerForConditionalGeneration` | PersonaPlex (full duplex, 24 kHz speech in/out over `/v1/realtime?duplex=1`) | `nvidia/personaplex-7b-v1` | Y |  |  |  | Deploy with `personaplex.yaml`. |
+| `Lfm3AudioForConditionalGeneration` | LFM3-Audio-2B | `LiquidAI/LFM3-Audio-2B` | Y |  |  |  | Model Runner V1 profile; unavailable with vLLM 0.34.0. |
+| `Lfm3OmniForConditionalGeneration` | LFM3-Omni-2B | `LiquidAI/LFM3-Omni-2B` | Y |  | Y |  | Model Runner V1 profile; unavailable with vLLM 0.34.0. |
+| `BailingMoeV3AudioForConditionalGeneration` + `BailingTalker2` | Ming-3.0-audio-flash (ASR, speech QA and spoken answers) | `inclusionAI/Ming-3.0-audio-flash` | Y |  |  |  |  |
+| `HaruForConditionalGeneration` | Haru-4B (full duplex, 24 kHz speech in/out over `/v1/realtime?duplex=1`) | `higurashi-ai/Haru-4B` | Y |  |  |  |  |
 
 ## Image generation, editing and unified models
 
@@ -49,11 +56,10 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `QwenImagePipeline` | Qwen-Image | `Qwen/Qwen-Image` | Y |  |  | Y | INT8 (#1470). GGUF needs `vllm-gguf-plugin`. Bucket sizes 640/1024/1536. |
 | `QwenImagePipeline` | Qwen-Image-2512 | `Qwen/Qwen-Image-2512` | Y |  |  | Y |  |
 | `QwenImageEditPipeline` | Qwen-Image-Edit | `Qwen/Qwen-Image-Edit` | Y | Y | Y | Y |  |
-| `JoyImageEditPipeline` | JoyAI-Image-Edit | `jdopensource/JoyAI-Image-Edit-Diffusers` | Y |  |  | Y |  |
 | `QwenImageEditPlusPipeline` | Qwen-Image-Edit-2509 | `Qwen/Qwen-Image-Edit-2509` | Y | Y | Y | Y |  |
 | `QwenImageLayeredPipeline` | Qwen-Image-Layered | `Qwen/Qwen-Image-Layered` | Y | Y | Y | Y | `layers` param 2–10. |
 | `QwenImageEditPlusPipeline` | Qwen-Image-Edit-2511 | `Qwen/Qwen-Image-Edit-2511` | Y | Y | Y | Y |  |
-| `QwenImage21Pipeline` | Qwen-Image-2.1 (T2I + image-conditioned generation, up to 4 condition images) | `Qwen/Qwen-Image-2.1`, `Qwen/Qwen-Image-2.1-Turbo` | Y |  |  | Y |  |
+| `QwenImage21Pipeline` | Qwen-Image-2.1 (T2I + image-conditioned generation, up to 10 condition images) | `Qwen/Qwen-Image-2.1`, `Qwen/Qwen-Image-2.1-Turbo` | Y |  |  | Y |  |
 | `GlmImagePipeline` | GLM-Image | `zai-org/GLM-Image` | Y | Y |  |  | Current pins cover its transformers needs; no extra pin. |
 | `ZImagePipeline` | Z-Image | `Tongyi-MAI/Z-Image-Turbo` | Y | Y | Y | Y | Quickstart default; smallest footprint. INT8 supported. |
 | `Krea2Pipeline` | Krea 2 (Raw + Turbo) | `krea/Krea-2-Raw`, `krea/Krea-2-Turbo` | Y |  |  | Y |  |
@@ -62,7 +68,7 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `LongcatImagePipeline` | LongCat-Image | `meituan-longcat/LongCat-Image` | Y | Y | Y | Y |  |
 | `LongCatImageEditPipeline` | LongCat-Image-Edit | `meituan-longcat/LongCat-Image-Edit` | Y | Y | Y | Y |  |
 | `BooguImagePipeline` | Boogu-Image | `Boogu/Boogu-Image-0.1-Base`, `Boogu/Boogu-Image-0.1-Edit`, `Boogu/Boogu-Image-0.1-Edit-Turbo` | Y |  |  | Y |  |
-| `BooguImageTurboPipeline` | Boogu-Image Turbo distilled T2I | `Boogu/Boogu-Image-0.1-Turbo` | Y |  |  | Y |  |
+| `BooguImageTurboPipeline` | Boogu-Image Turbo distilled T2I | `Boogu/Boogu-Image-0.1-Turbo` | Y |  | Y | Y |  |
 | `StableDiffusionXLPipeline` | Stable-Diffusion-XL | `stabilityai/stable-diffusion-xl-base-1.0` | Y | Y | Y | Y |  |
 | `StableDiffusion3Pipeline` | Stable-Diffusion-3 | `stabilityai/stable-diffusion-3.5-medium` | Y | Y |  | Y |  |
 | `Flux2KleinPipeline` | FLUX.2-klein | `black-forest-labs/FLUX.2-klein-4B`, `black-forest-labs/FLUX.2-klein-9B` | Y | Y | Y | Y |  |
@@ -78,6 +84,13 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `ErnieImagePipeline` | ERNIE-Image | `baidu/ERNIE-Image`, `baidu/ERNIE-Image-Turbo` | Y | Y | Y | Y |  |
 | `HiDreamO1ImagePipeline` | HiDream-O1-Image | `HiDream-ai/HiDream-O1-Image` | Y |  |  |  |  |
 | `AnimaPipeline` | Anima | `circlestone-labs/Anima` | Y | Y |  | Y |  |
+| `MiniMaxH3ImagePipeline` | MiniMax-H3-Image text-to-image and editing with up to 16 reference images | `MiniMaxAI/MiniMax-H3-Image` | Y |  |  |  |  |
+| `MiniMaxH3ImagePipeline` | MiniMax-H3-Image (text-to-image and editing, MI325X and MI350X) | `MiniMaxAI/MiniMax-H3-Image` |  | Y |  |  |  |
+| `MiniMaxH3ImagePipeline` | MiniMax-H3-Image (text-to-image and editing, Arc Pro B70) | `MiniMaxAI/MiniMax-H3-Image` |  |  |  | Y |  |
+| `MiniMaxH3ImagePipeline` | MiniMax-H3-Image (text-to-image and editing, Atlas 800T A3, Atlas 800I A2 and Atlas 350) | `MiniMaxAI/MiniMax-H3-Image` |  |  | Y |  |  |
+| `Flux3Pipeline` | Flux3 — T2I, I2I | — | Y |  |  |  |  |
+| `Sam3Pipeline` | SAM 3 / SAM 3.1 promptable image segmentation; SAM 3 video concept segmentation and tracking | `facebook/sam3.1`, `facebook/sam3` | Y |  |  |  |  |
+| `VideoDepthAnythingPipeline` | Video Depth Anything relative and metric video depth estimation | `depth-anything/Video-Depth-Anything-Small`, `depth-anything/Metric-Video-Depth-Anything-Small` (and Base/Large) | Y |  |  |  |  |
 
 ## Video generation
 
@@ -96,20 +109,26 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `LTX2TwoStagePipeline` | LTX-2.5 Full/SFT two-stage T2V and I2V | `Lightricks/LTX-2.5-Diffusers` + `Lightricks/LTX-2.5` LoRA | Y |  |  |  |  |
 | `LTX2DistilledOneStagePipeline` | LTX-2.5 merged-distilled one-stage T2V and I2V | `Lightricks/LTX-2.5-Diffusers` | Y |  |  |  |  |
 | `LTX2DistilledTwoStagePipeline` | LTX-2.5 merged-distilled two-stage T2V and I2V | `Lightricks/LTX-2.5-Diffusers` | Y |  |  |  |  |
-| `LTX2T2VDMD2Pipeline` / `LTX2I2VDMD2Pipeline` | LTX-2 DMD2 | — | | | | | In `vllm_omni/diffusion/registry.py` at v0.32.0, not in the supported list. |
+| `LTX2T2VDMD2Pipeline` / `LTX2I2VDMD2Pipeline` | LTX-2 DMD2 | — | | | | | In `vllm_omni/diffusion/registry.py` at v0.34.0, not in the supported list. |
 | ~~`LTX2ImageToVideoPipeline`~~, ~~`LTX23Pipeline`~~, ~~`LTX23ImageToVideoPipeline`~~, ~~`LTX2TwoStagesPipeline`~~, ~~`LTX2ImageToVideoTwoStagesPipeline`~~ | — | — | | | | | **Removed in v0.26.0** (#5148). A stage config naming any of these fails to resolve. |
 | `LingBotVideoPipeline` | LingBot-Video dense and MoE T2I, T2V, TI2V | `robbyant/lingbot-video-dense-1.3b`, `robbyant/lingbot-video-moe-30b-a3b` | Y |  |  | Y |  |
 | `SanaVideoPipeline` | SANA-Video-2B T2V (native 480p/720p; Diffusers adapter validated at both resolutions) | `Efficient-Large-Model/SANA-Video_2B_480p_diffusers`, `Efficient-Large-Model/SANA-Video_2B_720p_diffusers` | Y |  |  | Y |  |
 | `SanaImageToVideoPipeline` | SANA-Video-2B I2V (native and Diffusers adapter validated at 480p/720p) | `Efficient-Large-Model/SANA-Video_2B_480p_diffusers`, `Efficient-Large-Model/SANA-Video_2B_720p_diffusers` | Y |  |  |  |  |
-| `SeedVR2Pipeline` | SeedVR2 3B video restoration | `ByteDance-Seed/SeedVR2-3B` | Y |  |  | Y |  |
+| `SeedVR2Pipeline` | SeedVR2 3B video restoration | `ByteDance-Seed/SeedVR2-3B` | Y |  | Y | Y |  |
 | `MiniMaxH3Pipeline` | MiniMax H3 T2VA, first/last-keyframe FL2VA, and mixed-reference Ref2VA | `MiniMaxAI/MiniMax-H3` | Y | Y |  |  | Joint video+audio via `/v1/videos`. AMD validated on gfx942/gfx950 in BF16 with the AITER `FLASH_ATTN` diffusion backend only. |
 | `TaoMateH3Pipeline` | TaoMate-H3 realtime streaming presenter (MiniMax-H3 + TaoMate LoRA, USP2/USP4) | `MiniMaxAI/MiniMax-H3` FL2VA + `TaoLiveAIGC/TaoMate-H3` | exp |  |  |  | Realtime AR-diffusion streaming (`taomate_h3_usp2_realtime.yaml`, `_usp4_`). CUDA experimental only. |
-| `Magi2Pipeline` | MAGI-2 native Preview-stage T2VA and I2VA (272p/540p) | `sand-ai/MAGI-2-preview` | Y |  |  |  |  |
+| `Magi2Pipeline` | MAGI-2 native Preview-stage T2VA and I2VA (272p/540p) | `sand-ai/MAGI-2-preview` | Y |  | Y | Y |  |
 | `HeliosPipeline`, `HeliosPyramidPipeline` | Helios | `BestWishYsh/Helios-Base`, `BestWishYsh/Helios-Mid`, `BestWishYsh/Helios-Distilled` | Y | Y | Y |  |  |
 | `LongCatVideoAvatarPipeline` | LongCat-Video-Avatar-1.5 A2V/AI2V (native single-speaker and multi-speaker AI2V/AVC) | `meituan-longcat/LongCat-Video-Avatar-1.5` | Y |  |  |  |  |
-| `HunyuanVideo15Pipeline` | HunyuanVideo-1.5-T2V | `hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_t2v`, `hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v` | Y | Y |  | Y | NPU mindiesd flash-attn shape issue #2880 (fix unconfirmed). |
+| `HunyuanVideo15Pipeline` | HunyuanVideo-1.5-T2V | `hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_t2v`, `hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v` | Y | Y |  | Y | NPU mindiesd flash-attn mask-shape issue #2880 fixed by #3178 (v0.22.0+). |
 | `Kandinsky6TI2VAPipeline` | Kandinsky 6 TI2VA | `kandinskylab/Kandinsky-6.0-Pro-5s-Diffusers` | Y |  |  | Y |  |
 | `HunyuanVideo15ImageToVideoPipeline` | HunyuanVideo-1.5-I2V | `hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v`, `hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_i2v` | Y | Y |  | Y |  |
+| `HyNomasModularPipeline` | Hy-Nomas distilled (Diffusers-format weights, reference runtime adapter) | `tencent/Hy-Nomas-Diffusers` | Y (H200 tested) |  |  |  |  |
+| `MiniMaxH3Pipeline` | FastH3 four-step Preview V1 T2VA adapter | `MiniMaxAI/MiniMax-H3` + `FastVideo/FastVideo-FastH3-4-step-Preview-v1-LoRA` | Y |  |  |  |  |
+| `MiniMaxH3Pipeline` | Open-H3-Regenerate-2K: regenerate a 768P H3 draft at 2560x1440 | `MiniMaxAI/MiniMax-H3` + `Efficient-Large-Model/Open-H3-Regenerate-2K` | Y |  |  |  |  |
+| `MiniMaxH3Pipeline` | FastH3 V2 eight-step T2VA (tile-64 VSA; full-model qualification pending) | `FastVideo/FastVideo-FastH3-8-Step-V2` | exp |  |  |  |  |
+| `MiniMaxH3Pipeline` | FastH3 Omni 8-Step V1 Ref2VA (PDD, logical tile-128 VSA; experimental) | `FastVideo/FastVideo-FastH3-Omni-8-Step-V1` | exp |  |  |  |  |
+| `PAN2ModularPipeline` | PAN 2 (T2V, I2V) | `IFM/PAN2` | Y |  |  |  |  |
 
 ## TTS, speech and audio output
 
@@ -139,10 +158,12 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `IndexTTS25TalkerForConditionalGeneration` | IndexTTS-2.5 | native `checkpoints/` bundle | Y |  |  |  |  |
 | `MiMoV2ASRForCausalLM` | MiMo-V2.5-ASR | `XiaomiMiMo/MiMo-V2.5-ASR` | Y | Y |  |  | Speech in, text out — the one ASR row in the list. |
 | `FishSpeechSlowARForConditionalGeneration` | Fish Speech S2 Pro | `fishaudio/s2-pro` | Y | Y |  | Y |  |
-| `FishOmniForConditionalGeneration` | Fish Audio Drama 3 | `fishaudio/drama-3` | Y |  |  |  |  |
+| `FishOmniForConditionalGeneration` | Fish Audio Drama 3 | `fishaudio/drama-3` | Y |  |  |  | Model Runner V1 profile; unavailable with vLLM 0.34.0. |
 | `Audio8TTSSlowARForConditionalGeneration` | Audio8 TTS Preview | `Audio8/Audio8-TTS-Preview-0.6b` | Y |  |  | Y |  |
 | `VoxtralTTSForConditionalGeneration` | Voxtral TTS | `mistralai/Voxtral-4B-TTS-2603` | Y | Y |  |  | Forum thread [#2549](https://discuss.vllm.ai/t/issues-with-voxtral-models-and-omni/2549). |
 | `GepardTalkerForConditionalGeneration` | Gepard-1.0 | `nineninesix/gepard-1.0` | Y |  |  | Y |  |
+| `StableAudio3Pipeline` | Stable-Audio-3 | `stabilityai/stable-audio-3-medium` | Y |  |  |  |  |
+| `Ming3TTSForConditionalGeneration` | Ming-3.0-TTS Tiny (Ling V3 MoE) | `inclusionAI/Ming-3.0-tts-tiny` | Y |  |  | Y |  |
 
 ## World models and robot policies (VLA)
 
@@ -157,11 +178,13 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 | `DreamZeroPipeline` | DreamZero-DROID | `GEAR-Dreams/DreamZero-DROID` | Y | Y | Y | Y |  |
 | `Pi0Pipeline` | π0 (Pi-Zero) VLA | `lerobot/pi0_base` | Y |  |  |  |  |
 | `Pi05Pipeline` | π0.5 VLA | `lerobot/pi05_base` | Y |  |  | Y |  |
+| `Praxis1Pipeline` | Praxis-1 DROID / YAM (native robot policy) | `runwayml/praxis-1-droid`, `runwayml/praxis-1-yam` (local checkpoint directory) | Y |  |  |  |  |
+| `Alpamayo2SuperPolicy` + `Alpamayo2SuperPipeline` | Alpamayo 2 Super | `nvidia/Alpamayo2-Super` | Y |  |  |  |  |
 
 ## Platform legend
 
 - **CUDA** — NVIDIA H100/A100/H200/Blackwell.
-- **ROCm** — AMD MI300 family. Wheel index is version-specific and moves: v0.30.0 uses `vllm==0.30.0+rocm723` from `https://wheels.vllm.ai/rocm/0.30.0/rocm723` (cp312 only). Images live in the separate `vllm/vllm-omni-rocm` repo, which tops out at v0.30.0. For v0.32.0 only an unvalidated `0.32.0+rocm723` wheel exists — deploy the v0.30.0 pair.
+- **ROCm** — AMD MI300 family. Wheel index is version-specific and moves: v0.30.0 uses `vllm==0.30.0+rocm723` from `https://wheels.vllm.ai/rocm/0.30.0/rocm723` (cp312 only). Images live in the separate `vllm/vllm-omni-rocm` repo, which tops out at v0.30.0. No `rocm723` wheel exists for vLLM 0.33.0 or 0.34.0 and the 0.32.0 one lacks the 0.34 APIs: on v0.34.0 build vLLM 0.34.0 from its source tag (ROCm runtime validation pending upstream); otherwise deploy the v0.30.0 pair.
 - **NPU** — Huawei Ascend 910B. Set `--dtype`, `--max-model-len`, `--served-model-name` in the stage YAML, not on the CLI: multi-stage deploys do not pass them through (#2898).
 - **XPU** — Intel Arc / Ponte Vecchio. Backend: XCCL / oneccl_bindings_for_pytorch.
 - **MUSA** — detected by `torchada.is_musa_platform()` (`vllm_omni/platforms/__init__.py`); upstream's list has no MUSA column, so no row claims it.
@@ -184,8 +207,8 @@ Load when operator asks "what's supported" / "is model X supported" / "which pla
 
 From open issues (2026-04):
 
-- Ovi 1.1 (#2593), LongCat-AudioDiT (#2462), OmniWeaving (#2664), 3D World Models / VGGT (#2727) — all absent from the v0.32.0 supported list.
-- Landed since: VoxCPM2, Wan2.2-S2V-14B and VibeVoice-1.5B (offline only; the Realtime-0.5B half of #2319 is not listed) are in the v0.32.0 list — the S2V issue #2612 and #2319 still read open. AudioX shipped and was removed again at v0.28.0.
+- Ovi 1.1 (#2593), LongCat-AudioDiT (#2462), OmniWeaving (#2664), 3D World Models / VGGT (#2727) — all absent from the v0.34.0 supported list.
+- Landed since: VoxCPM2, Wan2.2-S2V-14B and VibeVoice-1.5B (offline only; the Realtime-0.5B half of #2319 is not listed) are in the v0.34.0 list — the S2V issue #2612 and #2319 still read open. AudioX shipped and was removed again at v0.28.0.
 
 If a model is not in the tables above, check `gh api /repos/vllm-project/vllm-omni/contents/vllm_omni/model_executor/models` and the open issues before concluding unsupported.
 

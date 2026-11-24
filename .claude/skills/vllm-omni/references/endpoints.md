@@ -4,11 +4,11 @@ Load when operator asks about a specific API endpoint's shape, streaming, auth, 
 
 **Contents:** Endpoint map · `/v1/images/generations` · `/v1/images/edits` · `/v1/audio/speech` · `/v1/audio/voices` · `/v1/audio/speech/stream` · `/v1/videos` (async vs sync) · `/v1/realtime` · `/v1/chat/completions` with diffusion.
 
-## Endpoint map (paths and field tables verified at v0.30.0 and v0.32.0)
+## Endpoint map (paths and field tables for v0.34.0; no field in the tables below changed since v0.30.0)
 
 Also registered, not detailed here: `/v1/chat/completions/batch` and `/v1/audio/generate` (POST),
 `/v1/realtime/video`, `/v1/video/chat/stream` and `/v1/realtime/robot/openpi` (WebSocket), `/v1/omni/sleep` /
-`/v1/omni/wakeup` (POST; 409 with `--api-server-count` > 1), RL rollout `/v1/realtime/sessions…` (POST/GET).
+`/v1/omni/wakeup` (POST; 409 with `--api-server-count` > 1), RL rollout `/v1/realtime/sessions…` (POST/GET), v0.34.0 additions `/v1/images/segmentations`, `/v1/videos/segmentations`, `/v1/videos/depth` (POST) and the experimental `/v1/run` (stage-by-stage execution for an external orchestrator).
 
 | Path | Method | Purpose |
 |---|---|---|
@@ -73,7 +73,7 @@ Non-OpenAI extensions:
 
 Response: `{"created": <ts>, "data": [{"b64_json": "...", "revised_prompt": null}], "output_format", "size"}`, plus `cot_output` for CoT-enabled edit models.
 
-**Known failure, v0.32.0 (#9731, open):** `/v1/images/generations` does not inherit `--default-sampling-params`. Omitted fields fall back to the model's own defaults and the request still returns 200 (reported on MOSS-Image: configured `guidance_scale` 3 ran as 1, CFG off). Send `num_inference_steps`, `guidance_scale` and `flow_shift` in every request.
+**v0.32.0 and older:** `/v1/images/generations` ignores `--default-sampling-params` (#9731, fixed by #9700 in v0.34.0). On those versions send `num_inference_steps`, `guidance_scale` and `flow_shift` in every request; the request returns 200 with the model's own defaults and CFG may be off.
 
 **Gotcha**: Python OpenAI SDK doesn't have fields for the non-OpenAI extras. Use curl, or pass them through the SDK's `extra_body` (if translating to `/v1/chat/completions` with diffusion).
 
@@ -137,7 +137,7 @@ curl http://localhost:8091/v1/audio/voices \
   -F "audio_sample=@voice.wav"
 ```
 
-Uploaded voices persist as one `.safetensors` file each under `SPEAKER_SAMPLES_DIR` (default `~/.cache/vllm-omni/speakers`) and are reloaded at startup. Every server run by the same user shares that default — set `SPEAKER_SAMPLES_DIR` per deployment. With `--api-server-count` > 1: v0.30.0 returns **409** on upload and delete; v0.32.0 shares the registry across API processes (#8424) — keep the directory on a local filesystem, not NFS.
+Uploaded voices persist as one `.safetensors` file each under `SPEAKER_SAMPLES_DIR` (default `~/.cache/vllm-omni/speakers`) and are reloaded at startup. Every server run by the same user shares that default — set `SPEAKER_SAMPLES_DIR` per deployment. With `--api-server-count` > 1: v0.30.0 returns **409** on upload and delete; v0.32.0 and later share the registry across API processes (#8424) — keep the directory on a local filesystem, not NFS.
 
 ## `/v1/audio/speech/stream` (WebSocket)
 
@@ -198,7 +198,7 @@ A `model` that differs from the served model returns **400 "Model mismatch"** on
 
 ## `/v1/realtime` (WebSocket, Qwen3-Omni)
 
-Full recipe and the per-version wire contract in `references/realtime-tts.md`. The default `qwen3_omni_moe.yaml` (`async_chunk: true`) serves realtime. v0.32.0 turn mode: PCM16 mono 24 kHz in, `commit` then `response.create`, audio in `response.output_audio.delta` field `delta`. v0.30.0: 16 kHz in, field `audio`, transcripts as `transcription.delta`.
+Full recipe and the per-version wire contract in `references/realtime-tts.md`. The default `qwen3_omni_moe.yaml` (`async_chunk: true`) serves realtime. v0.32.0 and v0.34.0 turn mode: PCM16 mono 24 kHz in, `commit` then `response.create`, audio in `response.output_audio.delta` field `delta`. v0.30.0: 16 kHz in, field `audio`, transcripts as `transcription.delta`.
 
 ## `/v1/chat/completions` with diffusion via `extra_body`
 

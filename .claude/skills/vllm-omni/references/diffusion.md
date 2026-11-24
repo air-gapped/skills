@@ -6,7 +6,7 @@ Load when the operator is tuning a diffusion model — CFG weights, schedulers, 
 
 ## The shape of a diffusion request
 
-Unlike AR generation, DiT runs a **fixed number of denoising steps** against a latent. So the sampling-params analog is `OmniDiffusionSamplingParams`, defined in `vllm_omni/inputs/data.py:211-460` at v0.32.0 (last class in the module). `None` below means "use the pipeline default":
+Unlike AR generation, DiT runs a **fixed number of denoising steps** against a latent. So the sampling-params analog is `OmniDiffusionSamplingParams`, defined in `vllm_omni/inputs/data.py` (last class in the module; fields unchanged from v0.32.0 to v0.34.0). `None` below means "use the pipeline default":
 
 | Field | Default | Purpose |
 |---|---|---|
@@ -91,7 +91,7 @@ Also available via env vars:
 
 ## Attention backends
 
-Selection is platform + model dependent. Default is **FA3** when the platform supports it (H100+); AMD uses **ROCm AITER Flash Attention**; NPU uses **mindiesd** (shape issues on HunyuanVideo-1.5 #2880).
+Selection is platform + model dependent. Default is **FA3** when the platform supports it (H100+); AMD uses **ROCm AITER Flash Attention**; NPU uses **mindiesd** (the HunyuanVideo-1.5 mask-shape issue #2880 is fixed from v0.22.0, #3178).
 
 The backend comes from the model default — normally don't override. To override DiT attention: `--diffusion-attention-backend <NAME>` (e.g. `FLASH_ATTN`, `TORCH_SDPA`) or env `DIFFUSION_ATTENTION_BACKEND`; per-role settings via `--diffusion-attention-config`. This does not touch AR-stage attention, which uses vLLM's own selector. `VLLM_ATTENTION_BACKEND` is not read by the diffusion path.
 
@@ -106,7 +106,7 @@ vllm serve Qwen/Qwen-Image --omni \
 
 Per-component routing (`ComponentQuantizationConfig`) is a dict keyed by **layer-name prefix** — longest prefix wins — not by role name: `{"transformer": {"method": "fp8"}, "vae": null}`. It is detected only when at least one value is `null` or a dict carrying `method`; a dict of bare strings (`{"transformer": "fp8"}`) raises `must have a 'method' or 'quant_method' key`.
 
-Supported formats (entry point `build_quant_config()`, `vllm_omni/quantization/factory.py:411` at v0.32.0):
+Supported formats (entry point `build_quant_config()` in `vllm_omni/quantization/factory.py`):
 
 | Format | Targeted at | Source PR |
 |---|---|---|
@@ -115,6 +115,7 @@ Supported formats (entry point `build_quant_config()`, `vllm_omni/quantization/f
 | GGUF | out of tree — install `vllm-project/vllm-gguf-plugin` | #4769 |
 | BitsAndBytes W4 (online) | diffusion transformers | v0.26.0 #5037 |
 | Transformer Engine FP8 (online) | FLUX.2-dev Mistral text encoder | v0.26.0 #5136 |
+| ConvRot INT8 / INT4 (online, `--quantization convrot_int8` or `convrot_int4`) | diffusion transformers on CUDA; INT4 runs on INT8 tensor cores, so Hopper works | v0.34.0 #9343 |
 | NVFP4, MXFP4 | via upstream vLLM registry | inherited |
 | INC / AutoRound | Intel Neural Compressor path | factory delegate |
 
@@ -177,7 +178,7 @@ RIFE-based temporal upsampling, enabled per-request:
 
 ## verl RL / Flow-GRPO
 
-vllm-omni integrates with verl for E2E RL training on Qwen-Image via Flow-GRPO (#1646, #1593, #2005, #2217). Adds collective RPC support + async batching. Not a serving concern, but worth knowing: the same diffusion engine drives training feedback. For RL weight updates into a running server read `docs/user_guide/weight_transfer.md` (v0.32.0); the trainer side lives in the separate `verl-project/verl-omni` repo. There is no `docs/features/verl.md` at v0.30.0 or v0.32.0.
+vllm-omni integrates with verl for E2E RL training on Qwen-Image via Flow-GRPO (#1646, #1593, #2005, #2217). Adds collective RPC support + async batching. Not a serving concern, but worth knowing: the same diffusion engine drives training feedback. For RL weight updates into a running server read `docs/user_guide/weight_transfer.md`; the trainer side lives in the separate `verl-project/verl-omni` repo. There is no `docs/features/verl.md` at v0.30.0, v0.32.0 or v0.34.0.
 
 ## ComfyUI bridge
 
@@ -192,9 +193,9 @@ If DiT latency looks wrong:
 3. Check quantization is engaging: grep the startup log for `Building quantization config` (logged for single-method configs).
 4. Wan2.2 specifically: `guidance_scale_2` + `boundary_ratio` must both be set or dual-CFG no-ops.
 5. Blackwell SM100/SM103 paths: some DiT kernels fall back to CUTLASS.
-   **Do not pin `flashinfer<0.6.7`** — unsatisfiable on v0.32.0, which
-   inherits vLLM 0.32.0's hard `flashinfer-python==0.7.0.post1` (v0.30.0:
-   `0.6.18.post1`). The hang that pin worked around hit **GB300 (SM103) only**
+   **Do not pin `flashinfer<0.6.7`** — unsatisfiable on v0.34.0, which
+   inherits vLLM 0.34.0's hard `flashinfer-python==0.7.3` (v0.32.0:
+   `0.7.0.post1`; v0.30.0: `0.6.18.post1`). The hang that pin worked around hit **GB300 (SM103) only**
    (GB200 / SM100 never) and vLLM fixed it in tree (PR #38730: SM103 falls
    back from TRTLLM attention to the default FlashInfer backend). A TRTLLM
    attention hang on SM103 today is a new bug — capture it, do not downgrade
