@@ -148,6 +148,7 @@ Eviction supported via `max_capacity_gb` (default 0 = aggregate eviction disable
 
 - **`raw_block`** — MP L2 adapter that stores raw KV blocks without NIXL (LMCache#3119). Useful where NIXL is unavailable but a structured block store is wanted.
 - **RESP / Redis-Valkey** — L2 over the RESP protocol against Redis or Valkey (LMCache#2967). Backs a networked KV tier without a filesystem mount. 0.5.1 added per-key TTL and partial-chunk validation for the Valkey glide connector (#3836).
+- **`nixl_native`** — native NIXL L2 adapter; since 0.5.8 its connector ships as the separate `lmcache-nixl` package at the same version as `lmcache`. The official images include it; elsewhere install `lmcache[nixl]==<installed version>`, otherwise the adapter refuses to load and prints that command.
 - **Aerospike** — optional native L2 backend, compiled in via `BUILD_AEROSPIKE` (0.5.0, #3458). Not in the default wheel.
 
 Consult the LMCache `docs/source/mp/l2_storage.rst` for the exact config keys before use.

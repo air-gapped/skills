@@ -4,7 +4,7 @@ allowed-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
 description: >-
   LMCache multiprocess (MP) mode: LMCache as its own pod or process that vLLM
   reaches over ZMQ (`LMCacheMPConnector`), one cache shared by several vLLM pods
-  per node. Covers the DaemonSet+Deployment pattern and LMCache Operator, the L1
+  per node. Covers the DaemonSet+Deployment pattern (the LMCache Operator is deprecated), the L1
   CPU + L2 (NIXL, fs, mooncake, s3, Redis) cascade, the `lmcache/standalone`
   image, hybrid-attention models, and production gotchas. Use when LMCache runs
   as a separate server, daemon or daemonset, or for LMCacheMPConnector vs
@@ -35,7 +35,7 @@ Ask in order:
    → Native offload (`--kv-offloading-size N --kv-offloading-backend native`; no HMA flag on vLLM v0.23.0+). Zero extra pods. Use the `vllm-caching` skill, not this one.
 
 2. **Single vLLM pod, need NVMe as a third tier, but no other pod will share the cache?**
-   → In-process `LMCacheConnectorV1` (`--kv-transfer-config '{"kv_connector":"LMCacheConnectorV1","kv_role":"kv_both"}'` + `LMCACHE_LOCAL_DISK` env vars). Still in vllm-caching skill.
+   → In-process `LMCacheConnectorV1` (`--kv-transfer-config '{"kv_connector":"LMCacheConnectorV1","kv_role":"kv_both"}'` + `LMCACHE_LOCAL_DISK` env vars). Still in vllm-caching skill. It fails on lmcache 0.5.7+ (`No module named 'lmcache.integration.vllm.vllm_v1_adapter'`, [vLLM#69358](https://github.com/vllm-project/vllm/issues/69358), open); MP mode is unaffected.
 
 3. **Multiple vLLM pods on the same node should share a KV cache, OR you want to isolate cache CPU work from inference (no GIL contention), OR you want to scale cache CPU memory independently of GPU pods?**
    → **MP mode. This skill.**
@@ -49,7 +49,9 @@ Don't reach for MP mode just because it's newest — it adds operational surface
 
 ## Version gates — check these FIRST
 
-Current stable pair: **vLLM v0.32.0** (2026-10-18) + **LMCache v0.5.6** (2026-10-14). v0.32.0 pins `nixl == 1.5.0`; `LMCacheMPConnector`/`SupportsHMA` and the `lmcache >= 0.3.9` floor are unchanged. The default `vllm/vllm-openai:v0.32.0` image bundles lmcache **0.5.6** (container run below). **CUDA 12 image variants (`-cu129` tags, v0.31.0+) install `lmcache == 0.4.4` instead** — no `SupportsHMA`, below the security floor, and wire-incompatible with a 0.5.6 server: use the default CUDA 13 tag or `lmcache/vllm-openai:v0.5.6`. `pip install -U lmcache` inside an image moves it off the pair it was built against.
+Current stable pair: **vLLM v0.34.0** (2026-11-16) + **LMCache v0.5.8** (2026-11-22). v0.34.0 pins `nixl == 1.5.2` and `lmcache >= 0.5.6`; `LMCacheMPConnector`/`SupportsHMA` are unchanged. **The default `vllm/vllm-openai:v0.34.0` image bundles lmcache 0.5.7.post1, below the 0.5.8 security floor: for `LMCacheMPConnector`, run `pip install lmcache==0.5.8` in the vLLM image (or build `FROM` it), or use `lmcache/vllm-openai:v0.5.8`.** Install into the image's own Python environment and re-run `scripts/verify-bundling.sh` on the result; keep the server image on the same version. **`-cu129` vLLM tags bundle `lmcache == 0.5.6` (v0.33.0 and v0.34.0; `0.4.4` on v0.31.0 and v0.32.0) and LMCache publishes no CUDA 12.9 build from 0.5.8**: use the default CUDA 13 tag. Do not install lmcache 0.5.7+ for the in-process `LMCacheConnectorV1` ([vLLM#69358](https://github.com/vllm-project/vllm/issues/69358)).
+
+**vLLM v0.34.0 extensible KV cache and LMCache.** vLLM v0.34.0 turns extensible KV cache on by default. With lmcache **< 0.5.8** and `LMCacheMPConnector` it is switched off (the connector reports legacy CUDA IPC) and an unset `gpu_memory_utilization` resolves to 0.92; otherwise an unset value resolves to 1.0. With lmcache 0.5.8 on both sides the connector detects the extensible KV cache and exports it as file descriptors over `/dev/shm/lmcache_fd_<port>.sock`: keep `--ipc host` / the shared host `/dev/shm`, use a TCP server URL, and leave `lmcache.mp.use_vmm_api` unset unless you must override the detection. Set `--no-enable-extensible-kv-cache` or an explicit `--gpu-memory-utilization` to keep the pre-v0.34 sizing.
 
 | Component | What you need | Notes |
 |---|---|---|
@@ -58,25 +60,25 @@ Current stable pair: **vLLM v0.32.0** (2026-10-18) + **LMCache v0.5.6** (2026-10
 | vLLM | **v0.23.0+** for HMA-by-default | #41847 made `disable_hybrid_kv_cache_manager` tri-state; combined with LMCache 0.5.x's `SupportsHMA` declaration this is what unlocks hybrid models in MP mode. |
 | LMCache | **0.4.0+** for the MP adapter file (`lmcache.integration.vllm.vllm_multi_process_adapter`) | Moved into LMCache repo on 2026-01-07 (PR #2360). Earlier versions had it in vLLM. |
 | LMCache | **0.4.4+** for vLLM v0.20+/main | vLLM main imports `ParallelStrategy` symbol that doesn't exist in 0.4.3. Verified against tags v0.4.3 (no class) vs v0.4.4 (has class); still present at v0.5.1. |
-| LMCache | **0.5.6** is the newest release and what the default v0.32.0 image ships | 0.5.0 brought P2P KV transfer to MP mode (#3740/#3762), Device-DAX L1 overflow, asymmetric serde (FP16 key / FP8 value), and a wave of renames. 0.5.1 added L2→L1 warm-prefetch (#3827), `HiddenStateStore` (#3221), an AMD `hipFile` GDS-L1 backend (#3843), TurboQuant serde for L2, and configurable `disk_io_threads`. |
+| LMCache | **0.5.8** is the newest release; the default v0.34.0 image ships 0.5.7.post1 | 0.5.0 brought P2P KV transfer to MP mode (#3740/#3762), Device-DAX L1 overflow, asymmetric serde (FP16 key / FP8 value), and a wave of renames. 0.5.1 added L2→L1 warm-prefetch (#3827), `HiddenStateStore` (#3221), an AMD `hipFile` GDS-L1 backend (#3843), TurboQuant serde for L2, and configurable `disk_io_threads`. 0.5.7 dropped the in-process `vllm_v1_adapter`, negotiates the chunk size from the model's KV geometry and added HTTP API-key auth; 0.5.8 added request-transport API-key auth, per-LoRA cache identity, `--separate-object-groups` on by default, and shipped the NIXL L2 connector as the separate `lmcache-nixl` package. |
 | LMCache | **0.5.x required** for hybrid-attention models | The `SupportsHMA`-declaring connector lives in `lmcache/integration/vllm/lmcache_mp_connector.py`. See the hybrid-model section. |
-| LMCache | **0.5.6+ on both sides** — the server image AND the lmcache inside the vLLM image | Security floor: 0.3.9–0.5.5 unpickle data from the MP transport, so one unauthenticated message to the ZMQ port runs code as the LMCache user (critical RCE, CVE-2026-105192). 0.5.6 also changed the wire format: upgrade the server and every vLLM-side lmcache together, never one side alone. |
+| LMCache | **0.5.8+ on both sides** — the server image AND the lmcache inside the vLLM image | Security floor. 0.3.9–0.5.5 unpickle data from the MP transport: one unauthenticated message to the ZMQ port runs code as the LMCache user (critical, CVE-2026-105192, fixed 0.5.6). 0.4.6–0.5.6 also unpickle in the MP `commit_store` path (critical, GHSA-qr43-hv93-6x7p, fixed 0.5.7). 0.4.7–0.5.7 let an unauthenticated frontend proxy reach any local UNIX socket (critical, GHSA-hhqh-8jpj-27rf, fixed 0.5.8). 0.4.5–0.5.7 share KV cache across LoRA adapters and the base model (medium, GHSA-jg4p-wprm-8hph, fixed 0.5.8: clear L2 tiers written by a multi-adapter deployment before upgrading). Three more high/medium advisories (legacy `LMCacheServer`, unauthenticated KV overwrite, RESP client) are fixed in 0.5.7. The wire format changed in 0.5.6 and 0.5.7 (legacy pickle descriptors rejected): upgrade the server and every vLLM-side lmcache together, never one side alone. |
 
 **Renames in 0.5.0 that break old greps and docs:** `MPCacheEngine` → `MPCacheServer`, `GPUKVFormat` → `EngineKVFormat` (`gpu_kv_*` → `engine_kv_*`), `GPUTransferModule` → `LMCacheDrivenTransferModule`, `NonGPUTransferModule` → `EngineDrivenTransferModule`. The CLI was also refactored into multi-subcommand form (#3678).
 
 ### Image bundling (what's actually in the container)
 
-Verified 2026-10-27 inside `vllm/vllm-openai:v0.32.0` (sleep-overridden, exec'd in):
+Contents of `vllm/vllm-openai:v0.34.0` (sleep-overridden, exec'd in):
 
-| Package | Version in v0.32.0 image | Import works? | Notes |
+| Package | Version in v0.34.0 image | Import works? | Notes |
 |---|---|---|---|
-| `vllm` | 0.32.0 | OK | — |
-| `lmcache` | 0.5.6 | OK | At the security floor; `ParallelStrategy` present |
-| `nixl` | 1.5.0 | OK | — |
-| `mooncake-transfer-engine-cuda13` | 0.3.13.post1 | OK as `import mooncake` | **Distribution carries a CUDA suffix; the module does not.** Querying `mooncake-transfer-engine` reports NOT INSTALLED for a package that is present |
+| `vllm` | 0.34.0 | OK | — |
+| `lmcache` | 0.5.7.post1 | OK | **Below the 0.5.8 security floor**; `ParallelStrategy` present; upgrade it for MP mode |
+| `nixl` | 1.5.2 | OK | — |
+| `mooncake-transfer-engine-cuda13` | 0.3.14 | OK as `import mooncake` | **Distribution carries a CUDA suffix; the module does not.** Querying `mooncake-transfer-engine` reports NOT INSTALLED for a package that is present |
 | `lmcache` CLI | — | `/usr/local/bin/lmcache` | Server entrypoint ready out of the box |
 
-All four KV-offload connector classes (`OffloadingConnector`, `LMCacheConnectorV1`, `LMCacheMPConnector`, `NixlConnector`) load through the factory's own thunk; vLLM logs `Using external LMCacheMPConnector from lmcache.integration.vllm.lmcache_mp_connector`. No pip install at container start is needed.
+All four KV-offload connector classes (`OffloadingConnector`, `LMCacheConnectorV1`, `LMCacheMPConnector`, `NixlConnector`) load through the factory's own thunk (18 connectors are registered); vLLM logs `Using external LMCacheMPConnector from lmcache.integration.vllm.lmcache_mp_connector`. `LMCacheConnectorV1` loads here but breaks at runtime on lmcache 0.5.7+ (see above).
 
 Earlier floor: `v0.19.1` shipped vllm 0.19.1 / lmcache 0.4.3 / nixl 0.9.0 / mooncake 0.3.10.post1 — below the security floor, and its lmcache predates `ParallelStrategy`.
 
@@ -90,20 +92,22 @@ Two containers. The LMCache server is a separate process; vLLM connects over ZMQ
 # Terminal 1 — LMCache server
 docker run --runtime nvidia --gpus all \
     --network host --ipc host \
-    lmcache/standalone:v0.5.6 \
+    lmcache/standalone:v0.5.8 \
     /opt/venv/bin/lmcache server \
     --l1-size-gb 60 --eviction-policy LRU --max-workers 4 --port 6555
 
 # Terminal 2 — vLLM (connects to LMCache via ZMQ)
 docker run --runtime nvidia --gpus all \
     --network host --ipc host \
-    lmcache/vllm-openai:v0.5.6 \
+    lmcache/vllm-openai:v0.5.8 \
     Qwen/Qwen3-14B \
     --no-enable-prefix-caching \
     --kv-transfer-config '{"kv_connector":"LMCacheMPConnector",
                            "kv_role":"kv_both",
                            "kv_connector_extra_config":{"lmcache.mp.port":6555}}'
 ```
+
+Docker Hub carries `v0.5.8` and `latest` for both images (`lmcache/standalone` also `v0.5.8-cu130`, `lmcache/vllm-openai` also `v0.5.8-lightweight`). Both run as uid 1000 (`lmcache`) since 0.5.7: a host path mounted for an L2 adapter must be writable by that uid.
 
 Required Docker flags:
 
@@ -120,9 +124,7 @@ Flags on the **vLLM side** that operators forget:
 
 The canonical pattern is **DaemonSet (LMCache) + Deployment (vLLM)**: one LMCache server per node serves multiple vLLM pods on that node.
 
-An LMCache Kubernetes Operator reconciles an `LMCacheEngine` custom resource into the DaemonSet + Service + ConfigMap. **Current release is `operator-v0.5.5` (2026-09-15)** — operator tags run on their own `operator-v*` line beside core LMCache releases, so pin deliberately. Install via the `install.yaml` from the release. Prefer it over hand-rolled manifests for new clusters; the hand-written YAML in `references/deployment.md` remains the manual alternative and shows what the operator generates.
-
-Operator capabilities added in the 0.5 line (LMCache 0.5.1 notes): a **mutating webhook that auto-injects the `LMCacheEngine` connection into vLLM pods** (#3822), so vLLM Deployments no longer hand-write the `status.hostIP` plumbing; a configurable `hostNetwork` field on the CRD (#3849); and optional privileged mode on the engine DaemonSet (#3943).
+**Do not build new deployments on the LMCache Kubernetes Operator.** From LMCache v0.5.8 the docs mark it deprecated and unmaintained, with removal from the repo expected in 2027Q1; `operator-v*` releases (newest `operator-v0.5.5`, 2026-09-15) get no fixes. Use the hand-written DaemonSet + Deployment in `references/deployment.md`. An existing operator install keeps working at its pinned release: plan the move to manual manifests. What it generated (reference when migrating off it): an `LMCacheEngine` custom resource reconciled into DaemonSet + Service + ConfigMap, a mutating webhook that injects the `LMCacheEngine` connection into vLLM pods (#3822), a `hostNetwork` CRD field (#3849) and optional privileged mode on the engine DaemonSet (#3943).
 
 Example manifests live in the LMCache repo at `examples/multi_process/`:
 - `lmcache-daemonset.yaml` — LMCache server, one per node
@@ -131,7 +133,8 @@ Example manifests live in the LMCache repo at `examples/multi_process/`:
 Architecture details that bite if missed:
 
 - **`hostNetwork: true` on the DaemonSet** — vLLM pods discover the LMCache server via the node's `status.hostIP`. Without `hostNetwork`, the server's listening port isn't reachable from sibling pods.
-- **The ZMQ transport has no authentication on any version — never bind `--host 0.0.0.0`.** Bind the node IP (`--host $(HOST_IP)` from `status.hostIP`) and block the port from off-node sources at the host firewall; NetworkPolicy usually ignores `hostNetwork` pods. Binding `--host 127.0.0.1` works only if the vLLM pods also run `hostNetwork: true` — a pod's own loopback is not the node's, and upstream's localhost example (v0.5.7rc) omits this, so its vLLM pods cannot connect.
+- **The request transport is unauthenticated unless you enable API keys — never bind `--host 0.0.0.0` without them.** Bind the node IP (`--host $(HOST_IP)` from `status.hostIP`) and block the port from off-node sources at the host firewall; NetworkPolicy usually ignores `hostNetwork` pods. Binding `--host 127.0.0.1` works only if the vLLM pods also run `hostNetwork: true` — a pod's own loopback is not the node's, and upstream's localhost example (v0.5.8) omits this, so its vLLM pods cannot connect.
+- **API keys (0.5.8+, opt-in).** Start the server with `--api-key-file <path>` (repeat the flag to overlap old and new keys) and give each vLLM process `LMCACHE_API_KEY_FILE` (or `LMCACHE_API_KEY`). It covers the ZMQ and gRPC request transports and the HTTP API; `/` and `/healthcheck` stay public. ZMQ servers and clients that predate 0.5.8 cannot talk to an authenticating server, so upgrade everything before enabling keys. The key travels in clear text: it is access control on a trusted network, not encryption. Do not run the optional frontend dashboard (its reverse proxy) below 0.5.8; on 0.5.8 restrict socket targets with `--uds-allowlist` and set a frontend API key.
 - **Both containers mount `/dev/shm` from the host** — required for CUDA IPC.
 - **GPUs are NOT requested in the DaemonSet** — the LMCache server doesn't run inference. The NVIDIA container runtime gives it just enough GPU access for IPC-based transfers. Requesting GPUs there would steal them from vLLM pods.
 - **Multiple vLLM pods on the same node automatically share** the same LMCache DaemonSet instance — that's the whole point.
@@ -143,7 +146,7 @@ For the L1+L2 storage architecture (NIXL adapters, fs, mooncake_store, s3, evict
 
 ## Hybrid model status — supported as of LMCache 0.5.x
 
-**This inverted in the 0.5 line. MP mode now supports hybrid-attention models officially**, and the old "don't recommend MP for hybrids" guidance is obsolete. `LMCacheMPConnector` declares vLLM's `SupportsHMA` interface (`lmcache/integration/vllm/lmcache_mp_connector.py:535` at tag v0.5.6), so vLLM keeps its hybrid KV cache manager **enabled** and exposes multiple KV cache groups — you do not pass `--disable-hybrid-kv-cache-manager`, and you do not need any HMA-related flag.
+**This inverted in the 0.5 line. MP mode now supports hybrid-attention models officially**, and the old "don't recommend MP for hybrids" guidance is obsolete. `LMCacheMPConnector` declares vLLM's `SupportsHMA` interface (`lmcache/integration/vllm/lmcache_mp_connector.py`), so vLLM keeps its hybrid KV cache manager **enabled** and exposes multiple KV cache groups — you do not pass `--disable-hybrid-kv-cache-manager`, and you do not need any HMA-related flag.
 
 Upstream ships per-model recipes (`docs/source/mp/hybrid_models.rst`, published at https://docs.lmcache.ai/mp/hybrid_models.html) for:
 
@@ -157,20 +160,21 @@ Upstream ships per-model recipes (`docs/source/mp/hybrid_models.rst`, published 
 | DeepSeek-V4.1-Flash (0.5.6+) | Sparse-MLA + per-layer sliding window, 9 KV groups; scratch ring recomputed |
 | GLM 5.1 / 5.2 | Dynamic Sparse Attention, multiple KV groups |
 | GLM-5.3 (0.5.6+) | Dynamic Sparse Attention, single KV group; `--chunk-size` a multiple of 64, well below typical prompt length |
+| GLM-5.3-Flash (0.5.8) | KDA linear attention + NoPE sparse MLA; unified block size 1152 |
 | MiniMax-M3 | Sparse attention + lightning indexer (mixed KV formats in one group) |
 
 Sliding-window + full-attention hybrids need no special configuration — LMCache detects the model's KV cache groups at registration time.
 
-**Mamba / GDN hybrids need one model-specific number.** vLLM forces a single unified block size `N` across all KV cache groups so an attention page is at least as large as a Mamba state page; the LMCache server's `--chunk-size` and vLLM's `--max-num-batched-tokens` both derive from it, and getting it wrong raises at engine startup. `N` is model-specific — **never assume a value**. vLLM prints it once during startup:
+**Mamba / GDN hybrids depend on one model-specific number.** vLLM forces a single unified block size `N` across all KV cache groups so an attention page is at least as large as a Mamba state page. `N` is model-specific — **never assume a value**. On lmcache **0.5.7+** nothing has to be derived by hand: `--chunk-size` is a minimum and the connector negotiates the smallest multiple of `N` at least that large (default 256 with `N = 784` resolves to 784). On lmcache ≤ 0.5.6 the server's `--chunk-size` and vLLM's `--max-num-batched-tokens` both derive from `N`, and a wrong value raises at engine startup. vLLM prints `N` once during startup:
 
 ```
 INFO ... interface.py:670] Setting attention block size to 784 tokens to
 ensure that attention page size is >= mamba page size.
 ```
 
-Launch vLLM far enough to emit that line (cheap settings, `--mamba-cache-mode align --enable-prefix-caching`), read `N`, then stop. Start the LMCache server with `--separate-object-groups` as well (see below). The per-model recipe pages carry the rest.
+Launch vLLM far enough to emit that line (cheap settings, `--mamba-cache-mode align --enable-prefix-caching`), read `N`, then stop. On lmcache 0.5.3–0.5.7 start the LMCache server with `--separate-object-groups` as well (see below). The per-model recipe pages carry the rest.
 
-**Object-group separation (`--separate-object-groups`, default ON through v0.5.2, OFF from v0.5.3).** At registration LMCache buckets a hybrid model's layers into object groups — the unit it stores and retrieves as one object — one per distinct cross-chunk attention window. `--no-separate-object-groups` collapses every layer into a single full-attention object group (pre-0.5.1 behavior). Upstream marks `--separate-object-groups` **required for Mamba / linear-attention hybrids** (GDN, KDA) and a no-op for non-hybrid models; the recipes for those models, DeepSeek-V4.1-Flash and GLM-5.3 all pass it. **The default flipped in v0.5.3**: on v0.5.3+ the single full-attention group is what you get unless you pass `--separate-object-groups`, so a config carried over from v0.5.1 silently changes grouping behaviour on upgrade. A community report on [LMCache#3106](https://github.com/LMCache/LMCache/issues/3106) (2026-07-17, DeepSeek-V4-Pro on vLLM 0.25.1 + LMCache 0.5.1) uses `--no-separate-object-groups` to work around a `ValueError: Size mismatch` in the multi-group retrieve path; that report is unverified by this skill, but the flag and its `False` default are confirmed in `lmcache/v1/multiprocess/config.py:61` at tag v0.5.6.
+**Object-group separation (`--separate-object-groups`, default ON through v0.5.2, OFF in v0.5.3–v0.5.7, ON again from v0.5.8).** At registration LMCache buckets a hybrid model's layers into object groups — the unit it stores and retrieves as one object — one per distinct cross-chunk attention window. `--no-separate-object-groups` collapses every layer into a single full-attention object group (pre-0.5.1 behavior). `--separate-object-groups` is **required for Mamba / linear-attention hybrids** (GDN, KDA) and a no-op for non-hybrid models; the recipes for those models, DeepSeek-V4.1-Flash and GLM-5.3 all pass it. **The default flipped twice**: on v0.5.3–v0.5.7 the single full-attention group is what you get unless you pass `--separate-object-groups`; from v0.5.8 separation is on and `--no-separate-object-groups` is the opt-out (never pass it for Mamba / linear-attention models). A config or cache carried across those versions silently changes grouping, so set the flag explicitly on every upgrade across v0.5.3 and v0.5.8. A community report on [LMCache#3106](https://github.com/LMCache/LMCache/issues/3106) (2026-07-17, DeepSeek-V4-Pro on vLLM 0.25.1 + LMCache 0.5.1) uses `--no-separate-object-groups` to work around a `ValueError: Size mismatch` in the multi-group retrieve path; on v0.5.8 the flag's default is `True`, so pass `--no-separate-object-groups` only if that `ValueError` appears.
 
 [LMCache#2845](https://github.com/LMCache/LMCache/issues/2845) (the original hybrid tracker) was closed by the stale bot with no fix or maintainer answer, so its state says nothing either way; [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261) (HybridOffloadPlanner) is still open. Neither blocks the documented path: the recipe pages are the authority, and verify the specific model against its recipe before production.
 
@@ -189,7 +193,7 @@ RuntimeError: LMCacheMPConnector only works without hybrid kv cache manager.
 Please pass --disable-hybrid-kv-cache-manager when starting vllm
 ```
 
-Source: `vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py:79` (vLLM tag v0.32.0). **The fix is to make the external `lmcache` import succeed, not to add the flag** — run `scripts/verify-bundling.sh <tag>`. Adding the flag masks a broken install and costs hybrid-model support. On lmcache ≤ 0.4.x the flag genuinely is required.
+Source: `vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py` in vLLM. **The fix is to make the external `lmcache` import succeed, not to add the flag** — run `scripts/verify-bundling.sh <tag>`. Adding the flag masks a broken install and costs hybrid-model support. On lmcache ≤ 0.4.x the flag genuinely is required.
 
 ### 2. vLLM's own prefix cache must be OFF
 
@@ -206,9 +210,10 @@ vLLM `main` (post-2026-03) imports `ParallelStrategy` from `lmcache.integration.
 | v0.23.0 – v0.25.1 | **0.5.x** (0.5.1+) — 0.4.x works but forfeits hybrid-model support |
 | v0.29.0 | ships **0.5.4**, `ParallelStrategy` present — below the security floor |
 | v0.32.0 | ships **0.5.6** (default CUDA 13 tag); `-cu129` tags ship **0.4.4** |
-| main / nightly | **0.5.1+** |
+| v0.34.0 | ships **0.5.7.post1** (default CUDA 13 tag), below the 0.5.8 floor; `-cu129` tags ship **0.5.6**; requires `lmcache >= 0.5.6` |
+| main / nightly | **0.5.8+** |
 
-v0.26.x – v0.28.x, v0.30.x and v0.31.x are not listed because nobody has run the check on them: unverified, not known-bad.
+Tags not listed (v0.26.x – v0.28.x, v0.30.x, v0.31.x, v0.33.x) are unknown, not known-bad: run the check on the exact tag first.
 
 If you mix vLLM main with the v0.19.1 image's bundled 0.4.3, expect:
 
@@ -248,7 +253,7 @@ On lmcache 0.5.6+, choose `--eviction-policy ARC` when reused prefixes (system p
 
 ### 8. Only prompt chunks are stored (lmcache 0.5.6+)
 
-On 0.5.6+ the connector stores chunks only up to the request's prompt length: `lmcache.mp.save_decode_cache` (vLLM-side `kv_connector_extra_config`) defaults to `false`. Size L1 on unique prompt-prefix tokens; output length does not consume it. Set `"lmcache.mp.save_decode_cache": true` only when a resumable or streaming request feeds its own generated tokens back as a growing prompt. The in-process connector's `save_decode_cache` YAML/env setting does not apply to MP. On ≤ 0.5.5 every complete chunk of generated tokens was stored too, so a fixed-prompt workload keeps writing new chunks after warm-up: size L1 for prompt + output there.
+On 0.5.6+ the connector stores chunks only up to the request's prompt length: `lmcache.mp.save_decode_cache` (vLLM-side `kv_connector_extra_config`) defaults to `false`. Size L1 on unique prompt-prefix tokens; output length does not consume it. On 0.5.8, `lmcache.mp.save_unfull_chunk` (default `false`) also stores the prompt's trailing partial chunk; the connector refuses it with speculative decoding or with models that keep per-request ring state. Set `"lmcache.mp.save_decode_cache": true` only when a resumable or streaming request feeds its own generated tokens back as a growing prompt. The in-process connector's `save_decode_cache` YAML/env setting does not apply to MP. On ≤ 0.5.5 every complete chunk of generated tokens was stored too, so a fixed-prompt workload keeps writing new chunks after warm-up: size L1 for prompt + output there.
 
 ## Validating that MP is helping
 
@@ -256,7 +261,7 @@ The validation method is the same as for native CPU offload — `vllm bench serv
 
 Additional MP-specific signals:
 
-- **LMCache server `GET /healthcheck`** (HTTP server variant, port 8080 default; no `/api/` prefix) returns `{"status":"healthy"}` when the engine is initialized, 503 before. Wire this into K8s liveness/readiness probes. On 0.5.6+ the HTTP server binds `127.0.0.1` by default (`--http-host`; the admin API is unauthenticated), so on the `hostNetwork` DaemonSet set `httpGet.host: 127.0.0.1` in the probe rather than opening `--http-host`.
+- **LMCache server `GET /healthcheck`** (HTTP server variant, port 8080 default; no `/api/` prefix; stays unauthenticated when API keys are on) returns `{"status":"healthy"}` when the engine is initialized, 503 before. Wire this into K8s liveness/readiness probes. On 0.5.6+ the HTTP server binds `127.0.0.1` by default (`--http-host`; the admin API is unauthenticated), so on the `hostNetwork` DaemonSet set `httpGet.host: 127.0.0.1` in the probe rather than opening `--http-host`.
 - **LMCache `GET /status`** dumps detailed internal state (L1 cache, L2 adapters, controllers, registered GPUs, sessions). Use during incident triage.
 - **Prometheus on LMCache port 9090** — set `--prometheus-port` to override. The MP server publishes its own metrics independent of vLLM's.
 - **Bidirectional KV transfer log line** in vLLM pod log:
@@ -283,7 +288,7 @@ Ranked by likelihood:
 - LMCache MP docs: `docs/source/mp/` in the repo (`index.rst`, `deployment.rst`, `configuration.rst`, `http_api.rst`, `hybrid_models.rst`, `operator.rst`, `request_transport.rst`, `tracing_and_debugging.rst`, and the `l2_storage/` and `observability/` directories)
 - vLLM connector source: `vllm/distributed/kv_transfer/kv_connector/v1/lmcache_mp_connector.py`
 - Example K8s manifests: `LMCache/LMCache/examples/multi_process/`
-- LMCache K8s Operator: [operator-v0.5.5 release](https://github.com/LMCache/LMCache/releases/tag/operator-v0.5.5) (CRD-based DaemonSet+Service+ConfigMap reconciler)
+- LMCache K8s Operator (deprecated from v0.5.8): [operator-v0.5.5 release](https://github.com/LMCache/LMCache/releases/tag/operator-v0.5.5)
 - Hybrid model tracker: [LMCache#2845](https://github.com/LMCache/LMCache/issues/2845) (stale-closed, no fix), [vLLM#38261](https://github.com/vllm-project/vllm/pull/38261) (open), [LMCache#2879](https://github.com/LMCache/LMCache/pull/2879) (closed-unmerged)
 - cache_salt fallback bug: [vLLM#40040](https://github.com/vllm-project/vllm/issues/40040) (autoclosed 2026-08-17 for inactivity, **not fixed** — fix PR #40041 still open)
 

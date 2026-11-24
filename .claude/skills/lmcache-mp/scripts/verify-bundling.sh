@@ -107,6 +107,14 @@ except Exception as e:
     print(f"ParallelStrategy NOT PRESENT  ({type(e).__name__}: {e})")
     print("  -> fine for vLLM v0.19.x / v0.20.x; FAIL if you intend to run vLLM main")
 
+try:
+    import re
+    lv = tuple(int(x) for x in re.match(r"(\d+)\.(\d+)\.(\d+)", md.version("lmcache")).groups())
+    if lv < (0, 5, 8):
+        print(f"WARNING lmcache {md.version('lmcache')} is below the 0.5.8 security floor for LMCacheMPConnector: pip install lmcache==0.5.8")
+except Exception:
+    pass
+
 print()
 print("--- LMCache server CLI ---")
 print(f"lmcache  {shutil.which('lmcache') or 'NOT IN PATH'}")

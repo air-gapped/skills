@@ -7,14 +7,16 @@
 | `RuntimeError: LMCacheMPConnector only works without hybrid kv cache manager` at startup | On lmcache 0.5.x: the external lmcache import failed and vLLM fell back to its repo-local connector. Fix the import (`scripts/verify-bundling.sh`), don't add the flag. On lmcache ≤ 0.4.x: the flag genuinely is missing. |
 | `ImportError: cannot import name 'ParallelStrategy'` from lmcache adapter | vLLM main paired with bundled lmcache 0.4.3 — upgrade to 0.4.4+ |
 | `TypeError: ... got an unexpected keyword argument 'cache_salt'` | Falling through to repo-local fallback adapter (vLLM #40040). Make sure `import lmcache.integration.vllm.vllm_multi_process_adapter` succeeds. |
+| `ModuleNotFoundError: No module named 'lmcache.integration.vllm.vllm_v1_adapter'` with `LMCacheConnectorV1` | lmcache 0.5.7+ removed the in-process adapter ([vLLM#69358](https://github.com/vllm-project/vllm/issues/69358), open). Use `LMCacheMPConnector`, or pin lmcache ≤ 0.5.6 for the in-process connector (below the security floor). |
+| vLLM v0.34.0 with `LMCacheMPConnector` sizes the KV cache at `gpu_memory_utilization` 0.92 instead of 1.0 | lmcache < 0.5.8 on the vLLM side reports legacy CUDA IPC, which turns extensible KV cache off. Install lmcache 0.5.8 on both sides. |
 | `LMCache INFO: Registering kv caches!` never logs on vLLM side | vLLM can't reach the LMCache server — wrong host/port, or hostNetwork misconfig, or DaemonSet not on this node. (As of LMCache 0.4.5 / #3208, vLLM reconnects automatically after an LMCache restart — an LMCache pod restart no longer orphans connected vLLM pods.) |
 | `CPU_to_GPU_total_bytes=0` consistently in vLLM logs | LMCache is reachable but never serving hits — wrong prefix-cache settings, low hit rate workload, or L1 too small |
 | Eviction stutter every few seconds in LMCache logs | L1 sized too small relative to working set — increase `--l1-size-gb`, lower `--eviction-trigger-watermark`, or raise `--eviction-ratio` |
 | Cryptic CUDA errors at startup | `/dev/shm` not host-mounted on both pods, or `--ipc host` missing in Docker |
-| Hybrid model garbled output / 0% prefix hit rate | On lmcache ≤ 0.4.x: hybrids are unsupported — upgrade to 0.5.x. On 0.5.x: wrong `--chunk-size` for the model's unified block size `N`, or a multi-object-group retrieve mismatch (on ≤ 0.5.2 try `--no-separate-object-groups`; on 0.5.3+ that is already the default, so the opposite flag is the lever). See the hybrid-model section in SKILL.md. |
+| Hybrid model garbled output / 0% prefix hit rate | On lmcache ≤ 0.4.x: hybrids are unsupported — upgrade to 0.5.x. On 0.5.x: wrong `--chunk-size` for the model's unified block size `N` (0.5.7+ negotiates it from `N`), or a multi-object-group retrieve mismatch (on ≤ 0.5.2 and 0.5.8+ separation is on by default, so try `--no-separate-object-groups`; on 0.5.3–0.5.7 it is off by default, so `--separate-object-groups` is the lever). See the hybrid-model section in SKILL.md. |
 | Multiple vLLM pods on the same node, only one sees the cache | DaemonSet not on the same node, or `hostNetwork` missing, or vLLM pods using `Pod IP` instead of `status.hostIP` |
 
-## Open bugs and version hazards (2026-04-26)
+## Open bugs and version hazards
 
 ### vLLM #40040 — fallback adapter rejects cache_salt
 
@@ -48,15 +50,16 @@ MP mode gained hybrid support in the 0.5 line: `LMCacheMPConnector` declares vLL
 
 ## Version compatibility matrix
 
-Current stable pair: **vLLM v0.32.0 + LMCache v0.5.6**. Every row below also needs lmcache **0.5.6+** on both server and vLLM side for MP mode (security floor, CVE-2026-105192); the older entries are compatibility minimums only.
+Current stable pair: **vLLM v0.34.0 + LMCache v0.5.8**. Every row below also needs lmcache **0.5.8+** on both server and vLLM side for MP mode (security floor, see SKILL.md); the older entries are compatibility minimums only.
 
 | vLLM version | Required lmcache | Notes |
 |---|---|---|
 | v0.19.0 | 0.4.0+ | Bundled image ships compatible version |
 | v0.19.1 | 0.4.0+ | Image ships 0.4.3, all imports clean |
 | v0.20.0 – v0.22.x | **0.4.4+** | `cache_salt` propagation added; verify on the released image |
-| v0.23.0 – v0.32.0 (current stable) | **0.5.x** | 0.4.x still loads, but only 0.5.x declares `SupportsHMA` — required for hybrid-attention models. `-cu129` image tags (v0.31.0+) ship 0.4.4: use the default tag |
-| main / nightly | **0.5.6+** | `ParallelStrategy` import requirement, plus the 0.5.0 renames |
+| v0.23.0 – v0.34.0 (current stable) | **0.5.x** | 0.4.x still loads, but only 0.5.x declares `SupportsHMA` — required for hybrid-attention models. `-cu129` image tags ship 0.4.4 on v0.31.0/v0.32.0 and 0.5.6 on v0.33.0/v0.34.0: use the default tag. The default v0.34.0 image ships 0.5.7.post1: upgrade to 0.5.8 |
+| v0.34.0 | **0.5.8** | Extensible KV cache stays on only with 0.5.8; lmcache 0.5.7+ breaks the in-process `LMCacheConnectorV1` |
+| main / nightly | **0.5.8+** | `ParallelStrategy` import requirement, plus the 0.5.0 renames |
 
 To verify a specific image, use `scripts/verify-bundling.sh <tag>`.
 
@@ -81,6 +84,7 @@ If `vllm:external_prefix_cache_hits_total` increments but `lmcache_l1_cache_hits
 ```bash
 # Status of the LMCache HTTP server (if using `lmcache server` not `python3 -m`).
 # 0.5.6+ binds 127.0.0.1 by default: run these on the node (or in the hostNetwork pod).
+# With --api-key-file set, /status and /cache/clear need -H "Authorization: Bearer $(cat <key file>)".
 curl http://127.0.0.1:8080/healthcheck
 curl http://127.0.0.1:8080/status   # detailed internals
 

@@ -14,7 +14,7 @@
 ```bash
 docker run --runtime nvidia --gpus all \
     --network host --ipc host \
-    lmcache/standalone:v0.5.6 \
+    lmcache/standalone:v0.5.8 \
     /opt/venv/bin/lmcache server \
     --l1-size-gb 60 --eviction-policy LRU --max-workers 4 --port 6555
 ```
@@ -32,7 +32,7 @@ Default ZMQ port: **5555**. Default HTTP frontend port (when using `lmcache serv
 ```bash
 docker run --runtime nvidia --gpus all \
     --network host --ipc host \
-    lmcache/vllm-openai:v0.5.6 \
+    lmcache/vllm-openai:v0.5.8 \
     Qwen/Qwen3-14B \
     --no-enable-prefix-caching \
     --kv-transfer-config '{"kv_connector":"LMCacheMPConnector",
@@ -93,7 +93,7 @@ spec:
           hostPath: { path: /dev/shm, type: Directory }
       containers:
         - name: lmcache-server
-          image: lmcache/standalone:v0.5.6
+          image: lmcache/standalone:v0.5.8
           command:
             - /opt/venv/bin/python3
             - -m
@@ -142,7 +142,7 @@ spec:
           hostPath: { path: /dev/shm, type: Directory }
       containers:
         - name: vllm
-          image: lmcache/vllm-openai:v0.5.6
+          image: lmcache/vllm-openai:v0.5.8
           volumeMounts:
             - { name: dshm, mountPath: /dev/shm }
           command:
@@ -174,7 +174,8 @@ spec:
 ### Why each piece matters
 
 - **`hostNetwork: true` on the DaemonSet** — vLLM pods reach LMCache via `status.hostIP` (host's IP). Without `hostNetwork`, the LMCache port isn't exposed on the host's IP and sibling pods can't reach it.
-- **`--host $(HOST_IP)`, plus a host-firewall rule dropping off-node traffic to the port** — the transport accepts unauthenticated commands; `0.0.0.0` also exposes it on every other interface. See the bind rule in SKILL.md before switching to `127.0.0.1`.
+- **`--host $(HOST_IP)`, plus a host-firewall rule dropping off-node traffic to the port** — without API keys the transport accepts unauthenticated commands; `0.0.0.0` also exposes it on every other interface. See the bind rule and the 0.5.8 API-key option in SKILL.md before switching to `127.0.0.1`.
+- **Official images run as uid 1000 (0.5.7+)** — any `hostPath` or PVC an L2 adapter writes to must be writable by that uid (`securityContext.fsGroup` or a host `chown`); `/dev/shm` needs no change.
 - **`/dev/shm` mounted from host on both** — CUDA IPC shared-memory transfers require both ends to share the same `/dev/shm` namespace.
 - **GPU NOT requested in DaemonSet** — LMCache server doesn't run inference. The NVIDIA container runtime grants the implicit access needed for IPC. Requesting GPUs there steals them from the vLLM pods.
 - **`PYTHONHASHSEED=0` on vLLM** — makes prefix hash computation deterministic across pod restarts so cached prefixes survive. **Required only on vLLM ≤ v0.28.x**: from v0.29.0 the prefix-cache `NONE_HASH` derives from a fixed default seed (#51875), so determinism no longer depends on this variable. Keeping it set is harmless and still overrides the default seed, which is the safe choice while a fleet spans both sides of that boundary.
@@ -195,7 +196,7 @@ readinessProbe:
   periodSeconds: 10
 ```
 
-Note the LMCache DaemonSet example uses the legacy `python3 -m lmcache.v1.multiprocess.server` entrypoint (no HTTP frontend). Switch to `lmcache server` to get health checks. `/run_script` (in-process code execution) is off by default from 0.5.6; leave `--run-script-api-enabled` unset.
+Note the LMCache DaemonSet example uses the legacy `python3 -m lmcache.v1.multiprocess.server` entrypoint (no HTTP frontend). Switch to `lmcache server` to get health checks. `/run_script` (in-process code execution) is off by default from 0.5.6 (unauthenticated code execution on 0.5.5 and earlier); leave `--run-script-api-enabled` unset. With `--api-key-file` set, probes keep working: `/healthcheck` stays public.
 
 ### Monitoring
 
