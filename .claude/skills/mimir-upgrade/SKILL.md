@@ -63,7 +63,7 @@ one.
 
 ## Step 0 — the fleet-facts interview, before any planning
 
-Five facts change the plan materially and **cannot be inferred from the chart**. Ask, or read them off the
+Six facts change the plan materially and **cannot be inferred from the chart**. Ask, or read them off the
 cluster. Do not draft a plan without them — a plan built on the wrong answer to #1 is a plan that schedules an
 outage.
 
@@ -125,7 +125,7 @@ bundled minio is in use, and whether the operator has a maintenance window long 
 
 ## Workflow
 
-1. **Run Step 0.** Without those five facts the plan is guesswork.
+1. **Run Step 0.** Without those six facts the plan is guesswork.
 2. **Get the version verdict from `k8s-components-checker`** (`compat/mimir.md`) — chart→app mapping,
    `kubeVersion` floors, what is in scope. Do not re-derive it here.
 3. **Decide the architecture** → `references/architecture-decision.md`. For an air-gapped community fleet with
