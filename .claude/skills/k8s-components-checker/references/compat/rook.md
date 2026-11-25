@@ -5,7 +5,8 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.17
-- **Last sifted:** 2026-10-27 (added § 1.21 from the v1.21.0/v1.21.1 notes, `prerequisites.md`, `rook-upgrade.md` and `ceph-upgrade.md` at v1.21.1; 1.20.9 / 1.19.12 notes read). Previous: 2026-09-15 (release lines re-enumerated with `isLatest` read explicitly; k8s windows re-read off each line's own prerequisites page at that line's latest patch tag)
+- **Last release-verified:** 2026-11-25 — v1.21.3 (`isLatest`, 2026-11-24), v1.21.2 (2026-11-05), v1.20.10 (2026-11-05), v1.19.12 (2026-10-14, unchanged); `gh release list --repo rook/rook`.
+- **Last sifted:** 2026-11-25 (v1.21.2, v1.21.3 and v1.20.10 notes read; `prerequisites.md` at v1.21.3 and v1.20.10, `ceph-upgrade.md` and `rook-upgrade.md` at v1.21.3, `version.go` at v1.20.10/v1.21.0–v1.21.2 re-read; 1.19.12 still newest 1.19). Previous: 2026-10-27 (§ 1.21 added from v1.21.0/v1.21.1); before that 2026-09-15 (release lines re-enumerated with `isLatest` read explicitly; k8s windows re-read off each line's own prerequisites page at that line's latest patch tag)
 
 ## Node drain / reboot during a k8s/RKE2 upgrade (cross-version)
 
@@ -95,9 +96,12 @@ after a clean operator hop typically surfaces only:
 Field-validated 2026-05-31 (community Rook 1.18.8 → 1.19.6, operator-only, RBD + RGW,
 no CephFS).
 
-## 1.21 (GA 2026-10-06, latest: **1.21.1**, 2026-10-26 — release-verified 2026-10-27. k8s **1.32–1.37**. Ceph: Squid v19.2.0+, Tentacle **v20.2.1+**, Umbrella v21 once v21.2.0 ships)
+## 1.21 (GA 2026-10-06, latest: **1.21.3**, 2026-11-24 — release-verified 2026-11-25. k8s **1.32–1.37**. Ceph: Squid v19.2.0+, Tentacle **v20.2.1+**; Umbrella v21 accepted by the operator code, not in the upgrade guide's supported list)
 
-- **k8s floor:** 1.32 – 1.37 (`prerequisites.md` at v1.21.1). Raises the floor from 1.31 — a 1.31 cluster must move k8s first.
+- **k8s floor:** 1.32 – 1.37 (`prerequisites.md` at v1.21.3; unchanged across 1.21.0–1.21.3). Raises the floor from 1.31 — a 1.31 cluster must move k8s first.
+- **Ceph pairing:** the 1.21.3 upgrade guide lists Squid v19.2.0+ and Tentacle v20.2.1+ only. The operator code (`supportedVersions`, v1.21.0 onward; absent in 1.20.10) also accepts Umbrella (v21), and Umbrella 21.2.0 shipped 2026-10-28, but the 1.21 docs still call Umbrella unsupported (`allowUnsupported`) and no field report exists — do not give a Rook 1.21 + Ceph 21 pairing as a verdict; stay on Tentacle **v20.2.5**.
+- **Ceph point-release caveat:** Squid v19.2.6 and Tentacle v20.2.4 — multisite deployments need the RGW settings from the multisite doc applied **before** upgrading (the CVE-2026-54330 SigV4 hardening rejects RGW's own multisite forwarding, tracker 79698). Fixed from Squid 19.2.7 / Tentacle 20.2.5 (`compat/ceph.md`).
+- **Patches:** 1.21.2 (2026-11-05) disables msgr1 on osd, mgr and mds when msgr2 is required, plus secret-redaction and OBC-relink hardening (a bucket owned by another user is refused). 1.21.3 (2026-11-24) stops cephx key-type errors from blocking an upgrade, adds an option to restrict parallel OSD updates to one failure domain, blocks realm/zonegroup deletion with a finalizer, and fixes several Helm StorageClass renderings (EC `mapOptions`, `allowVolumeExpansion: false`, pool labels). No k8s-window, CRD or upgrade-order change in either. Land on 1.21.3.
 - **Upgrade source:** Rook **1.20.x only** (upgrade guide covers v1.20 → v1.21; no skip from 1.19).
 - **Breaking:**
   - **Ceph msgr2 required by default.** Needs kernel ≥ 5.11 on every node with kernel RBD/CephFS clients. Older kernels: set `network.connections.requireMsgr2: false` on the CephCluster (Helm: the matching `rook-ceph-cluster` value) **before** the upgrade.
@@ -106,14 +110,14 @@ no CephFS).
   - Rook no longer sets default CSI images — `rook-csi-operator-image-set-configmap` is empty and the ceph-csi-operator uses its own defaults. Custom CSI image overrides must be present in that ConfigMap after the upgrade.
 - **CRD migrations:** none.
 - **Upgrade ordering:** `rook-ceph` chart before `rook-ceph-cluster`. The `rook-ceph-cluster` chart adds CSI secret parameters to its block StorageClass; `parameters` is immutable, so **`kubectl delete storageclass ceph-block` before the chart upgrade** (existing PVs unaffected; Helm recreates it). Without that the Helm upgrade fails.
-- **Notable:** RBD QoS via `VolumeAttributesClass` (krbd + cgroup v2 `io.max`); annotation-driven OSD replacement (host-based OSDs only); `cephObjectStoreUsers` chart value; dashboard TLS from a Secret (`spec.dashboard.sslCertificateRef`). 1.21.1 disables insecure global-id reclaim instead of muting the health warning — clients that still need insecure reclaim lose mon auth.
+- **Notable:** RBD QoS via `VolumeAttributesClass` (krbd + cgroup v2 `io.max`); annotation-driven OSD replacement (host-based OSDs only); `cephObjectStoreUsers` chart value; dashboard TLS from a Secret (`spec.dashboard.sslCertificateRef`). 1.21.1 (and 1.20.10) disable insecure global-id reclaim instead of muting the health warning — clients that still need insecure reclaim lose mon auth.
 - **Not yet field-validated** — release-note-grounded only.
 
-## 1.20 (latest: **1.20.9**, 2026-10-14 — release-verified 2026-10-27. k8s **1.31–1.37** from 1.20.8; 1.31–1.36 through 1.20.7)
+## 1.20 (latest: **1.20.10**, 2026-11-05 — release-verified 2026-11-25. k8s **1.31–1.37** from 1.20.8; 1.31–1.36 through 1.20.7)
 
 **Cross-component (Ceph)** — this row was missing from the 1.20 section while every other line has one. Squid **v19.2.0+**; Tentacle **v20.2.1+**, and **v20.2.0 is not recommended**: it carries a read-affinity data-corruption bug, with upstream guidance to move to **v20.2.2+** if read affinity was ever enabled. Same caveat applies on 1.19.
 
-- **k8s floor:** **1.31 – 1.37 on ≥ 1.20.8**; 1.31 – 1.36 on 1.20.0–1.20.7 (each tag's `prerequisites.md`). On k8s 1.37, require Rook ≥ 1.20.8.
+- **k8s floor:** **1.31 – 1.37 on ≥ 1.20.8**; 1.31 – 1.36 on 1.20.0–1.20.7 (each tag's `prerequisites.md`; v1.20.10 re-read, still 1.31 – 1.37). On k8s 1.37, require Rook ≥ 1.20.8.
 - **Breaking:**
   - **The Ceph CSI operator is now REQUIRED.** CSI settings are removed from the
     `rook-ceph-operator-config` ConfigMap and from the `rook-ceph` Helm chart.
@@ -138,11 +142,12 @@ no CephFS).
     against mutating webhooks reordering them.
   - Experimental: two-node clusters with a "floating" mon that migrates when one
     node is down; SSE-S3 via Vault Agent auth.
+- **1.20.10 note:** security and log-redaction hardening (secrets out of reported commands and error text, OBC relink of another user's bucket refused), insecure global-id reclaim disabled instead of muted, configurable Prometheus scrape timeout. No k8s-window, CRD or upgrade-order change. Land on 1.20.10 before hopping to 1.21.
 - **1.20.9 / 1.21.1 patch note:** with `network.connections.encryption.enabled`, the mon-specific `ms_mon_*_mode` options are now also set to `secure` (PR #18324) — mon connections were previously left unencrypted. Kernel clients then need msgr2 secure-mode support (≥ 5.11).
 - **Not yet field-validated** — the 1.19 entry below carries the operator's live
   upgrade notes; 1.20 is release-note-grounded only.
 
-## 1.19 (latest: **1.19.12**, 2026-10-14 — release-verified 2026-10-27; out of the current + prior 1 window once 1.21 shipped. k8s **1.30–1.35**. Ceph: Squid v19.2.0+, Tentacle **v20.2.1+**)
+## 1.19 (latest: **1.19.12**, 2026-10-14 — release-verified 2026-11-25, still newest; out of the current + prior 1 window once 1.21 shipped. k8s **1.30–1.35**. Ceph: Squid v19.2.0+, Tentacle **v20.2.1+**)
 
 - **k8s floor:** 1.30 – 1.35
 - **Breaking:**

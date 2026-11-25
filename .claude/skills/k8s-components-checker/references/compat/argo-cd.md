@@ -5,8 +5,8 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 3.0
-- **Last sifted:** 2026-09-15
-- **Last release-verified (gh):** 2026-10-27 — releases and security advisories of 3.3–3.6 enumerated.
+- **Last sifted:** 2026-11-25 — `gh release list`, repo security advisories, `tested-kubernetes-versions.md` at v3.6.3 / v3.5.9 / v3.4.15 / v3.3.19, upgrade docs 3.4→3.5 and 3.5→3.6, v3.3.19 / v3.6.0 / v3.6.3 release notes.
+- **Last release-verified (gh):** 2026-11-25 — releases and security advisories of 3.3–3.6 enumerated; ceilings v3.6.3 / v3.5.9 / v3.4.15 / v3.3.19 (final).
 - **2026-09-15 RETRACTION of the 2026-05-30 "operator correction".** That note claimed the 3.2
   line ended at **v3.2.6**, that it never received the CVE-2026-42880 backport, and that
   `v3.2.10` / `v3.2.12` **do not exist**. All three are false. The 3.2 line runs to **v3.2.12**
@@ -20,31 +20,55 @@
   day minor N+3 GAs.** Three independent confirmations — 3.0 EOL 2026-02-02 = v3.3.0 GA; 3.1 EOL
   2026-05-06 = v3.4.1 GA; 3.2 EOL 2026-08-04 = v3.5.0 GA, stated in v3.2.12's own release notes
   ("final release of the 3.2 release series … upgrade to a supported version (v3.3, v3.4, or
-  v3.5)"). Minors land ~every 3 months, so **3.3 EOLs when 3.6 GAs, expected ~2026-11** — plan
-  a 3.3 landing as temporary.
-- **2026-10-07 advisory floor: v3.5.4 / v3.4.10 / v3.3.15.** Eight advisories, four critical —
-  two Kustomize command-execution paths in the repo-server (remote ref, Helm config home), a
-  Jsonnet import file read, and PreDelete/PostDelete hooks bypassing AppProject restrictions.
-  3.2 and older get no patch. Surveyed versions below the floor of their line verdict ✗.
+  v3.5)"). Minors land ~every 3 months. **3.3 reached EOL 2026-11-03 = v3.6.0 GA** (v3.3.19, the final 3.3 release, carries the banner naming v3.4.13 / v3.5.7 / v3.6.0). **3.4 EOLs when 3.7 GAs** — not announced; the ~3-month cadence puts it near 2027-02.
+- **Advisory floor (2026-11-24): v3.6.3 / v3.5.9 / v3.4.15. 3.3 has no fixed release** — the 2026-11-24 advisories
+  (four HIGH: unauthenticated request crashes the API server GHSA-w7rw-fg89-2cjf, Helm chart home-link stored XSS
+  GHSA-rxm8-qc6h-3c8h, repository-create upsert overwrite GHSA-mfgm-4p7x-3ccr, ApplicationSet delete API ignoring allowed
+  namespaces GHSA-rvmf-gjc9-wjgq; plus three MODERATE) list every `>= 3.0.0, < 3.4.15` build as affected, so **v3.3.19 is exposed
+  and unpatchable** — verdict ✗ on EOL plus open HIGHs. Surveyed versions below the floor of their line verdict ✗.
+  Earlier floors, all subsumed: 2026-10-07 batch (four critical — two Kustomize command-execution paths in the repo-server,
+  a Jsonnet import file read, PreDelete/PostDelete hooks bypassing AppProject restrictions) fixed in 3.5.4 / 3.4.10 / 3.3.15;
+  2026-11-20 batch: tar-symlink write outside the extraction directory GHSA-rq7v-q562-vwcq (3.5.5 / 3.4.11 / 3.3.16) and
+  ApplicationSet cluster generator leaking cluster credentials via `last-applied-configuration` GHSA-hr74-g9pw-j38m
+  (3.5.7 / 3.4.13 / 3.3.19 / 3.6.0). 3.2 and older get no patch.
+- **`helm.releaseName` is now validated** (v3.6.3 / v3.5.9 / v3.4.15, GHSA-v2hj-322q-6cg4): passed to Helm literally, must be a valid Helm
+  release name (lowercase letters, digits, `-`, `.`; start and end alphanumeric; ≤ 53 chars). An Application whose name used
+  template syntax or is invalid **fails manifest generation** after the patch — audit `spec.source.helm.releaseName` and
+  `.argocd-source.yaml` before landing the floor.
 
-Tested-Kubernetes-versions matrix on `stable` lists only v3.2 / v3.3 / v3.4. v3.0 / v3.1 rows pulled from `release-3.0` / `release-3.1` historical docs. **Both v3.0 and v3.1 are EOL upstream** (v3.0 EOL 2026-02-02 at v3.0.23; v3.1 EOL 2026-05-06 at v3.1.16) — encountering either is an automatic ✗ blocker, but the rows are kept for migration-path planning. See companion skill `argo-cd-apps` for application-authoring detail; this file is k8s-compat only.
+Tested-Kubernetes-versions matrix at v3.6.3 lists only v3.4 / v3.5 / v3.6 (v3.3.19 lists 3.1–3.3, v3.4.15 lists 3.2–3.4). v3.0 / v3.1 rows pulled from `release-3.0` / `release-3.1` historical docs. **Both v3.0 and v3.1 are EOL upstream** (v3.0 EOL 2026-02-02 at v3.0.23; v3.1 EOL 2026-05-06 at v3.1.16) — encountering either is an automatic ✗ blocker, but the rows are kept for migration-path planning. See companion skill `argo-cd-apps` for application-authoring detail; this file is k8s-compat only.
 
-## 3.6 (RC only — v3.6.0-rc4, 2026-10-22)
+## 3.6 (GA 2026-11-03, latest: v3.6.3, 2026-11-24 — current minor)
 
-- Not GA. Its GA puts 3.3 out of support (EOL rule in the header).
-- **k8s floor:** 1.34 – 1.37 (`release-3.6` tested-versions matrix) — a 3.6 bump drops k8s 1.33.
+- **Security floor:** v3.6.3 (2026-11-24 advisories — header). v3.6.0 carries the 2026-11-20 fixes; release candidates rc1 / rc2 are affected by earlier advisories (rc1: 2026-10-07 batch; rc1 + rc2: tar-symlink) — never run an RC.
+- **k8s floor:** 1.34 – 1.37 (tested-versions matrix at v3.6.3) — a 3.6 bump drops k8s 1.33.
+- Its GA put 3.3 out of support (EOL rule in the header).
+- **Breaking (3.5 → 3.6 upgrade doc):**
+  - **`ServerSideApply=true` now implies Server-Side Diff** — Applications with the sync option compute diffs by an SSA dry-run against the kube-apiserver (the Structured-Merge Diff strategy is removed); expect extra apiserver load and webhooks now take part in the diff stage. Opt out per Application with `argocd.argoproj.io/compare-options: ServerSideDiff=false`.
+  - **OpenTelemetry:** repo-server env `ARGOCD_REPO_OTLP_HEADERS` renamed `ARGOCD_REPO_SERVER_OTLP_HEADERS` (old name no longer read); `otlp.insecure` now alone decides plaintext vs TLS (with `"true"`, `OTEL_EXPORTER_OTLP_CERTIFICATE` no longer switches to TLS); the sampler is parent-based, so an inbound not-sampled `traceparent` is honored; `otelgrpc` / `otelhttp` v0.70.0 changes span attribute names (`server.address` is the dial target, not the peer IP).
+  - `argocd app diff --local --server-side-generate` default `--local-include` gains `*.tpl` and `Chart.lock`; a custom `--local-include` replaces the defaults entirely.
+  - Progressive Sync: before stepping, the ApplicationSet controller annotates all owned Applications for refresh and waits — slower step progression with many Applications.
+  - GitOps Promoter `PromotionStrategy` / `ChangeTransferPolicy` report `Healthy` (was `Progressing`) while a promotion is in flight.
+- **CRD migrations:** none (API change: ephemeral `configHash` on `Cluster`).
 
-## 3.5 (GA 2026-08-04, latest: v3.5.6, 2026-10-20 — current minor)
+## 3.5 (GA 2026-08-04, latest: v3.5.9, 2026-11-24 — supported, previous minor)
 
-- **Security floor:** v3.5.4 (2026-10-07 advisories — header).
-- **k8s floor:** 1.33 – 1.36 (`release-3.5` tested-versions matrix).
-- **Both ServerSideDiff Secret-leak CVEs are below this line entirely** (floors 3.4.2 / 3.3.10 /
-  3.2.12), so any 3.5.x is clear of them.
+- **Security floor:** v3.5.9 (2026-11-24 advisories — header).
+- **k8s floor:** 1.33 – 1.36 (tested-versions matrix at v3.5.9; unchanged).
+- **v3.5.0 is affected by GHSA-jj8j-82j2-7ph7** (medium, 2026-11-20: Secret masking skipped when `last-applied-configuration` is not valid JSON — an incomplete fix of CVE-2026-45737); fixed in **3.5.1** (3.4.7, 3.3.14). The first two ServerSideDiff Secret-leak CVEs (CVE-2026-42880, CVE-2026-45737) are below this line (floors 3.4.2 / 3.3.10 / 3.2.12).
+- **Breaking (3.4 → 3.5 upgrade doc):**
+  - **Helm upgraded to 4.x** (4.2.1 at v3.5.9) and `spec.source.helm.version: v3` is ignored — Helm 4 only. Plain-HTTP OCI registries (including OCI chart *dependencies*) must be registered with `--insecure-oci-force-http` (or `insecureOCIForceHttp: "true"` in the repo Secret); combining it with `--insecure-skip-server-verification` on the same chain silently drops `--plain-http` and fails with no workaround.
+  - **UI moved to React 19** — UI extensions must be rebuilt to externalize `react/jsx-runtime` or fail to load.
+  - Event-listing gRPC methods (`ListResourceEvents` x2, `ProjectService/ListEvents`) return an Argo CD `EventList` type — regenerate gRPC and OpenAPI-generated clients; REST/JSON and the CLI are unaffected.
+  - **Sync impersonation now applies to all API server operations** (logs, events, delete, patch, resource actions), not only sync — `destinationServiceAccounts` accounts need the matching RBAC verbs.
+  - Repositories without configured credentials now use `argocd-ssh-known-hosts-cm` for SSH host keys (a baked-in `~/.ssh/known_hosts` in the repo-server is no longer read).
+  - GnuPG verification replaced by Source Integrity; `AppProject.spec.signatureKeys` deprecated (legacy config still works with a warning).
 - Its GA date is what put 3.2 out of support — see the EOL rule in the header.
 
-## 3.4 (latest: v3.4.12, 2026-10-20)
+## 3.4 (latest: v3.4.15, 2026-11-24 — supported, oldest supported minor)
 
-- **Security floor:** v3.4.10 (2026-10-07 advisories — header).
+- **Security floor:** v3.4.15 (2026-11-24 advisories — header). Also fixes GHSA-jj8j-82j2-7ph7 at 3.4.7 (see § 3.5).
+- **Helm release names are validated from v3.4.15** (header) — the first patch in this line that can fail manifest generation for an Application with an invalid `releaseName`.
 - **k8s floor:** 1.32 – 1.35
 - **Breaking:**
   - Resource tracking is **annotation-based by default** (carried over from v3.0; cluster bumps moving from v2.x or v3.0 mid-rollout will re-track resources — operators must run the `argocd admin app generate-spec --resource-tracking-method annotation` migration before flipping).
@@ -65,12 +89,13 @@ Tested-Kubernetes-versions matrix on `stable` lists only v3.2 / v3.3 / v3.4. v3.
     `IncludeMutationWebhook=true` annotation — it fires on `argocd app diff
     --server-side-diff` — so stripping the annotation does not substitute for the patch.
 
-## 3.3 (latest: v3.3.18, 2026-10-22 — EOL when 3.6 GAs, expected ~2026-11)
+## 3.3 (final release v3.3.19, 2026-11-02 — **EOL 2026-11-03**)
 
-- **Security floor:** v3.3.15 (2026-10-07 advisories — header).
+- **EOL — verdict ✗ blocker.** v3.3.19 is the final 3.3 release; its notes carry the end-of-life banner naming v3.4.13 / v3.5.7 / v3.6.0 as the supported destinations. The 2026-11-24 advisories (header) have **no 3.3 fix** — v3.3.19 is the best 3.3 can be and is still exposed. Destination: **3.5 or 3.6** (3.4 is the smaller hop but is the next to expire).
+- **Security floor (for a cluster that cannot move yet): v3.3.19** — carries the 2026-10-07 and 2026-11-20 fixes; the 2026-11-24 HIGHs stay open.
 - **k8s floor:** 1.32 – 1.35
 - **Breaking:**
-  - **3.3.0 + 3.3.1 are broken — skip them.** Forced `kubectl-client-side-apply` → SSA field-manager migration regressed many real apps. Workaround was `ClientSideApplyMigration=false` syncOption. **Fixed in 3.3.2** (2026-02-22). Any survey finding a cluster on 3.3.0 / 3.3.1 must verdict ✗ blocker until bumped to ≥ 3.3.2.
+  - **3.3.0 + 3.3.1 are broken — skip them.** Forced `kubectl-client-side-apply` → SSA field-manager migration regressed many real apps. Workaround was `ClientSideApplyMigration=false` syncOption. **Fixed in 3.3.2** (2026-02-22). Any survey finding a cluster on 3.3.0 / 3.3.1 must verdict ✗ blocker until bumped to ≥ 3.3.2. (Moot for a destination — 3.3 is EOL.)
   - When Argo CD manages itself, the self-managing Application requires `ServerSideApply=true` in `syncOptions` — ApplicationSet CRD exceeds the 262 144-byte client-side-apply annotation limit. Without it the meta-app sync fails on upgrade.
   - **ServerSideDiff Secret leak — floor is v3.3.10, and the old `3.3.8` here was wrong in the
     unsafe direction.** CVE-2026-42880's affected range is `3.2.0 - 3.3.8`, so **3.3.8 is
@@ -98,8 +123,8 @@ Tested-Kubernetes-versions matrix on `stable` lists only v3.2 / v3.3 / v3.4. v3.
     (2026-04-30) for CVE-2026-42880 and **v3.2.12** (2026-05-13) for CVE-2026-45737. A 3.2
     cluster already on **v3.2.12** is not exposed to either and can be scheduled rather than
     treated as an incident — which is the practical difference the wrong note erased.
-  - **Destination: 3.5 (or 3.4), not "3.4.x" as a fixed answer.** 3.3 EOLs when 3.6 GAs
-    (~2026-11), so landing on 3.3 buys ~2 months. Apply House Rule #9 look-ahead.
+  - **Destination: 3.5 (or 3.4), not "3.4.x" as a fixed answer.** 3.3 went EOL 2026-11-03
+    (3.6 GA), so 3.3 is not a destination. Apply House Rule #9 look-ahead: 3.4 EOLs when 3.7 GAs (~2027-02 by cadence).
   - `syncPolicy.automated.enabled=false` semantics fixed in 3.2.x (`#24254`) — pre-fix builds treated the field as no-op and continued auto-syncing. Pre-3.2 manifests relying on this to disable auto-sync silently break on 3.2 if they used a different toggle.
 - **CRD migrations:** none.
 - **Upgrade ordering:** none against other registry components.
@@ -107,7 +132,7 @@ Tested-Kubernetes-versions matrix on `stable` lists only v3.2 / v3.3 / v3.4. v3.
   - `extensions/v1beta1` shim removed for built-in health checks (`#381`). Apps still referencing those API versions in `ignoreDifferences` or health Lua scripts will misbehave.
 - **Notable:**
   - **Server-Side Diff promoted to Stable.** Not default — apps opt in per-Application via `compare-options: ServerSideDiff=true` annotation or globally via `argocd-cmd-params-cm`.
-  - **Server-Side Apply migration** logic landed (`#727`) — auto-migrates `kubectl-client-side-apply` fields when ServerSideApply is enabled. This is the same code that regressed in 3.3.0. **Do NOT treat 3.2 as the "safe LTS" landing zone** — it went EOL 2026-08-04 at v3.2.12 and receives no further security updates. Land on **3.5**, or 3.4 for a smaller hop; 3.3 EOLs when 3.6 GAs (~2026-11) and 3.3.0 / 3.3.1 are broken, so use ≥ 3.3.2 only if the 3.3 line is forced.
+  - **Server-Side Apply migration** logic landed (`#727`) — auto-migrates `kubectl-client-side-apply` fields when ServerSideApply is enabled. This is the same code that regressed in 3.3.0. **Do NOT treat 3.2 as the "safe LTS" landing zone** — it went EOL 2026-08-04 at v3.2.12 and receives no further security updates. Land on **3.5** or **3.6**; 3.4 is the smaller hop but expires next; 3.3 is EOL (2026-11-03).
   - ApplicationSet PR generator returns 0 results on repo-not-found rather than failing (`#23447`) — silent behavior change; AppSets relying on hard failure to gate sync need a different signal.
 
 ## 3.1 (latest: v3.1.16, 2026-05-05 — **EOL 2026-05-06**)
@@ -161,7 +186,7 @@ Tested-Kubernetes-versions matrix on `stable` lists only v3.2 / v3.3 / v3.4. v3.
 
 ## Cross-version notes
 
-- **Upstream support window.** Argo CD upstream tests three minors (current + 2 prior). At 2026-05-28: 3.4 (latest), 3.3, 3.2. 3.1 / 3.0 are EOL upstream — verdict ✗ blocker if found.
-- **k8s floor stability.** Floor history: 3.0 → 1.29; 3.1 → 1.31 (jumped two); 3.2 → 1.31 (held); 3.3 / 3.4 → 1.32. RKE2 clusters on 1.31 cannot run 3.3+ per the tested matrix. Argo CD 3.2 is fully patched against both ServerSideDiff CVEs at v3.2.12, so this is a **support** problem rather than an exposure one — but the line is EOL as of 2026-08-04, so the move is still **bump RKE2 to ≥ 1.32, then land on a supported minor**, not park on 3.2.x. The distinction changes the urgency, not the destination. RKE2 on 1.29 / 1.30 is stuck on EOL Argo CD (v3.0 only) — k8s bump is mandatory before any supported Argo CD.
-- **The seven v3.0 default flips** (annotation tracking, `.status` ignored, default `resource.exclusions`, logs-RBAC enforced, no update/delete RBAC inheritance, `preserveUnknownFields: false` causes drift, in-cluster destination off by default) are still in effect across 3.2/3.3/3.4. Any v2.x → v3.x jump in scope must address all seven — defer to `argo-cd-apps` skill `references/version-changes.md` § v3.0.
+- **Upstream support window.** Argo CD upstream tests three minors (current + 2 prior). At 2026-11-25: 3.6 (latest), 3.5, 3.4. 3.3 (EOL 2026-11-03), 3.2, 3.1 and 3.0 are EOL upstream — verdict ✗ blocker if found.
+- **k8s floor stability.** Floor history: 3.0 → 1.29; 3.1 → 1.31 (jumped two); 3.2 → 1.31 (held); 3.3 / 3.4 → 1.32; 3.5 → 1.33; 3.6 → 1.34 (one minor per release again). RKE2 clusters on 1.31 cannot run 3.3+, on 1.32 cannot run 3.5+, on 1.33 cannot run 3.6, per the tested matrix; the ceiling moves too (3.6 tests 1.37). Argo CD 3.2 is fully patched against both ServerSideDiff CVEs at v3.2.12, so this is a **support** problem rather than an exposure one — but the line is EOL as of 2026-08-04, so the move is still **bump RKE2 to ≥ 1.32, then land on a supported minor**, not park on 3.2.x. The distinction changes the urgency, not the destination. RKE2 on 1.29 / 1.30 is stuck on EOL Argo CD (v3.0 only) — k8s bump is mandatory before any supported Argo CD.
+- **The seven v3.0 default flips** (annotation tracking, `.status` ignored, default `resource.exclusions`, logs-RBAC enforced, no update/delete RBAC inheritance, `preserveUnknownFields: false` causes drift, in-cluster destination off by default) are still in effect across 3.2–3.6. Any v2.x → v3.x jump in scope must address all seven — defer to `argo-cd-apps` skill `references/version-changes.md` § v3.0.
 - **No `ServerSideDiff=true` + `IncludeMutationWebhook=true` combo on unpatched builds.** This is the CVE-2026-42880 trigger. Verdict ✗ blocker if the cluster runs ServerSideDiff and any patched build is not in place.

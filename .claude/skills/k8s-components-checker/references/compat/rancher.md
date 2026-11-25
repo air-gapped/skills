@@ -6,10 +6,10 @@
 - **Axis type:** `single`
 - **min_tracked_version:** 2.11
 - **max_tracked_version:** 2.15
-- **Last sifted:** 2026-09-24 — 2.15 community ceiling advances to v2.15.2, which ships the #57050 GlobalRole-reconciliation fix (closing the "no shipped release" gap previously recorded here); the 2026-09-23 same-day patches v2.11.18/v2.12.14/v2.13.10/v2.14.6 carry empty release bodies and are left `unclassified` (generated.json, compat.py sync 2026-09-24) rather than scored community or Prime; per-section KDM Rancher→RKE2 provisioning pairing added. Prior sift 2026-09-15 — per-minor community ceilings reconfirmed against the chart index, k8s floors re-derived from KDM, and all five EOL dates replaced with published values.
-- **Last release-verified (gh):** 2026-09-24 — v2.15.2 (published 2026-09-23T21:02Z, body self-declares "This is a Community version release") confirmed as the new 2.15 ceiling; its RBAC section explicitly closes rancher/rancher#57050 (issue closed 2026-09-14). v2.11.18/v2.12.14/v2.13.10/v2.14.6 (published 2026-09-23T19:38–20:27Z, `prerelease:false`) confirmed real via `gh api .../releases/tags/<tag>` but each has `body` length 0 — no self-declaration line, no Prime-docs redirect, nothing to classify — so 2.11–2.14 community ceilings stay unchanged at v2.11.3/v2.12.3/v2.13.3/v2.14.3. Open hazards #57078/#57196/#57240 re-checked: all still OPEN (last updated 2026-09-22/09-18/09-11). Prior verify 2026-09-15 — edition discriminator run over **all 50** stable tags of 2.11–2.15, not just the newest few. Two corrections: **the 2.12 community ceiling is v2.12.3, not v2.12.4** (v2.12.4 carries inline notes but self-declares Prime — the same under-detection the 2.11 line already documented), and **2.15 is a new community minor** (v2.15.0 2026-07-30, v2.15.1 2026-08-28, both self-declaring Community). 2.14 / 2.13 / 2.11 ceilings unchanged at v2.14.3 / v2.13.3 / v2.11.3. Prior verify 2026-07-21 — discriminator on the four newest stable tags: **v2.14.3 (2026-06-29) self-declares "This is a Community version release"** → new 2.14 community ceiling. **v2.13.7 / v2.12.11 / v2.11.15 are all Prime-docs redirects** → the 2.13 / 2.12 / 2.11 community ceilings are UNCHANGED at v2.13.3 / v2.12.4 / v2.11.3 (the v2.12.4 in that pass is the superseded value — see the 2026-09-15 correction above), exactly as the "older minor's top tag is Prime" pattern predicts. Prior verify 2026-06-02 — 2.11 community patch ceiling derived by edition discriminator (see § Community vs Prime). Prior verify (2026-05-30) re-derived 2.12/2.13/2.14 by edition; the earlier 2.12→v2.12.6 / 2.13→v2.13.2 values were wrong — v2.12.6 is a **Prime-only** patch that anti-fabrication grounding rubber-stamped as community.
+- **Last sifted:** 2026-11-25 — read v2.15.3 notes (2026-10-29), v2.16.0-rc2/rc4 notes, `rancher/rancher` `chart/Chart.yaml` at v2.15.3 and v2.16.0-rc4, KDM `release-v2.11`…`release-v2.16` `data/data.json`, endoflife.date. 2.15 community ceiling advances to v2.15.3. Every 2.11–2.14 patch published 2026-09-23 and 2026-10-29 (v2.11.18/19, v2.12.14/15, v2.13.10/11, v2.14.6/7) now has a Prime-docs redirect body: Prime-only, so the 2.11–2.14 community ceilings stay v2.11.3 / v2.12.3 / v2.13.3 / v2.14.3. v2.16.0 is not GA (rc4, prerelease, 2026-11-25). KDM RKE2 pairings for 2.13/2.14/2.15 advanced (see sections). Prior sift 2026-09-24 — v2.15.2 ceiling, #57050 fix, per-section KDM pairing added.
+- **Last release-verified (gh):** 2026-11-25 — edition discriminator (Prime redirect / Prime declaration / Community declaration / empty) over every stable and rc release of `rancher/rancher` published since 2026-09-01: v2.15.2 and v2.15.3 self-declare "This is a Community version release"; all eight 2.11–2.14 patches above are Prime-docs redirects (bodies of the 2026-09-23 four were empty at the 2026-09-24 sift and have since been backfilled); v2.16.0-rc2/rc4 are prereleases. Hazard issues re-read: #57078 open, #57196 open, #57240 open, #57506 closed (fixed v2.15.3), #57050 closed (fixed v2.15.2). Prior verify 2026-09-24 — v2.15.2 confirmed 2.15 ceiling. Prior verify 2026-09-15 — discriminator over **all 50** stable tags of 2.11–2.15: the 2.12 community ceiling is v2.12.3 (v2.12.4 self-declares Prime) and 2.15 is a community minor (v2.15.0 2026-07-30, v2.15.1 2026-08-28). Prior verify 2026-07-21 — v2.14.3 (2026-06-29) self-declares Community; v2.13.7 / v2.12.11 / v2.11.15 are Prime redirects. Prior verify 2026-06-02/05-30 — the earlier 2.12→v2.12.6 / 2.13→v2.13.2 values were wrong: v2.12.6 is Prime-only.
 
-Community edition only. Community minors land Mar / Jul / Nov; Prime backports ship Apr / Aug / Dec and end-of-line Prime patches are **ignored here**. 18-month community support window from 2.9 onward. **Published EOL dates, read off endoflife.date 2026-09-15 — the estimates previously here ran about a month early across the board, and one of them mattered:**
+Community edition only. Community minors land Mar / Jul / Nov; Prime backports ship Apr / Aug / Dec and end-of-line Prime patches are **ignored here**. 18-month community support window from 2.9 onward. **Published EOL dates, read off endoflife.date (re-read 2026-11-25, unchanged since 2026-09-15 — the estimates previously here ran about a month early across the board, and one of them mattered):**
 
 | Minor | Final EOL | Note |
 |---|---|---|
@@ -23,7 +23,7 @@ Community edition only. Community minors land Mar / Jul / Nov; Prime backports s
 
 **Community vs Prime — how the per-minor ceilings below are derived (do NOT trust `sort -V | tail -1`).** `rancher/rancher` GitHub releases carry **both** editions and the `prerelease` flag does not separate them. Discriminator = release-notes first line: a patch is **Prime-only iff its body redirects to "Please refer to our Prime Documentation …"**; community patches either say "This is a Community version release" or carry inline notes (`# Release vX.Y.Z`) — so test for the Prime marker and treat its **absence** as community (a positive "community version release" grep misses the older inline-notes format). **Pattern — and it is exact, so the ceiling is derivable without re-testing every tag:** a minor gets community patches only while it is the newest minor. The first patch published on or after the next minor's GA is Prime, and every patch after it stays Prime. Confirmed on all 50 stable tags of 2.11–2.15 (2026-09-15): `v2.11.4` flipped on 2.12.0's GA date, `v2.12.4` one day before 2.13.0's, `v2.13.4` on 2.14.0's, `v2.14.4` on 2.15.0's. **A community ceiling therefore moves only when a new minor GAs** — re-derive then, not on every sift. Full derivation protocol: `references/version-verification.md` § Edition discrimination.
 
-> **The first-line test under-detects on EVERY line — always confirm against the self-declaration.** Rancher uses **two** Prime markers, and the cheap first-line check (`head -1 | grep -i 'prime documentation'`) only catches one. v2.11.9+ use the *redirect* format ("Please refer to our Prime Documentation …") and are caught. But **v2.11.4 – v2.11.8 ship inline `# Release vX.Y.Z` notes** (so their first line looks community) **yet self-declare "This is a Prime version release"** in the description paragraph — the first-line test wrongly passes them as community. Defense: also grep the body for the self-declaration line (`grep -oiE 'This is a (Community|Prime) version release'`) and treat **"Prime version release"** as Prime-only. Observed 2.11 mapping (2026-10-27): v2.11.0 "Community", v2.11.1–v2.11.2 "Community and Prime", **v2.11.3 "Community and Prime"** (last community patch), v2.11.4–v2.11.8 "Prime version release", v2.11.9–v2.11.17 Prime-docs redirect, v2.11.18 empty body (unclassified). **Community ceiling = v2.11.3** — `sort -V | tail -1` (v2.11.14) and even the first-line discriminator alone (v2.11.8) both overshoot.
+> **The first-line test under-detects on EVERY line — always confirm against the self-declaration.** Rancher uses **two** Prime markers, and the cheap first-line check (`head -1 | grep -i 'prime documentation'`) only catches one. v2.11.9+ use the *redirect* format ("Please refer to our Prime Documentation …") and are caught. But **v2.11.4 – v2.11.8 ship inline `# Release vX.Y.Z` notes** (so their first line looks community) **yet self-declare "This is a Prime version release"** in the description paragraph — the first-line test wrongly passes them as community. Defense: also grep the body for the self-declaration line (`grep -oiE 'This is a (Community|Prime) version release'`) and treat **"Prime version release"** as Prime-only. Observed 2.11 mapping (2026-10-27): v2.11.0 "Community", v2.11.1–v2.11.2 "Community and Prime", **v2.11.3 "Community and Prime"** (last community patch), v2.11.4–v2.11.8 "Prime version release", v2.11.9–v2.11.19 Prime-docs redirect. **Community ceiling = v2.11.3** — `sort -V | tail -1` (v2.11.14) and even the first-line discriminator alone (v2.11.8) both overshoot.
 >
 > **`v2.12.4` is the same trap and was scored wrong here until 2026-09-15**: inline `# Release v2.12.4` notes, but the body reads "This is a **Prime** version release". Anything scoped to "the 2.11 line" will miss it. Classify every tag in one pass instead:
 >
@@ -36,19 +36,26 @@ Community edition only. Community minors land Mar / Jul / Nov; Prime backports s
 >       else "COMMUNITY" end)] | @tsv' | sort -V
 > ```
 
-**2026-09-23 same-day patches are unclassified, not community.** `v2.11.18`, `v2.12.14`, `v2.13.10`, and `v2.14.6` all published within the same hour as `v2.15.2` but carry **zero-length release bodies** — no self-declaration line, no Prime-docs redirect, nothing to classify against. `generated.json` (compat.py sync 2026-09-24) lists them as `unclassified`; treat them as neither community nor Prime until GitHub backfills the notes. The 2.11–2.14 community ceilings below are unchanged: v2.11.3 / v2.12.3 / v2.13.3 / v2.14.3.
+**Empty release bodies are unclassified until backfilled.** `v2.11.18`, `v2.12.14`, `v2.13.10`, `v2.14.6` (2026-09-23) were published with zero-length bodies and now carry Prime-docs redirects; with `v2.11.19`, `v2.12.15`, `v2.13.11`, `v2.14.7` (2026-10-29) they are Prime-only. A patch whose body is empty has no edition evidence: treat it as neither community nor Prime until notes appear. The 2.11–2.14 community ceilings are unchanged: v2.11.3 / v2.12.3 / v2.13.3 / v2.14.3.
 
 The single axis is the **k8s minor that the Rancher management cluster runs on**. Operating a downstream cluster (choosing its version, day-2 management) stays **out of scope** — the operator manages downstream clusters by hand — but *which* RKE2 lines each Rancher minor can offer via KDM is now recorded as data (`generated.json` `edges.rancher_provisions_rke2`) and noted per section below as a provisioning-ceiling fact, not a scope change. Each `## <version>` block below covers the latest community patch line of one Rancher minor.
 
-## 2.15 (latest community: v2.15.2, 2026-09-23 — current minor, so patches are still community)
+## 2.16 (upcoming, NOT GA — v2.16.0-rc4, prerelease, 2026-11-25)
+
+- **No stable release exists.** Only `v2.16.0-rc2` (2026-11-24) and `v2.16.0-rc4` (2026-11-25) are published, both prereleases. Do not recommend, or verdict against, 2.16 until `v2.16.0` carries a Community self-declaration. Community minors land in November, so GA is expected within weeks.
+- **k8s:** the rc4 chart sets `kubeVersion: < 1.38.0-0` (2.15.3: `< 1.37.0-0`) — an upper bound only; the rc notes state no support window, so record no floor until GA notes do. KDM `release-v2.16` offers RKE2 up to `v1.37.2+rke2r1` (KDM read 2026-11-25).
+- **UI:** `ui-sql-cache` (server-side pagination) is always on in 2.16; the 2.15 notes already removed the off switch (rancher/dashboard#16822).
+- **rancher-logging:** no chart gated to Rancher 2.16 exists in `rancher/charts` `release-v2.16` or `dev-v2.16` `index.yaml` (newest entries there are 2.14-gated 109.0.0 and 2.13-gated 108.0.x).
+- **Effect on 2.15 when 2.16.0 GAs:** the first 2.15 patch published on or after that date is Prime-only (§ Community vs Prime), so the 2.15 community ceiling freezes at the last community patch before it (v2.15.3 as of 2026-11-25).
+
+## 2.15 (latest community: v2.15.3, 2026-10-29 — current minor until 2.16.0 GAs, so patches are still community)
 
 - **k8s floor:** 1.34 – 1.36 (adds 1.36 — #54303; removes 1.33 — #55306). Narrower than it looks
   next to 2.14's 1.33–1.35: only **1.34 and 1.35 overlap**, so a management cluster on 1.33 must
   move k8s before Rancher, not after.
-- **Provisioning (KDM, re-read 2026-10-27):** 2.15 pairs with RKE2 `v1.34.12+rke2r1` / `v1.35.9+rke2r1` /
-  `v1.36.5+rke2r1` (RKE2 community patches of 2026-09-30) — no 1.37 pairing yet, even though RKE2 upstream already shipped `v1.37.0+rke2r1`
-  (source: `generated.json` `edges.rancher_provisions_rke2`, corroborated by the v2.15.2 release
-  notes' own "Kubernetes Versions for RKE2/K3s" list). Downstream cluster management itself remains
+- **Provisioning (KDM `release-v2.15`, re-read 2026-11-25):** 2.15 pairs with RKE2 `v1.34.13+rke2r1` / `v1.35.10+rke2r1` /
+  `v1.36.6+rke2r1` — no 1.37 pairing, even though RKE2 upstream shipped `v1.37.0+rke2r1`
+  (source: `generated.json` `edges.rancher_provisions_rke2`; the v2.15.3 notes' own "Kubernetes Versions for RKE2/K3s" list still names `v1.36.5` / `v1.35.9` / `v1.34.12` as of the release date, KDM has since moved). Downstream cluster management itself remains
   out of scope; this is only which lines Rancher's KDM channel currently offers.
 - **Prerequisites:** Helm client **≥ 3.18** (unchanged since 2.12; restated in the 2.15.0 notes).
   No cert-manager version floor is stated in the 2.15 notes — 2.14's #52922 change made the
@@ -82,36 +89,39 @@ The single axis is the **k8s minor that the Rancher management cluster runs on**
   namespace/write permissions reports "not ready" until granted), and CVE-2026-93539 (Fleet Git
   webhook accepted unauthenticated polling-interval changes when no webhook secret was set) — the
   three Fleet CVEs are again on the separate `rancher/fleet` advisory feed.
-- **Open hazards on the 2.15 line (re-verified 2026-10-27):**
+- **Security (v2.15.3, 2026-10-29) is a third batch:** CVE-2026-88809 (Rancher meta proxy destination allowlist not enforced — an authenticated user can make the server fetch internal services), CVE-2026-88810 (webhook did not check `GlobalRole.inheritedNamespacedRules` for privilege escalation), CVE-2026-88811 (meta proxy forwarded the caller's own Rancher credentials to third-party cloud hosts), CVE-2026-104623 (any authenticated user could obtain a shell pod on the `local` cluster); plus Fleet CVE-2026-94290 (a default-`user` account could reach cluster-admin on the management cluster through a Fleet cluster object referencing local credentials) and CVE-2026-104615 (cluster registration identity not bound to the registration token). The Fleet pair is again on the separate `rancher/fleet` advisory feed. **2.15.3 is the floor for any 2.15 install**; 2.15.0–2.15.2 carry all of these.
+- **Open hazards on the 2.15 line (re-verified 2026-11-25):**
   - **#57078 — upgrade to 2.15.1 left downstream clusters stuck `Provisioning`** with "Failed to
     get token secret … crt-token-system not found". Reporter rolled back to 2.14.2 and restored a
     pre-upgrade backup; after re-upgrading, most clusters still needed their registration command
-    re-run by hand. **Still OPEN**, milestoned v2.17.0 — v2.15.2's notes don't mention it.
+    re-run by hand. **Still OPEN** (milestone v2.17.0); not fixed in v2.15.2 or v2.15.3.
     The single most plan-changing item here for a fleet with many long-lived downstream clusters.
+    **v2.15.3's Long-standing Known Issues lists it** (as of 2.15.0): imported clusters cannot reconnect if their registration token rotates while disconnected past the grace period; the agent logs `400 Bad Request` / `cluster not found`. Workaround: re-run the registration command from the cluster's **Registration** tab. Prevention: raise `crt-default-grace-period-minutes` to cover the expected downtime, or disable the `crt-token-ttl-rotation` feature flag.
   - **#57050 — ClusterRole/GlobalRole reconciliation loop — FIXED in v2.15.2.** Was milestoned
     v2.15.2 with "the fix is in no shipped release" as of the prior sift; the issue closed
     2026-09-14 and the v2.15.2 RBAC notes confirm the reconciler no longer spams create/delete
     operations for `inheritedFleetWorkspacePermissions`. 2.15.1-only installs still hit it.
   - **#57196 — downstream cluster stuck `Unavailable`** after a multi-hop upgrade despite a working
     agent tunnel; the Ready/Connected condition stops tracking session state after
-    `cattle-credentials` is regenerated during upgrade. **Still OPEN** (backlog milestone).
+    `cattle-credentials` is regenerated during upgrade. **Still OPEN** (backlog milestone; re-read 2026-11-25).
   - **#57240 — `CATTLE_SYSTEM_DEFAULT_REGISTRY` ignored** on the 2.15.1 single-node Docker install,
-    CoreDNS falling back to `docker.io`. Air-gap relevant. **Still OPEN** (no milestone).
-  - **#57506 (v2.15.2 known issue) — cluster deletion gets stuck when s3 etcd snapshots
-    exist.** Closed with the fix verified on `v2.15-head` (milestone v2.15.3); no released 2.15
-    build carries it yet, so v2.15.2 is still affected. Workaround: delete the leftover `etcdsnapshots.rke.cattle.io` objects for that cluster
-    in the local cluster.
+    CoreDNS falling back to `docker.io`. Air-gap relevant. **Still OPEN** (no milestone; re-read 2026-11-25).
+  - **#57506 — cluster deletion gets stuck when s3 etcd snapshots exist — FIXED in v2.15.3** (issue
+    closed 2026-10-12; named in the v2.15.3 provisioning fixes). v2.15.0–v2.15.2 are affected. Workaround on
+    those builds: delete the leftover `etcdsnapshots.rke.cattle.io` objects for that cluster in the local cluster.
+  - **#58028 — imported clusters unavailable after a Rancher upgrade — FIXED in v2.15.3.** If the cluster agent was
+    redeployed before its registration token was migrated, the agent held an empty token.  - **#58075 — settings set by environment variable kept a stale value and `source: env` after the variable was removed — FIXED in v2.15.3**; on startup Rancher now clears the env source and the setting reverts to its default.
 - **Release notes run thinner than the tracker on this line.** Several `status/release-blocker`
   regressions fixed between 2.15.0 and 2.15.1 — the local principal-search break that made
   OIDC-provisioned users unassignable (#56392), and the `--no-cacerts` crashloop when a `cacerts`
   Setting is already populated (#56522) — appear nowhere in the published notes. **Do not treat
-  2.15.0 as a landing point**: it carries both, and both are fixed only in 2.15.1.
+  2.15.0 as a landing point**: it carries both, and both are fixed only in 2.15.1. Land on **2.15.3** (security batch, #57506, #58028).
 
-## 2.14 (latest community: v2.14.3, 2026-06-29)
+## 2.14 (latest community: v2.14.3, 2026-06-29 — v2.14.4 through v2.14.7 (2026-10-29) are Prime-only)
 
 - **k8s floor:** 1.33 – 1.35 (adds 1.35; removes 1.32 — issues #52957, #53764).
-- **Provisioning (KDM, re-read 2026-10-27):** 2.14 pairs with RKE2 `v1.33.13+rke2r2` / `v1.34.12+rke2r1` /
-  `v1.35.9+rke2r1` (`generated.json` `edges.rancher_provisions_rke2`).
+- **Provisioning (KDM `release-v2.14`, re-read 2026-11-25):** 2.14 pairs with RKE2 `v1.33.13+rke2r2` / `v1.34.13+rke2r1` /
+  `v1.35.10+rke2r1` (`generated.json` `edges.rancher_provisions_rke2`).
 - **Breaking:**
   - **Embedded Cluster API removed** (#53291). `rancher-provisioning-capi` chart, `embedded-cluster-api` feature flag, and the associated webhooks/controllers are gone. Rancher Turtles becomes the only CAPI integration. Auto-migrates on upgrade *unless* Turtles was previously disabled — re-enable manually or v2prov breaks.
   - **Cluster API bumped to v1beta2 (`cluster-api v1.12.2`, was v1.10.6)** (#52034, #53334). One-way rollback hazard: downgrading to 2.13.x (which carries v1beta1) requires the special rollback procedure documented under `rancher-documentation/v2.14/.../rollbacks`. Skipping it leaves CAPI CRDs in a state 2.13 cannot reconcile.
@@ -138,8 +148,8 @@ The single axis is the **k8s minor that the Rancher management cluster runs on**
 ## 2.13 (latest community: v2.13.3, 2026-02-25 — patches 2.13.4+ are Prime-only)
 
 - **k8s floor:** 1.32 – 1.34 (adds 1.34; removes 1.31 — issues #51252, #51253).
-- **Provisioning (KDM, re-read 2026-10-27):** 2.13 pairs with RKE2 `v1.32.13+rke2r1` / `v1.33.13+rke2r2` /
-  `v1.34.12+rke2r1` (`generated.json` `edges.rancher_provisions_rke2`).
+- **Provisioning (KDM `release-v2.13`, re-read 2026-11-25):** 2.13 pairs with RKE2 `v1.32.13+rke2r1` / `v1.33.13+rke2r2` /
+  `v1.34.13+rke2r1` (`generated.json` `edges.rancher_provisions_rke2`).
 - **Breaking:**
   - **Rancher Provisioning chart auto-replaced by Rancher Turtles** on upgrade (#52254). `rancher-provisioning-capi` is uninstalled, Rancher Turtles is installed. Pre-upgrade backups of any `clusters.provisioning.cattle.io` resources are advisable — they survive the migration but the controller path changes.
   - **OIDC Auth Provider settings may be lost on 2.12.x → 2.13.x upgrade** (#53995). Cleanup of unused OIDC secrets can partially overwrite the AuthConfig and drop endpoints / client IDs. Fix is in **2.14**; on 2.13 itself, back up the OIDC AuthConfig before upgrading.

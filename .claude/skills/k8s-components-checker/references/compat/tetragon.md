@@ -5,16 +5,10 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `multi`  (k8s axis is loose; the **kernel** axis is the load-bearing one)
 - **min_tracked_version:** 1.5
-- **Last sifted:** 2026-09-15 — every kernel-axis claim re-verified verbatim against the upstream FAQ and the 1.5/1.6/1.7 release notes, and **all of them hold**: floor 4.19, arm64 ≥5.10, BTF required, `CONFIG_BPF_KPROBE_OVERRIDE` for enforcement, LSM sensor needs `CONFIG_BPF_LSM` + ≥5.7 + `lsm=bpf`, ring buffer default from 5.11 since 1.6.0, cgroup v1 on ≥6.11 needs `CONFIG_MEMCG_V1`/`CPUSETS_V1`. No `kubeVersion:` gate at any tag; chart version tracks app version 1:1. Ceiling **v1.7.1** (2026-08-25, `isLatest`); no v1.8.
-- Noted for the next patch-contents sift (the file declares 1.7.1 contents unsifted, so this is a gap, not an error): **v1.7.1 changed a CRD-visible behaviour — `returnArgAction` no longer accepts `"Post"`.** (re-probed: **1.7.0 still latest**, no 1.8 — entry unchanged)
-- **Last release-verified (gh):** 2026-09-15 — **`v1.7.1` shipped 2026-08-25**;
-  still no 1.8, so the minor and its k8s window are unchanged. Patch contents
-  not sifted.
-- **Last release-verified:** 2026-05-30  (anchored on `gh api repos/cilium/tetragon/releases/latest` → `v1.7.0`; minors enumerated + `sort -V`; Chart.yaml read at `v1.7.0`/`v1.6.0`/`v1.5.0` tags)
+- **Last sifted:** 2026-11-25 — read: v1.8.0 release body and `contrib/upgrade-notes/v1.8.0.md` / `v1.7.0.md` at the v1.8.0 tag, v1.7.1 release notes, `docs/content/en/docs/installation/faq.md` and `concepts/tracing-policy/hooks.md` at v1.8.0 (both unchanged since v1.7.0: floor 4.19, arm64 ≥5.10, BTF required, `CONFIG_BPF_KPROBE_OVERRIDE` for enforcement, `CONFIG_BPF_LSM` + `lsm=bpf`, cgroup v1 on ≥6.11 needs `CONFIG_MEMCG_V1`/`CPUSETS_V1`), `Chart.yaml` at v1.8.0 (version == appVersion == 1.8.0, no `kubeVersion:`), `sensors.proto` at v1.7.1 / v1.8.0. Ceiling **v1.8.0** (2026-10-30, `isLatest`).
+- **Last release-verified:** 2026-11-25 (`gh release list --repo cilium/tetragon`: v1.8.0 `isLatest` 2026-10-30; v1.7.1 2026-08-25; v1.6.1 2026-03-31; v1.5.0 2025-07-29; no patch newer than these on any line)
 
-In-scope set: current stable **1.7** + prior 2 (**1.6**, **1.5**). Latest patch
-per line at sift (grounded by enumeration, none newer than `releases/latest` =
-`v1.7.0`): **1.7.0**, **1.6.1**, **1.5.0**. Chart version == app version (1:1,
+In-scope set: current stable **1.8** + prior 2 (**1.7**, **1.6**), plus **1.5** kept at the `min_tracked_version` floor. Latest patch per line (enumerated from the release list): **1.8.0**, **1.7.1**, **1.6.1**, **1.5.0**. Chart version == app version (1:1,
 no chart/app skew — like cert-manager); the `tetragon` Helm chart sets **no
 `kubeVersion:`** constraint, so there is no chart-metadata k8s gate.
 
@@ -30,7 +24,7 @@ runs standalone (does not require Cilium as the CNI). Detection: shares the
 ## Kernel axis — the dominant compatibility constraint
 
 This is the axis that actually blocks a Tetragon deployment; the k8s minor
-rarely does. Sources (all read at the `v1.7.0` tag / its release): the kernel
+rarely does. Sources (all read at the `v1.8.0` tag / its release; FAQ and hooks docs identical to `v1.7.0`): the kernel
 floor, arm64 caveat, BTF requirement, and `CONFIG_*` list are from
 `tetragon.io/docs/installation/faq/`; the LSM-sensor kernel gate is from the
 tracing-policy hooks doc; the ring-buffer default is from the 1.6.0 release
@@ -85,13 +79,32 @@ the real risk, not the k8s minor.
   Deployment (`tetragon-operator`, manages CRDs) and works on any currently
   supported k8s minor.
 - CRDs are `cilium.io/v1alpha1` (`TracingPolicy`, `TracingPolicyNamespaced`,
-  `PodInfo`). **No CRD version migration across 1.5 → 1.7** — the upgrade notes
-  for all three minors contain no CRD rename/conversion step.
+  `PodInfo`). **No CRD apiVersion migration across 1.5 → 1.8** — the upgrade notes
+  for all four minors contain no CRD rename/conversion step; 1.7.1 and 1.8.0 do change
+  accepted TracingPolicy *fields* (see § 1.8.0 / § 1.7.0), so re-validate existing policies.
 - The operator manages CRD install/upgrade; standard k8s-version-skew rules for
-  a controller using `controller-runtime` apply, but nothing in 1.5–1.7 sets a
+  a controller using `controller-runtime` apply, but nothing in 1.5–1.8 sets a
   hard k8s floor.
 
-## 1.7.0
+## 1.8.0  (2026-10-30)
+
+- **k8s floor:** loose (unchanged; no `kubeVersion:`). Kernel floor unchanged (see Kernel axis). Source: v1.8.0 `Chart.yaml`, FAQ at v1.8.0.
+- **Helm (behaviour changes — admission policies and mounts):**
+  - The **agent now runs unprivileged** with an explicit capability set in `tetragon.securityContext`; a new **privileged `mount-bpf-fs` init container** mounts bpffs on the host. Admission policies that deny privileged containers must allow that init container. Restore the old behaviour with `tetragon.securityContext.privileged=true`.
+  - CRI socket mount moves to a **directory path**: Kyverno/OPA/Gatekeeper rules that allow hostPath by explicit path need the directory containing `tetragon.cri.socketHostPath` added.
+  - `tetragon.gops.enabled` defaults to `false`.
+  - `exportDirectory` default `/var/run/cilium/tetragon/` → `/var/log/tetragon`.
+- **TracingPolicy (CRD fields, apiVersion unchanged):**
+  - Actions `FollowFD`, `UnfollowFD`, `CopyFD` **removed** (deprecated since 1.5). `fd` args now resolve the path on their own — drop the pre-`FollowFD` / post-`UnfollowFD` hooks from existing policies.
+  - `sizeArgIndex` deprecated (value was offset by one) → `sizeFromArgIndex` (zero-based; `sizeArgIndex: 3` becomes `sizeFromArgIndex: 2`).
+  - `CelExpr` `MatchArgs` operator deprecated → `MatchCEL` selector.
+  - `returnArgAction: "Post"` rejected (landed in 1.7.1) — remove the field.
+- **Metrics (breaking for dashboards/alerts):** label renames — `msg_op` → `opcode` (plus new `opstr`) on `tetragon_msg_op_total` and `tetragon_bpf_missed_events_total`; `tetragon_handling_latency` loses `op`, gains `opcode` + `opstr`; `tetragon_data_event_size` `op` → `status`; `tetragon_events_total` `type` → `event_type`; `tetragon_handler_errors_total` gains `opstr`.
+- **gRPC:** `EnableTracingPolicy` / `DisableTracingPolicy` are still declared (deprecated) in `sensors.proto` at v1.8.0 and the `enable-deprecated-tracingpolicy-grpc` opt-out still exists — the removal announced for "the next release" in 1.7.0 did not happen in 1.8.0; migrate controllers anyway. New: gRPC-based persistent policies, mTLS for the gRPC server.
+- **CRD migrations:** none (apiVersion).
+- **Notable:** `matchCmdArgs` and `matchWorkloads` selectors, `nodeSelector` in tracing policies, stateful tracing policies, uprobe caller-function filtering.
+
+## 1.7.0  (latest patch 1.7.1, 2026-08-25)
 
 - **k8s floor:** loose (unchanged). Kernel floor unchanged (see Kernel axis).
 - **Breaking (protobuf/gRPC API):**
@@ -101,8 +114,8 @@ the real risk, not the k8s minor.
     `Post` action to get stack traces in `ProcessKprobe` events.
   - `EnableTracingPolicy` / `DisableTracingPolicy` gRPC methods (already
     deprecated) **now return an error** when used. Temporary opt-out:
-    `enable-deprecated-tracingpolicy-grpc`. **The next release removes them
-    entirely** — migrate any controller that toggles policies over gRPC.
+    `enable-deprecated-tracingpolicy-grpc`. **Announced for removal in the next
+    release; still present (deprecated) in 1.8.0** — migrate any controller that toggles policies over gRPC.
 - **Helm:** default agent **server-address changed** `localhost:54321` →
   `/var/run/tetragon/tetragon.sock`. Any third-party program / sidecar that
   connects to the agent must update the address.
@@ -110,7 +123,8 @@ the real risk, not the k8s minor.
   and `tetragon_generic_kprobe_merge_ok_total` **removed**, consolidated into
   `tetragon_generic_kprobe_merge_total` with a `status="ok"|"error"` label (plus
   `curr_type`/`prev_type`/`curr_fn`/`prev_fn`). Update Prometheus rules.
-- **CRD migrations:** none.
+- **1.7.1 (CRD-visible):** `returnArgAction` no longer accepts `Post` (use `returnArg`; only `TrackSock` / `UntrackSock` remain valid) — remove it from existing policies. Uprobe/USDT programs are rejected in namespaced TracingPolicies. Other 1.7.1 changes are bug fixes.
+- **CRD migrations:** none (apiVersion).
 - **Notable:** CEL-in-BPF policy evaluation, `fentry` sensor, `matchParentBinaries`
   and `spec.hostSelector` selectors, env-var retrieval; policies now load even
   when `kptr_restrict=2`.

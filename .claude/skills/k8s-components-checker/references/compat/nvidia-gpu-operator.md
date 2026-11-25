@@ -7,19 +7,19 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 25.3
-- **Last sifted:** 2026-10-27 (added § 26.7.2 from the 26.7 release notes). Previous: 2026-09-24 (added § 26.7.1, § 26.7.0, § 26.3.3; k8s window 1.33–1.37 and containerd floor 2.0 confirmed for the 26.7 line; support-status table updated)
-- **Last release-verified:** 2026-10-27 — v26.7.2 (2026-10-14). Previous: 2026-09-24 (`gh` release listing + NVIDIA platform-support/release-notes pages, `NVIDIA/gpu-operator`)
+- **Last sifted:** 2026-11-25 (added § 26.7.3 from the 26.7 release notes; re-read the 26.7 platform-support page: k8s 1.33–1.37, containerd 2.0–2.4, support-status table, component matrix; read issue #3155 / PR #3157). Previous: 2026-10-27 (§ 26.7.2). Before that: 2026-09-24 (added § 26.7.1, § 26.7.0, § 26.3.3; k8s window 1.33–1.37 and containerd floor 2.0 confirmed for the 26.7 line; support-status table updated)
+- **Last release-verified:** 2026-11-25 — v26.7.3 (2026-11-17, `isLatest`); no 26.3.x release after v26.3.3 (2026-06-25). Previous: 2026-10-27 — v26.7.2 (2026-10-14). Before that: 2026-09-24 (`gh` release listing + NVIDIA platform-support/release-notes pages, `NVIDIA/gpu-operator`)
 - **2026-05-31 matrix-grounded (platform-support page):** the 26.3 k8s window is **1.32 – 1.36** —
   **26.3.2 added k8s 1.36** (earlier entries said 1.32–1.35; the prior "presumed unchanged" caveat is
   now lifted and § 26.3.2 is sifted below). The floor is **1.32** across the whole 26.3 line — **not
   1.29** (1.29 is the *25.10* line's floor; don't conflate the two). `releases/latest` = **v26.3.3** (2026-06-25; 26.3.2 was the prior)
   (gh, 2026-05-30). (House Rule #8 · `references/version-verification.md`)
 
-26.7.x is current (26.7.0 2026-08-21, 26.7.1 2026-09-23, 26.7.2 2026-10-14) — see § 26.7.0 for the containerd-floor raise and CRD migration change, § 26.7.2 for the latest patch.
+26.7.x is current (26.7.0 2026-08-21, 26.7.1 2026-09-23, 26.7.2 2026-10-14, 26.7.3 2026-11-17) — see § 26.7.0 for the containerd-floor raise and CRD migration change, § 26.7.3 for the latest patch and the 26.3 → 26.7 driver-DaemonSet-deletion fix.
 
 26.3.3 (2026-06-25) fixed the RDMA/NCCL device-node-leak regression — see § 26.3.3.
 
-Lifecycle (per upstream support-status table, NVIDIA platform-support page, verified 2026-09-24): 26.7.x **Supported** (current); 26.3.x **Deprecated**; 25.10.x and lower **End of Support** (25.10.x moved straight from deprecated to end-of-support as of 26.7.0 — it no longer gets critical fixes). Upgrades supported only within a major or to the next major — don't jump 25.3 → 26.7 or 25.10 → 26.7 in one step; hop through 26.3 first.
+Lifecycle (per upstream support-status table, NVIDIA platform-support page, verified 2026-11-25): 26.7.x **Supported** (current); 26.3.x **Deprecated**; 25.10.x and lower **End of Support** (25.10.x moved straight from deprecated to end-of-support as of 26.7.0 — it no longer gets critical fixes). Upgrades supported only within a major or to the next major — don't jump 25.3 → 26.7 or 25.10 → 26.7 in one step; hop through 26.3 first.
 
 GPU architecture floor (cross-version, set by silicon, not by operator minor):
 
@@ -61,6 +61,15 @@ only *new* allocations + health reporting pause briefly; a live inference pod ri
 a runc-init mount race (`open /run/nvidia-persistenced/socket: no such file`, `exit 128`) fans out many
 device-plugin restarts per toolkit cycle, accrued over pod age. Triage the restart *rate*, not the count.
 
+## 26.7.3
+
+- **Released:** 2026-11-17 (`gh release view v26.7.3 --repo NVIDIA/gpu-operator` → `/26.7/release-notes.html#v26-7-3`). **Upgrade target for the 26.7 line.** k8s window 1.33 – 1.37 and containerd floor 2.0 unchanged; the platform-support page now reads containerd **2.0 – 2.4** for the 26.7 line (2.4 added post-release).
+- **Fixed — upgrade hazard on 26.3.x → 26.7.0 / 26.7.1 / 26.7.2:** the new operator selected zero nodes for an existing `NVIDIADriver` before driver-owner labels existed and deleted its driver DaemonSet, removing driver pods from GPU nodes (issue #3155, PR #3157, reproduced on 26.3.3 → 26.7.1). 26.7.3 waits for the owner labels first. **Hop 26.3.x → 26.7.3 directly, not to an earlier 26.7 patch.**
+- **Breaking:** DCGM Exporter v4.7.0-4.9.0 renames the default metrics to the DCGM 4.7 field names, and 11 of them change units — `DCGM_FI_DEV_GPU_UTIL` (percent) → `DCGM_FI_DEV_GPU_UTIL_RATIO` (0–1), `DCGM_FI_DEV_FB_USED` (MiB) → `DCGM_FI_DEV_FB_USED_BYTES` (bytes); the driver-version label `DCGM_FI_DRIVER_VERSION` → `DCGM_FI_SYSTEM_DRIVER_VERSION`. Dashboards, alerts and queries on the old names stop matching. On OpenShift the operator's rules accept both names.
+- **Driver branches (component matrix):** default still 595.91.07; **recommended 620.70.06** (added post-release); also 615.71.10, 615.71.09, 610.57.04, 595.112.07, 580.196.07, 580.173.02. DCGM 4.7.0, Container Toolkit 1.20.2, Device Plugin 0.20.2, MIG Manager 0.15.2, NFD v0.20.1.
+- **Other fixes:** operands waited for the NVIDIA kernel module to finish loading / unloading; host `modprobe` ran the container BusyBox instead of the host binary (broke `vfio_iommu_type1` soft deps for KubeVirt passthrough); `NVIDIADriver` with `kernelModuleType: auto` failed validation with GPUDirect Storage enabled; with CDI enabled the operator now rejects a device-plugin `DEVICE_LIST_STRATEGY` lacking `cdi-annotations` / `cdi-cri`. Adds OpenShift 5.0 (RHCOS 10 new installs must set the driver repository / image / version in the ClusterPolicy).
+- **Known issues:** clusters using the DRA Driver for NVIDIA GPUs, and nodes set up for `vfio-pci` passthrough, need NVIDIA Driver Manager **v0.13.0** (`driver.manager.version=v0.13.0`) — changing the manager image triggers a driver upgrade on every node and can evict GPU workloads even when the driver version is unchanged. NVLink-5 DOCA-OFED / `ib_umad` conflict from 26.7.2 persists. OpenShift + B200: DCGM Exporter 4.9.0 crash-loops if a custom metrics CSV contains `DCGM_FI_PROF_NVLINK_TX_BYTES`.
+
 ## 26.7.2
 
 - **Released:** 2026-10-14 (`gh release view v26.7.2 --repo NVIDIA/gpu-operator` → `/26.7/release-notes.html#v26-7-2`). Bugfix release — k8s window, containerd floor and driver branches unchanged from 26.7.1.
@@ -83,7 +92,7 @@ device-plugin restarts per toolkit cycle, accrued over pod age. Triage the resta
 ## 26.7.0
 
 - **k8s floor:** 1.33 – 1.37 — **raised from 26.3's 1.32 – 1.36** (NVIDIA platform-support matrix, `/26.7/platform-support.html`, verified 2026-09-24); adds explicit Kubernetes 1.37, and 1.36 for Canonical MicroK8s.
-- **Container runtime:** **minimum containerd raised from 1.8 to 2.0.** Release notes, verbatim: *"The minimum supported containerd version changed from 1.8 to 2.0."* Validated range containerd 2.0 – 2.3, CRI-O. This is a node prerequisite the operator cannot fix from inside the cluster — check every GPU node's containerd before planning the hop.
+- **Container runtime:** **minimum containerd raised from 1.8 to 2.0.** Release notes, verbatim: *"The minimum supported containerd version changed from 1.8 to 2.0."* Validated range containerd 2.0 – 2.3 at 26.7.0 (the platform-support page now reads 2.0 – 2.4, added post-release), CRI-O. This is a node prerequisite the operator cannot fix from inside the cluster — check every GPU node's containerd before planning the hop.
   - **Cross-component (RKE2):** RKE2 1.34 and 1.35 bundle containerd **v2.2.7**; 1.36 and 1.37 bundle **v2.3.4** (generated.json `edges.rke2_bundles`, compat.py sync 2026-09-24) — all four clear the 26.7.0 floor. RKE2 1.33 and earlier are not in `rke2_bundles`; confirm their bundled containerd before pairing with GPU Operator ≥ 26.7.0 (pre-2.0 bundles fail the floor).
 - **Driver branches:** default/recommended 595.91.07; also 610.57.04, 580.173.02.
 - **CRD migrations:** **`NVIDIADriver` CRD now supports migrating from a ClusterPolicy-managed driver** (PR #2353) — lifts the "greenfield only" restriction noted in § 26.3.0; existing ClusterPolicy installs can move to NVIDIADriver in place. New `GPUCluster` CRD (DRA Driver for NVIDIA GPUs) requires k8s ≥ 1.34.2, driver ≥ 580, a CDI-compatible runtime, and cannot coexist with ClusterPolicy on the same cluster.

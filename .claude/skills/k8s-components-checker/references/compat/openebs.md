@@ -5,8 +5,8 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `single` (LocalPV-LVM version → k8s)
 - **min_tracked_version:** 1.5 (LocalPV-LVM; floor = the engine version umbrella 4.0.1 pins — the operator's migration source)
-- **Last sifted:** 2026-10-27 — **k8s floor 1.34 from LVM 1.9.0** (bundled csi-provisioner v6.1.0 / csi-resizer v2.0.0, read from `values.yaml` at each tag; the release notes never mention the sidecar bump); corrected the VolumeAttributesClass "1.31+" claim to 1.34; umbrella 4.6.2 row. Earlier: 2026-09-24 added `## 1.10.x`.
-- **Last release-verified:** 2026-10-27
+- **Last sifted:** 2026-11-25 — release lists of `openebs/lvm-localpv` and `openebs/openebs` (no release since lvm-localpv v1.10.1 2026-09-09 / umbrella v4.6.2 2026-10-07; umbrella `charts/Chart.yaml` at v4.6.2 still pins `lvm-localpv: 1.10.1`), `changelogs/unreleased` on main. Earlier: 2026-10-27 — **k8s floor 1.34 from LVM 1.9.0** (bundled csi-provisioner v6.1.0 / csi-resizer v2.0.0, read from `values.yaml` at each tag; the release notes never mention the sidecar bump); corrected the VolumeAttributesClass "1.31+" claim to 1.34; umbrella 4.6.2 row. Earlier: 2026-09-24 added `## 1.10.x`.
+- **Last release-verified:** 2026-11-25 — lvm-localpv v1.10.1 (`isLatest`); umbrella v4.6.2 (`isLatest`)
 - **Last field-verified (live upgrade):** 2026-06-03 — umbrella 4.3.3→4.4.0 /
   LocalPV-LVM 1.7.0→1.8.0 on a 4-node cluster (see the 1.8.0 § field notes).
 
@@ -40,6 +40,8 @@ engine version from the `lvm-localpv` chart version, the
 LVM release tags + dates from `openebs/lvm-localpv`, no-candidate enumeration.)
 
 ## 1.10.0 — 2026-08-19  (pinned by umbrella 4.6.0; **1.10.1** 2026-09-09 pinned by umbrella 4.6.1 / 4.6.2)
+
+- **No v1.10.2 yet (2026-11-25).** `changelogs/unreleased` on main holds fixes that ship in the next tag, not in 1.10.1: thick volumes on the VolumeWeighted / CapacityWeighted schedulers are not placed when a volume group's free space exactly equals the requested size (#530); `CreateSnapshot` gives up after 2 s so a slow `lvcreate` leaves `readyToUse=false` (#532, new `--snapshot-ready-timeout` / `lvmController.snapshotReadyTimeout`); the node agent floods the log when the last thin volume of a pool is deleted (#547); chart `updateStrategy` values were ignored (#520); `CSIStorageCapacity` objects stop updating after a controller rollout (#515). Do not pin to main.
 
 - **k8s floor:** **1.34** — unchanged from 1.9.0 (§ 1.9.0): the chart still ships
   csi-provisioner v6.1.0 and csi-resizer v2.0.0. Chart declares **no `kubeVersion:`** at

@@ -5,8 +5,8 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.17
-- **Last sifted:** 2026-10-27 — 1.21 ceiling **v1.21.3** (2026-10-23): base images drop the compromised eMudhra "emSign ECC Root CA - G3" root, Go 1.26.10 (crypto/x509 CVE), golang.org/x/net v0.60.0; also fixes an ACME ARI renewal loop and stops the controller copying a private key from a Secret the Certificate does not own. Treat v1.21.3 as the 1.21 security floor; matrix unchanged. Previous: 2026-09-24 — matrix unchanged (1.21 → k8s 1.33–1.36 / OpenShift 4.20–4.22, 1.20 → 1.32–1.35 / OpenShift 4.19–4.21, EOL triggers unchanged). Patch ceilings moved to **1.21.2** (2026-09-11), **1.20.4** (2026-09-16), **1.19.6** (2026-06-25), **1.18.6** (2026-02-24). Upcoming: **1.22 ~Nov 2026** (EOL: release of 1.24; k8s window TBD).
-- **Last release-verified:** 2026-10-27
+- **Last sifted:** 2026-11-25 — support table (website `content/docs/releases/README.md`, live page identical): matrix unchanged. New patch **v1.20.5** (2026-10-28): base images move to Debian 13 and drop the compromised eMudhra "emSign ECC Root CA - G3" root, Go 1.26.10 (crypto/x509 CVE), `golang.org/x/net` v0.60.0 / v0.62.0 (five reachable HTTP/2 CVEs in v1.20.4), `golang.org/x/crypto` v0.57.0, go-jose v4.1.6. **Security floors: 1.21.3 / 1.20.5** (v1.21.3 carries the same eMudhra + Go fixes, an ACME ARI renewal-loop fix, and stops the controller copying a private key from a Secret the Certificate does not own). 1.22 has only `v1.22.0-alpha.0` (2026-11-24); the page still lists 1.22 as `~Nov 2026`, k8s window TBD. Earlier sift 2026-10-27 — v1.21.3 (2026-10-23). Previous: 2026-09-24 — matrix unchanged (1.21 → k8s 1.33–1.36 / OpenShift 4.20–4.22, 1.20 → 1.32–1.35 / OpenShift 4.19–4.21, EOL triggers unchanged). Patch ceilings: **1.21.3** (2026-10-23), **1.20.5** (2026-10-28), **1.19.6** (2026-06-25), **1.18.6** (2026-02-24). Upcoming: **1.22 ~Nov 2026, not GA** (alpha only; EOL: release of 1.24; k8s window TBD).
+- **Last release-verified:** 2026-11-25 — `gh release list`; no repo security advisories published since 2026-09-01.
 - Policy verbatim: *"All cert-manager releases are supported at least until the release of a second subsequent version"*, and *"Only the last patch release of each branch is supported."* — the patch ceilings above are the actionable figure, not the minor.
 
 Support policy: each release is supported until two subsequent minors ship, so
@@ -21,15 +21,15 @@ registry's "current + prior 2 minors" floor). 1.21 EOLs at the release of 1.23.
 | 1.20 | 2026-03-10 | 1.32 – 1.35 | current |
 | 1.19 | 2025-10-07 | 1.31 – 1.35 | EOL 2026-07-08 |
 
-**k8s floor moved to 1.33 in 1.21** — a cluster on 1.32 can run 1.20 but not 1.21.
+**k8s floor moved to 1.33 in 1.21** — a cluster on 1.32 can run 1.20 but not 1.21. **When 1.22 GAs, 1.20 reaches EOL** (support table: 1.20 EOL = release of 1.22) — a 1.20 landing is temporary. Vendor-only: Palo Alto Networks sells a **1.17 LTS** (EOL 2027-02-03); the community 1.17 line is EOL (2025-10-07) and the matrix gives it no k8s 1.34+ overlap.
 
 ## 1.21.0 (2026-07-08)
 
-- **k8s floor:** 1.33 – 1.36 (latest patch: v1.21.2, 2026-09-11; OpenShift 4.20 – 4.22).
+- **k8s floor:** 1.33 – 1.36 (latest patch: v1.21.3, 2026-10-23; OpenShift 4.20 – 4.22). **Security floor: v1.21.3** (eMudhra root removed, Go 1.26.10, x/net v0.60.0, private-key-copy fix; header).
 - **Known issue — controller crash-loop (#9031), fixed in v1.21.1 (#9038):** on
   1.21.0, setting `spec.renewal.policy: Disabled` on any Certificate caused a
   nil-pointer panic in the trigger controller, crash-looping the controller
-  process for the whole cluster. Resolved — upgrade to ≥1.21.1 (now 1.21.2)
+  process for the whole cluster. Resolved — upgrade to ≥1.21.1 (now 1.21.3)
   rather than avoiding the field.
 - **Known issue — Issuer stuck at `InvalidSolver` (#9036), fixed in v1.21.1
   (#9083):** on 1.21.0, eager validation of ACME solver Secrets meant an Issuer
@@ -43,6 +43,14 @@ registry's "current + prior 2 minors" floor). 1.21 EOLs at the release of 1.23.
   also enforces identity/approval/resource checks on equivalent-converted
   non-v1 API version requests, which previously could skip validation — a
   request silently admitted before may now be denied.
+- **1.21.3 (2026-10-23):** removes the compromised eMudhra root from the base
+  images (Go 1.26.10 also rejects chains through its intermediates); fixes an
+  ACME ARI renewal loop (stale ARI window re-issuing until the CA rate limit —
+  new `status.acme.ari.certID`); the `requestmanager` / `issuing` controllers
+  consume `status.nextPrivateKeySecretName` only for a labelled Secret the
+  Certificate owns (closes a private-key copy by a writer of
+  `certificates/status`); Helm chart quotes `http_proxy` / `https_proxy` /
+  `no_proxy`. **Security floor for 1.21.**
 - **Breaking (Helm chart):**
   - Default `tokenrequest` RBAC removed — the chart no longer grants the
     controller `serviceaccounts/token: create` on its own ServiceAccount. If
@@ -65,7 +73,7 @@ registry's "current + prior 2 minors" floor). 1.21 EOLs at the release of 1.23.
 
 ## 1.20.0 (2026-03-10)
 
-- **k8s floor:** 1.32 – 1.35 (latest patch: v1.20.4, 2026-09-16; OpenShift 4.19 – 4.21).
+- **k8s floor:** 1.32 – 1.35 (latest patch: v1.20.5, 2026-10-28; OpenShift 4.19 – 4.21).
 - **Breaking:** Default container UID changed from 1000 → 65532, GID 0 → 65532
   (PR #8408). PodSecurityPolicy / SecurityContextConstraints / RunAsUser pinning
   in operator overlays will reject the new pod spec; review chart values
@@ -85,13 +93,19 @@ registry's "current + prior 2 minors" floor). 1.21 EOLs at the release of 1.23.
   `extraContainers` Helm value for sidecars (e.g. AWS IAM Roles Anywhere).
   1.20.0 already carries the DNS-response DoS fix (CVE-2026-25518, PR #8469)
   and the Go 1.25.5 fix for CVE-2025-61727 / CVE-2025-61729. **Security
-  floor: 1.20.3** — CVE-2026-62290 (GHSA-8rvj-mm4h-c258, high: a direct ACME
-  Challenge bypasses the Issuer's DNS01 solver policy) affects ≤ 1.20.2.
-  1.20.4 fixes an ingress-shim applyset-label
-  regression (#9315); the 1.20 line will not patch three `golang.org/x/crypto`
-  scanner findings (CVE-2026-56855, CVE-2026-78662, GO-2026-5932) — vendor
-  confirms cert-manager's own use is unaffected (govulncheck-clean), but a
-  scanner-clean result needs 1.21 (ships `golang.org/x/crypto` v0.56.0).
+  floor: 1.20.5** — CVE-2026-62290 (GHSA-8rvj-mm4h-c258, high: a direct ACME
+  Challenge bypasses the Issuer's DNS01 solver policy) affects ≤ 1.20.2 (fixed
+  1.20.3); 1.20.4 had five reachable HTTP/2 CVEs in `golang.org/x/net`, and
+  **1.20.5** (2026-10-28) fixes them, bumps `golang.org/x/crypto` to v0.57.0
+  (CVE-2026-56855, CVE-2026-78662) and removes trust in the compromised eMudhra
+  "emSign ECC Root CA - G3" (base images move to Debian 13; Go 1.26.10
+  `crypto/x509` also rejects chains through the compromised intermediates).
+  1.20.4 also fixed an ingress-shim applyset-label regression (#9315). Scanners
+  still flag GO-2026-5932 (`x/crypto/openpgp` unmaintained, not imported by
+  cert-manager, no fixed version). Building 1.20 from source now needs Go 1.26
+  (`go.mod` directive); released binaries are unchanged.
+  The EOL 1.19 / 1.18 lines have **no** eMudhra or HTTP/2 fix — 1.19.6 /
+  1.18.6 are their last releases.
 
 ## 1.19.0 (2025-10-07)
 

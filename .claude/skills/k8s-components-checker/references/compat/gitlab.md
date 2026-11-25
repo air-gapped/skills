@@ -12,14 +12,8 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 8.11      # chart minors: current (10.x) + prior 2 (9.x, 8.x)
-- **Last sifted:** 2026-10-27 — chart ceiling now **v10.5.1 / app v19.5.1** (2026-10-20); cloud-install matrix at v10.5.1 unchanged (1.37 needs GitLab ≥ 19.5, now released); PostgreSQL window for 19.x corrected to 17.x–18.x; CHANGELOG 10.4.2–10.5.1 read. Previous: 2026-09-24 — chart ceiling v10.4.1/app v19.4.1; chart doc lists k8s 1.35–1.37 supported, but 1.37 needs GitLab ≥ 19.5 (unreleased), so chart 10.4 / GitLab 19.4 is usable on 1.35–1.36 (1.34 deprecated, 1.33 unsupported); no breaking/CRD/ordering changes found in 10.3.3–10.4.1.
-- **Last release-verified:** 2026-10-27 — newest per line **`v10.5.2`**, `v10.4.4`, `v10.3.8`, `v10.2.9`, `v10.1.9`, `v10.0.10`, `v9.11.15` (`compat.py sync`); chart `10.5.2` → app `19.5.2`. Previous (2026-09-24): chart tags enumerated via
-  `generated.json` (compat.py sync 2026-09-24, sourced from the GitLab API —
-  `gh` does not apply here): newest per line are **`v10.4.1`** (2026-09-22),
-  **`v10.3.4`** (2026-09-24), **`v10.2.7`** (2026-09-22). All inside the
-  **10.x / GitLab 19.x** row below. Chart→app mapping re-derived from
-  `version_mappings.md` at the `v10.4.1` tag: chart `10.4.1` → app `19.4.1`
-  (pattern holds across the table: chart `10.Y.Z` → app `19.Y.Z`).
+- **Last sifted:** 2026-11-25 — chart ceiling now **v10.6.1 / app v19.6.1** (2026-11-19; 10.6.0 2026-11-18); cloud-install matrix at v10.6.1 unchanged (1.35–1.37 supported, 1.37 needs GitLab ≥ 19.5) plus a new hard install floor of k8s 1.30 from chart 10.6.0; PostgreSQL 17.x–18.x and Redis ≥ 7.0 / Valkey 7.2 for 19.x re-read at master; required stops 19.2 / 19.5 / 19.8 / 19.11 added; chart CHANGELOG 10.5.3–10.6.1 and 10.6 / 10.4 / 10.3 upgrade notes read; GitLab 19.2–19.6 upgrade notes read.
+- **Last release-verified:** 2026-11-25 — newest per line **`v10.6.1`**, `v10.5.9`, `v10.4.11`, `v10.3.11`, `v10.2.10`, `v10.1.10`, `v10.0.11`, `v9.11.16` (GitLab API tags + `compat.py sync` drift); chart → app per tag message: `10.6.1` → 19.6.1, `10.5.9` → 19.5.8, `10.4.11` → 19.4.10, `10.3.11` → 19.3.9, `10.2.10` → 19.2.10, `10.1.10` → 19.1.10, `10.0.11` → 19.0.11, `9.11.16` → 18.11.14 (pattern chart `10.Y.Z` → app `19.Y.Z` no longer holds for patch Z on 10.3–10.5; use the tag message or `version_mappings.md`).
 
 ## Reading the file
 
@@ -44,7 +38,7 @@ sifted here.
 
 ## 10.x  (GitLab 19.x — current chart minor)
 
-- **k8s floor (re-read 2026-10-27 at chart v10.5.1): 1.35 – 1.37 on chart 10.5 / GitLab 19.5; 1.35 – 1.36 on chart ≤ 10.4** — the doc lists 1.37 as supported only from GitLab 19.5 (released with chart 10.5.0, 2026-10-15), `1.34` deprecated, `1.33` and below unsupported. Min GitLab per minor: **19.5 on k8s 1.37**, 19.3 on 1.36, 18.9 on 1.35, 18.6 on 1.34 (deprecated), 18.1 on 1.33 (unsupported). **The window rolled forward by one k8s minor again since the last sift** (was 1.34–1.36 supported) — confirms this is a *live rolling* matrix keyed to the current release, not a table fixed at the chart major, so re-read it every pass rather than treating it as a property of chart 10.x. Current chart **v10.4.1 / appVersion v19.4.1** (2026-09-22), up from v10.3.2/v19.3.2.
+- **k8s floor (re-read 2026-11-25 at chart v10.6.1): 1.35 – 1.37 on chart 10.5+ / GitLab 19.5+; 1.35 – 1.36 on chart ≤ 10.4** — 1.37 is supported only from GitLab 19.5 (chart 10.5.0), `1.34` deprecated, `1.33` and below unsupported. Min GitLab per minor: **19.5 on k8s 1.37**, 19.3 on 1.36, 18.9 on 1.35, 18.6 on 1.34 (deprecated), 18.1 on 1.33 (unsupported). **Hard install floor from chart 10.6.0: k8s 1.30** — `helm install`/`helm upgrade` fail on older clusters (webservice and registry `preStop` use the Kubernetes `sleep` action, gated on 1.30+). The window is a *live rolling* matrix keyed to the current release; re-read it every pass. Current chart **v10.6.1 / appVersion v19.6.1** (2026-11-19).
 - **Caveat on the older rows below:** that same page shows only the current window, so the chart-9.x/8.x floors recorded here can no longer be re-verified against it. They are unconfirmed, not contradicted — do not silently "refresh" them from a page that no longer carries them.
 - **Breaking:**
   - **Bundled Redis chart dropped.** Operator must provide external **Redis 7.0+ or Valkey 7.2** — 7.2 is *recommended*, not the floor (corrected 2026-09-15; a vendor-maintained 7.0/7.1, e.g. ElastiCache 7.1, is explicitly acceptable). No more `helm upgrade` rolling out a fresh in-cluster Redis.
@@ -60,7 +54,7 @@ sifted here.
 - **Upgrade ordering:**
   1. **Backup is mandatory** (`/charts/backup-restore/`). Chart docs phrase as MUST.
   2. **Single-minor steps.** Do not jump 9.x → 10.x without landing on chart 9.11.z first. The chart's pre-migration jobs assume schema continuity.
-  3. **Required app stops** between 18.x and 19.x: 18.2 → 18.5 → 18.8 → 18.11 → 19.x. Each stop runs background migrations; let them drain (Sidekiq queue length on `database_background_migration_*`) before the next bump.
+  3. **Required app stops** between 18.x and 19.x: 18.2 → 18.5 → 18.8 → 18.11 → 19.x; within 19.x: **19.2 → 19.5 → 19.8 → 19.11** (target the latest patch of each stop). Each stop runs background migrations; let them drain (Sidekiq queue length on `database_background_migration_*`) before the next bump.
   4. **Zero-downtime sequence inside one minor bump** (per upgrade doc): pause Webservice + Sidekiq → `helm upgrade` skipping post-deploy migrations → wait for pre-migrations → resume Sidekiq → resume Webservice → final `helm upgrade` for post-deploy migrations.
   5. **Pre-bump 9.x → 10.x checklist:** external PG 17 (not 18 — 18.x apps reject it), external Redis ≥ 7.0 (Valkey 7.2), external object storage configured. **Gateway API CRDs and removing NGINX are NOT required for 10.x** — Gateway API is the new default, NGINX stays opt-in until 20.0; do both before 20.0, not as a gate on this hop. Skipping any one of these breaks the install.
   6. **`db-migrate` job timeout:** default 600s. Bump for large datasets — past failure mode is the job OOM/timeouts mid-migration, leaving partial schema.
@@ -69,7 +63,11 @@ sifted here.
   - Container Registry to v4.40.0-gitlab. Registry metadata DB migration must have completed in 17.x — if skipped, the 19.x registry refuses to start. Verify before bumping.
   - Cert-manager **Gateway API enabled by default** (the chart's bundled cert-manager values now target Gateway API resources, not Ingress).
   - Gitaly Cluster (the new Raft-based replacement for Praefect) is the supported path; legacy Praefect is on borrowed time. Not removed in 19.0 but plan the migration.
-  - **Chart 10.5.0 (2026-10-15):** KAS advertises `grpcs` to agents by default; toolbox backup CronJob defaults to `batch/v1` and HPAs to `autoscaling/v2`; Envoy Gateway v1.9.2, gateway-crds-helm v1.9.1, container-registry v4.42.0-gitlab. 10.5.1 / 10.4.3 / 10.3.7 (2026-10-20) carry no chart changes; 10.5.2 / 10.4.4 / 10.3.8 (2026-10-27) only bump the bundled cert-manager to v1.21.3 (10.5.2 also gitlab-runner 0.94.1).
+  - **Chart 10.6.0 (2026-11-18) upgrade notes:** images supplied for `global.certificates.image` / `shared-secrets.selfsign.image` must ship `/scripts/bundle-certificates` and `/scripts/generate-certificates`; the registry init container renders `config.yml` with `gomplate` (custom `registry.init.image` must provide it; `{% %}` in registry values no longer evaluated; `delete.enabled` in the storage Secret now always honored); webservice/registry `preStop` hooks use the k8s `sleep` action (needs k8s ≥ 1.30; a replaced Webservice image needs PID 1 = Puma or a SIGINT-forwarding `tini`); the `configure` init containers are removed from every chart except registry (Pods need `fsGroup`; restart Pods after Secret changes; GitLab Shell reads host keys from `/etc/gitlab-ssh-host-keys`); the Praefect Service lost its Prometheus scrape annotations and its port is now `tcp-praefect` (was `grpc-praefect`); Ingress only accepts `networking.k8s.io/v1`. Bundled Envoy Gateway is **v1.10.0** → apply the Envoy Gateway v1.10.0 CRDs (`helm template … gateway-crds-helm --version v1.10.0 … | kubectl apply --server-side`) before `helm upgrade`; Helm never upgrades CRDs. 10.6.1 (2026-11-19) only sets the Envoy `drainTimeout` default to 240s.
+  - **GitLab 19.6.0 – 19.6.1 (= chart 10.6.0 – 10.6.1) can fail the `DropAiEventsCounts` post-deploy migration** (`PG::DependentObjectsStillExist`, when detached `ai_events_counts` partitions exist); fixed in app **19.6.2**, no chart carrying it yet at the 2026-11-25 read. Wait for 19.6.2 or drop the detached partitions first (GitLab 19 upgrade notes carry the SQL). Helm-chart installs of GitLab Secrets Manager (OpenBao) must run the `gitlab:secrets_management:openbao:secrets_manager_policy:update` Rake task after 19.6.
+  - **Chart 10.3.0+ needs new Envoy Gateway CRDs** (1.9.1 and Gateway API 1.6 CRDs; later charts need the CRDs of the bundled `gateway-helm` version): without them the upgrade fails on the GitLab Shell `TCPRoute` or the API server silently prunes `Host` header fields.
+  - **Container registry `s3` driver is `s3_v2` (AWS SDK v2) since 19.0:** for S3-compatible backends (Ceph RGW, MinIO) `regionendpoint` must be a full URI with scheme; a bare hostname stops the registry starting.
+  - **Chart 10.5.0 (2026-10-15):** KAS advertises `grpcs` to agents by default; toolbox backup CronJob defaults to `batch/v1` and HPAs to `autoscaling/v2`; Envoy Gateway v1.9.2, gateway-crds-helm v1.9.1, container-registry v4.42.0-gitlab. 10.5.1 / 10.4.3 / 10.3.7 (2026-10-20) carry no chart changes; 10.5.2 / 10.4.4 / 10.3.8 (2026-10-27) bump the bundled cert-manager to v1.21.3; 10.5.3 – 10.5.9, 10.4.5 – 10.4.11 and 10.3.9 – 10.3.11 (2026-10-28 – 11-19) carry only Envoy Gateway v1.9.3 (10.5.4 / 10.4.6 / 10.3.9) and gitlab-runner 0.94.3 (10.5.6) or nothing; 10.2.10 / 10.1.10 / 10.0.11 / 9.11.16 (2026-10-28/29) bump Envoy Gateway (v1.8.6 on 10.x, v1.7.5 on 9.11) and cert-manager to v1.21.3 (10.2) or v1.20.5 (10.1, 10.0, 9.11).
   - Envoy Gateway is the chart-native ingress now. The skill's verdict treats this as a separate ingress axis — flag it if Cilium Gateway API or another gateway is already in the cluster (conflict on `GatewayClass` and Listener ports).
 
 ## 9.x  (GitLab 18.x)
@@ -121,9 +119,9 @@ sifted here.
 
 - **External datastore versions** — verify before any cross-major bump: PG (14 / 16.5+ / 17.x), Redis or Valkey (7.2+ from 19.x onward), object storage reachable.
 - **Registry metadata DB migration status** — completed before 19.x.
-- **Ingress posture** — NGINX still serving in 10.x = stop. Gateway API + Envoy Gateway is the only supported path on 10.x.
+- **Ingress posture** — Gateway API + Envoy Gateway is the default on 10.x; NGINX is opt-in until its removal in 20.0. Bundled Envoy Gateway CRDs must match the target chart (Helm never upgrades them).
 - **Sidekiq concurrency cap** — chart 9.9+ sets `GITLAB_SIDEKIQ_MAX_REPLICAS` by default; unset or `0` on non-KEDA deployments.
-- **Bundled cert-manager** (`installCertmanager: true`) — newest charts 9.11.15, 10.0.10 and 10.1.9 still pin cert-manager v1.20.2, below its 1.20.3 security floor (CVE-2026-62290, `compat/cert-manager.md` § 1.20.0); 10.2.9 pins v1.21.0, 10.3.8+ v1.21.3. On ≤ 10.1 → `⚠ needs bump`: chart ≥ 10.2, or run cert-manager outside the chart.
+- **Bundled cert-manager** (`installCertmanager: true`) — newest charts 9.11.16, 10.0.11 and 10.1.10 pin v1.20.5, 10.2.10 and 10.3.11+ pin v1.21.3: all at or above the 1.20.3 security floor (CVE-2026-62290, `compat/cert-manager.md` § 1.20.0). Older patches (9.11.15, 10.0.10, 10.1.9 and below: v1.20.2; 10.2.9: v1.21.0) are below it → `⚠ needs bump` to the newest patch of the line.
 - **Background migrations drained** — pre any minor jump.
 - **Backup taken** — chart docs phrase as MUST.
 

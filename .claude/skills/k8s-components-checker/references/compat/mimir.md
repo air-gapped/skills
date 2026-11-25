@@ -5,10 +5,10 @@
 - **Truth source type:** `chart_metadata`
 - **Axis type:** `single`
 - **min_tracked_version:** 5.7
-- **Last sifted:** 2026-10-27 (6.1.1 / 6.2.1 / 6.2.2 Chart.yaml, values.yaml and CHANGELOG read at their tags)
-- **Last release-verified:** 2026-10-27
+- **Last sifted:** 2026-11-25 (chart tag list, chart `CHANGELOG.md` `main / unreleased` and `Chart.yaml` at main and at `mimir-distributed-5.8.1` / `6.2.2`; app releases mimir-3.2.4 – 3.2.6, 3.1.9 – 3.1.11, 2.17.12; grafana/mimir issue #17112). Earlier: 2026-10-27 (6.1.1 / 6.2.1 / 6.2.2 Chart.yaml, values.yaml and CHANGELOG read at their tags)
+- **Last release-verified:** 2026-11-25 — no chart tag newer than `mimir-distributed-6.2.2` (2026-10-26); newest app releases mimir-3.2.6 / 3.1.11 / 2.17.12 (2026-11-13/18); `6.3.0-weekly.*` still dev builds
 
-In-scope set: current stable chart minor **6.2** + prior 2 (6.1, 6.0). Latest patches as of sift: `mimir-distributed-6.2.2` (2026-10-26, appVersion 3.2.3), `6.1.1` (2026-10-26, appVersion 3.1.8), `6.0.6` (2026-03-19), `5.8.1` (2026-11-09, appVersion 2.17.11). Chart 5.8 has one patch: `5.8.1` fixes one zone's scale-down immediately scaling down the later zones (#16899); 5.7 has none. **`5.7.0` is retained below the window** (see § 5.7.0) because it is a live fleet version and the origin of the 2.x → 3.x migration — not because it is in scope for a support verdict.
+In-scope set: current stable chart minor **6.2** + prior 2 (6.1, 6.0). Latest chart patches as of sift: `mimir-distributed-6.2.2` (2026-10-26, appVersion 3.2.3), `6.1.1` (2026-10-26, appVersion 3.1.8), `6.0.6` (2026-03-19), `5.8.1` (2026-11-09, appVersion 2.17.11). **Newest app patches are ahead of every chart:** 3.2.6 (2026-11-18), 3.1.11 (2026-11-18), 2.17.12 (2026-11-13), 3.0.9 (2026-08-20) — reach them with an `image.tag` pin (see § 6.2.0 app-patch note). Chart 5.8 has one patch: `5.8.1` fixes one zone's scale-down immediately scaling down the later zones (#16899); 5.7 has none. **`5.7.0` is retained below the window** (see § 5.7.0) because it is a live fleet version and the origin of the 2.x → 3.x migration — not because it is in scope for a support verdict.
 
 **Chart → Mimir-app mapping (load-bearing):**
 
@@ -34,6 +34,8 @@ The k8s floor moves only at chart-minor boundaries, and it has moved **twice in 
 | 6.1.x (3.1) | 6.2.2 (3.2.3) | works | lab rehearsal; upstream next minor |
 | 5.x or 6.0.x | 6.2.x, one hop | **blocked**: 3.2 needs every querier on 3.1 first | CHANGELOG #15358 |
 | 5.7 → 5.8.1 → 6.0.6 → 6.1.1 → 6.2.2 | — | supported | upstream minor-to-minor policy |
+
+**Chart lifecycle — deprecated.** The Mimir team is deprecating the `grafana/mimir-distributed` chart and moving it to `grafana-community/helm-charts` (issue grafana/mimir#17112, open; chart CHANGELOG `main` carries "[CHANGE] Deprecate and move the chart", #17114). `mimir-distributed 6.3.0`, planned Q4 2026, is announced as the last release from the grafana/mimir repo; as of 2026-11-25 `grafana-community/helm-charts` has no mimir chart and `grafana/mimir` has no 6.3.0 tag. Images, packages and binaries stay published by the Mimir team. Plan the source repo / chart name change for any GitOps `Application` pinned to the Grafana chart repo; do not assume the community fork's version numbering. Unreleased chart changes queued for 6.3.0 (CHANGELOG `main`): default gateway NGINX image becomes `nginx/nginx-unprivileged:1.31.9-alpine` (mirror `docker.io/nginx/nginx-unprivileged`, #17250); one-time pod roll when the config-checksum annotations are recomputed (#16571); larger default memcached memory requests/limits (#16348); memberlist `rejoin_interval` default 60s (#16332); `grafana.com/min-time-between-zones-downscale` becomes a StatefulSet annotation instead of a label (#17308).
 
 6.0 is the architecture event on either path: the ingest-storage default arrives with any 6.x target.
 
@@ -63,6 +65,7 @@ The k8s floor moves only at chart-minor boundaries, and it has moved **twice in 
   3.2.3 security release. With a pinned `image.tag`, bump the pin in the same
   change or the chart patch fixes nothing. `6.3.0-weekly.*` pre-releases are not
   a tracked line.
+- **App patches newer than chart 6.2.2 (image-tag pin; chart not repackaged):** 3.2.4 (2026-10-30) Go-module CVE bumps (go-jose, x/net); **3.2.5 (2026-11-13) Alertmanager breaking changes** — SNS receivers must carry explicit access/secret keys (restore old behaviour with `-alertmanager.require-explicit-sns-credentials=false`), SNS receivers with `use_aws_http_client` are rejected, and tenant-config restrictions are enforced when loading from storage too (exempt existing tenants with `-alertmanager.tenants-exempt-from-config-validation-for-existing-config`); 3.2.6 (2026-11-18) Go 1.26.11 / klauspost-compress / OpenTelemetry CVE bumps. Same Alertmanager changes ship in 3.1.10 and 2.17.12. Target 3.2.6 / 3.1.11 once tenants using SNS receivers are checked.
 - **6.2.1 swaps the bundled MinIO image to `pgsty/silo`** (MinIO community images
   left the public registries, #16766) — the mirror needs docker.io `pgsty/silo`,
   not quay.io `minio/minio`.

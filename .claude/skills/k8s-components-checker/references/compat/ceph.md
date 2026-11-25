@@ -1,12 +1,13 @@
 # Ceph (storage) — compat (sifted from release_notes)
 
 - **Primary source:** https://docs.ceph.com/en/latest/releases/
-- **Do NOT read `docs.ceph.com/en/tentacle/releases/`.** That build is stale (checked 2026-09-15): it lists only Squid and Reef as active, shows Squid at 19.2.2 and Reef at 18.2.6, and never mentions Tentacle. `/en/latest/`, `/en/squid/` and `/en/reef/` serve identical current content; the Tentacle per-release detail page lives at `/en/squid/releases/tentacle/`.
-- **Secondary sources:** per-release notes pages (https://docs.ceph.com/en/latest/releases/{tentacle,squid,reef}/); cross-reference `compat/rook.md` for the Rook↔Ceph pairing matrix (authoritative for k8s axis).
+- **Release pages:** `docs.ceph.com/en/latest/releases/` lists the active lines with latest point release and estimated EOL; `/en/tentacle/releases/` and `/en/squid/releases/tentacle/` now redirect to the same current content. Prose notes also live in `ceph/ceph` `doc/releases/{umbrella,tentacle,squid}.rst`; EOL dates in `doc/releases/releases.yml`.
+- **Secondary sources:** per-release notes pages (https://docs.ceph.com/en/latest/releases/{umbrella,tentacle,squid,reef}/); cross-reference `compat/rook.md` for the Rook↔Ceph pairing matrix (authoritative for k8s axis).
 - **Truth source type:** `release_notes`
 - **Axis type:** `single`
 - **min_tracked_version:** 18.2
-- **Last sifted:** 2026-10-27 (Squid 19.2.7 added from `doc/releases/squid.rst`; Tentacle still 20.2.4). Previous: 2026-09-15 (point releases and EOL dates re-read from the prose release notes; k8s axis unchanged since 2026-07-21, where it was re-derived via `compat/rook.md` — Rook 1.20 adds no new Ceph-minor constraint beyond 1.19's Squid v19.2.0+ / Tentacle v20.2.1+ pairing)
+- **Last sifted:** 2026-11-25 (Umbrella 21.2.0 section added; Tentacle 20.2.5; Squid 19.2.7 EOL moved to 2026-12-02; from `doc/releases/{umbrella,tentacle,squid}.rst`, `releases.yml`, `index.rst` and `require-osd-release.rst` on `ceph/ceph` main). Previous: 2026-10-27 (Squid 19.2.7 added; Tentacle still 20.2.4); before that 2026-09-15 (point releases and EOL dates re-read from the prose release notes; k8s axis unchanged since 2026-07-21, where it was re-derived via `compat/rook.md` — Rook 1.20 adds no new Ceph-minor constraint beyond 1.19's Squid v19.2.0+ / Tentacle v20.2.1+ pairing)
+- **Last release-verified:** 2026-11-25 — Umbrella 21.2.0 (2026-10-28), Tentacle 20.2.5 (2026-11-02), Squid 19.2.7 (2026-10-12), Reef 18.2.8 (2026-03-20, final); same figures on `docs.ceph.com/en/latest/releases/` and `releases.yml`.
 
 **k8s axis collapses through Rook.** Ceph itself has no k8s version dependency
 — it is daemon software. The operator-axis is `Rook minor → Ceph minor` and
@@ -15,11 +16,56 @@ upgrade-ordering between daemon types, OSD encoding gates, RGW/RBD/CephFS
 protocol changes, removed modules, and EOL. For "can I run Ceph X on k8s Y",
 read `compat/rook.md`.
 
-Two lines active as of 2026-09-15: Tentacle (20.x — current) and Squid (19.2.x
-— stable, EOL estimated 2026-10-31). Reef (18.2.x) is **archived** upstream —
-no bug fixes, no backports.
+Three lines active as of 2026-11-25: Umbrella (21.2.x — newest, GA 2026-10-28),
+Tentacle (20.2.x — current for production) and Squid (19.2.x — EOL estimated
+2026-12-02). Reef (18.2.x) is **archived** upstream — no bug fixes, no
+backports. The mons now accept only `squid`, `tentacle` and `umbrella` as
+`ceph osd require-osd-release` targets.
 
-## 20.2.4 / Tentacle (GA 2025-11-18, latest 20.2.4 2026-08-19)
+**Upgrade to the latest point release of the target line.** Upstream tests only
+the latest minor of the target series as the destination. Squid 19.2.6 →
+Tentacle below 20.2.4 can fail: 20.2.4 introduced the CephX key-type changes,
+older Tentacle daemons fail to start, the mgrs upgrade and the rest may not,
+and the only way out is redeploying the mgrs on the previous image. Target
+**20.2.5**, not 20.2.3 or earlier.
+
+## 21.2.0 / Umbrella (GA 2026-10-28, latest 21.2.0, EOL est. 2028-06-01)
+
+- **Stable line starts at 21.2.0.** 21.1.x are release candidates, 21.3.x are
+  development checkpoints; run only 21.2.z in production.
+- **k8s floor:** N/A — see `compat/rook.md`. Rook v1.21.0+ lists Umbrella as a
+  supported Ceph major in its code (`supportedVersions`), but the Rook 1.21
+  upgrade guide still names only Squid v19.2.0+ / Tentacle v20.2.1+ and the
+  CephCluster CRD doc still says Umbrella needs `allowUnsupported: true`.
+  Treat Umbrella-under-Rook as **not documented as supported**; no field
+  report on file.
+- **Breaking:**
+  - **Container images are built on Rocky Linux 10 (el10)** and need an
+    `x86-64-v3` CPU. Older x86 hosts cannot run the containerized daemons.
+    Check every node before bumping `cephVersion.image`.
+  - PG autoscaler defaults rose: `mon_target_pg_per_osd` 100 → 200 and
+    `mon_max_pg_per_osd` 250 → 500. Existing pools may split after the
+    upgrade (`pg_autoscale_during_upgrade` paces it). With an effective
+    `bluestore_osd_memory_target` under 4 GiB, or SSDs split into more than
+    two OSDs, pin the old values before upgrading.
+  - Optimized ("Fast") EC rejects non-4K-aligned chunk sizes; health warnings
+    appear for deprecated EC plugins/techniques and Blaum-Roth profiles whose
+    `w+1` is not prime.
+  - CephX: new `AES256KRB5` cipher replaces the weaker legacy key types as
+    the default; online key rotation for mon/OSD/MDS during upgrades. Carries
+    the CVE-2025-30156, CVE-2026-39944, CVE-2026-50152 and CVE-2026-54330
+    fixes.
+  - HDD mClock shard defaults listed as changed (`osd_op_num_shards_hdd`
+    5 → 1, `osd_op_num_threads_per_shard_hdd` 1 → 5) — re-baseline
+    hand-tuned HDD clusters.
+- **Upgrade ordering (intra-cluster):** mon → mgr → osd → mds → rgw, then
+  `ceph osd require-osd-release umbrella` (one-way; Rook raises it
+  automatically).
+- **RGW:** the SigV4 fix for presigned PUTs / unsigned `Content-Type`
+  (regression in 19.2.6 / 20.2.4) is in 21.2.0; AES-256-GCM SSE added.
+- **Notable:** non-Rook only — `cephadm` needs Python 3.9+ on hosts.
+
+## 20.2.5 / Tentacle (GA 2025-11-18, latest 20.2.5 2026-11-02)
 
 - **k8s floor:** N/A — see `compat/rook.md`. Tentacle requires Rook ≥ the
   minor that lists Tentacle in its supported-Ceph table.
@@ -77,15 +123,21 @@ no bug fixes, no backports.
     `enable_availability_tracking`).
   - `cephadm` is the upstream tool for non-Rook deployments. Operator runs
     Rook; informational only — `cephadm` workflow does not apply.
-- **Point releases since 20.2.1:** 20.2.2 (2026-06-16), 20.2.3 (2026-08-05),
-  20.2.4 (2026-08-19). **20.2.4 is a security release** covering
-  CVE-2025-30156, CVE-2026-39944, CVE-2026-50152 and CVE-2026-54330. None of
-  the three carries an avoid-this-release warning; each opens with the routine
-  "We recommend that all users update to this release."
+- **Point releases since 20.2.1 (2026-04-06):** 20.2.2 (2026-06-16), 20.2.3
+  (2026-08-05), 20.2.4 (2026-08-19), **20.2.5 (2026-11-02, newest — land here)**.
+  **20.2.4 is a security release** covering CVE-2025-30156, CVE-2026-39944,
+  CVE-2026-50152 and CVE-2026-54330. **20.2.5** hardens CephX service-ticket
+  verification and fixes the RGW SigV4 regression of 20.2.4 (unsigned
+  `Content-Type` / `x-amz-content-sha256` no longer rejected); also adds
+  AES-256-GCM SSE, a global CORS rule, and multisite fixes (bucket object-lock
+  sync, reshard racing index updates). No new upgrade gate. None of
+  20.2.2–20.2.5 carries an avoid-this-release warning; each opens with the
+  routine "We recommend that all users update to this release." Tentacle
+  20.2.0 stays unrecommended (read-affinity corruption, see `compat/rook.md`).
 - **EOL:** **2027-06-01** (upstream estimate, stated in the releases index —
   supersedes this file's earlier ~2027-11 guess from cadence).
 
-## 19.2.7 / Squid (GA 2024-09-26, latest 19.2.7 2026-10-12)
+## 19.2.7 / Squid (GA 2024-09-26, latest 19.2.7 2026-10-12; EOL est. 2026-12-02)
 
 - **19.2.7 (2026-10-12, `doc/releases/squid.rst`):** backport release, upstream recommends all users update. No new upgrade gate. RGW: `rgw_gc_max_objs` becomes startup-only (runtime changes ignored until restart); multisite now syncs bucket `obj_lock` settings. Rook pairing unchanged (Squid v19.2.0+ on Rook 1.19–1.21). The 19.2.6 multisite RGW-settings-before-upgrade caveat (`compat/rook.md`) still applies when coming from below 19.2.6.
 - **RGW SigV4 clients:** 19.2.6 / 20.2.4 reject minio-go and other clients sending an unsigned `Content-Type` or `x-amz-content-sha256` (`403 AccessDenied`); fixed in 19.2.7, 20.2.5 and 21.2.0 → `ceph-s3`. Mimir verdict → `compat/mimir.md` § Object storage.
@@ -118,9 +170,9 @@ no bug fixes, no backports.
 - **Point releases since 19.2.3:** 19.2.4 (2026-06-01), 19.2.5 (2026-07-14),
   19.2.6 (2026-08-19). **19.2.6 carries the same four-CVE hotfix as 20.2.4.**
   No avoid-this-release warning on any of the three.
-- **EOL:** **2026-10-31** (upstream estimate, stated in the releases index).
-  That is within weeks of this sift — treat Squid as a migration source, not a
-  destination.
+- **EOL:** **2026-12-02** (upstream estimate, `releases.yml`; moved from
+  2026-10-31). Within weeks of this sift — treat Squid as a migration source,
+  not a destination; the target is Tentacle 20.2.5.
 
 ## 18.2.8 / Reef (GA 2023-08-07, final point release 18.2.8 2026-03-20)
 
@@ -158,17 +210,17 @@ no bug fixes, no backports.
   no `k8s X requires Ceph Y` constraint anywhere in upstream Ceph. The
   Rook compat file owns that axis. This file owns the *Ceph-side* axis:
   protocol breaks, removed modules, encoding gates, intra-cluster ordering.
-- Three releases (Reef / Squid / Tentacle) overlap as of 2026-05-28; floor
-  set to **18.2** because Reef just EOL'd and operators with Reef in
-  production still need verdict coverage during their migration window.
-  Move floor to 19.2 once the Reef migration tail clears (expected Q4
-  2026).
+- Reef is archived (final 18.2.8, 2026-03-20) but the floor stays **18.2**
+  so operators still on Reef get a verdict during their migration window.
+  Move floor to 19.2 once the Reef migration tail clears; mons no longer
+  accept `reef` for `require-osd-release`.
 - Versions skipped due to known data-loss / BlueFS regressions: **18.2.5,
   18.2.6, 19.2.0, 19.2.1**. Verdicts touching any of these four point
   releases must flag the issue regardless of Rook's compat answer.
-  **Re-read in full 2026-09-15 and still exactly these four** — no new
-  known-bad point release appeared across Tentacle 20.2.2-20.2.4 or Squid
-  19.2.4-19.2.6. The upstream warnings that define the list: 19.2.1 carries
+  **Re-checked 2026-11-25 and still exactly these four** — no new
+  known-bad point release appeared across Tentacle 20.2.2-20.2.5, Squid
+  19.2.4-19.2.7 or Umbrella 21.2.0 (their notes carry no avoid-this-release
+  warning). The upstream warnings that define the list: 19.2.1 carries
   an explicit "Do not upgrade to Squid v19.2.1. Upgrade instead to Squid
   v19.2.2."; 19.2.0 carries an iSCSI upgrade-bug and balancer-module
   Attention box (tracker 68215, `ceph balancer off` as the workaround);

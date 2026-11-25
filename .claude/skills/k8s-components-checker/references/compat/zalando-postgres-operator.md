@@ -5,11 +5,11 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `multi`        # (operator version → bundled Spilo image → bundled PostgreSQL majors)
 - **min_tracked_version:** 1.13.0
-- **Last sifted:** 2026-09-15
+- **Last sifted:** 2026-11-25 — release list (no tag after v2.0.3), README support table on main (v2.0.3: PG 14→18, K8s 1.27+, Go 1.26.4), master commits and open issues since 2026-10-02. Earlier: 2026-09-15
 - **CORRECTION — the "no published matrix" premise was false, and false from the start.** This file says in four places that the k8s floor is *"unstated by upstream"* and that Zalando *"does not publish a hard matrix"*. The repo README has carried a **"Supported Postgres & K8s versions"** table continuously since v1.11.0, with an explicit **K8s column reading `1.27+`** for every release listed, v1.11.0 through v2.0.2. It was there the whole time.
   The inferred floor this file guessed (≥1.27) happens to match the published one, which is why the error survived: the answer was right, so nothing ever contradicted it. **Read the README table; stop inferring.** Probe: `gh api repos/zalando/postgres-operator/contents/README.md --header 'Accept: application/vnd.github.raw' | grep -A10 'Supported Postgres'`.
 - **k8s floor (published): `1.27+`, identical for every release v1.11.0 → v2.0.3.** Release ceiling **v2.0.3** (2026-10-02, `isLatest`); single release train, v1.15.1 (2025-12-18) is the last pre-2.0 tag. (**v2.0.0 (2026-07-27) + v2.0.1 (2026-07-29) released** — first releases since 2025-12; new major sifted below)
-- **Last release-verified:** 2026-10-04 — `v2.0.3` (2026-10-02) notes, PRs and `pooler/pgbouncer.ini.tmpl` read at both tags; see §2.0.3. Prior verify 2026-09-15 — **`v2.0.2` (2026-08-20) released and its
+- **Last release-verified:** 2026-11-25 — `v2.0.3` (2026-10-02, `isLatest`) still newest; no v2.0.4 / v2.1 tag. Earlier 2026-10-04 — `v2.0.3` (2026-10-02) notes, PRs and `pooler/pgbouncer.ini.tmpl` read at both tags; see §2.0.3. Prior verify 2026-09-15 — **`v2.0.2` (2026-08-20) released and its
   notes read in full; it supersedes v2.0.1 as the only deployable 2.0.** See the
   new §2.0.2 below. Prior verify 2026-07-29 (full release listing enumerated via
   `gh api`; v2.0.0/v2.0.1 notes read in full).
@@ -27,6 +27,8 @@ initdb with; the Patroni/Spilo bundle inside that image also ships several
 older majors so `pg_upgrade` flows work.
 
 ## 2.0.3  (2026-10-02)
+
+- **Post-2.0.3 (master, unreleased, 2026-11-25):** no tag yet, do not pin to master. Merged: lazy rolling update now waits for the maintenance window when one is configured (#3204; before this it waits for the next node rotation, possibly weeks); StatefulSet is replaced rather than updated on image changes (#3207, maintainers flag the logic as still being reworked); for PG 17+ the operator checks logical replication slots for more than 32 MiB lag before an in-place major upgrade (#3214); Patroni `GetConfig` panic fix when `postgresql` has no parameters (#3245). **Open issues that bite 2.0.3:** operator panics with `slice bounds out of range` after a *successful* in-place major upgrade when `inplace_upgrade.py` prints fewer than 100 bytes (#3248, found by code reading, not yet seen on a cluster); rolling-update loop on every resync when a mutating admission webhook (e.g. Kyverno) injects `runAsNonRoot` into the pod template — the operator has no knob to emit it (#3210); prepared-schema / default-grant failures are not retried (#3201 / #3229 / #3230); pooler resources not cleaned up after an operator restart (#3208).
 
 - **k8s floor / Spilo image / PG majors:** unchanged — `1.27+`, `spilo-18:4.1-p2`, PG 14–18 (README table at v2.0.3).
 - **Breaking — pooler auth type now follows the cluster's `password_encryption` (#3177, #3193).**

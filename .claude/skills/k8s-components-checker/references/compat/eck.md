@@ -6,10 +6,10 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `multi` (axis 1: k8s / OpenShift; axis 2: managed Elastic Stack range)
 - **min_tracked_version:** 2.16
-- **Last sifted:** 2026-10-12 (breaking changes 3.4/3.5, upgrade path from 2.x, restart pacing)
+- **Last sifted:** 2026-11-25 (release list to v3.5.0 — no newer tag; v3.4.1 notes; matrix CSV re-read; docs-content tab; open ECK bug list). Earlier: 2026-10-12 (breaking changes 3.4/3.5, upgrade path from 2.x, restart pacing)
 - **CORRECTION — the probe method was broken and the inferences it produced were wrong.** This file recorded that `support/matrix` "does NOT cover ECK — verified empty", and so fell back to probing per-minor guide pages and *inferring* windows from which ones 404. Both halves failed. The matrix does cover ECK (above). And the 404 rule no longer discriminates: probed today, **2.14, 3.1, 3.3, 3.4 and 3.5 all 404 while 2.16 and 3.0 still serve** — it is not an old-vs-new split, so a 404 carries no information at all.
 - **Four inferred values were wrong**, now replaced with published ones: 3.2.x k8s **1.30–1.34** (was inferred 1.29–1.34) and OpenShift **4.15–4.20** (was 4.14–4.19); 3.4.x k8s **1.31–1.36** (was 1.31–1.35) and OpenShift **4.16–4.22** (was 4.16–4.20). The 3.0.0 release date was also wrong: **2025-04-15**, not 2025-04-22. Unlike a stale number, a wrong inference never ages into correctness — it had to be read off the source to be caught.
-- **Published matrix, CSV read 2026-10-27** (release ceiling **v3.5.0**, 2026-08-04, `isLatest`):
+- **Published matrix, CSV read 2026-11-25 (unchanged from 2026-10-27)** (release ceiling **v3.5.0**, 2026-08-04, `isLatest`):
 
   | ECK line | Released | Kubernetes | OpenShift |
   |---|---|---|---|
@@ -20,7 +20,7 @@
   | 3.3.x | 2026-02-03 | 1.31–1.35 | 4.16–4.20 |
   | 3.4.x | 2026-05-05 | **1.31–1.36** | **4.16–4.22** |
   | 3.5.x | 2026-07-28 | **1.32–1.36** | 4.16–4.22 |
-- **Last release-verified:** 2026-09-24 — 3.5.0 confirmed via `gh api repos/elastic/cloud-on-k8s/releases/tags/v3.5.0` (published 2026-08-04, matches `generated.json`); ranges and breaking-change signal now sifted into `## 3.5.0` below.
+- **Last release-verified:** 2026-11-25 — `gh release list`: v3.5.0 (2026-08-04, `isLatest`) still newest; v3.4.1 (2026-06-22) newest 3.4 patch. Earlier 2026-09-24 — 3.5.0 confirmed via `gh api repos/elastic/cloud-on-k8s/releases/tags/v3.5.0` (published 2026-08-04, matches `generated.json`); ranges and breaking-change signal now sifted into `## 3.5.0` below.
 
 Notes on sources:
 
@@ -52,10 +52,10 @@ Notes on sources:
   - Reduced operator memory footprint: controller-runtime cache auto-scoped to ECK-labelled core workload resources; new opt-in `--restrict-watched-resources` flag further narrows Secrets/Services/ConfigMaps caching to `eck.k8s.elastic.co/watched=true`-labelled objects.
   - `controller-runtime` v0.24.1; k8s client-go v0.36.2 — consistent with the unchanged 1.36 ceiling.
 
-## 3.4.0 — 2026-05-05  (latest patch **3.4.1**, 2026-06-22 — version-verified 2026-07-21, patch contents not sifted)
+## 3.4.0 — 2026-05-05  (latest patch **3.4.1**, 2026-06-22 — notes read 2026-11-25: Go 1.26.2 → 1.26.4 and Go-module dependency bumps only, no behaviour change)
 
-- **k8s floor:** 1.31 – 1.35
-- **OpenShift floor:** 4.16 – 4.20
+- **k8s floor:** 1.31 – 1.36 (matrix CSV; the 3.4.0 release did not list 1.36 in the earlier inference)
+- **OpenShift floor:** 4.16 – 4.22
 - **Helm floor:** 3.2.0+
 - **Elastic Stack range:**
   - Elasticsearch / Kibana / APM Server: 8.x, 9.x
@@ -120,8 +120,8 @@ Notes on sources:
 
 ## 3.2.0 — 2025-10-30
 
-- **k8s floor:** 1.29 – 1.34 *(verify on upgrade — 3.2-era supported.html no longer reachable; floor inferred from controller-runtime v0.21/0.22 and client-go v0.33/0.34 in this release. Mark unreachable if exact range matters.)*
-- **OpenShift floor:** 4.14 – 4.19 *(same caveat)*
+- **k8s floor:** 1.30 – 1.34 (matrix CSV)
+- **OpenShift floor:** 4.15 – 4.20 (matrix CSV)
 - **Helm floor:** 3.2.0+
 - **Elastic Stack range:**
   - Elasticsearch / Kibana / APM Server / Beats / Agent / Maps: 7.17+, 8.x, 9.x (7.17 still documented here — 3.3.0 is the release that drops it)
@@ -158,7 +158,7 @@ Notes on sources:
   - Metadata propagation: labels/annotations on Elasticsearch/Kibana/Agent CRs now propagate to child Pods/Services (#8673) — admission webhooks or policies keying on child-object labels may see new labels appear.
   - `controller-runtime` v0.20.x; k8s client-go v0.33.2 (#8699) — drives the 1.33 ceiling.
 
-## 3.0.0 — 2025-04-22
+## 3.0.0 — 2025-04-15
 
 - **k8s floor:** 1.28 – 1.32
 - **OpenShift floor:** 4.14 – 4.18
@@ -183,7 +183,7 @@ Notes on sources:
   - `controller-runtime` v0.19.3; k8s client-go v0.32.0 (#8330) — drives the 1.32 ceiling.
   - UBI images dropped the `ubi` suffix for 9.x image paths (#8509) and adopted the new agent image path for 9.0 (#8518) — air-gapped mirrors must seed the new 9.x image coordinates before upgrading managed Stacks to 9.x.
 
-## 2.16.1 — 2025-01-13
+## 2.16.1 — 2025-01-21
 
 - **k8s floor:** 1.27 – 1.32 *(2.16.1 raised the supported window to 1.27–1.32 via #8403; 2.16.0 shipped a lower ceiling — operator runs 2.16.1+, so 1.27–1.32 is the floor to assume)*
 - **OpenShift floor:** 4.12 – 4.17
@@ -207,7 +207,7 @@ Notes on sources:
   - 2.16.1's only substantive change over 2.16.0 is the k8s window bump to 1.27–1.32 (#8403); functionally a compat/patch release. Run 2.16.1, not 2.16.0, on any cluster at k8s 1.31/1.32.
   - `controller-runtime` ~v0.19.x; k8s client-go ~v0.31/0.32 baked in (consistent with the 1.32 ceiling).
 
-## Operator-upgrade impact ledger (sifted 2026-10-13, through 3.5.0)
+## Operator-upgrade impact ledger (sifted 2026-11-25, through 3.5.0)
 
 **How to use.** For an operator hop *from* → *to*, take every row whose **Ver** satisfies *from* < Ver ≤ *to*. A skipped release still applies: its restarts, behaviour changes and known issues all land in the one hop (Elastic: "Stepping over one of these versions … still triggers a rolling restart"). Rows describe what the **operator upgrade** does to already-running workloads, plus behaviour that changes afterwards. Version support windows and new opt-in features live in the per-version sections above.
 
@@ -242,12 +242,14 @@ Notes on sources:
 | 3.4.0 | behaviour | Webhooks moved to controller-runtime `Validator`; warnings surfaced | Re-test custom webhooks layered on ECK | index #9235 |
 | 3.4.0 | known-issue | Logstash ignores `set-default-security-context` → rejected under an OpenShift `anyuid` SCC. **Fixed in 3.5.0** | Skip 3.4.x on OpenShift with Logstash | known-issues 3.4.x, #9550 |
 | 3.5.0 | restart | **Fleet Server** pods roll | Plan the roll | breaking 3.5.0 |
+| 3.5.0 | restart | **All Elasticsearch and Kibana pods** roll: the operator-internal `eck.k8s.elastic.co/watched: "true"` label leaks into their StatefulSet / Deployment pod templates (bug; label is harmless, `--restrict-watched-resources` stays off by default) | Pace the roll with the pause annotation (§ Cross-cutting); budget a second roll when the fix lands | breaking 3.5.0, issue #9786 |
+| 3.5.0 | known-issue | The leaked `watched` label is removed in **ECK 3.6.0** (not yet released at 2026-11-25), which rolls all Elasticsearch and Kibana pods once more | Going 3.5.0 → 3.6.0 costs a second ES + Kibana restart | known-issues 3.5.0, #9786 |
 | 3.5.0 | behaviour | Kibana readiness probe uses the status API | Pods may take longer to report Ready | index #9468 |
 | 3.5.0 | behaviour | `FLEET_SERVER_SERVICE_TOKEN` moves from a pod env var to a Secret | Nothing; security fix | index #9626 |
 | 3.5.0 | behaviour | Operator cache scoped to ECK-labelled workload resources; opt-in `--restrict-watched-resources` | Lower operator memory | index #9339 #9359 |
 | 3.5.0 | deprecation | `eck.k8s.elastic.co/managed` annotation → use `pause-orchestration` | Replace in runbooks/scripts | deprecations 3.5.0 |
 
-**Restart-trigger list** (Elastic's upgrade page, read 2026-10-12): 1.6, 1.9, 2.0, 2.1, 2.2, 2.4, 2.5, 2.6, 2.7, 2.8, 2.14, 3.1¹, 3.2¹, 3.4², plus 3.5 (Fleet Server, from breaking-changes). ¹ stack monitoring only · ² nearly every workload.
+**Restart-trigger list** (Elastic's upgrade page, read 2026-10-12): 1.6, 1.9, 2.0, 2.1, 2.2, 2.4, 2.5, 2.6, 2.7, 2.8, 2.14, 3.1¹, 3.2¹, 3.4², plus 3.5 (Fleet Server, and Elasticsearch + Kibana via the leaked `watched` label, from breaking-changes). ¹ stack monitoring only · ² nearly every workload.
 
 **Adding a release (freshen procedure).** For each new ECK version, read these four pages and append rows; never edit an old row except to fill in a **fixed-in** version:
 

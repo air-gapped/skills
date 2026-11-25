@@ -5,11 +5,11 @@
 - **Truth source type:** `published_matrix`
 - **Axis type:** `single`
 - **min_tracked_version:** 1.17
-- **Last sifted:** 2026-10-27 — latest patch per line **1.20.4**, **1.19.10**, **1.18.16** (all 2026-10-23, out-of-band security release); 1.17 got neither October release (still 1.17.18). `v1.21.0-pre.3` (2026-10-02) is the newest pre-release, no 1.21 GA.
-- **Security floor:** **1.20.4 / 1.19.10 / 1.18.16** — CVE-2026-111943 (golang/go#82345): rebuilt on Go 1.26.10 so the compromised eMudhra intermediate CAs are no longer trusted, plus all dependencies to latest patch. The 2026-10-15 patches (1.20.3 / 1.19.9 / 1.18.15) were dependency `[security]` bumps only (golang.org/x/net v0.60.0, OTel exporters). No compat-verdict change; any line below the floor gets `⚠ needs bump` to that line's floor patch.
-- **Previous sift:** 2026-09-24 — added `## 1.20.0` (was header-note-only since GA). Latest patch per line re-enumerated: **1.20.2**, **1.19.8**, **1.18.14** (all 2026-09-16), **1.17.18** (2026-07-16, unchanged). The 1.20.1→1.20.2, 1.19.7→1.19.8, 1.18.13→1.18.14 hops are bugfix/CI-only — no compat-verdict change. `v1.21.0-pre.2` (2026-09-09) remains pre-release only, not GA.
-- **Last release-verified:** 2026-10-27
-- **k8s windows (re-read 2026-09-24 off the per-minor pages, all unchanged):** 1.20 → 1.33–1.36 · 1.19 → 1.32–1.35 · 1.18 → 1.30–1.33 · 1.17 → 1.29–1.32. Support policy verbatim: *"Three stable branches are maintained at a time: One for the most recent minor release, and two for the prior two minor releases"* — in-scope set is **1.20/1.19/1.18**; 1.17 is out-of-window but kept below (equals `min_tracked_version`).
+- **Last sifted:** 2026-11-25 — read: v1.20.5 / v1.19.11 / v1.18.17 release notes (all 2026-11-17), `Documentation/operations/upgrade*` diffs v1.20.4→v1.20.5, v1.19.10→v1.19.11, v1.18.16→v1.18.17, `compatibility.rst` at the four line tags, v1.21.0-pre.4 notes. Latest patch per line **1.20.5**, **1.19.11**, **1.18.17**; 1.17 still **1.17.18** (2026-07-16, no newer). `v1.21.0-pre.4` (2026-11-02) is the newest pre-release, no 1.21 GA.
+- **Security floor:** **1.20.4 / 1.19.10 / 1.18.16** — CVE-2026-111943 (golang/go#82345): rebuilt on Go 1.26.10 so the compromised eMudhra intermediate CAs are no longer trusted, plus all dependencies to latest patch. The 2026-10-15 patches (1.20.3 / 1.19.9 / 1.18.15) were dependency `[security]` bumps only. The 2026-11-17 patches (**1.20.5 / 1.19.11 / 1.18.17**) carry no named CVE; they add `[security]` dependency bumps (go-jose v4.1.6, x/crypto v0.59.0, x/net v0.62.0, gopacket v1.7.2) — land on them. No compat-verdict change from the floor; any line below the floor gets `⚠ needs bump` to that line's newest patch.
+- **Previous sift:** 2026-10-27 — latest patches 1.20.4 / 1.19.10 / 1.18.16 (2026-10-23 security release). 2026-09-24 sift added `## 1.20.0`.
+- **Last release-verified:** 2026-11-25 (`gh release list --repo cilium/cilium`: v1.20.5 `isLatest`, v1.19.11, v1.18.17, v1.17.18 newest of its line, v1.21.0-pre.4)
+- **k8s windows (re-read 2026-11-25 off `compatibility.rst` at v1.20.5 / v1.19.11 / v1.18.17 / v1.17.18, all unchanged):** 1.20 → 1.33–1.36 · 1.19 → 1.32–1.35 · 1.18 → 1.30–1.33 · 1.17 → 1.29–1.32. Support policy verbatim: *"Three stable branches are maintained at a time: One for the most recent minor release, and two for the prior two minor releases"* — in-scope set is **1.20/1.19/1.18**; 1.17 is out-of-window but kept below (equals `min_tracked_version`).
 
 CRD schema versions per minor, unchanged since the 2026-09-15 sift (no bump in the 2026-09-16 patches): 1.17.x → 1.30.8, 1.18.x → **1.31.12**, 1.19.x → **1.32.7**, 1.20.x → **1.33.11**. **Cite the per-minor URL, not `/en/stable/`** — the `stable` alias follows whichever minor is current. CNP/CCNP API stays `cilium.io/v2` across all four minors.
 
@@ -40,7 +40,8 @@ path is masked.) Field-observed 2026-05-30.
 - **Deprecations:**
   - BGP peer/route/route-policy listing via the local REST API and `cilium-dbg bgp` — use `cilium shell -- bgp/*` instead.
   - Azure IPAM `status.azure.interfaces[].addresses[].subnet` and flat `status.azure.interfaces[].cidr` — mirrored for one release, then removed; read `status.azure.interfaces[].subnet` instead.
-- **Cross-component:** RKE2 bundles Cilium **v1.20.2** (chart `rke2-cilium 1.20.200`) on 1.37.1, **and on the 1.34–1.36 patches `v1.34.12` / `v1.35.9` / `v1.36.5`** (2026-09-30) — those lines' earlier patches ship 1.19.6, so an RKE2 *patch* upgrade there is a Cilium 1.19 → 1.20 upgrade and the ordering above applies. RKE2 1.37.0 ships v1.20.1.
+- **Cross-component:** RKE2's newest patches `v1.37.2` / `v1.36.6+rke2r2` / `v1.35.10` / `v1.34.13` bundle Cilium **v1.20.4**; `v1.37.1` and the 2026-09-30 patches `v1.34.12` / `v1.35.9` / `v1.36.5` bundle v1.20.2 (chart `rke2-cilium 1.20.200`). Earlier 1.34–1.36 patches ship 1.19.6, so an RKE2 *patch* upgrade from them is a Cilium 1.19 → 1.20 upgrade and the ordering above applies. RKE2 1.37.0 ships v1.20.1.
+- **Patch-level behaviour changes:** **1.20.5** — egress rules that combine `toServices` with `toPorts` no longer allow any destination on those ports when the referenced Service does not exist or is selector-less with no backends; they now **deny** until the Service exists (and has backends). Audit such CNP/CCNP rules and create the Services before rolling 1.20.5. The operator now waits **30 minutes** (was 3) before releasing an IPAM IP by default.
 - **Notable:** Gateway API bumped to v1.6.1 (from v1.4). GoBGP moves to v4.6.1. `cilium-cni` binary shrunk ~77 MB → ~16 MB. CRD schema version 1.33.11.
 
 ## 1.19.0
@@ -65,6 +66,7 @@ path is masked.) Field-observed 2026-05-30.
   - `--enable-encryption-strict-mode` variants → egress-specific replacements.
   - `clustermesh.enableMCSAPISupport` → `clustermesh.mcsapi.enabled`.
 - **Removed flags (deprecated in 1.18, gone now):** `--bpf-lb-proto-diff`, `--enable-recorder`, `--enable-session-affinity`, `--enable-internal-traffic-policy`, `--enable-svc-source-range-check`, `--enable-node-port`, `--enable-host-port`, `--enable-external-ips`, `--enable-custom-calls`, `--enable-ipv4-egress-gateway`, `--egress-multi-home-ip-rule-compat`, `--l2-pod-announcements-interface`.
+- **Patch-level behaviour changes:** **1.19.11** — same `toServices` + `toPorts` egress deny-until-Service-has-backends change as 1.20.5 (see § 1.20.0).
 - **Notable:** `--unmanaged-pod-watcher-interval` type changed int-seconds → `time.Duration` (e.g. `15s`). Helm `operator.unmanagedPodWatcher.intervalSeconds` still accepts both. Helm charts also published to OCI at `quay.io/cilium/charts/cilium`. Gateway API bumped to v1.4.
 
 ## 1.18.0
@@ -92,6 +94,7 @@ path is masked.) Field-observed 2026-05-30.
   - `--egress-multi-home-ip-rule-compat`, `--l2-pod-announcements-interface`.
   - Hubble exporter configuration options.
   - `--enable-k8s-terminating-endpoint`, CONNTRACK_LOCAL, ARP refresh period config — all gone in 1.18 itself.
+- **Patch-level behaviour changes:** **1.18.17** — same `toServices` + `toPorts` egress deny-until-Service-has-backends change as 1.20.5 (see § 1.20.0).
 - **Notable:** Migrated to slog across all components (operator log parsing may need updates). LLVM 19.1, Envoy v1.34, CNI v1.1.
 
 ## 1.17.0

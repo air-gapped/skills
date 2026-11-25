@@ -5,8 +5,8 @@
 - **Truth source type:** `release_notes`
 - **Axis type:** `multi` — axis 1 = bundled stack (embedded RKE2, KubeVirt, Longhorn, SLE Micro all move together with the Harvester version); axis 2 = management plane (which Rancher community minor manages this Harvester + the pinned `harvester-ui-extension`)
 - **min_tracked_version:** 1.5.0
-- **Last sifted:** 2026-10-27 (guest RKE2 ranges for 1.6/1.7 and the 1.9 CSI floor re-read from the SUSE per-line matrix pages; 1.9.1 still rc4). Previous: 2026-09-24 (added `## 1.9.0` — GA 2026-09-16; corrected the prior "1.9 is rc-only" claim; refreshed latest-patch figures for 1.6–1.8)
-- **Last release-verified:** 2026-09-24 (`gh` against `harvester/harvester` releases; generated.json compat.py sync 2026-09-24)
+- **Last sifted:** 2026-11-25 (read the v1.9.1 GA release notes and their fixed-issue list, v1.8.2 / v1.7.3 security sections, v1.10.0-rc3 notes, and the SUSE per-line matrix pages 1.5–1.9). Previous: 2026-10-27 (guest RKE2 ranges for 1.6/1.7 and the 1.9 CSI floor re-read from the SUSE per-line pages)
+- **Last release-verified:** 2026-11-25 (`gh release list/view` against `harvester/harvester`; GHSA advisories re-read via `gh api`; generated.json compat.py sync 2026-11-25)
 
 ## Community editions and lifecycle (load-bearing — corrected 2026-06-02)
 
@@ -19,8 +19,8 @@ and should run the **latest patch of each minor**; the community upgrade path is
 **not `.0`-only**.
 
 **Two advisories put a floor under "latest patch", and the versions this file used to
-name as targets are below it.** Checked 2026-09-15; `first_patched_version` is null on
-both, so these are derived from the affected ranges:
+name as targets are below it.** Re-checked 2026-11-25; no patched version is listed for the 1.5/1.6
+lines, so these are derived from the affected ranges (GHSA-pgh9 lists `1.8.0` as patched):
 
 | Advisory | Severity | Affected |
 |---|---|---|
@@ -29,7 +29,7 @@ both, so these are derived from the affected ranges:
 
 So `1.6.1` sits inside **both**, and `1.7.1` inside the second. A verdict that
 recommends either as a landing point is recommending a vulnerable release. Latest
-stables at this check: **1.8.2** (2026-08-06), **1.7.3** (2026-08-07). Note the
+stables at this check: **1.9.1** (2026-11-10), **1.8.2** (2026-08-06), **1.7.3** (2026-08-07). Note the
 critical one is an *installer* exposure: a node built by an affected installer stays
 exposed after the upgrade, so the remediation is credential rotation, not the hop.
 
@@ -45,16 +45,17 @@ dates below are approximate and grounded per House Rule #8.
 
 | Harvester minor | Released | Latest community patch | Maintained? (verdict) |
 |---|---|---|---|
-| 1.9.0 | 2026-09-16 | 1.9.0 (no patch yet) | current — but upstream itself warns against upgrading to it yet (see `## 1.9.0`) |
-| 1.8.0 | 2026-04-24 | 1.8.2 (2026-08-06) | maintained (latest − 1) |
-| 1.7.0 | 2025-12-23 | 1.7.3 (2026-08-07) | maintained (latest − 2); verdict flags nearing staleness |
-| 1.6.0 | 2025-08-27 | 1.6.1 (2025-10-16) | **stale** — superseded by 1.7/1.8/1.9; verdict warns |
-| 1.5.0 | 2025-04-25 | 1.5.2 (2025-09-18) | **EOL** — 4 minors behind; verdict warns hard (upgrade 1.5→1.6→1.7→1.8→1.9, no minor skip; see the `harvester-upgrade` skill) |
+| 1.9.0 | 2026-09-16 | 1.9.1 (2026-11-10) | current — land on 1.9.1, not 1.9.0 (see `## 1.9.1`) |
+| 1.8.0 | 2026-04-24 | 1.8.2 (2026-08-06; `v1.8.3-rc1` pre-release exists) | maintained (latest − 1); SUSE EOM 2026-12-29 |
+| 1.7.0 | 2025-12-23 | 1.7.3 (2026-08-07) | past SUSE EOM (2026-08-09) — latest − 2; verdict flags staleness |
+| 1.6.0 | 2025-08-27 | 1.6.1 (2025-10-16) | **stale** (past SUSE EOM 2026-04-16) — superseded by 1.7/1.8/1.9; verdict warns |
+| 1.5.0 | 2025-04-25 | 1.5.2 (2025-09-18) | **EOL** — 4 minors behind (SUSE EOM 2025-12-30, EOL 2026-12-30); verdict warns hard (upgrade 1.5→1.6→1.7→1.8→1.9, no minor skip; see the `harvester-upgrade` skill) |
 
 ## Bundled-stack ↔ Rancher pairing (axis-1 × axis-2 quick lookup)
 
 | Harvester | RKE2 (embedded) | KubeVirt | Longhorn | SLE Micro | Rancher (pair) | harvester-ui-extension |
 |---|---|---|---|---|---|---|
+| 1.9.1 | v1.36.6+rke2r1 | v1.8.4 | v1.12.2 | 6.2 | v2.15.x (embedded v2.15.3) | bundled (UI 1.9.0; SUSE matrix: Rancher ≥ 2.15.0 ↔ extension 1.9.0) |
 | 1.9.0 | v1.36.3+rke2r1 | v1.8.4 | v1.12.1 | 6.2 | v2.15.x | bundled (UI 1.9.0) |
 | 1.8.0 | v1.35.2+rke2r1 | v1.7.0 | v1.11.1 | 6.2 | v2.14.x | bundled (UI 1.8.0) |
 | 1.7.0 | v1.34.2+rke2r1 | v1.6.3 | v1.10.1 | 6.1 | v2.13.x | bundled (UI 1.7.0) |
@@ -63,9 +64,22 @@ dates below are approximate and grounded per House Rule #8.
 
 The `harvester-ui-extension` is shipped *inside* the Harvester release for the embedded Rancher; for external Rancher deployments the operator must install the matching `harvester` UI extension version from the SUSE chart repo before importing — using a Rancher that's a minor behind/ahead of the pair above is the #1 cause of "VM tab missing" / "cluster shown but unmanageable" tickets.
 
-## 1.9.0
+## 1.9.1
 
-- **Released:** GA 2026-09-16 (`gh release view v1.9.0 --repo harvester/harvester`). **v1.9.1 is not GA** — latest is `v1.9.1-rc4` (2026-10-21, pre-release); v1.9.0 remains the only 1.9 GA as of 2026-10-27. **Upstream itself flags this release as not recommended to upgrade to yet**: known issues (`harvester#11356`, `harvester#11615`) force VM shutdown or fail live migration during the upgrade (a common CPU-topology case — `cores * threads > 1` — hits the migration-fails-and-shuts-down path outright); permanent fixes are slated for `v1.9.1`. Mitigation for clusters that must upgrade now: pin a common `cpuModel` (e.g. `IvyBridge`) on the KubeVirt CR before starting, and gracefully shut down (don't rely on auto live-migrate) any VM with `cores*threads>1` first.
+- **Released:** v1.9.1 GA 2026-11-10 (`gh release view v1.9.1 --repo harvester/harvester`; ISO at `releases.rancher.com/harvester/v1.9.1/`). It is the target for any move to 1.9; do not land on 1.9.0.
+- **Fixes the 1.9.0 upgrade blockers:** `harvester#11356` (VM powered off instead of live-migrated) and `harvester#11615` (live migration fails on CPU extra feature `ht`) are both in the 1.9.1 bug-fix list and closed (2026-11-04 / 2026-11-02). The `cpuModel` pin / manual-shutdown mitigation in `## 1.9.0` is only needed for a 1.9.0 start version.
+- **Behaviour change (upgrade pre-drain):** since 1.7.0 Harvester shut down VMs whose live migration failed, so the upgrade could proceed. 1.9.1 adds `shutdownVMOnMigrationFailure` to the `upgrade-config` setting; default `false`: the VM keeps running and the upgrade waits until migration succeeds or the operator stops the VM. Set `true` (`kubectl edit settings.harvesterhci.io upgrade-config`; no UI field) before the upgrade to get the old behaviour. The default already applies when upgrading *to* 1.9.1.
+- **Bundled stack:** RKE2 `v1.36.6+rke2r1` · KubeVirt `v1.8.4` · Longhorn `v1.12.2` · CDI `v1.65.0` · Kube-OVN `v1.16.2` · SL Micro `6.2` · embedded Rancher `v2.15.3`.
+- **Security (release notes):** kernel IPv4 fixes (CVE-2026-99999 KVM-guest escape, CVE-2026-98432 use-after-free) in the SL Micro image; eMudhra intermediate-CA compromise handled by an updated `ca-certificates-mozilla` and Go 1.26.10 rebuilds (a node that applied the `emudhra-blocklist` CloudInit workaround must delete that resource and reboot after the upgrade); CVE-2026-109910 (VM action API enforced only read-level authorization) and CVE-2026-94289 (image-clone webhook skipped the source-image read check). Treat 1.9.1 as the security floor for 1.9.
+- **Deprecations / removals:** `rancher-vcluster` add-on deprecated, **removed in v1.10.0**; replacement is `rancher-k3k` (Experimental), with no data migration — re-import the cluster and recreate the Rancher config. Bare-metal container workloads and LVM local storage are GA in 1.9.1. LVM now requires a `dm-thin` StorageClass; `striped` is deprecated (no in-place conversion).
+- **Known issue at release:** `harvester#11741` — node promotion never completes after the cluster is imported into an external Rancher.
+- **Guest-cluster floor:** unchanged from 1.9.0 (CSI driver ≥ `v0.1.31`, cloud provider `v0.2.15`, guest RKE2 ≥ `v1.34.11+rke2r1` / `v1.35.8+rke2r1` / `v1.36.4+rke2r1`; SUSE per-line page `harvester-v1-9-x`, which still lists only v1.9.0 as of 2026-11-25).
+- **Upgrade ordering:** unchanged — external Rancher on a supported v2.15 patch first; 1.8.x → 1.9.x directly; 1.9.x → 1.9.y for y greater than x (Harvester docs "Upgrade paths").
+- **Upcoming:** `v1.10.0-rc3` (2026-11-21) is a pre-release the notes say not to upgrade to or from (Longhorn v1.13.0, KubeVirt v1.9.0, RKE2 `v1.36.6+rke2r1`, embedded Rancher v2.15.3). Not in scope for verdicts.
+
+## 1.9.0 (superseded by 1.9.1)
+
+- **Released:** GA 2026-09-16. **Do not land on 1.9.0; use 1.9.1** (see `## 1.9.1`). Upstream flagged 1.9.0 as not recommended for upgrade: known issues `harvester#11356` and `harvester#11615` forced VM shutdown or failed live migration during the upgrade (a common CPU-topology case — `cores * threads > 1` — hits the migration-fails-and-shuts-down path outright); both are fixed in 1.9.1. Mitigation for a cluster that must start from 1.9.0: pin a common `cpuModel` (e.g. `IvyBridge`) on the KubeVirt CR and gracefully shut down any VM with `cores*threads>1` first.
 - **k8s floor (embedded RKE2):** `v1.36.3+rke2r1`. Guest-cluster RKE2 Node Driver range: **RKE2 1.34, 1.35, 1.36** (SUSE per-line matrix `https://www.suse.com/suse-harvester/support-matrix/all-supported-versions/harvester-v1-9-x/`; the `all-supported-versions/` index page lags the per-line pages — read the per-line page).
 - **Bundled stack:** RKE2 `v1.36.3+rke2r1` · KubeVirt `v1.8.4` · Longhorn `v1.12.1` · CDI `v1.65.0` · Kube-OVN `v1.16.2` · SLE Micro `6.2` · embedded Rancher `v2.15.0` (release's own "Component Versions" table).
 - **Management plane:** external **Rancher v2.15** manages Harvester 1.9 (SUSE per-line matrix `harvester-v1-9-x`, `generated.json` `edges.harvester_rancher`). The new non-management-interface guest-cluster load-balancer UI needs Rancher **≥ v2.15.1**.
@@ -74,15 +88,16 @@ The `harvester-ui-extension` is shipped *inside* the Harvester release for the e
   - **Ingress controller switched from ingress-nginx to Traefik** (`#10067`) — the `ssl-parameters` setting is replaced by `traefik-default-tls-options`; anything scripting the old setting breaks.
   - Legacy BIOS VM support path is being removed (`#9382`, deprecate-and-eventually-remove) — new VMs should target UEFI.
 - **CRD migrations:** `kubevirt.io` v1.7 → v1.8 (KubeVirt minor bump backing Sysprep/virtiofs-serviceaccount features). `VirtualMachineRestore` gains `spec.haltAfterRestore` (restored/cloned VMs no longer auto-power-on by default — automation that assumed auto-start must set this explicitly or add the **Remain halted** UI option).
-- **Upgrade ordering:** **Rancher first.** The SUSE per-line matrix `harvester-v1-9-x` states that before upgrading to Harvester v1.9 the external Rancher must be on a supported v2.15 patch (the 1.9.0 release notes omit this). Rancher 2.15's own management-cluster window is k8s **1.34–1.36** (`compat/rancher.md` §2.15) — a Rancher on a 1.33 management cluster must move k8s first. Given the upstream upgrade warning above, do not plan a production upgrade onto 1.9.0 before `1.9.1` ships fixes for `#11356`/`#11615`.
+- **Upgrade ordering:** **Rancher first.** The SUSE per-line matrix `harvester-v1-9-x` states that before upgrading to Harvester v1.9 the external Rancher must be on a supported v2.15 patch (the 1.9.0 release notes omit this). Rancher 2.15's own management-cluster window is k8s **1.34–1.36** (`compat/rancher.md` §2.15) — a Rancher on a 1.33 management cluster must move k8s first.
 - **Deprecations:** `ssl-parameters` (Ingress NGINX) → `traefik-default-tls-options`. `striped` LVM volume type deprecated and excluded from LVM CSI GA scope — migrate existing striped volumes to `dm-thin` before upgrading past a version that drops it (no in-place conversion).
 - **Cross-component:** the 1.9.0 notes bump harvester-csi-driver to `v0.1.30` (`#10780`), but the SUSE per-line matrix `harvester-v1-9-x` requires **CSI driver ≥ `v0.1.31`** with cloud provider `v0.2.15`, on guest RKE2 ≥ `v1.34.11+rke2r1` / `v1.35.8+rke2r1` / `v1.36.4+rke2r1`. Guest clusters below those RKE2 patches carry an older CSI — bump the guest RKE2 patch first.
 - **Notable:** Longhorn V2 data engine promoted Experimental → Technical Preview (4096-byte block/unmap restriction lifted). Parallel/concurrent multi-VM live migration. Guest-cluster provisioning on Kube-OVN overlay networks (VPC NAT gateway). Containerized (bare-metal) GPU workloads alongside vGPU VMs via NVIDIA GPU Operator. Custom kernel-module/package installation via `rancher/harvester-kernel-module-devel` + Elemental chroot hooks.
 
 ## 1.8.0
 
-- **Released:** 2026-04-24 — community patches `v1.8.1` (2026-06-29) and `v1.8.2` (2026-08-06, latest on this line; ISO published at `releases.rancher.com/harvester/v1.8.2/`, confirming the every-release-is-community rule above).
-- **EOM / EOL (1.8.x line):** EOM 2026-12-29, EOL 2027-12-29 (SUSE support matrix, "Harvester v1.8.x" lifecycle table, checked 2026-09-24).
+- **Released:** 2026-04-24 — community patches `v1.8.1` (2026-06-29) and `v1.8.2` (2026-08-06, latest on this line; ISO published at `releases.rancher.com/harvester/v1.8.2/`, confirming the every-release-is-community rule above). `v1.8.3-rc1` (2026-11-12) is a pre-release only.
+- **Land on 1.8.2, not 1.8.1:** 1.8.2 fixes CVE-2026-7374 (KubeVirt `virt-handler` console-socket symlink replacement by a namespace editor could reach the host container-runtime socket), plus a patched etcd (GHSA-6vch-q96h-7gc3) and kernel use-after-free fixes. The SUSE 1.8 page withholds 1.8.1 from the upgrade responder for CVE-2026-7374.
+- **EOM / EOL (1.8.x line):** EOM 2026-12-29, EOL 2027-12-29 (SUSE support matrix, "Harvester v1.8.x" lifecycle table, checked 2026-11-25).
 - **k8s floor (embedded RKE2):** `v1.35.2+rke2r1`. Harvester-CSI/Cloud-Provider supports RKE2 Node Driver `v1.33 – v1.35` for guest clusters (min `≥v1.33.11+rke2r1`, `≥v1.34.7+rke2r1`, `≥v1.35.4+rke2r1`).
 - **Bundled stack:** RKE2 `v1.35.2+rke2r1` · KubeVirt `v1.7.0` · Longhorn `v1.11.1` · CDI `v1.62.0` · Kube-OVN `v1.15.4` · SLE Micro `6.2` · embedded Rancher `v2.14.0`.
 - **Management plane:** Rancher community **v2.14.x** only. **Upgrade Rancher to v2.14.x *before* upgrading Harvester to 1.8** (SUSE matrix; non-negotiable — Rancher 2.13 cannot drive Harvester 1.8 CRDs).
@@ -103,7 +118,7 @@ The `harvester-ui-extension` is shipped *inside* the Harvester release for the e
 ## 1.7.0
 
 - **Released:** 2025-12-23 (community patches 1.7.1 2026-02-10, 1.7.2 2026-07-07, **1.7.3 2026-08-07**)
-- **Maintained:** latest − 2 (1.9.0 shipped 2026-09-16). Latest community patch on this line: **1.7.3**. 1.7.3 (2026-08-07) post-dates 1.8.2 (2026-08-06) — the 1.7 line is still receiving patches after a newer minor ships, so a `sort -V` over all tags does **not** give the newest release.
+- **Maintained:** latest − 2 (1.9.0 shipped 2026-09-16, 1.9.1 on 2026-11-10); SUSE lifecycle for the 1.7 line: EOM 2026-08-09 (passed), EOL 2027-08-09. Latest community patch on this line: **1.7.3**. 1.7.3 (2026-08-07) post-dates 1.8.2 (2026-08-06) — the 1.7 line is still receiving patches after a newer minor ships, so a `sort -V` over all tags does **not** give the newest release.
 - **k8s floor (embedded RKE2):** `v1.34.2+rke2r1`. Guest-cluster RKE2 Node Driver: **RKE2 1.32, 1.33, 1.34** (SUSE per-line matrix `harvester-v1-7-x`; the 1.7 release notes also list `v1.31`, which the matrix does not support).
 - **Bundled stack:** RKE2 `v1.34.2+rke2r1` · KubeVirt `v1.6.3` · Longhorn `v1.10.1` · CDI `v1.62.0` · Kube-OVN `v1.14.10` · SL Micro `6.1` · embedded Rancher `v2.13.0`.
 - **Management plane:** Rancher community **v2.13.x**.
@@ -118,13 +133,13 @@ The `harvester-ui-extension` is shipped *inside* the Harvester release for the e
   2. Harvester 1.6.x → 1.7.0; check `/oem` YAML for hand-edited NetworkManager config (move to `/etc/NetworkManager/`, now a persistent path).
   3. Embedded RKE2 jumps to 1.34 during Harvester upgrade; **do not** pre-bump RKE2 separately.
 - **Deprecations:** Harvester upgrade-repo VM deprecated (replaced in 1.8 by stand-alone upgrade-manager).
-- **Cross-component:** harvester-csi-driver `v0.1.25` (snapshot support); guest-cluster RKE2 versions that ship this CSI: `v1.31.14+rke2r1`, `v1.32.10+rke2r1`, `v1.33.6+rke2r1`, `v1.34.2+rke2r1`. `v1.7.3`'s embedded RKE2 (`v1.34.10+rke2r1`) carries a patched etcd fixing a TLS-listener DoS (GHSA-6vch-q96h-7gc3, control-plane memory exhaustion) — a reason to prefer 1.7.3 over earlier 1.7.x patches even absent a feature need.
+- **Cross-component:** harvester-csi-driver `v0.1.25` (snapshot support); guest-cluster RKE2 versions that ship this CSI: `v1.31.14+rke2r1`, `v1.32.10+rke2r1`, `v1.33.6+rke2r1`, `v1.34.2+rke2r1`. `v1.7.3`'s embedded RKE2 (`v1.34.10+rke2r1`) carries a patched etcd fixing a TLS-listener DoS (GHSA-6vch-q96h-7gc3, control-plane memory exhaustion) — a reason to prefer 1.7.3 over earlier 1.7.x patches even absent a feature need. The 1.7.3 security notes do not list CVE-2026-7374 (the KubeVirt `virt-handler` fix named in 1.8.2); the 1.7 line is not confirmed fixed for it.
 - **Notable:** MIG-backed vGPU (A100/H100/H200) lands. NIC hot(un)plug, OVF/OVA import, VM Auto Balance (Descheduler) as experimental add-on. VM VLAN trunk networks.
 
 ## 1.6.0
 
 - **Released:** 2025-08-27
-- **Staleness:** superseded by 1.7/1.8/1.9; latest community patch on this line is 1.6.1 (2025-10-16, no further patches since). Verdict warns; upgrade to 1.7.x (see the `harvester-upgrade` skill).
+- **Staleness:** past SUSE EOM (2026-04-16; EOL 2027-04-16); superseded by 1.7/1.8/1.9; latest community patch on this line is 1.6.1 (2025-10-16, no further patches since; still inside both advisories above). Verdict warns; upgrade to 1.7.x (see the `harvester-upgrade` skill).
 - **k8s floor (embedded RKE2):** `v1.33.3+rke2r1`. Guest-cluster RKE2 Node Driver: **RKE2 1.31, 1.32, 1.33** (SUSE per-line matrix `harvester-v1-6-x`; the 1.6 release notes also list `v1.30`, which the matrix does not support).
 - **Bundled stack:** RKE2 `v1.33.3+rke2r1` · KubeVirt `v1.5.2` · Longhorn `v1.9.1` · CDI `v1.62.0` · SLE Micro `5.5` · embedded Rancher `v2.12.0`.
 - **Management plane:** Rancher community **v2.12.x**.

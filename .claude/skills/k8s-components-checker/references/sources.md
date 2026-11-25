@@ -1,6 +1,6 @@
 # sources.md — URL index for freshen
 
-Freshened: 2026-10-27 — every row probed (component rows, the 2026-09-24 grounding list, issue/PR/advisory states, endoflife.date, the ECK matrix CSV); every URL 200 except the expected absences (`kontainer-driver-metadata` `release-v2.16`, Cilium `v1.21` docs — no such releases yet). `compat.py sync --check` drift (GitLab chart patches) applied and `sync` re-run to zero drift.
+Freshened: 2026-11-25 — every row probed across all 20 components; the registry sync check reports no drift after regeneration (195 items cleared).
 
 One row per component. Each row carries the canonical source URL freshen
 probes, optional pin notes, and the `Last verified:` stamp.
@@ -74,9 +74,8 @@ This was a release-grounding overlay, **not** a full docs-matrix re-sift; per-ro
   **[CORRECTED 2026-05-31 — this was wrong: 2.15.x is real; see correction below]**.
 - **Version-drift applied:** NVIDIA GPU Operator — latest `v26.3.2`, one patch
   ahead of documented `§ 26.3.1` (existence grounded; content sift deferred).
-- **NOT gh-groundable (see `references/improvement-backlog.md`):** Ceph (no
-  `releases/latest`), GitLab (not on GitHub), Grafana Mimir (`releases/latest`
-  returns the app tag, not the chart `kubeVersion`). Ground via docs / GitLab
+- **NOT gh-groundable (see `references/improvement-backlog.md`):** GitLab (not on GitHub), Grafana Mimir (`releases/latest`
+  returns the app tag, not the chart `kubeVersion`). Ceph has no `releases/latest`, but its release table is groundable (2026-11-25): `gh api` on `ceph/ceph` `doc/releases/{umbrella,tentacle,squid}.rst` and `releases.yml` on main. Ground the rest via docs / GitLab
   API / `Chart.yaml`.
 
 ## 2026-05-31 — correction: `releases/latest` is recency, not rank
@@ -109,7 +108,7 @@ tagName,publishedAt,isLatest`. **Fourteen of seventeen components had moved**; t
 per-component rows below carry the measured version. Three notes that change how
 to probe, not just what the answer is:
 
-- **Do not sort a release list by date.** Harvester's `isLatest` is `v1.8.2`
+- **Do not sort a release list by date.** Harvester's `isLatest` was `v1.8.2` on 2026-09-15 (now `v1.9.1`, 2026-11-25; `v1.8.2` and `v1.7.3` remain the newest of their lines)
   (2026-08-06) while `v1.7.3` (2026-08-07) is one day newer on a maintenance line;
   RKE2 published `v1.34.11`, `v1.35.8` and `v1.36.4` on one day. Date-ordering picks
   the wrong ceiling for both. This is the 2026-05-31 correction below seen from the
@@ -135,7 +134,7 @@ Machine-read by `compat.py sync` (drift = `sync --check`; no per-row stamp — t
 - https://raw.githubusercontent.com/rancher/charts/release-v2.X/index.yaml — rancher-logging gates
 - https://www.suse.com/suse-harvester/support-matrix/all-supported-versions/harvester-vX-Y-x/ — Harvester ↔ Rancher + Node Driver RKE2 (per-line pages; the index page lags)
 - cilium/cilium `Documentation/network/kubernetes/compatibility.rst@<tag>` · argoproj/argo-cd `docs/operator-manual/tested-kubernetes-versions.md@<tag>` · rook/rook `Documentation/Getting-Started/Prerequisites/prerequisites.md@<tag>`
-- kedacore/keda-docs `content/docs/<line>/operate/cluster.md@main` · cert-manager/website `content/docs/releases/README.md@master` · kyverno/website `src/constants/version.ts@main` · https://www.elastic.co/support/matrix (ECK × Kubernetes CSV, found in the page's `__NEXT_DATA__`)
+- kedacore/keda-docs `content/docs/<line>/operate/cluster.md@main` · cert-manager/website `content/docs/releases/README.md@master` · kyverno/website `src/constants/version.ts@main` (no longer holds a support matrix as of 2026-11-25; use https://kyverno.io/docs/installation/releases/) · https://www.elastic.co/support/matrix (ECK × Kubernetes CSV, found in the page's `__NEXT_DATA__`)
 - https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/<line>/platform-support.html — version-pinned GPU Operator window
 - GitLab chart `doc/installation/cloud/_index.md` + `doc/installation/version_mappings.md` at the newest chart tag
 
@@ -148,9 +147,13 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Lab rehearsal 2026-11-24/25 (k8s 1.35, Ceph RGW 20.2.4) — 5.7.0 → 6.1.1 → 6.2.2 path rows and the RGW 20.2.4 row; details in `mimir-upgrade` sources
 - https://github.com/grafana/mimir/releases/tag/mimir-3.2.1 — Go-CVE patch for Mimir 3.2.x; packaged by chart 6.2.1, superseded by 3.2.3 in chart 6.2.2 (§ 6.2.0)
 - https://github.com/grafana/mimir/releases/tag/mimir-3.1.6 — Go/x-crypto/grpc CVE patch for Mimir 3.1.x; superseded by 3.1.8 in chart 6.1.1 (§ 6.1.0)
+- https://github.com/grafana/mimir/issues/17112 — mimir-distributed chart deprecated and moving to grafana-community; 6.3.0 (Q4 2026) announced as last release. Last verified 2026-11-25
+- https://github.com/grafana/mimir/releases/tag/mimir-3.2.5 — Alertmanager SNS and tenant-config validation changes (also 3.1.10, 2.17.12). Last verified 2026-11-25
 **gitlab**
-- https://gitlab.com/gitlab-org/charts/gitlab/-/raw/v10.4.1/doc/installation/cloud/_index.md — k8s support table with minimum GitLab per k8s minor (path moved from cloud/index.md, which 404s)
+- https://gitlab.com/gitlab-org/charts/gitlab/-/raw/v10.6.1/doc/installation/cloud/_index.md — k8s support table with minimum GitLab per k8s minor, plus the 1.30 hard install floor from chart 10.6.0 (path moved from cloud/index.md, which 404s)
 - https://gitlab.com/gitlab-org/charts/gitlab/-/raw/master/CHANGELOG.md — chart patch contents
+- https://gitlab.com/gitlab-org/charts/gitlab/-/raw/v10.6.1/doc/releases/10_0.md — chart 10.x upgrade notes per minor (10.3, 10.4, 10.6)
+- https://gitlab.com/gitlab-org/gitlab/-/raw/master/doc/update/versions/gitlab_19_changes.md — GitLab 19.x upgrade notes (fixed patch levels, required stops)
 **keda**
 - https://keda.sh/docs/2.21/operate/cluster/ — KEDA 2.21 k8s window 1.34–1.36
 - https://keda.sh/docs/2.21/migration/#upgrading-from-keda-220-to-221 — 2.21 breaking-change migration
@@ -168,80 +171,92 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 **eck**
 - https://github.com/elastic/cloud-on-k8s/releases/tag/v3.5.0 — ECK 3.5.0 release notes (deprecations, mTLS scope, Fleet token fix)
 - https://github.com/elastic/cloud-on-k8s/pull/9346 — 3.5.0 spec.resources shorthand is additive, no CRD migration
+- https://github.com/elastic/cloud-on-k8s/issues/9786 — 3.5.0 leaked `watched` label rolls all ES and Kibana pods; fixed in 3.6.0. Last verified 2026-11-25
 **kyverno**
 - https://github.com/kyverno/kyverno/releases/tag/v1.19.0 — 1.19.0 changelog
 - https://github.com/kyverno/kyverno/releases/tag/v1.19.1 — 1.19.1 security cherry-picks (the only line with the 2026-09-10 GHSA fixes)
 - https://github.com/kyverno/kyverno/pull/16868 — kyverno-policies policyType default flip + legacy policy deprecation warning
-- https://github.com/kyverno/kyverno/issues/15435 — kyverno-json removal (alpha-only)
+- https://github.com/kyverno/kyverno/issues/15435 — kyverno-json removal (alpha-only) — stale-bot closed; the removal itself is in merged PRs shipped in the v1.19.0 and v1.20.0 notes
+- https://kyverno.io/docs/installation/releases/ — 1.20 support block (k8s 1.34–1.37), 1.19 EOL at 1.20 GA. Last verified 2026-11-25
+- https://kyverno.io/docs/installation/upgrading/ — 1.20 legacy-policy engine removal, `upgrade.acknowledgeLegacyPoliciesNotEnforced`. Last verified 2026-11-25
 **nvidia-gpu-operator**
-- https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/platform-support.html — 26.7.x k8s 1.33–1.37, containerd 2.0–2.3 (version-pinned)
+- https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/platform-support.html — 26.7.x k8s 1.33–1.37, containerd 2.0–2.4 (version-pinned). Last verified 2026-11-25
+- https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/release-notes.html — 26.7.3 (2026-11-17): 26.3→26.7 driver-DaemonSet-deletion fix (issue #3155, PR #3157), DCGM Exporter 4.9.0 metric renames. Last verified 2026-11-25
 - https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/platform-support.html — 26.3.x k8s 1.32–1.36, containerd 1.7–2.3 (version-pinned)
 **rke2**
 - https://github.com/rancher/rke2/releases/tag/v1.37.0+rke2r1 — RKE2 1.37 GA notes (ingress-nginx correction, etcd 3.6→3.7, new charts)
 - https://github.com/rancher/rke2/releases/tag/v1.36.3+rke2r1 — first Traefik v40.x provider-key rename warning
+- https://github.com/traefik/traefik-helm-chart/releases/tag/v41.0.0 — rke2-traefik chart 41.x log-key rename and file-provider object change (1.37 line). Last verified 2026-11-25
 - https://endoflife.date/api/v1/products/kubernetes/ — k8s minor EOL dates
 **harvester**
-- https://github.com/harvester/harvester/releases/tag/v1.9.0 — 1.9.0 Component Versions + upgrade warnings (#11356, #11615)
+- https://github.com/harvester/harvester/releases/tag/v1.9.1 — 1.9.1 Component Versions, `shutdownVMOnMigrationFailure`, fixes for #11356 / #11615
+- https://github.com/harvester/harvester/releases/tag/v1.9.0 — 1.9.0 Component Versions + the upgrade warnings (#11356, #11615), superseded by 1.9.1
 - https://docs.harvesterhci.io/v1.9/rancher/rancher-integration — points at the SUSE matrix
 **rancher / rancher-logging**
-- https://github.com/rancher/rancher/releases/tag/v2.15.2 — 2.15 community ceiling, #57050 fixed, CVE batch, known issue #57506
+- https://github.com/rancher/rancher/releases/tag/v2.15.3 — 2.15 community ceiling (Community declaration), CVE batch 3, #57506/#58028/#58075 fixes, #57078 known issue. Last verified 2026-11-25
+- https://github.com/rancher/rancher/releases/tag/v2.16.0-rc4 — 2.16 prerelease only (rc2 2026-11-24, rc4 2026-11-25); chart kubeVersion < 1.38.0-0. Last verified 2026-11-25
+- https://github.com/rancher/rancher/releases/tag/v2.15.2 — superseded by v2.15.3; keep for #57050 fix. Last verified 2026-11-25
 - https://github.com/kube-logging/logging-operator/releases — upstream base (6.9.0), rancher-logging freeze gap
+- https://github.com/rancher/ob-team-charts/pull/337 — rancher-logging 4.10.0-rancher.25 BCI image rebuild (new repository names). Last verified 2026-11-25
 **cert-manager**
 - https://cert-manager.io/docs/releases/ — k8s/OpenShift windows, EOL triggers, support policy
 **cilium**
 - https://docs.cilium.io/en/v1.20/network/kubernetes/compatibility/ — Cilium 1.20 k8s window 1.33–1.36
 - https://docs.cilium.io/en/v1.20/operations/upgrade/ — Cilium 1.20 action-required notes
+**harbor**
+- https://github.com/goharbor/harbor/releases/tag/v2.16.0 — Harbor 2.16.0 GA 2026-11-10, no harbor-helm chart yet (PR #2449 open). Last verified 2026-11-25
+- https://github.com/goharbor/harbor/releases/tag/v2.15.5 — 2.15.5 (2026-11-12): replication `image` filter fix (#24180). Last verified 2026-11-25
 
 ## RKE2 (anchor)
 
 - URL: https://github.com/rancher/rke2/releases
 - Probe: `gh release list --repo rancher/rke2 --limit 50`
-- Last verified: 2026-10-27 — community per line **v1.37.1 / v1.36.5 / v1.35.9 / v1.34.12 (all 2026-09-30)**, v1.37.1 `isLatest`; the 1.34–1.36 patches move bundled Cilium 1.19.6 → 1.20.2 (rke2 PR #11269, merged, and siblings). v1.37.0+rke2r1 GA 2026-09-14. Prime-only bodies ("is a Prime-only release"): v1.31.14+rke2r2, v1.32.13+rke2r2, v1.33.13+rke2r3 (2026-10-02); community ceilings per line in `compat/generated.json`.
+- Last verified: 2026-11-25 — community per line **v1.37.2 (2026-11-05, isLatest) / v1.36.6+rke2r2 (2026-11-20) / v1.35.10 / v1.34.13 (2026-11-05)**; v1.33.13+rke2r2 unchanged. Prime-only bodies ("is a Prime-only release"): v1.33.13+rke2r3 (2026-10-02), v1.32.13+rke2r3 (2026-11-16); community ceilings per line in `compat/generated.json`.
 
 ## Rancher
 
 - URL: https://github.com/rancher/rancher/releases
 - Probe: `gh release list --repo rancher/rancher --limit 30`
-- EOL source: https://endoflife.date/api/v1/products/rancher/ — per-minor `eolFrom`; read 2026-10-27: 2.11 → 2026-10-24 (`isEol: true`), 2.12 → 2027-02-28, 2.13 → 2027-06-17, 2.14 → 2027-10-10, 2.15 → 2028-02-27.
+- EOL source: https://endoflife.date/api/v1/products/rancher/ — per-minor `eolFrom`; read 2026-11-25: 2.11 → 2026-10-24 (`isEol: true`), 2.12 → 2027-02-28, 2.13 → 2027-06-17, 2.14 → 2027-10-10, 2.15 → 2028-02-27 (unchanged).
 - Note: filter to community minors (Mar / Jul / Nov). Ignore Prime-flavored release notes. Edition discriminator = body **self-declaration line** (`"This is a … version release"`), NOT the first line alone — the first-line Prime-docs-redirect test under-detects (2.11 line: v2.11.4–.8 are Prime yet keep an inline `# Release` first line). See `version-verification.md` § Edition discrimination.
-- Last verified: 2026-10-27 — edition discriminator re-run over every stable 2.11–2.15 tag: community ceilings unchanged at v2.11.3 / v2.12.3 / v2.13.3 / v2.14.3 / **v2.15.2** (`isLatest`, 2026-09-23). v2.11.4–.8 self-declare "Prime version release", v2.11.9–.17 are Prime-docs redirects, v2.11.18 / v2.12.14 / v2.13.10 / v2.14.6 still have empty bodies. Hazards: #57078 OPEN (milestone v2.17.0), #57196 / #57240 OPEN, #57506 closed 2026-10-12 with the fix verified on `v2.15-head`, milestone v2.15.3 (unreleased).
+- Last verified: 2026-11-25 — community ceilings v2.11.3 / v2.12.3 / v2.13.3 / v2.14.3 / **v2.15.3** (2026-10-29, body self-declares "Community version release"). Prime-only redirect bodies: v2.11.18/19, v2.12.14/15, v2.13.10/11, v2.14.6/7 (the 2026-09-23 four were empty at the last sift and are now backfilled). 2.16 not GA: only v2.16.0-rc2 (2026-11-24) and rc4 (2026-11-25); rc4 chart `kubeVersion < 1.38.0-0`, no floor recorded. KDM RKE2 pairings per release branch `data.json`: 2.13 → 1.34.13; 2.14 → 1.34.13, 1.35.10; 2.15 → 1.34.13, 1.35.10, 1.36.6. Hazards: #57506 / #58028 / #58075 fixed in v2.15.3; #57078 OPEN (milestone v2.17.0), #57196 / #57240 OPEN.
 
 ## Harvester
 
 - URL: https://github.com/harvester/harvester/wiki
 - Secondary URL: https://github.com/harvester/harvester/releases
 - Probe: WebFetch the per-version compatibility wiki page; filter to community columns.
-- Last verified: 2026-10-27 — **v1.9.0 (2026-09-16) still the only 1.9 GA**; v1.9.1 at `v1.9.1-rc4` (2026-10-21); #11356 / #11615 (the 1.9.0 do-not-upgrade warnings) still OPEN. SUSE per-line pages `harvester-v1-6-x` / `-v1-7-x` / `-v1-9-x` re-read: Node Driver RKE2 1.31–1.33 / 1.32–1.34 / 1.34–1.36; 1.9 CSI ≥ v0.1.31. Per line: v1.8.2 (2026-08-06), v1.7.3 (2026-08-07 — one day newer than 1.8.2 but a lower line; sorting by date picks the wrong answer).
+- Last verified: 2026-11-25 — **v1.9.1 GA 2026-11-10** (`v1.9.0` 2026-09-16); #11356 / #11615 CLOSED and listed as fixed in the 1.9.1 notes. `v1.10.0-rc3` and `v1.8.3-rc1` are pre-releases only. SUSE per-line pages `harvester-v1-5-x` through `-v1-9-x` re-read: Node Driver RKE2 1.31–1.33 (1.6) / 1.32–1.34 (1.7) / 1.33–1.35 (1.8) / 1.34–1.36 (1.9); the 1.9 page still lists only v1.9.0 (CSI ≥ v0.1.31). Per line: v1.9.1 (2026-11-10), v1.8.2 (2026-08-06), v1.7.3 (2026-08-07, one day newer than 1.8.2 but a lower line; sorting by date picks the wrong answer).
 
 ## Cilium
 
 - URL: https://docs.cilium.io/en/stable/network/kubernetes/compatibility/
 - Secondary URL: https://github.com/cilium/cilium/releases
 - Probe: WebFetch docs page for the matrix; `gh release list --repo cilium/cilium` for per-version notes.
-- Last verified: 2026-10-27 — v1.20.4 / v1.19.10 / v1.18.16 (2026-10-23, CVE-2026-111943 security release; v1.20.4 `isLatest`); v1.21 still pre-release (v1.21.0-pre.3). Matrix windows unchanged at the new tags (`compat.py sync`).
+- Last verified: 2026-11-25 — v1.20.5 / v1.19.11 / v1.18.17 (2026-11-17, v1.20.5 `isLatest`; bugfix + dependency `[security]` bumps, `toServices`+`toPorts` egress deny change in the upgrade notes); v1.17.18 unchanged; v1.21 still pre-release (v1.21.0-pre.4). `compatibility.rst` windows unchanged at the four line tags; all Cilium URLs above HTTP 200.
 
 ## Tetragon
 
 - URL: https://github.com/cilium/tetragon/releases
 - Kernel-floor source: https://tetragon.io/docs/installation/faq/ (also in-repo at `docs/content/en/docs/installation/faq.md`)
 - Chart source: `install/kubernetes/tetragon/Chart.yaml` at release tags (chart == app version; no `kubeVersion:`)
-- Probe: anchor `gh api repos/cilium/tetragon/releases/latest --jq '.tag_name'`; enumerate minors `gh api 'repos/cilium/tetragon/releases?per_page=100' --jq '[.[]|select(.prerelease|not)|.tag_name]|.[]' | sort -V`; sift kernel floor from the FAQ doc, breaking changes from each in-scope release's "Upgrade notes".
+- Probe: anchor `gh api repos/cilium/tetragon/releases/latest --jq '.tag_name'`; enumerate minors `gh api 'repos/cilium/tetragon/releases?per_page=100' --jq '[.[]|select(.prerelease|not)|.tag_name]|.[]' | sort -V`; sift kernel floor from the FAQ doc, breaking changes from each in-scope release's "Upgrade notes" (the v1.8.0 release body has none: read `contrib/upgrade-notes/v<minor>.md` at the tag).
 - Note: separate component from Cilium core. The k8s axis is loose; the **kernel** axis is load-bearing.
-- Last verified: 2026-10-27 — v1.7.1 (2026-08-25, `isLatest`) still newest; no release since.
+- Last verified: 2026-11-25 — v1.8.0 (2026-10-30, `isLatest`), v1.7.1 (2026-08-25), v1.6.1, v1.5.0 newest of their lines; `Chart.yaml@v1.8.0` version == appVersion == 1.8.0, no `kubeVersion:`; FAQ and hooks docs unchanged v1.7.0→v1.8.0; upgrade notes at `contrib/upgrade-notes/v1.8.0.md`; https://tetragon.io/docs/installation/faq/ HTTP 200.
 
 ## cert-manager
 
 - URL: https://cert-manager.io/docs/releases/
 - Secondary URL: https://github.com/cert-manager/cert-manager/releases
 - Probe: WebFetch releases page; `gh release list --repo cert-manager/cert-manager`.
-- Last verified: 2026-10-27 — v1.21.3 (2026-10-23, `isLatest`, eMudhra root removed + Go 1.26.10); no new 1.20 patch (sync shows 1.20 unchanged). Security advisories (`gh api repos/cert-manager/cert-manager/security-advisories`): GHSA-8rvj-mm4h-c258 / CVE-2026-62290 `>= 1.18.0, <= 1.20.2` → 1.19.6, 1.20.3; GHSA-gx3x-vq4p-mhhv / CVE-2026-25518 hits ≤ 1.19.2 only (master fix PR #8469 merged 2026-02-02, before v1.20.0); v1.20.0 notes carry the Go 1.25.5 bump for CVE-2025-61727 / CVE-2025-61729 (#8290).
+- Last verified: 2026-11-25 — v1.21.3 (2026-10-23) and v1.20.5 (2026-10-28, eMudhra root removed, Go 1.26.10, x/net v0.60.0+, x/crypto v0.57.0) newest of their lines; v1.22.0-alpha.0 (2026-11-24) is the only 1.22 tag. Support table (website `content/docs/releases/README.md@master`, live page identical): 1.21 → k8s 1.33–1.36 / OpenShift 4.20–4.22, 1.20 → 1.32–1.35 / 4.19–4.21, 1.22 listed `~Nov 2026`, window TBD; 1.17 LTS vendor-only to 2027-02-03. `gh api repos/cert-manager/cert-manager/security-advisories`: still only GHSA-8rvj-mm4h-c258 (2026-06-25), GHSA-gx3x-vq4p-mhhv, GHSA-r4pg-vg54-wxx4.
 
 ## Kyverno
 
-- URL: https://kyverno.io/docs/installation/
+- URL: https://kyverno.io/docs/installation/releases/
 - Secondary URL: https://github.com/kyverno/kyverno/releases
-- Probe: WebFetch installation page for compatibility table; `gh release list --repo kyverno/kyverno`.
-- Last verified: 2026-10-27 — v1.19.2 (2026-10-20, `isLatest`); v1.18.2, v1.17.2 newest of their lines. `gh api repos/kyverno/kyverno/security-advisories`: 26 GHSAs patched only in 1.19.2 — 24 published 2026-10-21 plus GHSA-vjfx-fp68-rh4v and GHSA-39w8-hv5g-f73w (both critical, 2026-10-23). The installation URL redirects to `/docs/installation/installation/`.
+- Probe: WebFetch the releases page for the support block; `gh release list --repo kyverno/kyverno`; upgrade guide https://kyverno.io/docs/installation/upgrading/.
+- Last verified: 2026-11-25 — v1.20.0 (2026-11-12, k8s v1.34–v1.37, EOL est. 1.21 release ~Feb 2027); v1.19.2, v1.18.2, v1.17.2 newest of their lines. `kyverno/website` `src/constants/version.ts` no longer holds a support matrix (selector links only). `gh api repos/kyverno/kyverno/security-advisories`: newest published 2026-10-23, all patched in 1.19.2; none names 1.20. `/docs/installation/` redirects to `/docs/installation/installation/`. Issue #15435 shows closed by a stale-bot recap; the kyverno-json removal itself is in merged PRs shipped in the v1.19.0 and v1.20.0 notes.
 
 ## KEDA
 
@@ -249,14 +264,14 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Governance / support window: https://github.com/kedacore/governance/blob/main/SUPPORT.md
 - Secondary URL: https://github.com/kedacore/keda/releases
 - Probe: WebFetch docs + governance; `gh release list --repo kedacore/keda`.
-- Last verified: 2026-10-27 — v2.21.0 (2026-09-23, `isLatest`) still newest; v2.20.2 newest 2.20. `docs/latest` redirects to 2.21. A `docs/2.22/` page already serves with no 2.22 release — pre-release docs, do not cite.
+- Last verified: 2026-11-25 — v2.21.1 (2026-11-15) newest; v2.20.2 newest 2.20. `docs/latest` redirects to 2.21 (matrix 2.21 v1.34–v1.36 … 2.17 v1.30–v1.32). `docs/2.22/` still serves with no 2.22 release (pre-release docs, do not cite). Next release estimated 2nd week of January 2027 (v2.21.0 notes).
 
 ## Argo CD
 
 - URL: https://argo-cd.readthedocs.io/en/stable/operator-manual/tested-kubernetes-versions/
 - Secondary URL: https://github.com/argoproj/argo-cd/releases
 - Probe: WebFetch tested-versions page; `gh release list --repo argoproj/argo-cd`.
-- Last verified: 2026-10-27 — v3.5.6 (2026-10-20, `isLatest`); per line v3.4.12 (2026-10-20), v3.3.18 (2026-10-22), v3.2.12; v3.6.0-rc4 (2026-10-22) pre-release.
+- Last verified: 2026-11-25 — `stable` page now lists 3.6 (1.34–1.37), 3.5 (1.33–1.36), 3.4 (1.32–1.35). Latest v3.6.3 / v3.5.9 / v3.4.15 (2026-11-24); v3.3.19 final (2026-11-02, EOL banner 2026-11-03); v3.6.0 GA 2026-11-03. 2026-11-24 advisories fixed in 3.6.3 / 3.5.9 / 3.4.15, none in 3.3.
 
 ## Harbor
 
@@ -264,21 +279,22 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Secondary URL: https://github.com/goharbor/harbor/releases
 - Probe: WebFetch docs index for release notes pages; `gh release list --repo goharbor/harbor`.
 - Note: k8s minimums change with chart versions; cross-reference the harbor-helm chart at https://github.com/goharbor/harbor-helm. Authoritative k8s floor = chart `.github/workflows/integration.yaml` at the chart tag (README only states generic "1.20+").
-- Last verified: 2026-10-27 — v2.15.4 (2026-10-09), v2.14.6 (2026-10-23, `isLatest`), v2.13.6 (2026-10-06); `v2.16.0-rc1` pre-release. v2.15.4 (PRs #24082 / #24086) and v2.14.6 (#24129 / #24132) re-allow private-network webhooks and legacy-signer pulls by default; harbor-helm v1.19.4 (2026-10-16, app v2.15.4) notes say skip chart 1.19.3 / v2.15.3. **Absence claim re-tested at harbor-helm v1.19.4:** `integration.yaml` lists k8s v1.34.0 / v1.33.4 / v1.32.8 — still no v1.35. goharbor.io/docs/ redirects to /docs/2.15.0/.
+- Probe (2026-11-25): harbor-helm tags (`gh release list --repo goharbor/harbor-helm`; newest v1.19.4) and `RELEASES.md` on main for the support window.
+- Last verified: 2026-11-25 — v2.16.0 (GA 2026-11-10), v2.15.5 (2026-11-12, `isLatest`), v2.14.6 (2026-10-23), v2.13.6 (2026-10-06). harbor-helm newest tag v1.19.4 (app v2.15.4); no 2.16 chart (PR #2449 open, 1.20.0 branch is a `1.4.0-dev` placeholder). `integration.yaml` at v1.19.4 still lists k8s v1.34.0 / v1.33.4 / v1.32.8 (no v1.35). `RELEASES.md` on main lists 2.15, 2.14, 2.13 as supported. v2.15.4 / v2.14.6 carry the same-origin replication fix (#24114).
 
 ## Traefik
 
 - URL: https://github.com/traefik/traefik/releases
 - Probe: `gh release list --repo traefik/traefik --limit 30` (paginate — 2.11 still gets frequent security patches, pushing older 3.0.x patches past the first 100 results). Per-minor Gateway API version from each tag's `go.mod` (`sigs.k8s.io/gateway-api`).
 - Note: extract k8s API minimums from the "Kubernetes" section of release notes. **Traefik publishes no separate k8s support matrix — absence claim re-tested 2026-09-15 against the kubernetes-crd provider page, which carries no explicit "Kubernetes N.N" statement, and it holds.** (Two sibling "upstream publishes no matrix" claims in this registry turned out false the same day, so this one was checked rather than inherited.) v2→v3 migration guide: `docs/content/migrate/v3.md` + `v2-to-v3*.md`; support window: `docs/content/deprecation/releases.md`.
-- Last verified: 2026-10-27 — v3.7.16 and v2.11.60 (both 2026-10-20); floor re-derived from `gh api repos/traefik/traefik/security-advisories` (GHSA-hrpp-p4fc-wwf8 patched only in v3.7.16 / v2.11.60). `deprecation/releases.md` at master still says 2.11 security "Ends Sept 07, 2026" while 2.11 patches continued.
+- Last verified: 2026-11-25 — v3.8.0 (GA 2026-11-23, `isLatest`; Gateway API v1.7.0, client-go v0.37.1), v3.7.20 and v2.11.64 (both 2026-11-23); floor re-derived from `gh api repos/traefik/traefik/security-advisories` (GHSA-3rh5-223h-cpwr, GHSA-9657-c2gv-wjpj, GHSA-42x2-976f-ph52 patched in v3.7.20 / v3.8.0, GHSA-9657 also v2.11.64). `deprecation/releases.md` at master has no 3.8 row and still says 2.11 security "Ends Sept 07, 2026" while 2.11 patches continued.
 
 ## Rook (operator)
 
 - Primary URL: https://github.com/rook/rook/releases
 - Secondary URL: https://rook.io/docs/rook/latest-release/
 - Probe: `gh release list --repo rook/rook --limit 30`; for each in-scope release, `gh release view <tag>` and sift k8s floor + supported Ceph versions; WebFetch docs landing page as cross-reference.
-- Last verified: 2026-10-27 — v1.21.1 (2026-10-26, `isLatest`; 1.21.0 GA 2026-10-06); `prerequisites.md@v1.21.1` reads "v1.32 through v1.37"; `ceph-upgrade.md@v1.21.1` Squid v19.2.0+ / Tentacle v20.2.1+. v1.20.9 and v1.19.12 (both 2026-10-14) newest of their lines.
+- Last verified: 2026-11-25 — v1.21.3 (2026-11-24, `isLatest`; 1.21.2 2026-11-05); `prerequisites.md@v1.21.3` reads "v1.32 through v1.37"; `ceph-upgrade.md@v1.21.3` Squid v19.2.0+ / Tentacle v20.2.1+ (Umbrella in `version.go@v1.21.3` `supportedVersions` only). v1.20.10 (2026-11-05, `prerequisites.md` "v1.31 through v1.37") and v1.19.12 (2026-10-14) newest of their lines. Primary and secondary URLs return 200.
 
 ## Ceph (storage)
 
@@ -286,7 +302,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Secondary URL: https://docs.ceph.com/en/latest/releases/ (upstream Ceph EOL line + standalone breaking changes — Reef / Squid / Tentacle).
 - Probe: Read `compat/rook.md` for Rook↔Ceph pairings; WebFetch ceph.io releases page for upstream EOL signal + OSD encoding / cluster-wide breaking changes.
 - Note: Ceph's k8s axis collapses through Rook — the cluster doesn't see Ceph version against k8s directly; it sees Rook version against k8s, and Rook bounds Ceph.
-- Last verified: 2026-10-27 — Squid **19.2.7** (2026-10-12, `ceph/ceph` `doc/releases/squid.rst` on main); Tentacle still 20.2.4; no Umbrella (v21) GA yet — Rook 1.21 pre-announces support for v21.2.0.
+- Last verified: 2026-11-25 — Umbrella **21.2.0** (2026-10-28), Tentacle **20.2.5** (2026-11-02), Squid **19.2.7** (2026-10-12, EOL est. 2026-12-02), Reef 18.2.8 final (`ceph/ceph` `doc/releases/{umbrella,tentacle,squid}.rst` and `releases.yml` on main; same table on https://docs.ceph.com/en/latest/releases/). `docs.ceph.com/en/tentacle/releases/` now redirects to `/en/latest/releases/`.
 
 ## OpenEBS (LocalPV-LVM only)
 
@@ -294,7 +310,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Secondary URL: https://github.com/openebs/openebs (umbrella → LVM pin map only — `charts/Chart.yaml` `dependencies:` at the umbrella tag)
 - Probe: `gh api --paginate 'repos/openebs/lvm-localpv/releases?per_page=100'` (two tag schemes — `vX.Y.Z` app tags + `lvm-localpv-X.Y.Z` chart tags; enumerate both, no candidate named). Cross-check the umbrella pin via `gh api repos/openebs/openebs/contents/charts/Chart.yaml?ref=<umbrella-tag>`.
 - Scope: **LocalPV-LVM only** (operator runs no other OpenEBS engine). Mayastor / LocalPV-ZFS / LocalPV-Hostpath / LocalPV-Rawfile / cStor / Jiva are out of registry scope — do NOT probe or sift them.
-- Last verified: 2026-10-27 — lvm-localpv **v1.10.1** (2026-09-09) still newest. The umbrella `openebs/openebs` is now v4.6.2 (2026-10-07) and pins `lvm-localpv: 1.10.1`, so the "umbrella 4.0.1 pins LVM 1.5" mapping recorded earlier is stale as a *ceiling*. The LVM **floor** claim is unaffected — it describes an older umbrella.
+- Last verified: 2026-11-25 — lvm-localpv **v1.10.1** (2026-09-09) still newest; umbrella v4.6.2 (2026-10-07) still pins `lvm-localpv: 1.10.1`. Unreleased on main (no tag yet): #530 scheduler fix when VG free space equals the request, #532 snapshot-ready wait, #520 update-strategy values ignored. The LVM **floor** claim is unaffected — it describes an older umbrella.
 
 ## GitLab
 
@@ -302,7 +318,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Secondary URL: https://docs.gitlab.com/charts/installation/cloud/ (k8s/Helm chart compat)
 - Probe: WebFetch docs sections covering k8s compat and Helm chart minimums.
 - Note: operator runs the EE binary as CE; ignore EE-only features in the sift.
-- Last verified: 2026-10-27 — newest chart v10.5.2 = GitLab 19.5.2 (`version_mappings.md`); chart `doc/installation/cloud/_index.md` at v10.5.2 unchanged (1.35–1.37, 1.37 needs GitLab ≥ 19.5); CHANGELOG 10.5.2 / 10.4.4 / 10.3.8 = bundled cert-manager v1.21.3 (+ gitlab-runner 0.94.x on 10.5.2), 9.11.15 "No changes". Bundled cert-manager per newest tag from `Chart.yaml` `dependencies:` (GitLab files API): 9.11.15 / 10.0.10 / 10.1.9 v1.20.2, 10.2.9 v1.21.0, 10.3.8+ v1.21.3. `doc/install/requirements.md` at master: 19.x PostgreSQL 17.x–18.x (changed 2026-10-01, commit `4dc318dd`). No 19.5.2 patch-release post found (the about.gitlab.com URL redirects to the docs index) — security content of 19.5.2 not recorded. Not gh-groundable; read via gitlab.com raw/API.
+- Last verified: 2026-11-25 — newest chart v10.6.1 = GitLab 19.6.1 (tag message; `version_mappings.md` at v10.6.1 lists up to 10.5.7 / 10.4.9 only); chart `doc/installation/cloud/_index.md` at v10.6.1: 1.35–1.37 (1.37 needs GitLab ≥ 19.5), chart ≥ 10.6.0 does not install below k8s 1.30; CHANGELOG 10.5.3–10.6.1 and `doc/releases/10_0.md` (10.3 / 10.4 / 10.6 notes) read; bundled cert-manager per newest tag from `Chart.yaml`: 9.11.16 / 10.0.11 / 10.1.10 v1.20.5, 10.2.10 / 10.3.11+ v1.21.3; `doc/install/requirements.md` at master: 19.x PostgreSQL 17.x–18.x, Redis 7.0 / Valkey 7.2 minimum; `upgrade_paths.md`: 19.x stops 19.2 / 19.5 / 19.8 / 19.11; 19.6.0–19.6.1 `DropAiEventsCounts` migration failure fixed in 19.6.2. Not gh-groundable; read via gitlab.com raw/API.
 
 ## ECK
 
@@ -311,19 +327,19 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - ~~Versioned supported-versions pages: `.../cloud-on-k8s/<minor>/k8s-supported.html`, older minors 404 → infer floor~~ — **RETIRED 2026-09-15, the rule no longer discriminates**: 2.14/3.1/3.3/3.5 all 404 while 2.16/3.0 serve.
 - **WORKING PROBE:** `curl` https://www.elastic.co/support/matrix, read the `<script id="__NEXT_DATA__">` blob, take the CSV asset `support-matrix-product-and-kubernetes-elastic-cloud-on-kubernetes-and-kubernetes-distro.csv` — it carries **every ECK minor 1.0.x→3.5.x** with release date, k8s range and OpenShift range in one request. Historical note, the old rule inferred a floor from `controller-runtime`/`client-go` baked in the release, with a "verify on upgrade" caveat); in-repo `pkg/controller/elasticsearch/version/supported_versions.go` at the tag for the Stack range.
 - Probe: WebFetch supported-versions page; cross-reference stack matrix. For ES Stack EOL: endoflife.date/elasticsearch + elastic.co/support/eol.
-- Last verified: 2026-10-27 — v3.5.0 (2026-08-04, `isLatest`) still newest. Matrix CSV re-read: 3.5.x k8s **1.32–1.36** (was 1.31–1.36 on 2026-10-04), OpenShift 4.16–4.22; 3.4.x 1.31–1.36; corroborated by `.buildkite/e2e/release-branch-matrix.yaml@v3.5.0` (kind 1.32–1.36). `elastic/docs-content` `cloud-on-k8s.md@main` "3.4+" tab (last edited 2026-06-22) still says 1.31–1.36, so `compat.py` now reads the CSV instead. **The old per-minor-page probe is broken, not just the URL** — see the pass note at the top: 2.14/3.1/3.3/3.5 all 404 while 2.16/3.0 serve, so a 404 no longer infers "too old".
+- Last verified: 2026-11-25 — v3.5.0 (2026-08-04, `isLatest`) still newest; matrix CSV unchanged (3.5.x k8s 1.32–1.36, OpenShift 4.16–4.22; 3.4.x k8s 1.31–1.36, OpenShift 4.16–4.22; 3.2.x k8s 1.30–1.34, OpenShift 4.15–4.20). v3.4.1 is dependency bumps only. Known issue #9786: 3.5.0 leaks the `eck.k8s.elastic.co/watched` label and rolls all Elasticsearch and Kibana pods on upgrade; fixed in 3.6.0 (unreleased). Elastic Package Registry, Stack-compatibility tabs and 8.x/9.x EOL dates not re-probed.
 
 ## Zalando postgres-operator
 
 - URL: https://github.com/zalando/postgres-operator/releases
 - Probe: `gh release list --repo zalando/postgres-operator --limit 30`; sift bundled Spilo + Postgres major + `kubernetes_use_configmaps` semantics.
-- Last verified: 2026-10-27 — v2.0.3 (2026-10-02, `isLatest`) still newest; PRs #3177/#3193 merged, `passwordEncryptionFromSpec` (`pkg/cluster/types.go@v2.0.3`) defaults the pooler to scram-sha-256. README support table at v2.0.3: K8s `1.27+`, PG 14→18.
+- Last verified: 2026-11-25 — v2.0.3 (2026-10-02, `isLatest`) still newest; README support table at v2.0.3: K8s `1.27+`, PG 14→18. Open issues affecting 2.0.3: #3248 operator panic after a successful in-place major upgrade, #3210 rolling-update loop when a mutating webhook injects `runAsNonRoot`, #3201 / #3229 / #3230 grant failures not retried; master (unreleased): lazy rolling updates wait for the maintenance window (#3204).
 
 ## Grafana Mimir (chart_metadata)
 
 - URL: https://github.com/grafana/mimir/blob/main/operations/helm/charts/mimir-distributed/Chart.yaml
 - Probe: `gh api repos/grafana/mimir/contents/operations/helm/charts/mimir-distributed/Chart.yaml` at each chart-release tag; extract `kubeVersion:` constraint and `appVersion:`.
-- Last verified: 2026-10-27 — newest stable charts `mimir-distributed-6.2.2` (appVersion 3.2.3) and `6.1.1` (appVersion 3.1.8), both 2026-10-26; `kubeVersion: ^1.32.0-0` at both tags (`Chart.yaml` read via the contents API). Newest app releases: mimir-3.2.3 (`isLatest`, 2026-10-22), 3.1.8, 3.0.9. `6.3.0-weekly.*` tags are dev builds — not a stable line.
+- Last verified: 2026-11-25 — newest stable charts `mimir-distributed-6.2.2` (appVersion 3.2.3) and `6.1.1` (appVersion 3.1.8), both 2026-10-26; no chart tag newer than 6.2.2. Newest app releases: mimir-3.2.6, 3.1.11, 2.17.12 (and 3.0.9), all ahead of every chart (need an `image.tag` pin); 3.2.5 / 3.1.10 / 2.17.12 carry Alertmanager breaking changes (SNS receivers need explicit credentials, `use_aws_http_client` rejected, tenant-config restrictions enforced on storage load). Chart deprecation: `mimir-distributed` is moving to `grafana-community/helm-charts` (issue #17112); 6.3.0 (Q4 2026) announced as the last release from the Grafana repo, not yet tagged.
 
 ## NVIDIA GPU Operator
 
@@ -331,7 +347,7 @@ Grounding for the 2026-09-24 compat/*.md sifts:
 - Secondary URL: https://github.com/NVIDIA/gpu-operator/releases
 - Probe: WebFetch platform-support page; `gh release list --repo NVIDIA/gpu-operator`.
 - Note: driver-version-per-release is captured in the compat file, not here.
-- Last verified: 2026-10-27 — v26.7.2 (2026-10-14, `isLatest`; notes at `/26.7/release-notes.html#v26-7-2`); v26.3.3 newest 26.3. No platform-support page for any later line.
+- Last verified: 2026-11-25 — v26.7.3 (2026-11-17, `isLatest`; notes at `/26.7/release-notes.html`): fixes the 26.3.x → 26.7.0/.1/.2 driver-DaemonSet deletion (issue #3155, PR #3157); DCGM Exporter 4.9.0 renames default metrics. v26.3.3 newest 26.3 (no 26.3.x after it). 26.7 platform-support: k8s 1.33–1.37, containerd 2.0–2.4. No platform-support page for any later line.
 
 ---
 
