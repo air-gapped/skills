@@ -22,6 +22,16 @@ Neither item below is closed. Recorded so the next pass does not repeat the prob
   flags and the metric, so there is nothing to lift; only the procedure is
   missing, and it is missing upstream.
 
+## Resolved — 2026-11-25 (lab rehearsals: the three cluster-only questions)
+
+- `classic-architecture.yaml` gives a working 6.x cluster; an in-place 5.7.0 → 6.x upgrade keeps ingestion across
+  the ingester roll; `nameOverride` keeps client connectivity for one name (both names need an alias Service).
+  All three now carry `[LAB]` in the skill text.
+- Beyond the three: 5.7.0 → 6.1.1 → 6.2.2 with mixed-version store-gateway reads correct; the rollout-operator
+  restart race; every Mimir 2.16–3.2 rejected by Ceph RGW 20.2.4. Details in `sources.md` → Lab rehearsal.
+- Keep the tag discipline: never upgrade `[RFC]` to `[UG]` on "it looks right"; `[LAB]` is its own tag (one
+  cluster, test load).
+
 ## Resolved — 2026-09-15 (chart supersession: answered, and the item was already stale)
 
 - **No `6.1.x` patch chart ever landed.** The item's hypothesis was that one
@@ -47,23 +57,6 @@ Neither item below is closed. Recorded so the next pass does not repeat the prob
   correction.
 
 ## Open
-
-### No claim has been behaviourally observed on a cluster (Dim 9 / integrity)
-
-- **What:** the claims are documentation- and source-grounded, not behaviourally observed. No lab cluster
-  existed at authoring time (prod is air-gapped; the lab Mimir install was decommissioned as too large to run
-  continuously). This is a narrow gap, not an absence of rigour — see SKILL.md §"Evidence tags" for what the
-  research did cover, including two claims settled by experiment (a golden-CI-fixture render diff and a Go
-  probe against Mimir's YAML library).
-- **Why it could not be closed:** requires a cluster. Not fixable by reading.
-- **Highest-value validations, in order,** if a lab is ever available:
-  1. That `classic-architecture.yaml` produces a *working* 6.x cluster, not merely a clean render — specifically
-     that a live Mimir accepts `ingest_storage.kafka.address: null` through its `Validate()` path. The decode
-     was proven against Mimir's YAML library; the validate path was not.
-  2. That an in-place 5.7.0 → 6.x classic upgrade preserves ingestion across the ingester roll.
-  3. That the nginx→gateway `nameOverride` migration genuinely preserves client connectivity end to end.
-- **Do NOT** silently upgrade `[RFC]` tags to `[UG]` on the strength of "it looks right". The tag distinction is
-  the skill's integrity.
 
 ### Fleet-facts interview answers are unknown (Dim 4)
 

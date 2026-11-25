@@ -8,7 +8,7 @@
 - **Last sifted:** 2026-10-27 (6.1.1 / 6.2.1 / 6.2.2 Chart.yaml, values.yaml and CHANGELOG read at their tags)
 - **Last release-verified:** 2026-10-27
 
-In-scope set: current stable chart minor **6.2** + prior 2 (6.1, 6.0). Latest patches as of sift: `mimir-distributed-6.2.2` (2026-10-26, appVersion 3.2.3), `6.1.1` (2026-10-26, appVersion 3.1.8), `6.0.6` (2026-03-19), `5.8.0` (2025-08-20). The chart minors 5.8 and 5.7 carry no patch releases beyond `.0`. **`5.7.0` is retained below the window** (see § 5.7.0) because it is a live fleet version and the origin of the 2.x → 3.x migration — not because it is in scope for a support verdict.
+In-scope set: current stable chart minor **6.2** + prior 2 (6.1, 6.0). Latest patches as of sift: `mimir-distributed-6.2.2` (2026-10-26, appVersion 3.2.3), `6.1.1` (2026-10-26, appVersion 3.1.8), `6.0.6` (2026-03-19), `5.8.1` (2026-11-09, appVersion 2.17.11). Chart 5.8 has one patch: `5.8.1` fixes one zone's scale-down immediately scaling down the later zones (#16899); 5.7 has none. **`5.7.0` is retained below the window** (see § 5.7.0) because it is a live fleet version and the origin of the 2.x → 3.x migration — not because it is in scope for a support verdict.
 
 **Chart → Mimir-app mapping (load-bearing):**
 
@@ -20,12 +20,22 @@ In-scope set: current stable chart minor **6.2** + prior 2 (6.1, 6.0). Latest pa
 | 6.1.1 | `^1.32.0-0` | 3.1.8 |
 | 6.1.0 | `^1.32.0-0` | 3.1.2 |
 | 6.0.6 | `^1.29.0-0` | 3.0.4 |
+| 5.8.1 | `^1.20.0-0` | 2.17.11 |
 | 5.8.0 | `^1.20.0-0` | 2.17.0 |
 | 5.7.0 | `^1.20.0-0` | 2.16.0 |
 
 The k8s floor moves only at chart-minor boundaries, and it has moved **twice in two minors** — `^1.20` → `^1.29` (6.0.0) → `^1.32` (6.1.0). A fleet on k8s < 1.32 can reach 6.0.x but not 6.1.0 or 6.2.0 — **6.2.0 did not move the floor again**, so 1.32 remains the gate for the whole 6.1/6.2 line. Mimir-app major bump (2.x → 3.x) lands in chart 6.0.0; Mimir 2.x stays available via chart 5.x.
 
-**Upgrade ladder (app policy: one minor at a time — deprecated features survive two minors).** Chart minors track app minors, so the two ladders are one walk: `5.7 (2.16) → 5.8 (2.17) → 6.0.x (3.0.4) → 6.1.0 (3.1.2)`. The 5.8 hop is cheap and is the last stop on the Mimir 2.x line; **6.0 is the architecture event**, not a `helm upgrade`.
+**Upgrade paths.** Grafana promises minor-to-minor upgrades; deprecated features survive two minors.
+
+| From chart (app) | To | Verdict | Basis |
+|---|---|---|---|
+| 5.7.x / 5.8.x (2.16 / 2.17) | 6.1.1 (3.1.8), one hop, classic | works: a 2.16↔3.1.8 mixed state held ~1 h with correct store-gateway reads | lab rehearsal; procedure `mimir-upgrade` runbook §9 |
+| 6.1.x (3.1) | 6.2.2 (3.2.3) | works | lab rehearsal; upstream next minor |
+| 5.x or 6.0.x | 6.2.x, one hop | **blocked**: 3.2 needs every querier on 3.1 first | CHANGELOG #15358 |
+| 5.7 → 5.8.1 → 6.0.6 → 6.1.1 → 6.2.2 | — | supported | upstream minor-to-minor policy |
+
+6.0 is the architecture event on either path: the ingest-storage default arrives with any 6.x target.
 
 **Naming trap.** Grafana's doc "Migrate the Mimir Helm chart from version 2.x to 3.0" is about **chart** 2.x → 3.0 (2022) and has nothing to do with **app** Mimir 2.x → 3.0. Chart and app version numbers collide across this whole component — always say which one.
 
@@ -156,6 +166,21 @@ The k8s floor moves only at chart-minor boundaries, and it has moved **twice in 
   - `kubeVersionOverride` gotcha applies but rarely matters at this constraint.
   - `5.7.0` is the floor of the tracked window — below this, abstain on Mimir compat verdicts and recommend `skill-improver freshen k8s-components-checker`.
 
+## Object storage — S3 on Ceph RGW
+
+Mimir writes blocks through minio-go. Ceph RGW's CVE-2026-54330 SigV4 fix rejected it with `403 AccessDenied`
+until the follow-up fix:
+
+| Ceph RGW | Mimir 2.16 – 3.2 block writes | Basis |
+|---|---|---|
+| ≤ 19.2.5, 20.2.0 – 20.2.3 | work | predate the fix |
+| **19.2.6, 20.2.4** | **fail**: ingester shipper, compactor, block upload | 20.2.4: lab, all of 2.16.0, 2.17.12, 3.0.4, 3.1.8, 3.2.3; 19.2.6: Ceph trackers 79674 / 79803 |
+| 19.2.7, 20.2.5, 21.2.0 | work | Ceph release notes (pr#71296, pr#71360, pr#71364) |
+
+No Mimir version or setting avoids it; the fix is on RGW → `ceph-s3`. Symptoms:
+`cortex_ingester_shipper_upload_failures_total` rises with uploads flat, `MimirIngesterHasNotShippedBlocks`
+(≤ 6.0.6) / `MimirIngesterNotShippingBlocks` (6.1+) fires, and blocks stay on ingester disks only.
+
 
 ## Rollout mechanics (cross-version) — corrected 2026-07-21
 
@@ -172,7 +197,7 @@ The k8s floor moves only at chart-minor boundaries, and it has moved **twice in 
 
 | Lever | Verdict |
 |---|---|
-| `grafana.com/rollout-paused: "true"` on the STS | The correct pause. **But it needs rollout-operator ≥ v0.36.0** — bundled appVersions are 5.7.0→v0.24.0, 5.8.0→v0.28.0, 6.0.6→v0.32.0, 6.1.0→**v0.38.0**. So it is only available on the final hop. |
+| `grafana.com/rollout-paused: "true"` on the STS | The correct pause. **But it needs rollout-operator ≥ v0.36.0** — bundled appVersions are 5.7.0→v0.24.0, 5.8.0→v0.28.0, 6.0.6→v0.32.0, 6.1.0→**v0.38.0**. So it is only available on the final hop of the ladder; on a direct 5.x → 6.1.x hop the arriving operator honours it (`mimir-upgrade` → `rollout-and-rollback.md` §5). |
 | Scale the rollout-operator to 0 | **Deadlocks the namespace on 6.x.** The `prepare-downscale` MutatingWebhookConfiguration matches UPDATE on `statefulsets` + `statefulsets/scale` with `failurePolicy: Fail`. No ready endpoint ⇒ the apiserver rejects every matching request — including `helm upgrade`, `helm rollback`, and `kubectl scale`. Correct only on 5.7.0/5.8.0, which ship no webhooks. |
 | `helm rollback` | Works at the workload layer; the operator explicitly handles reverted revisions. Not a data rollback. |
 

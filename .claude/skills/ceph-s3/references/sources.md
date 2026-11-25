@@ -30,3 +30,5 @@ Freshened: 2026-10-27 — every row probed; no exceptions.
 | Rook notifications | https://github.com/rook/rook/blob/v1.21.1/Documentation/Storage-Configuration/Object-Storage-RGW/ceph-object-bucket-notifications.md | Kafka `mechanism`, `userSecretRef` / `passwordSecretRef`. |
 | Rook v1.17.0 notes | https://github.com/rook/rook/releases/tag/v1.17.0 | Undeclared CephObjectStoreUser S3 credentials purged. |
 | Rook Squid→Tentacle RGW early roll | https://github.com/rook/rook/issues/18367 | Closed by rook/rook#18369 "object: wait for the osd upgrade before reconciling" (merged 2026-09-10); in v1.20.8 and v1.19.12 release notes; v1.21.0 contains the merge commit. Latest Rook: v1.21.1 (2026-10-26). |
+
+| Tentacle 20.2.5 release notes | https://github.com/ceph/ceph/blob/main/doc/releases/tentacle.rst | 2026-11-02; SigV4: `Content-Type` no longer always required in the signature, `x-amz-content-sha256` need not be signed (pr#71364) — the Tentacle fix for trackers 79674 / 79803 | 2026-11-25 | main |

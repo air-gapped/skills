@@ -142,6 +142,10 @@ Machine-read by `compat.py sync` (drift = `sync --check`; no per-row stamp — t
 Grounding for the 2026-09-24 compat/*.md sifts:
 
 **mimir**
+- https://github.com/grafana/mimir/pull/17231 — chart 5.8.1 (2026-11-09): appVersion 2.17.11, `kubeVersion ^1.20.0-0`, zone-downscale leader fix #16899 (§ 5.8.0, mapping table)
+- https://github.com/grafana/mimir/blob/mimir-3.2.0/CHANGELOG.md — #15358: 3.2 needs every querier on 3.1 first (upgrade paths)
+- https://github.com/ceph/ceph/blob/main/doc/releases/tentacle.rst — 20.2.5 (2026-11-02) carries the SigV4 fix pr#71364 (object storage table); Squid 19.2.7 per `ceph-s3` sources
+- Lab rehearsal 2026-11-24/25 (k8s 1.35, Ceph RGW 20.2.4) — 5.7.0 → 6.1.1 → 6.2.2 path rows and the RGW 20.2.4 row; details in `mimir-upgrade` sources
 - https://github.com/grafana/mimir/releases/tag/mimir-3.2.1 — Go-CVE patch for Mimir 3.2.x; packaged by chart 6.2.1, superseded by 3.2.3 in chart 6.2.2 (§ 6.2.0)
 - https://github.com/grafana/mimir/releases/tag/mimir-3.1.6 — Go/x-crypto/grpc CVE patch for Mimir 3.1.x; superseded by 3.1.8 in chart 6.1.1 (§ 6.1.0)
 **gitlab**

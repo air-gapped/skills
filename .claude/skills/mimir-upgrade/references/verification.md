@@ -14,6 +14,7 @@ read-path failure blinds the check to itself.
 6. [Phase 5 — alert-name reconciliation](#6-phase-5--alert-name-reconciliation)
 7. [MQE differencing](#7-mqe-differencing)
 8. [Ingest storage only](#8-ingest-storage-only)
+9. [Rehearsing a hop in a lab](#9-rehearsing-a-hop-in-a-lab)
 
 ## 1. Phase 0 — baselines before any change
 
@@ -91,6 +92,14 @@ If `-1` persists past 5 min, check `/querier/ring` (new at 3.1) on the query-fro
 `could not compute maximum supported query plan version`.
 
 ## 4. Phase 3 — write path and sample loss
+
+**Client side:** a remote_write client whose target name stopped resolving logs `no such host`, keeps
+`prometheus_remote_storage_samples_failed_total` at 0 and grows `prometheus_remote_storage_samples_pending`.
+Gate on pending, not failed. [LAB]
+
+**Object store rejecting writes:** `cortex_ingester_shipper_upload_failures_total` rises while
+`cortex_ingester_shipper_uploads_total` stays flat. It shows only after the first head compaction (~3 h after an
+ingester starts) or `POST /ingester/flush`. [LAB]
 
 **No shipped mixin alert covers sample loss.** There is no alert on `cortex_discarded_samples_total` and none on
 distributor-vs-ingester divergence, so this PromQL is yours to author: [RFC]
@@ -257,3 +266,29 @@ Skip this section entirely on classic.
   [UG]
 - **Kafka-side consumer lag is not covered by any Mimir metric.** With a real broker, broker-side lag is needed
   exported separately — and that exporter is its own air-gap item. [RFC]
+
+## 9. Rehearsing a hop in a lab
+
+A fresh cluster answers every query from ingesters: queriers read store-gateways only for data older than
+`-querier.query-store-after` (12h), and store-gateways skip blocks younger than
+`-blocks-storage.bucket-store.ignore-blocks-within` (10h). Without old blocks a rehearsal never exercises new
+queriers reading old store-gateways, the path version skew breaks. [UG]
+
+1. **Backfill old blocks with known answers.** Generate OpenMetrics with fixed values (gauge = series index,
+   60 s step, 14–50 h old), `promtool tsdb create-blocks-from openmetrics`, then
+   `mimirtool backfill --address=http://<release>-compactor:8080 --id=<tenant> <block-dir>...` with
+   `limits.compactor_block_upload_enabled: true`. Pass block directories without a trailing `/` (mimirtool
+   doubles the basename). The `grafana/mimirtool` image has no shell. Blocks become queryable after the next
+   bucket-index update and store-gateway sync, about 30 min. [LAB]
+2. **Check results, not status.** A checker queries the backfill at random times 30 s off the sample
+   timestamps (left-open and left-closed range selectors then agree) and compares with the known values:
+   instant and range queries, half with `Cache-Control: no-store`. Gate: 0 wrong for 10 min before the hop. [LAB]
+3. **Hold the mixed state.** Before `helm upgrade`, annotate ingester and store-gateway zones B and C with
+   `grafana.com/rollout-paused=true`; the operator that runs during the hop must be ≥ v0.36.0. Stateless tiers
+   and zone A move, B and C stay old until the annotation is removed. Hold for the production zone-roll window. [LAB]
+4. **Observe with a separate Prometheus** that scrapes every Mimir pod: pod restarts reset counters, so run §2–§4
+   PromQL against it. Prove the old store-gateways served:
+   `sum by (pod) (increase(cortex_request_duration_seconds_count{route=~".*StoreGateway/Series"}[<window>]))`. [LAB]
+5. **Use the production object-store type and version.** A store that rejects Mimir (Ceph RGW 19.2.6 / 20.2.4)
+   fails every block upload, and a run shorter than the first head compaction never shows it. Force a block with
+   `POST /ingester/flush`. [LAB]

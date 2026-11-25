@@ -88,6 +88,7 @@ no bug fixes, no backports.
 ## 19.2.7 / Squid (GA 2024-09-26, latest 19.2.7 2026-10-12)
 
 - **19.2.7 (2026-10-12, `doc/releases/squid.rst`):** backport release, upstream recommends all users update. No new upgrade gate. RGW: `rgw_gc_max_objs` becomes startup-only (runtime changes ignored until restart); multisite now syncs bucket `obj_lock` settings. Rook pairing unchanged (Squid v19.2.0+ on Rook 1.19–1.21). The 19.2.6 multisite RGW-settings-before-upgrade caveat (`compat/rook.md`) still applies when coming from below 19.2.6.
+- **RGW SigV4 clients:** 19.2.6 / 20.2.4 reject minio-go and other clients sending an unsigned `Content-Type` or `x-amz-content-sha256` (`403 AccessDenied`); fixed in 19.2.7, 20.2.5 and 21.2.0 → `ceph-s3`. Mimir verdict → `compat/mimir.md` § Object storage.
 
 - **k8s floor:** N/A — see `compat/rook.md`.
 - **Breaking:** none cluster-wide that block in-place upgrade from Reef.

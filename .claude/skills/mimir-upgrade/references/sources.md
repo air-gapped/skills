@@ -91,3 +91,18 @@ render against upstream's golden CI fixture, and a Go probe compiled against Mim
 | k8s-components-checker | `.claude/skills/k8s-components-checker/references/compat/mimir.md` | **The** authority for chart→app mapping, `kubeVersion` floors, in-scope window. This skill cites it and must never restate it | 2026-09-15 | — |
 | prometheus-mimir-grafana | `.claude/skills/prometheus-mimir-grafana/` | Querying Mimir, PromQL, dashboards — the non-upgrade half | 2026-09-15 | — |
 | airgap-vetting | `.claude/skills/airgap-vetting/` | Vetting a Kafka platform for air-gap readiness, if ingest storage is ever adopted | 2026-09-15 | — |
+
+## Upgrade paths, rollout-operator and object storage (2026-11-25)
+
+| Source | URL | What it supports | Last verified | Pinned |
+|---|---|---|---|---|
+| Mimir CHANGELOG 3.2.0 | https://github.com/grafana/mimir/blob/mimir-3.2.0/CHANGELOG.md | #15358: 3.2 requires every querier on 3.1 before the upgrade | 2026-11-25 | mimir-3.2.0 |
+| Mimir 3.2 release notes | https://github.com/grafana/mimir/blob/main/docs/sources/mimir/release-notes/v3.2.md | Remote execution on by default; queriers on 3.1 first | 2026-11-25 | main |
+| Chart 5.8.1 | https://github.com/grafana/mimir/pull/17231 | 5.8.1 = appVersion 2.17.11, `kubeVersion ^1.20.0-0`, zone-downscale leader fix #16899 | 2026-11-25 | mimir-distributed-5.8.1 |
+| mimir#14919 | https://github.com/grafana/mimir/issues/14919 | prepare-downscale webhook failures after the v5 → v6 chart upgrade | 2026-11-25 | open |
+| mimir#13928 | https://github.com/grafana/mimir/issues/13928 | Without the operator, `OnDelete` zones never update | 2026-11-25 | open |
+| helm-charts#4132 | https://github.com/grafana/helm-charts/pull/4132 | Operator runs as a singleton; its webhooks are unreachable while it restarts | 2026-11-25 | closed |
+| rollout-operator#472 | https://github.com/grafana/rollout-operator/pull/472 | Lease leader election, merged 2026-10-09; no Mimir chart bundles it (6.2.2 ships v0.38.1) | 2026-11-25 | v0.41+ |
+| rollout-operator config.go | https://github.com/grafana/rollout-operator/blob/v0.38.0/pkg/config/config.go | `grafana.com/rollout-paused` key; controller skips paused StatefulSets, rest of the group continues | 2026-11-25 | v0.38.0 |
+| Ceph tentacle.rst | https://github.com/ceph/ceph/blob/main/doc/releases/tentacle.rst | 20.2.5 (2026-11-02) fixes the SigV4 regression, pr#71364 | 2026-11-25 | main |
+| Lab rehearsal | — | All `[LAB]` claims. k8s 1.35, Helm 3.17.3, Ceph RGW 20.2.4. Runs 2026-11-24/25: 5.7.0 → 6.1.1 → 6.2.2 with ~57 min 2.16↔3.1.8 and ~27 min 3.1.8↔3.2.3 mixed windows, 36 h backfill read through store-gateways (7,241 and 2,468 Series calls on old pods), 0 wrong of 4,099 checks; operator-restart webhook failure reproduced 3×, rerun succeeded each time; proxy alias Service; delayed client break with failed counter 0; block upload of Mimir 2.16.0, 2.17.12, 3.0.4, 3.1.8, 3.2.3 to RGW 20.2.4 denied, control upload to another S3 succeeded | 2026-11-25 | <!-- ignore-freshen --> |

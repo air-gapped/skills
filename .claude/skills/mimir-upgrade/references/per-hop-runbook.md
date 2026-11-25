@@ -12,6 +12,7 @@ version numbers do not — get those from `k8s-components-checker` → `referenc
 6. [Removed-key quick table](#6-removed-key-quick-table)
 7. [CHANGELOG claims that are wrong](#7-changelog-claims-that-are-wrong)
 8. [Hop 4 — 6.1.x → 6.2.x](#8-hop-4--61x--62x)
+9. [Short path — 5.x → 6.1.x → 6.2.x](#9-short-path--5x--61x--62x)
 
 ## 1. The silent-vs-loud asymmetry
 
@@ -98,6 +99,14 @@ backend pointing at the old name breaks simultaneously.
    `gateway.ingress.nameOverride: <existing-nginx-ingress-name>`. Both keys exist in 6.0.6. [UG]
 5. Set `nginx.enabled: false`, upgrade, and verify writes and reads through the **preserved** Service name.
    Only then delete the `nginx` block.
+6. **Clients on both names** (`<release>-nginx` and `<release>-gateway`): `nameOverride` keeps one and deletes the
+   other Service. Keep it with an extra Service in `extraObjects`, selecting `app.kubernetes.io/component: gateway`
+   plus the release's `name`/`instance` labels, ports as the gateway Service. [LAB]
+7. **A client on a deleted name fails late.** It keeps sending over its open connection and breaks at its next
+   reconnect (pod restart, idle timeout). Prometheus then logs `no such host`, `prometheus_remote_storage_samples_failed_total`
+   stays 0 and `prometheus_remote_storage_samples_pending` grows: gate on pending. [LAB]
+
+On the short path (§9) run this on the starting 5.x chart; the keys exist from 5.7.0. [LAB]
 
 **Archive the mapping guide now.** It resolves only at the **`v5.8.x`** docs path — `latest` 404s and `v5.6.x`
 redirect-loops between grafana.com and archive.grafana.com, because the guide was removed when `nginx` was. [UG]
@@ -237,3 +246,22 @@ v0.38.0 → v0.38.1). Come from 3.1 — the 3.2 querier↔store-gateway gRPC cha
    `GOMEMLIMIT` set on the ruler, or GC thrashes permanently. [UG]
 5. **KEDA-autoscaled installs:** the `kedaAutoscaling.fallback` ScaledObject template bug is fixed (#15793) —
    re-render the ScaledObjects and diff. [UG]
+
+## 9. Short path — 5.x → 6.1.x → 6.2.x
+
+Skips 5.8 and 6.0 as hops, not their changes. [LAB] for 5.7.0 → 6.1.1 → 6.2.2, classic architecture.
+
+1. Run every pre-flight item of §2 **and** §4 against the starting values: their removals still apply, and a
+   stale 2.17 or 3.0 key crashloops 3.1 the same way. Run `audit-values.sh` against the 6.1.x target.
+2. §3 proxy migration on the starting 5.x chart, as its own `helm upgrade`.
+3. Apply the rollout-operator CRDs from the 6.1.x tarball.
+4. `helm upgrade` to 6.1.x with `-f classic-architecture.yaml`, `querier.query_engine: prometheus`, `image.tag`
+   pinned to the chart's appVersion, and `rollout_operator.webhooks.enabled: false`.
+5. Gate per `rollout-and-rollback.md` §4 steps 3–5 and `verification.md`. Distributors and queriers move to 3.1
+   first and run against 2.16 ingesters and store-gateways until every zone has rolled.
+6. Enable the webhooks: the same values without `webhooks.enabled: false`. StatefulSets do not change.
+7. Flip the query engine (`query_engine: mimir`) as its own upgrade.
+8. 6.2.x via §8, with the operator-image step of `rollout-and-rollback.md` §4 first.
+
+Fall back to the ladder when step 5's gates fail, or when the production mixed window (zones × ingester
+`terminationGracePeriodSeconds` 1200) would run far longer than the lab held it. [RFC]

@@ -70,9 +70,9 @@ constraints with it.
 `/ingester/prepare-shutdown` makes the ingester unregister from the ring and flush in-memory series on the next
 SIGTERM — *even if* `unregister-on-shutdown` is disabled. [UG] That is the **scale-down** path.
 
-A version bump changes `spec.template` with replicas unchanged, so the prepare-downscale webhook is not in the
-path at all; pods keep their PVC, keep `/data/tokens`, keep their ring entry, and replay the WAL on restart.
-[RFC] Forcing `prepare-shutdown` first converts a cheap restart into a full unregister + flush for every pod —
+A version bump changes `spec.template` with replicas unchanged: the prepare-downscale webhook is called on the
+StatefulSet update but acts only on a replica decrease, so pods keep their PVC, keep `/data/tokens`, keep their
+ring entry, and replay the WAL on restart. [RFC] Forcing `prepare-shutdown` first converts a cheap restart into a full unregister + flush for every pod —
 slower, heavier, and it reintroduces exactly the resharding the chart is configured to avoid.
 
 ## 4. Ordered rollout sequence for one hop
@@ -83,7 +83,18 @@ slower, heavier, and it reintroduces exactly the resharding the chart is configu
          decrease; kubeVersion gate satisfiable; images + CRDs staged.
 
 1. ROLL THE ROLLOUT-OPERATOR ALONE, FIRST (6.x hops)
-   A helm upgrade changing only the operator/subchart version.
+   The umbrella chart moves the operator only with the chart, so:
+   - 5.x -> 6.x (webhooks arrive): upgrade with
+     rollout_operator.webhooks.enabled=false, then enable the webhooks as
+     their own upgrade (StatefulSets unchanged).
+   - 6.x -> 6.y with a new operator image: first upgrade the CURRENT chart
+     with only rollout_operator.image.tag=<target chart's tag>. It fails
+     once: helm patches every StatefulSet while the single operator pod
+     restarts ("failed calling webhook prepare-downscale ... no route to
+     host"). Wait for the operator endpoint, rerun the same command: it
+     succeeds. The chart upgrade then leaves the operator pod alone. [LAB]
+   Upstream: single replica by design (mimir#14919, helm-charts#4132);
+   leader election (rollout-operator#472) is in no Mimir chart yet.
    Why first: from 6.0 its webhooks default on with failurePolicy: Fail on
    statefulsets UPDATE in this namespace. If the operator is unhealthy, every
    later StatefulSet write -- including helm rollback -- is rejected.
@@ -126,7 +137,7 @@ Identify which one is available **before** starting the hop — the set changes 
 
 | Lever | Verdict |
 |---|---|
-| `grafana.com/rollout-paused: "true"` on the STS | The correct pause — the operator skips that StatefulSet and moves on. **Requires rollout-operator ≥ v0.36.0.** Bundled appVersions: 5.7.0→v0.24.0, 5.8.0→v0.28.0, 6.0.6→v0.32.0, 6.1.0→**v0.38.0**. So on this ladder it exists **only on the final hop**. [UG] |
+| `grafana.com/rollout-paused: "true"` on the STS | The correct pause — the operator skips that StatefulSet and moves on. **Requires rollout-operator ≥ v0.36.0.** Bundled appVersions: 5.7.0→v0.24.0, 5.8.0→v0.28.0, 6.0.6→v0.32.0, 6.1.0→**v0.38.0**. So on the ladder it exists **only on the final hop**. [UG] On a direct 5.x → 6.1.x hop the arriving operator honours it: annotate the zones to hold before `helm upgrade`, which keeps the live annotation. [LAB] |
 | Scale the rollout-operator to 0 | **Deadlocks the namespace on 6.x.** The prepare-downscale MutatingWebhookConfiguration matches UPDATE on `statefulsets` *and* `statefulsets/scale` with `failurePolicy: Fail`. No ready endpoint ⇒ the apiserver rejects every matching request — `helm upgrade`, `helm rollback`, and `kubectl scale` alike. Correct only on 5.7.0/5.8.0, which ship no webhooks. [UG] |
 | Break-glass: delete the webhook configurations | `kubectl delete validatingwebhookconfiguration no-downscale-<NS> pod-eviction-<NS>` and `kubectl delete mutatingwebhookconfigurations prepare-downscale-<NS>`, then `helm upgrade … --reset-values`. Upstream-documented recovery. Stage these commands **before** the 6.0 hop. [UG] |
 | Restarting the operator pod casually | Don't. It keeps in-memory state of recently evicted pods; upstream warns of a race that can breach a zone-aware PDB. [UG] |

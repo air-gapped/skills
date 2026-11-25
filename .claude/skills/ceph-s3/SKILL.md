@@ -49,9 +49,11 @@ The SigV4 fix breaks two things:
    (boto3 presigned PUTs with a content type, aws-sdk-php, minio-go — so
    restic, Thanos, Loki, Mimir): bare `403 AccessDenied`, `debug_rgw` 5 logs
    `Signature rejected` (trackers 79674, 79803). Fixed in 19.2.7: upgrade
-   Squid straight to it. Tentacle (no fixed release after 20.2.4 yet):
+   Squid straight to it, Tentacle to 20.2.5 (pr#71364). Until then:
    `ceph config set client.rgw rgw_sigv4_insecure true`, runtime, no restart.
    Other unsigned `x-amz-*` headers fail on AWS too: fix the client.
+   Mimir: per-version verdict and symptoms → `k8s-components-checker` → `compat/mimir.md`
+   § Object storage; procedure → `mimir-upgrade`.
 2. **Multisite.** Pre-fix zones sign forwarded requests improperly: set
    `rgw_sigv4_insecure: "true"` in every zone **before** upgrading. If
    forwarded requests (non-master → master, e.g. bucket create) still get

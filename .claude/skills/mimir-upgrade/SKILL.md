@@ -36,6 +36,8 @@ Every claim in this skill is tagged:
 
 - **[UG] upstream-grounded** — a doc, changelog, release note, or source file says it.
 - **[RFC] reasoned-from-config** — derived by reading chart templates, values, or Go source.
+- **[LAB] lab-observed** — watched working or failing on a lab Kubernetes cluster under test load. One
+  cluster: strong for behaviour, silent on production scale.
 
 Both tags mean *researched*. The grounding runs to tagged upstream source (`help-all.txt.tmpl`,
 `config-descriptor.json`, `pkg/ingester`, `pkg/usagestats`, `pkg/storage/ingest`), kubectl's and Helm's own
@@ -44,10 +46,8 @@ experiment rather than reading: the `classic-architecture.yaml` render was diffe
 fixture (79/79 config keys), and the `null`-semantics question was settled by compiling a probe against Mimir's
 exact YAML library.
 
-What is missing is a third level: **behavioural observation on a running cluster.** No lab cluster existed when
-this was written, so no claim here has been watched working. That gap is narrow and specific — see the first
-Open item in `references/improvement-backlog.md` for the three questions only a cluster can answer — but it is
-real, and it is why a `[RFC]` is not a `[UG]`.
+Claims without `[LAB]` have not been watched on a cluster. Open behavioural questions: the first Open item in
+`references/improvement-backlog.md`.
 
 Keep the distinction when extending this skill, and never promote an `[RFC]` to `[UG]` without citing the
 source that justifies it. An operator betting a production write path on an inference deserves to know it is
@@ -78,6 +78,10 @@ outage.
 5. **The CoreDNS Service name.** On RKE2 it is `rke2-coredns-rke2-coredns`, not `kube-dns` — see the
    `global.dnsService` gotcha in `references/air-gap.md`, which crash-loops the gateway and looks like a
    network fault.
+6. **The object store and its version** (`ceph versions` for Ceph RGW). Look the pair up in
+   `k8s-components-checker` → `compat/mimir.md` § Object storage: RGW 19.2.6 and 20.2.4 reject every Mimir
+   version's block uploads. List the URL each client uses (remote_write, Grafana datasource, ingress) — clients
+   on both proxy names need the alias Service in runbook §3.
 
 Also confirm: current chart + app version, k8s minor now and planned, whether an external object store or the
 bundled minio is in use, and whether the operator has a maintenance window long enough for zone-serial rolls
@@ -85,15 +89,11 @@ bundled minio is in use, and whether the operator has a maintenance window long 
 
 ## The load-bearing facts
 
-1. **Chart and app are co-pinned; walk one minor at a time.** [UG] Mimir's policy is that upgrading one minor to
-   the next works and deprecated features survive two minors. Chart minors track app minors, so the two ladders
-   are one walk. Skipping 6.0 to reach 6.1 is not possible — the architecture decision lands *at* 6.0.
-
-   **The ladder below terminates at 6.1, but chart 6.2.x exists** (app 3.2, `kubeVersion: ^1.32.0-0`). It is
-   **not** a floor event — 1.32 still gates the whole 6.1/6.2 line — so it is one more ordinary hop rather than
-   a second architecture decision, with its own default shifts and crashloop removals →
-   `references/per-hop-runbook.md` §8. Re-derive the terminal hop from `k8s-components-checker` →
-   `compat/mimir.md` rather than trusting this paragraph's numbers.
+1. **Two paths work.** Grafana promises minor-to-minor upgrades and forbids nothing else. [UG] The ladder
+   `5.7 → 5.8.1 → 6.0.6 → 6.1.1 → 6.2.2` follows that promise. The short path `5.x → 6.1.1 → 6.2.2` held a
+   2.16/3.1.8 mixed state for an hour with correct store-gateway reads [LAB] → `references/per-hop-runbook.md` §9.
+   **6.2 needs every querier on 3.1 first:** no single hop reaches 6.2 from 5.x or 6.0. [UG] Path verdicts and the
+   chart→app map live in `k8s-components-checker` → `compat/mimir.md`; re-derive the terminal hop there.
 2. **Chart 6.0 flips the write path by default.** [UG] `ingest_storage.enabled: true` and
    `ingester.push_grpc_method_enabled: false` are hardcoded in the chart's default Mimir config. A naive upgrade
    with a 5.x values file moves the entire write path onto a **single-node demo Kafka**. Decide the architecture
@@ -105,8 +105,9 @@ bundled minio is in use, and whether the operator has a maintenance window long 
 4. **The nginx→gateway rename is the highest-severity silent break, and it only hits community fleets.** [RFC]
    In 5.x the gateway was gated off for community, so community fleets ran `<release>-nginx`; 6.0 deletes it and creates
    `<release>-gateway` at a **different DNS name**. Every remote_write client, Grafana datasource, and ingress
-   backend breaks at once. Mitigate with `nameOverride`, on 5.8.0, in its own `helm upgrade` →
-   `references/per-hop-runbook.md`.
+   backend breaks at once. Mitigate with `nameOverride`, on the starting 5.x chart, in its own `helm upgrade` →
+   `references/per-hop-runbook.md` §3. With clients on both names, `nameOverride` keeps one and deletes the other
+   Service. [LAB]
 5. **Two opposite failure modes live in one values file.** [RFC] The chart ships **no `values.schema.json`** in
    any version in scope, so a stale *chart* key is a **silent no-op**. But Mimir **rejects removed app config at
    startup**, so a stale `structuredConfig` key is a **crashloop**. Audit both, expecting different symptoms.
@@ -116,7 +117,8 @@ bundled minio is in use, and whether the operator has a maintenance window long 
 7. **`helm upgrade --wait` is not a gate, and the obvious abort lever deadlocks the namespace.** [RFC] Helm's readiness
    check short-circuits for non-`RollingUpdate` StatefulSets, so it reports success before any ingester rolls.
    And on 6.x, scaling the rollout-operator to 0 blocks *every* StatefulSet write in the namespace —
-   including `helm rollback` → `references/rollout-and-rollback.md`.
+   including `helm rollback`. Every `helm upgrade` that restarts the operator on 6.x fails once on its own
+   webhook, and the rerun succeeds [LAB] → `references/rollout-and-rollback.md` §4.
 8. **Downgrade is an unmade upstream claim.** [UG] Zero occurrences of "downgrade"/"rollback" in either
    changelog; grafana/mimir#2807 has been open and unanswered since 2022. Treat every hop as forward-only at the
    **data** layer; `helm rollback` is a workload rollback only.
@@ -168,8 +170,8 @@ bundled minio is in use, and whether the operator has a maintenance window long 
 4. **One change per `helm upgrade`.** The proxy migration, the engine flip, and the chart bump are three
    changes. Bundling them makes a regression un-bisectable — which is the same reason the ladder itself has no
    skips.
-5. **Never POST `/ingester/prepare-shutdown` before a version bump.** [RFC] Replicas are unchanged so the
-   webhook is not in the path; forcing it triggers unregister + full flush, the expensive scale-down path.
+5. **Never POST `/ingester/prepare-shutdown` before a version bump.** [RFC] Replicas are unchanged, so the
+   webhook does no shutdown work; forcing it triggers unregister + full flush, the expensive scale-down path.
 6. **Treat "pods are Running" as evidence of nothing.** Verify with the gates in `references/verification.md`.
 
 ## References
@@ -179,8 +181,8 @@ bundled minio is in use, and whether the operator has a maintenance window long 
 | `references/architecture-decision.md` | Deciding classic vs ingest storage; the `kafka.enabled` trap; what running Kafka for Mimir actually costs |
 | `references/per-hop-runbook.md` | Executing a hop — per-hop pre-flight checklists, the nginx→gateway migration, removed-key tables |
 | `references/rollout-and-rollback.md` | Rollout-operator sequencing, the corrected `kubectl rollout restart` story, abort levers, the rollback matrix |
-| `references/verification.md` | Proving a hop worked — mixin alert names, the 6.1.0 alert renames, sample-loss PromQL, MQE differencing |
+| `references/verification.md` | Proving a hop worked — mixin alert names, the 6.1.0 alert renames, sample-loss PromQL, MQE differencing, rehearsing a hop in a lab |
 | `references/air-gap.md` | Staging images, killing usage-stats egress, CRDs, the RKE2 `global.dnsService` gotcha |
 | `references/sources.md` | Verifying or freshening a claim — per-row source + `Last verified` date |
-| `references/improvement-backlog.md` | Before extending the skill — what was tried, what is unresolved, and the three questions only a cluster can answer |
+| `references/improvement-backlog.md` | Before extending the skill — what was tried, what is unresolved, and the behaviour not yet watched on a cluster |
 | `${CLAUDE_SKILL_DIR}/scripts/audit-values.sh` | Pre-flight on every hop — flags removed chart keys (silent) and removed app config (crashloop) in a values file |
